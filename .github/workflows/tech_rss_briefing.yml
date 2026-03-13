@@ -1,0 +1,62 @@
+name: 기술사 시험 뉴스 브리핑
+
+on:
+  schedule:
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+jobs:
+  tech-briefing:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: RSS 수집
+        run: python3 scripts/fetch_news.py
+        env:
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+
+      - name: AI 분석
+        run: python3 scripts/analyze.py
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+      - name: README 업데이트
+        run: python3 scripts/update_readme.py
+
+      - name: GitHub에 Push
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add README.md
+          git diff --staged --quiet || git commit -m "기술사 뉴스 브리핑 업데이트 $(date '+%Y-%m-%d')"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 이메일 발송
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          from: ${{ secrets.GMAIL_USERNAME }}
+          to: ${{ secrets.GMAIL_USERNAME }}
+          subject: "[기술사 브리핑] 오늘의 뉴스 업데이트됨"
+          body: |
+            오늘의 기술사 시험 뉴스 브리핑이 업데이트됐습니다.
+
+            바로 확인:
+            https://github.com/${{ github.repository }}/blob/main/README.md
