@@ -52,7 +52,7 @@ for domain, query in QUERIES.items():
         for item in items:
             title = clean(item.get("title", ""))
             link  = item.get("originallink") or item.get("link", "")
-            desc  = clean(item.get("description", ""))[:80]
+            desc  = clean(item.get("description", ""))[:100]
 
             if title and link:
                 articles.append({
