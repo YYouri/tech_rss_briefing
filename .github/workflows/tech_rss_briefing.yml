@@ -54,9 +54,9 @@ jobs:
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
           from: ${{ secrets.GMAIL_USERNAME }}
           to: ${{ secrets.GMAIL_USERNAME }}
-          subject: "[기술사 브리핑] 오늘의 뉴스 업데이트됨"
+          subject: "오늘의 뉴스 업데이트됨"
           body: |
-            오늘의 기술사 시험 뉴스 브리핑이 업데이트됐습니다.
+            오늘의 뉴스 브리핑이 업데이트됐습니다.
 
             바로 확인:
             https://github.com/${{ github.repository }}/blob/main/README.md

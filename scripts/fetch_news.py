@@ -5,9 +5,11 @@ import sys
 import html
 import re
 import os
+import datetime
 
 CLIENT_ID = os.environ.get("NAVER_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET")
+todaty = datetime.datetime.now().strftime("%Y-%m-%d")
 
 if not CLIENT_ID or not CLIENT_SECRET:
     print("NAVER_CLIENT_ID 또는 NAVER_CLIENT_SECRET이 없습니다.")
@@ -53,7 +55,10 @@ for domain, query in QUERIES.items():
             title = clean(item.get("title", ""))
             link  = item.get("originallink") or item.get("link", "")
             desc  = clean(item.get("description", ""))[:100]
-
+            pub_date = item.get("pubDate","")
+            if today not in pub_date:
+                continue
+                
             if title and link:
                 articles.append({
                     "domain": domain,
