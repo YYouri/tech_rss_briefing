@@ -9,7 +9,6 @@ import datetime
 
 CLIENT_ID = os.environ.get("NAVER_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET")
-todaty = datetime.datetime.now().strftime("%Y-%m-%d")
 
 if not CLIENT_ID or not CLIENT_SECRET:
     print("NAVER_CLIENT_ID 또는 NAVER_CLIENT_SECRET이 없습니다.")
@@ -30,6 +29,7 @@ def clean(text):
     return text
 
 articles = []
+todaty = datetime.datetime.now().strftime("%Y-%m-%d")
 
 for domain, query in QUERIES.items():
     try:
