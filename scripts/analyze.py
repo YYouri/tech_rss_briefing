@@ -28,13 +28,11 @@ prompt = """당신은 정보처리기술사 시험 전문 분석가입니다.
 
 | 순번 | 도메인 | 연관 토픽 | 기사 요약 (한글 2줄 이내) | 관련 기출 | URL |
 |:----:|:------:|:---------:|:-------------------------|:---------|:----|
-| 1 | SW | 예시토픽 | 예시요약 | 138회 정보관리 2교시 | [링크](url) |
 
 ## 핵심 키워드
 
 | 키워드 | 설명 | 기술사 관련도 |
 |:------:|:-----|:------------:|
-| 예시 | 설명 | 상/중/하 |
 
 ## 예상 출제 포인트
 
@@ -44,9 +42,7 @@ prompt = """당신은 정보처리기술사 시험 전문 분석가입니다.
 
 | 우선순위 | 토픽 | 학습 포인트 |
 |:--------:|:-----|:-----------|
-| 1 | 예시 | 핵심 내용 |
 
----
 규칙:
 - 도메인: SW/AI/DB/SEC/NW
 - 기사 요약은 반드시 한글로
@@ -61,34 +57,53 @@ if not api_key:
     print("OPENROUTER_API_KEY가 없습니다.")
     sys.exit(1)
 
-payload = {
-    "model": "openrouter/free",
-    "messages": [{"role": "user", "content": prompt}],
-    "max_tokens": 3000
-}
+# 무료 모델 순서대로 시도
+MODELS = [
+    "mistralai/mistral-7b-instruct:free",
+    "google/gemma-3-4b-it:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
+]
 
-req = urllib.request.Request(
-    "https://openrouter.ai/api/v1/chat/completions",
-    data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-    headers={
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json; charset=utf-8",
-        "HTTP-Referer": "https://github.com",
-        "X-Title": "Tech Briefing"
-    }
-)
+analysis = None
 
-try:
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        result = json.loads(resp.read().decode("utf-8"))
-    analysis = result["choices"][0]["message"]["content"]
-except urllib.error.HTTPError as e:
-    body = e.read().decode("utf-8")
-    print(f"API 호출 실패: {e.code} {e.reason}")
-    print(f"에러 상세: {body}")
-    sys.exit(1)
-except Exception as e:
-    print(f"예외 발생: {e}")
+for model in MODELS:
+    try:
+        payload = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 3000
+        }
+
+        req = urllib.request.Request(
+            "https://openrouter.ai/api/v1/chat/completions",
+            data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json; charset=utf-8",
+                "HTTP-Referer": "https://github.com",
+                "X-Title": "Tech Briefing"
+            }
+        )
+
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+
+        content = result.get("choices", [{}])[0].get("message", {}).get("content")
+        if content:
+            print(f"[OK] 모델 성공: {model}")
+            analysis = content
+            break
+        else:
+            print(f"[WARN] {model} 응답 없음, 다음 모델 시도")
+
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8")
+        print(f"[WARN] {model} 실패: {e.code} - {body[:200]}")
+    except Exception as e:
+        print(f"[WARN] {model} 예외: {e}")
+
+if not analysis:
+    print("모든 모델 실패")
     sys.exit(1)
 
 with open("analysis.md", "w", encoding="utf-8") as f:
