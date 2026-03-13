@@ -1,4 +1,4 @@
-name: 기술사 시험 뉴스 브리핑
+name: 뉴스 브리핑
 
 on:
   schedule:
