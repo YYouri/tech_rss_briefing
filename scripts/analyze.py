@@ -57,11 +57,13 @@ if not api_key:
     print("OPENROUTER_API_KEY가 없습니다.")
     sys.exit(1)
 
-# 무료 모델 순서대로 시도
+# 2026년 3월 기준 동작하는 무료 모델 목록
 MODELS = [
-    "mistralai/mistral-7b-instruct:free",
-    "google/gemma-3-4b-it:free",
-    "meta-llama/llama-3.2-3b-instruct:free",
+    "openrouter/free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "deepseek/deepseek-r1:free",
+    "google/gemma-3-27b-it:free",
+    "microsoft/phi-4:free",
 ]
 
 analysis = None
