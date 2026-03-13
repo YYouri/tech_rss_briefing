@@ -29,7 +29,7 @@ def clean(text):
     return text
 
 articles = []
-todaty = datetime.datetime.now().strftime("%Y-%m-%d")
+today = datetime.datetime.now().strftime("%Y-%m-%d")
 
 for domain, query in QUERIES.items():
     try:
