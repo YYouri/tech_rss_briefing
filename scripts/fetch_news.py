@@ -29,7 +29,7 @@ def clean(text):
     return text
 
 articles = []
-today = datetime.datetime.now().strftime("%Y-%m-%d")
+#today = datetime.datetime.now().strftime("%Y-%m-%d")
 
 for domain, query in QUERIES.items():
     try:
@@ -56,8 +56,8 @@ for domain, query in QUERIES.items():
             link  = item.get("originallink") or item.get("link", "")
             desc  = clean(item.get("description", ""))[:100]
             pub_date = item.get("pubDate","")
-            if today not in pub_date:
-                continue
+            #if today not in pub_date:
+            #    continue
                 
             if title and link:
                 articles.append({
