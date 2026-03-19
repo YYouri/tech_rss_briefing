@@ -1,0 +1,86 @@
+네, 단계별로 알려드립니다.
+
+사전 준비
+인터넷 되는 PC에 Eclipse 설치 필요합니다.
+
+Eclipse IDE for RCP and RAP Developers 2024-06
+https://www.eclipse.org/downloads/packages/release/2024-06/r/eclipse-ide-rcp-and-rap-developers
+
+
+Step 1. Eclipse p2 미러링 명령어
+Eclipse 설치 후 아래 명령어로 로컬에 미러링:
+
+# Windows 기준
+# Eclipse 설치 경로로 이동
+cd C:\eclipse
+
+# 기본 플랫폼 미러링
+eclipsec.exe -application org.eclipse.equinox.p2.artifact.repository.mirrorApplication ^
+  -source https://download.eclipse.org/releases/2024-06 ^
+  -destination C:\eclipse-mirror\2024-06 ^
+  -verbose
+
+# 메타데이터도 같이
+eclipsec.exe -application org.eclipse.equinox.p2.metadata.repository.mirrorApplication ^
+  -source https://download.eclipse.org/releases/2024-06 ^
+  -destination C:\eclipse-mirror\2024-06 ^
+  -verbose
+
+
+Step 2. 용량 확인
+전체 미러는 20GB 이상입니다. 필요한 것만 추리려면:
+
+# 특정 feature만 미러링 (예: JDT만)
+eclipsec.exe -application org.eclipse.equinox.p2.artifact.repository.mirrorApplication ^
+  -source https://download.eclipse.org/releases/2024-06 ^
+  -destination C:\eclipse-mirror\jdt ^
+  -IUs org.eclipse.jdt.feature.group ^
+  -verbose
+
+
+Step 3. 미러링할 사이트 목록
+기존 플러그인 목록 기준으로 필요한 update site:
+
+# 메인
+https://download.eclipse.org/releases/2024-06
+
+# EGit
+https://download.eclipse.org/egit/updates
+
+# Buildship (Gradle)
+https://download.eclipse.org/buildship/updates/e426/releases/3.x
+
+# DTP (DataTools)
+https://download.eclipse.org/datatools/updates/1.16
+
+# SVN (Subversive)
+https://download.eclipse.org/technology/subversive/4.8/update-site
+
+
+Step 4. 미러링 결과 구조
+
+C:\eclipse-mirror\
+  2024-06\
+    artifacts.jar
+    content.jar
+    plugins\
+      *.jar
+    features\
+      *.jar
+
+
+이걸 USB나 내부망 파일서버에 복사 후, Eclipse에서 file:///C:/eclipse-mirror/2024-06 형태로 로컬 update site 등록하면 됩니다.
+
+Step 5. 미러링 실패 대비
+네트워크 불안정하면 중간에 끊길 수 있으니:
+
+# 재시도 가능하도록 스크립트 작성
+:retry
+eclipsec.exe -application org.eclipse.equinox.p2.artifact.repository.mirrorApplication ^
+  -source https://download.eclipse.org/releases/2024-06 ^
+  -destination C:\eclipse-mirror\2024-06 ^
+  -verbose
+if errorlevel 1 goto retry
+
+
+일단 Step 1 시도해보시고 결과 알려주시면 다음 단계 진행하겠습니다. 용량이나 속도 문제 있으면 필요한 feature만 추려서 최소화하는 방향으로 전환하겠습니다.​​​​​​​​​​​​​​​​
