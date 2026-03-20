@@ -1,3 +1,5 @@
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+
 # 서드파티 jar 다운로드 스크립트
 $DEST = "C:\eclipse-thirdparty"
 if (-not (Test-Path $DEST)) { New-Item -ItemType Directory -Path $DEST }
