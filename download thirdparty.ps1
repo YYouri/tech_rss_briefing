@@ -1,6 +1,18 @@
-[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+# SSL 인증서 검증 우회
+add-type @"
+    using System.Net;
+    using System.Security.Cryptography.X509Certificates;
+    public class TrustAllCertsPolicy : ICertificatePolicy {
+        public bool CheckValidationResult(
+            ServicePoint srvPoint, X509Certificate certificate,
+            WebRequest request, int certificateProblem) {
+            return true;
+        }
+    }
+"@
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
-# 서드파티 jar 다운로드 스크립트
 $DEST = "C:\eclipse-thirdparty"
 if (-not (Test-Path $DEST)) { New-Item -ItemType Directory -Path $DEST }
 
