@@ -1,142 +1,45 @@
-	public void createControl(Composite parent)
-	{
-		super.createControl(parent);
-		initializeDialogUnits(parent);
-
-		Composite composite = new Composite(parent, SWT.NONE);
-		composite.setFont(parent.getFont());
-		composite.setLayout(initGridLayout(new GridLayout(1, false), true));
-		composite.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-
-		final Shell shell= getShell();
-
-		INewProjectProvider[] providers= BuilderCustomizationManager.instance().getNewProjectProviders();
-
-		final List<NameSelector> nameSelectorList= new ArrayList<NameSelector>();
-
-		for (INewProjectProvider provider: providers) {
-			if (provider.useProjectNameSelector()){
-				NameSelector nameSelector= new NameSelector(provider.getId(), provider.getDisplayName());
-				nameSelectorList.add(nameSelector);
-			}
-		}
-
-		// 15.07.01
-		createApplicationOptionControls(composite);
-
-		/**
-		 * NameSelector 가 존재하면 프로젝트 Name 을 선택 할 수 있는 버튼이 추가 된다.
-		 */
-		final int columns= (nameSelectorList.size()>0)?3:2;
-
-		// 프로젝트 이름
-		Composite nameControl = (Composite)createNameControl(composite);
-		{
-			GridLayout layout= new GridLayout(columns, false);
-			layout.marginWidth= 0;
-			nameControl.setLayout(layout);
-
-			GridData data= new GridData(GridData.FILL_HORIZONTAL);
-			nameControl.setLayoutData(data);
-
-//			for( Control control: nameControl.getChildren() ){
-////				System.out.println(">> control : " + control.getClass());
-//				if ( control instanceof Text){
-//					Text txt= (Text)control;
-//					txt.addModifyListener(this);
-////					txt.setEditable(false);	// TODO Project Name 선택 비활성화 2014.09.30
-//				}zz
-//			}
-
-			// 프로젝트 이름 Selector 가 있는 경우
-			if ( nameSelectorList.size()>0 ) {
-				for( Control control: nameControl.getChildren() ){
-					if ( control instanceof Text){
-						Text txt= (Text)control;
-						txt.addModifyListener(this);
-						txt.setEditable(false);	// TODO Project Name 선택 비활성화 2014.09.30
-					}
-				}
-				hasNameSelector= true;
-
-				Button btnBrowse= new Button(nameControl, SWT.PUSH);
-				btnBrowse.setText("Browse");
-
-				btnBrowse.addSelectionListener( new SelectionAdapter() {
-					@Override
-					public void widgetSelected(SelectionEvent selectionevent) {
-
-						NameSelector nameSelect= null;
-
-						if ( nameSelectorList.size() == 1 ){
-							nameSelect= nameSelectorList.get(0);
-						}
-						else{
-							// TODO 두개일때 선택하는 다이알로그
-						}
-
-						INewProjectProvider provider= BuilderCustomizationManager.instance().getNewProjectProviders(nameSelect.getId());
-						BxmNameSelectorDialog nameSelectorDialog= provider.getProjectNameSelector(shell, online);
-
-						if ( nameSelectorDialog.open() == Dialog.OK ){
-							// 순서주의
-							BxmNewJavaProjectWizardPageOne.this.setProjectCode(nameSelectorDialog.getCodeSelected());
-							BxmNewJavaProjectWizardPageOne.this.setProjectName(nameSelectorDialog.getNameSelected());
-
-							newProjectProperties= nameSelectorDialog.getNewProjectProperties();
-							newProjectPropertyName= nameSelectorDialog.getNewProjectPropertyName();
-
-							logicalNameDialogField.setText(nameSelectorDialog.getLogicalNameSelected());
-						}
-					}
-				});
-			}
-			else{
-				// 프로젝트 이름 Selector 가 없는 경우
-				for( Control control: nameControl.getChildren() ){
-					if ( control instanceof Text){
-						Text txt= (Text)control;
-						txt.addModifyListener(this);
-						txt.setEditable(true);	// TODO Project Name 선택 비활성화 2014.09.30
-					}
-				}
-				hasNameSelector= false;
-			}
-		}
-
-		createSeparator(nameControl, columns);
-		createLogicalNameControls(nameControl, columns);
-//		createSeparator(nameControl, columns);
-
-		// 15.07.08
-		if ( BuilderActivator.getDefault().getConfiguration().isNewProjectUsePackagePreview() ){
-			createDefaultPackagePreviewControls(composite);
-		}
-//		createApplicationOptionControls(composite);
-
-		/**
-		 * 배치 옵션 없애고 항상 Jobs 디렉토리 만들도록 변경
-		 */
-//		createBatchOptionControls(composite);
-		createJobsFolderForBatch= true;
-		createShellsFolderForBatch= false;
-
-		// 워킹셋
-		Control workingSetControl = createWorkingSetControl(composite);
-		{
-			GridData data= new GridData(GridData.FILL_HORIZONTAL);
-			workingSetControl.setLayoutData(data);
-		}
-
-		// 안보여야 되는 Control
-		Composite invisibleComposite= new Composite(parent, SWT.BORDER);
-		Control jreControl = createJRESelectionControl(invisibleComposite);
-		jreControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Control layoutControl = createProjectLayoutControl(invisibleComposite);
-		layoutControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Control locationControl = createLocationControl(invisibleComposite);
-		locationControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Control infoControl = createInfoControl(invisibleComposite);
-		infoControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		setControl(composite);
-	}
+!STACK 0
+org.eclipse.core.runtime.AssertionFailedException: null argument:uncreated control requested with composite null
+	at org.eclipse.core.runtime.Assert.isNotNull(Assert.java:92)
+	at org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField.assertCompositeNotNull(DialogField.java:252)
+	at org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField.getLabelControl(DialogField.java:153)
+	at org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne$ModuleGroup.handlePossibleJVMChange(NewJavaProjectWizardPageOne.java:888)
+	at org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne$JREGroup.dialogFieldChanged(NewJavaProjectWizardPageOne.java:693)
+	at org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField.dialogFieldChanged(DialogField.java:78)
+	at org.eclipse.jdt.internal.ui.wizards.dialogfields.ComboDialogField.doModifyText(ComboDialogField.java:137)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(TypedListener.java:196)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(EventTable.java:91)
+	at org.eclipse.swt.widgets.Display.sendEvent(Display.java:4326)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1174)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1198)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1179)
+	at org.eclipse.swt.widgets.Combo.setItems(Combo.java:2113)
+	at org.eclipse.jdt.internal.ui.wizards.dialogfields.ComboDialogField.setItems(ComboDialogField.java:177)
+	at org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne$JREGroup.fillInstalledJREs(NewJavaProjectWizardPageOne.java:552)
+	at org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne$JREGroup.lambda$4(NewJavaProjectWizardPageOne.java:462)
+	at java.base/java.util.concurrent.CompletableFuture$UniAccept.tryFire(CompletableFuture.java:718)
+	at java.base/java.util.concurrent.CompletableFuture$Completion.run(CompletableFuture.java:482)
+	at org.eclipse.swt.widgets.RunnableLock.run(RunnableLock.java:40)
+	at org.eclipse.swt.widgets.Synchronizer.runAsyncMessages(Synchronizer.java:132)
+	at org.eclipse.swt.widgets.Display.runAsyncMessages(Display.java:4099)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Display.java:3715)
+	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine$5.run(PartRenderingEngine.java:1151)
+	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
+	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.run(PartRenderingEngine.java:1042)
+	at org.eclipse.e4.ui.internal.workbench.E4Workbench.createAndRunUI(E4Workbench.java:153)
+	at org.eclipse.ui.internal.Workbench.lambda$3(Workbench.java:639)
+	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
+	at org.eclipse.ui.internal.Workbench.createAndRunWorkbench(Workbench.java:546)
+	at org.eclipse.ui.PlatformUI.createAndRunWorkbench(PlatformUI.java:173)
+	at bxm.ui.ide.application.IDEApplication.start(IDEApplication.java:170)
+	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:208)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:143)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:109)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:439)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:271)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:668)
+	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:605)
+	at org.eclipse.equinox.launcher.Main.run(Main.java:1481)
+	at org.eclipse.equinox.launcher.Main.main(Main.java:1454)
