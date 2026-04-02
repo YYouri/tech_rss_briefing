@@ -1,117 +1,36 @@
-/**
- *
- */
-package bxm.ui.decorators.utils;
-
-import java.net.URL;
-import java.util.HashMap;
-
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.resource.ImageRegistry;
-import org.eclipse.swt.graphics.Image;
-import org.osgi.framework.Bundle;
-
-import bxm.ui.decorators.Activator;
-
-/**
- * @author 손현준
- *
- */
-public abstract class UIImage {
-
-	private static final IPath ICONS_PATH = new Path("$nl$/icons"); //$NON-NLS-1$
-
-	private static final String NAME_PREFIX = Activator.PLUGIN_ID + "."; //$NON-NLS-1$
-	private static final int NAME_PREFIX_LENGTH = NAME_PREFIX.length();
-
-	private static ImageRegistry fgImageRegistry = null;
-	private static HashMap<String, ImageDescriptor> fgAvoidSWTErrorMap = null;
-
-	private static final String DECORATOR = "decorator";
-
-	public static final String IMG_OMM_JAVA= NAME_PREFIX + "ommJava.png"; //$NON-NLS-1$
-	public static final String IMG_DBIO_INTERFACE= NAME_PREFIX + "dbioInterface.png"; //$NON-NLS-1$
-	public static final String IMG_PROJECT= NAME_PREFIX + "project.png"; //$NON-NLS-1$
-	public static final String IMG_BEAN= NAME_PREFIX + "beanJava.png"; //$NON-NLS-1$
-	public static final String IMG_SERVICE= NAME_PREFIX + "serviceJava.png"; //$NON-NLS-1$
-	public static final String IMG_SERVICE_OPERATION= NAME_PREFIX + "decorator_serviceoperation.png"; //$NON-NLS-1$
-	public static final String IMG_BEAN_OPERATION= NAME_PREFIX + "decorator_beanoperation.png"; //$NON-NLS-1$
-
-
-	public static final ImageDescriptor DESC_OMM_JAVA= createManagedFromKey(DECORATOR, IMG_OMM_JAVA);
-	public static final ImageDescriptor DESC_DBIO_INTERFACE= createManagedFromKey(DECORATOR, IMG_DBIO_INTERFACE);
-	public static final ImageDescriptor DESC_PROJECT= createManagedFromKey(DECORATOR, IMG_PROJECT);
-
-	public static final ImageDescriptor DESC_BEAN= createManagedFromKey(DECORATOR, IMG_BEAN);
-	public static final ImageDescriptor DESC_SERVICE= createManagedFromKey(DECORATOR, IMG_SERVICE);
-	public static final ImageDescriptor DESC_BEAN_OPERATION= createManagedFromKey(DECORATOR, IMG_BEAN_OPERATION);
-	public static final ImageDescriptor DESC_SERVICE_OPERATION= createManagedFromKey(DECORATOR, IMG_SERVICE_OPERATION);
-
-	public static Image get(String key) {
-		return getImageRegistry().get(key);
-	}
-
-	public static ImageDescriptor getDescriptor(String key) {
-		if ( null == fgImageRegistry ) {
-			return (ImageDescriptor) fgAvoidSWTErrorMap.get(key);
-		}
-		return getImageRegistry().getDescriptor(key);
-	}
-
-	/* package */ static ImageRegistry getImageRegistry() {
-		if ( null == fgImageRegistry ) {
-			fgImageRegistry = new ImageRegistry();
-			for (String key : fgAvoidSWTErrorMap.keySet()) {
-				fgImageRegistry.put(key, (ImageDescriptor) fgAvoidSWTErrorMap.get(key));
-			}
-			fgAvoidSWTErrorMap = null;
-		}
-		return fgImageRegistry;
-	}
-
-	private static ImageDescriptor createManagedFromKey(String prefix, String key) {
-		return createManaged(prefix, key.substring(NAME_PREFIX_LENGTH), key);
-	}
-
-	private static ImageDescriptor createManaged(String prefix, String name, String key) {
-
-		ImageDescriptor result = create(prefix, name, true);
-
-		if ( null == fgAvoidSWTErrorMap ) {
-			fgAvoidSWTErrorMap = new HashMap<String, ImageDescriptor>();
-		}
-
-		fgAvoidSWTErrorMap.put(key, result);
-
-		if ( null == fgImageRegistry ) {
-//			System.out.println( "Image registry already defined" ); //$NON-NLS-1$
-		}
-
-		return result;
-	}
-
-	private static ImageDescriptor create(String prefix, String name, boolean useMissingImageDescriptor) {
-		IPath path = null;
-		if (prefix == null) {
-			path = ICONS_PATH.append(name);
-		} else {
-			path = ICONS_PATH.append(prefix).append(name);
-		}
-		return createImageDescriptor( Activator.getDefault().getBundle(), path, useMissingImageDescriptor );
-	}
-
-	public static ImageDescriptor createImageDescriptor(Bundle bundle, IPath path, boolean useMissingImageDescriptor) {
-		URL url = FileLocator.find(bundle, path, null);
-		if ( url != null ) {
-			return ImageDescriptor.createFromURL(url);
-		}
-		if (useMissingImageDescriptor) {
-			return ImageDescriptor.getMissingImageDescriptor();
-		}
-		return null;
-	}
-
-}
+!MESSAGE Unable to load resource platform:/plugin/bxm.java.package/Application.e4xmi
+!STACK 0
+org.eclipse.emf.ecore.resource.impl.ResourceSetImpl$1DiagnosticWrappedException: java.io.FileNotFoundException: /Application.e4xmi
+	at org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.handleDemandLoadException(ResourceSetImpl.java:319)
+	at org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.demandLoadHelper(ResourceSetImpl.java:278)
+	at org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.getResource(ResourceSetImpl.java:406)
+	at org.eclipse.e4.ui.internal.workbench.ResourceHandler.getResource(ResourceHandler.java:287)
+	at org.eclipse.e4.ui.internal.workbench.ResourceHandler.loadResource(ResourceHandler.java:263)
+	at org.eclipse.e4.ui.internal.workbench.ResourceHandler.loadMostRecentModel(ResourceHandler.java:178)
+	at org.eclipse.e4.ui.internal.workbench.swt.E4Application.loadApplicationModel(E4Application.java:368)
+	at org.eclipse.e4.ui.internal.workbench.swt.E4Application.createE4Workbench(E4Application.java:244)
+	at org.eclipse.e4.ui.internal.workbench.swt.E4Application.start(E4Application.java:152)
+	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:208)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:143)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:109)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:439)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:271)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:668)
+	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:605)
+	at org.eclipse.equinox.launcher.Main.run(Main.java:1481)
+	at org.eclipse.equinox.launcher.Main.main(Main.java:1454)
+Caused by: java.io.FileNotFoundException: /Application.e4xmi
+	at org.eclipse.osgi.storage.url.bundleentry.Handler.findBundleEntry(Handler.java:55)
+	at org.eclipse.osgi.storage.url.BundleResourceHandler.openConnection(BundleResourceHandler.java:186)
+	at java.base/java.net.URL.openConnection(URL.java:1258)
+	at org.eclipse.core.internal.boot.PlatformURLConnection.connect(PlatformURLConnection.java:114)
+	at org.eclipse.core.internal.boot.PlatformURLConnection.connect(PlatformURLConnection.java:95)
+	at org.eclipse.core.internal.boot.PlatformURLConnection.getInputStream(PlatformURLConnection.java:208)
+	at org.eclipse.emf.ecore.resource.impl.URIHandlerImpl.createInputStream(URIHandlerImpl.java:207)
+	at org.eclipse.emf.ecore.resource.impl.ExtensibleURIConverterImpl.createInputStream(ExtensibleURIConverterImpl.java:358)
+	at org.eclipse.emf.ecore.resource.impl.ResourceImpl.load(ResourceImpl.java:1314)
+	at org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.demandLoad(ResourceSetImpl.java:259)
+	at org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.demandLoadHelper(ResourceSetImpl.java:274)
+	... 18 more
