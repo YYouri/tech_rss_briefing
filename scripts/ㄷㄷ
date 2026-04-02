@@ -1,3 +1,494 @@
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jdt.core.JavaConventions;
+import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
+import org.eclipse.jdt.internal.ui.dialogs.TextFieldNavigationHandler;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.IDialogFieldListener;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.LayoutUtil;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.Separator;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.StringDialogField;
+import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+
+import bxm.builder.BuilderActivator;
+import bxm.builder.configuration.BuilderProperties;
+import bxm.builder.ui.customization.BuilderCustomizationManager;
+import bxm.builder.ui.extentions.INewProjectProvider;
+import bxm.builder.ui.extentions.PackageSet;
+import bxm.builder.ui.model.NameSelector;
+import bxm.ui.controls.dialog.BxmNameSelectorDialog;
+import bxm.ui.viewer.AbstractTableViewer;
+
+public class BxmNewJavaProjectWizardPageOne
+extends NewJavaProjectWizardPageOne
+implements ModifyListener
+{
+	class PackagePreviewTableViewer extends AbstractTableViewer {
+
+		public PackagePreviewTableViewer(Composite parent, int style) {
+			super(parent, style);
+
+			createColumn("Package name", 350);
+			setHeaderVisible(true);
+			setLineVisible(true);
+		}
+	}
+
+	private boolean hasNameSelector= false;
+	private String newProjectPropertyName;
+	private Properties newProjectProperties;
+
+	private StringDialogField logicalNameDialogField;
+
+	private String categoryLogicalName= "";
+
+	private boolean online= true;
+
+	private PackagePreviewTableViewer packagePreviewTableViewer= null;
+
+	private Text txtPackagePrefix= null;
+
+	private boolean isTxtPackagePrefixFocused= false;
+	private boolean isTxtPackagePrefixModifiedByUser= false;
+
+	private Group groupBatch;
+	private boolean createJobsFolderForBatch= true;
+	private boolean createShellsFolderForBatch= true;
+
+	private PackageSet[] defaultPackageSet= null;
+
+	private ModifyListener packagePrefixModifyListener= new ModifyListener() {
+		@Override
+		public void modifyText(ModifyEvent modifyevent) {
+			if ( txtPackagePrefix != null && !txtPackagePrefix.isDisposed() ){
+
+				if ( isTxtPackagePrefixFocused ){
+					isTxtPackagePrefixModifiedByUser= true;
+					System.out.println(">> isTxtPackagePrefixModifiedByUser : "+ isTxtPackagePrefixModifiedByUser);
+				}
+
+				if ( isTxtPackagePrefixModifiedByUser ){
+					projectCode= txtPackagePrefix.getText();
+				}
+				updateStatus();
+			}
+		}
+	};
+
+	// 부가정보
+	private String projectCode;
+
+	// 불필요한 Control 숨김
+	public void createControl(Composite parent)
+	{
+		initializeDialogUnits(parent);
+
+		Composite composite = new Composite(parent, SWT.NONE);
+		composite.setFont(parent.getFont());
+		composite.setLayout(initGridLayout(new GridLayout(1, false), true));
+		composite.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+
+		final Shell shell= getShell();
+
+		INewProjectProvider[] providers= BuilderCustomizationManager.instance().getNewProjectProviders();
+
+		final List<NameSelector> nameSelectorList= new ArrayList<NameSelector>();
+
+		for (INewProjectProvider provider: providers) {
+			if (provider.useProjectNameSelector()){
+				NameSelector nameSelector= new NameSelector(provider.getId(), provider.getDisplayName());
+				nameSelectorList.add(nameSelector);
+			}
+		}
+
+		// 15.07.01
+		createApplicationOptionControls(composite);
+
+		/**
+		 * NameSelector 가 존재하면 프로젝트 Name 을 선택 할 수 있는 버튼이 추가 된다.
+		 */
+		final int columns= (nameSelectorList.size()>0)?3:2;
+
+		// 프로젝트 이름
+		Composite nameControl = (Composite)createNameControl(composite);
+		{
+			GridLayout layout= new GridLayout(columns, false);
+			layout.marginWidth= 0;
+			nameControl.setLayout(layout);
+
+			GridData data= new GridData(GridData.FILL_HORIZONTAL);
+			nameControl.setLayoutData(data);
+
+//			for( Control control: nameControl.getChildren() ){
+////				System.out.println(">> control : " + control.getClass());
+//				if ( control instanceof Text){
+//					Text txt= (Text)control;
+//					txt.addModifyListener(this);
+////					txt.setEditable(false);	// TODO Project Name 선택 비활성화 2014.09.30
+//				}zz
+//			}
+
+			// 프로젝트 이름 Selector 가 있는 경우
+			if ( nameSelectorList.size()>0 ) {
+				for( Control control: nameControl.getChildren() ){
+					if ( control instanceof Text){
+						Text txt= (Text)control;
+						txt.addModifyListener(this);
+						txt.setEditable(false);	// TODO Project Name 선택 비활성화 2014.09.30
+					}
+				}
+				hasNameSelector= true;
+
+				Button btnBrowse= new Button(nameControl, SWT.PUSH);
+				btnBrowse.setText("Browse");
+
+				btnBrowse.addSelectionListener( new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent selectionevent) {
+
+						NameSelector nameSelect= null;
+
+						if ( nameSelectorList.size() == 1 ){
+							nameSelect= nameSelectorList.get(0);
+						}
+						else{
+							// TODO 두개일때 선택하는 다이알로그
+						}
+
+						INewProjectProvider provider= BuilderCustomizationManager.instance().getNewProjectProviders(nameSelect.getId());
+						BxmNameSelectorDialog nameSelectorDialog= provider.getProjectNameSelector(shell, online);
+
+						if ( nameSelectorDialog.open() == Dialog.OK ){
+							// 순서주의
+							BxmNewJavaProjectWizardPageOne.this.setProjectCode(nameSelectorDialog.getCodeSelected());
+							BxmNewJavaProjectWizardPageOne.this.setProjectName(nameSelectorDialog.getNameSelected());
+
+							newProjectProperties= nameSelectorDialog.getNewProjectProperties();
+							newProjectPropertyName= nameSelectorDialog.getNewProjectPropertyName();
+
+							logicalNameDialogField.setText(nameSelectorDialog.getLogicalNameSelected());
+						}
+					}
+				});
+			}
+			else{
+				// 프로젝트 이름 Selector 가 없는 경우
+				for( Control control: nameControl.getChildren() ){
+					if ( control instanceof Text){
+						Text txt= (Text)control;
+						txt.addModifyListener(this);
+						txt.setEditable(true);	// TODO Project Name 선택 비활성화 2014.09.30
+					}
+				}
+				hasNameSelector= false;
+			}
+		}
+
+		createSeparator(nameControl, columns);
+		createLogicalNameControls(nameControl, columns);
+//		createSeparator(nameControl, columns);
+
+		// 15.07.08
+		if ( BuilderActivator.getDefault().getConfiguration().isNewProjectUsePackagePreview() ){
+			createDefaultPackagePreviewControls(composite);
+		}
+//		createApplicationOptionControls(composite);
+
+		/**
+		 * 배치 옵션 없애고 항상 Jobs 디렉토리 만들도록 변경
+		 */
+//		createBatchOptionControls(composite);
+		createJobsFolderForBatch= true;
+		createShellsFolderForBatch= false;
+
+		// 워킹셋
+		Control workingSetControl = createWorkingSetControl(composite);
+		{
+			GridData data= new GridData(GridData.FILL_HORIZONTAL);
+			workingSetControl.setLayoutData(data);
+		}
+
+		// 안보여야 되는 Control
+		Composite invisibleComposite= new Composite(parent, SWT.BORDER);
+		Control jreControl = createJRESelectionControl(invisibleComposite);
+		jreControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Control layoutControl = createProjectLayoutControl(invisibleComposite);
+		layoutControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Control locationControl = createLocationControl(invisibleComposite);
+		locationControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Control infoControl = createInfoControl(invisibleComposite);
+		infoControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		setControl(composite);
+	}
+
+	protected void createDefaultPackagePreviewControls(Composite parent){
+		Group group = new Group(parent, SWT.NONE);
+		group.setText("Package Preview");
+		{
+			GridLayout layout= new GridLayout(2, false);
+			group.setLayout(layout);
+			GridData data= new GridData(GridData.FILL_HORIZONTAL);
+			data.heightHint= 150;
+			group.setLayoutData(data);
+		}
+
+		new Label(group, SWT.NONE).setText("Prefix");
+		txtPackagePrefix= new Text(group, SWT.BORDER);
+		{
+			GridData data= new GridData(GridData.FILL_HORIZONTAL);
+			txtPackagePrefix.setLayoutData(data);
+		}
+//		txtPackagePrefix.addModifyListener(packagePrefixModifyListener);
+
+
+		if ( hasNameSelector ){
+			txtPackagePrefix.setEditable(false);
+		}
+		else{
+			txtPackagePrefix.setEditable(true);
+			txtPackagePrefix.addModifyListener(packagePrefixModifyListener);
+		}
+
+		txtPackagePrefix.addFocusListener( new FocusListener() {
+
+			@Override
+			public void focusLost(FocusEvent event) {
+				isTxtPackagePrefixFocused= false;
+				System.out.println(">> isTxtPackagePrefixFocused : " + isTxtPackagePrefixFocused);
+			}
+
+			@Override
+			public void focusGained(FocusEvent event) {
+				isTxtPackagePrefixFocused= true;
+				System.out.println(">> isTxtPackagePrefixFocused : " + isTxtPackagePrefixFocused);
+			}
+		});
+
+		packagePreviewTableViewer = new PackagePreviewTableViewer(group, SWT.FULL_SELECTION | SWT.BORDER | SWT.MULTI);
+		{
+			GridLayout layout= new GridLayout();
+			packagePreviewTableViewer.getTable().setLayout(layout);
+			GridData data= new GridData(GridData.FILL_BOTH);
+			data.horizontalSpan= 2;
+			packagePreviewTableViewer.getTable().setLayoutData(data);
+		}
+
+		packagePreviewTableViewer.setContentProvider(new ArrayContentProvider());
+		packagePreviewTableViewer.setLabelProvider(new LabelProvider());
+
+		updateStatus();
+	}
+
+	protected void createApplicationOptionControls(Composite parent){
+		Group group = new Group(parent, SWT.NONE);
+		group.setText("Application options");
+		{
+			GridLayout layout= new GridLayout();
+			layout.marginTop= 2;
+			layout.marginBottom= 2;
+			group.setLayout(layout);
+			group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		}
+
+		Composite compBtn= new Composite(group, SWT.NONE);
+		{
+			GridLayout layout= new GridLayout(2, true);
+			compBtn.setLayout(layout);
+			compBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		}
+
+		Button[] btnApplicationType= new Button[2];
+
+		btnApplicationType[1]= new Button(compBtn, SWT.RADIO);
+		btnApplicationType[1].setText("Batch");
+		btnApplicationType[1].addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				online= false;
+				setProjectName("");
+				setProjectCode("");
+
+				setBatchOptionEnabled(!online);
+			}
+		});
+		
+		if( BuilderProperties.instance().isUseOnlyBatch() )
+		{
+			online= false;
+			btnApplicationType[1].setSelection(true);
+		}
+		else
+		{
+			btnApplicationType[0]= new Button(compBtn, SWT.RADIO);
+			btnApplicationType[0].setText("Online");
+			btnApplicationType[0].addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					online= true;
+					setProjectName("");
+					setProjectCode("");
+					
+					setBatchOptionEnabled(!online);
+				}
+			});
+			btnApplicationType[0].setSelection(true);
+		}
+
+		
+	}
+
+	protected void createBatchOptionControls(Composite parent){
+		groupBatch = new Group(parent, SWT.NONE);
+		groupBatch.setText("Batch options");
+		{
+			GridLayout layout= new GridLayout();
+			layout.marginTop= 2;
+			layout.marginBottom= 2;
+			groupBatch.setLayout(layout);
+			groupBatch.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		}
+
+		Button btnCreateJobsFolder= new Button(groupBatch, SWT.CHECK);
+		btnCreateJobsFolder.setText("Create Folder '/META-INF/jobs'");
+		btnCreateJobsFolder.setSelection(createJobsFolderForBatch);
+		btnCreateJobsFolder.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				createJobsFolderForBatch= ((Button)e.widget).getSelection();
+			}
+
+		});
+
+
+		Button btnCreateShellsFolder= new Button(groupBatch, SWT.CHECK);
+		btnCreateShellsFolder.setText("Create Folder '/META-INF/shells'");
+		btnCreateShellsFolder.setSelection(createShellsFolderForBatch);
+		btnCreateShellsFolder.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				createShellsFolderForBatch= ((Button)e.widget).getSelection();
+			}
+
+		});
+
+		setBatchOptionEnabled(!online);
+	}
+
+	protected void setBatchOptionEnabled(boolean enabled){
+		if ( groupBatch != null && !groupBatch.isDisposed() ){
+
+			groupBatch.setEnabled(enabled);
+
+			for(Control control: groupBatch.getChildren() ){
+				control.setEnabled(enabled);
+			}
+		}
+	}
+
+	protected void createLogicalNameControls(Composite parent, int nColumn)
+    {
+		logicalNameDialogField= new StringDialogField();
+        logicalNameDialogField.setLabelText(getLogicalNameLabel());
+        logicalNameDialogField.doFillIntoGrid(parent, nColumn);
+		LayoutUtil.setHorizontalGrabbing(logicalNameDialogField.getTextControl(null));
+        logicalNameDialogField.setDialogFieldListener( new IDialogFieldListener() {
+        	@Override
+			public void dialogFieldChanged(DialogField dialogfield) {
+        		BxmNewJavaProjectWizardPageOne.this.typeLogicalNameChanged();
+			}
+        });
+		Text text= logicalNameDialogField.getTextControl(null);
+		LayoutUtil.setHorizontalGrabbing(text);
+		TextFieldNavigationHandler.install(text);
+    }
+
+	protected int getMaxFieldWidth()
+    {
+        return convertWidthInCharsToPixels(40);
+    }
+
+	private GridLayout initGridLayout(GridLayout layout, boolean margins)
+	{
+		layout.horizontalSpacing = convertHorizontalDLUsToPixels(4);
+		layout.verticalSpacing = convertVerticalDLUsToPixels(4);
+		if(margins)
+		{
+			layout.marginWidth = convertHorizontalDLUsToPixels(7);
+			layout.marginHeight = convertVerticalDLUsToPixels(7);
+		} else
+		{
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+		}
+		return layout;
+	}
+
+	protected String getLogicalNameLabel(){
+		return "Logical Name:";
+	}
+
+	protected String getDescriptionLabel(){
+		return "Description:";
+	}
+
+	private IStatus typeLogicalNameChanged()
+	{
+		StatusInfo status = new StatusInfo();
+
+		categoryLogicalName= logicalNameDialogField.getText();
+
+		return status;
+	}
+
+	public String getCategoryLogicalName() {
+		return categoryLogicalName;
+	}
+
+	protected void setProjectCode(String code){
+		this.projectCode= code;
+//		this.txtPackagePrefix.removeModifyListener(packagePrefixModifyListener);
+		if ( txtPackagePrefix != null && !txtPackagePrefix.isDisposed() ){
+			this.txtPackagePrefix.setText(code);
+		}
+//		this.txtPackagePrefix.addModifyListener(packagePrefixModifyListener);
+	}
+
+	protected void createSeparator(Composite composite, int nColumns)
+    {
+        (new Separator(258)).doFillIntoGrid(composite, nColumns, convertHeightInCharsToPixels(1));
+    }
+
+	public String getProjectCode() {
+		return projectCode;
+	}
+
 	protected void updateStatus(){
 
 		INewProjectProvider[] providers= BuilderCustomizationManager.instance().getNewProjectProviders();
@@ -45,3 +536,43 @@
 			setErrorMessage(errorMessage);
 		}
 	}
+
+	@Override
+	public void modifyText(ModifyEvent event) {
+		if ( !hasNameSelector && !isTxtPackagePrefixModifiedByUser ){
+			setProjectCode(getProjectName().toLowerCase());
+		}
+
+		updateStatus();
+	}
+
+	public PackageSet[] getDefaultPackageSet() {
+		// 15.07.08
+		if ( BuilderActivator.getDefault().getConfiguration().isNewProjectUsePackagePreview() ){
+			return defaultPackageSet;
+		}
+		else{
+			return new PackageSet[0];
+		}
+	}
+
+	public boolean isOnline() {
+		return online;
+	}
+
+	public String getNewProjectPropertyName(){
+		return newProjectPropertyName;
+	}
+
+	public Properties getNewProjectProperties() {
+		return newProjectProperties;
+	}
+
+	public boolean isCreateJobsFolderForBatch() {
+		return createJobsFolderForBatch;
+	}
+
+	public boolean isCreateShellsFolderForBatch() {
+		return createShellsFolderForBatch;
+	}
+}
