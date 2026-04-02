@@ -1,178 +1,36 @@
-	public void createControl(Composite parent)
-	{
-		Composite superHolder = new Composite(parent, SWT.NONE);
-		super.createControl(superHolder);
-		
-		superHolder.setVisible(false);
-		GridData superData = new GridData();
-		superData.exclude=true;
-		superHolder.setLayoutData(superData);
-		
-		initializeDialogUnits(parent);
-
-		Composite composite = new Composite(parent, SWT.NONE);
-		composite.setFont(parent.getFont());
-		composite.setLayout(initGridLayout(new GridLayout(1, false), true));
-		composite.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-
-		final Shell shell= getShell();
-
-		INewProjectProvider[] providers= BuilderCustomizationManager.instance().getNewProjectProviders();
-
-		final List<NameSelector> nameSelectorList= new ArrayList<NameSelector>();
-
-		for (INewProjectProvider provider: providers) {
-			if (provider.useProjectNameSelector()){
-				NameSelector nameSelector= new NameSelector(provider.getId(), provider.getDisplayName());
-				nameSelectorList.add(nameSelector);
-			}
-		}
-
-		// 15.07.01
-		createApplicationOptionControls(composite);
-
-		/**
-		 * NameSelector 가 존재하면 프로젝트 Name 을 선택 할 수 있는 버튼이 추가 된다.
-		 */
-		final int columns= (nameSelectorList.size()>0)?3:2;
-
-		// 프로젝트 이름
-		Composite nameControl = (Composite)createNameControl(composite);
-		{
-			System.out.println(nameControl.getParent());
-			System.out.println(nameControl.isVisible());
-			System.out.println(nameControl.getBounds());
-			nameControl.setParent(composite);
-			nameControl.setVisible(true);
-			GridLayout layout= new GridLayout(columns, false);
-			layout.marginWidth= 0;
-			nameControl.setLayout(layout);
-			composite.layout(true,true);
-			composite.getParent().layout(true,true);
-
-			GridData data= new GridData(GridData.FILL_HORIZONTAL);
-			nameControl.setLayoutData(data);
-
-//			for( Control control: nameControl.getChildren() ){
-////				System.out.println(">> control : " + control.getClass());
-//				if ( control instanceof Text){
-//					Text txt= (Text)control;
-//					txt.addModifyListener(this);
-////					txt.setEditable(false);	// TODO Project Name 선택 비활성화 2014.09.30
-//				}zz
-//			}
-
-			// 프로젝트 이름 Selector 가 있는 경우
-			if ( nameSelectorList.size()>0 ) {
-				for( Control control: nameControl.getChildren() ){
-					if ( control instanceof Text){
-						Text txt= (Text)control;
-						txt.addModifyListener(this);
-						txt.setEditable(false);	// TODO Project Name 선택 비활성화 2014.09.30
-					}
-				}
-				hasNameSelector= true;
-
-				Button btnBrowse= new Button(nameControl, SWT.PUSH);
-				btnBrowse.setText("Browse");
-
-				btnBrowse.addSelectionListener( new SelectionAdapter() {
-					@Override
-					public void widgetSelected(SelectionEvent selectionevent) {
-
-						NameSelector nameSelect= null;
-
-						if ( nameSelectorList.size() == 1 ){
-							nameSelect= nameSelectorList.get(0);
-						}
-						else{
-							// TODO 두개일때 선택하는 다이알로그
-						}
-
-						INewProjectProvider provider= BuilderCustomizationManager.instance().getNewProjectProviders(nameSelect.getId());
-						BxmNameSelectorDialog nameSelectorDialog= provider.getProjectNameSelector(shell, online);
-
-						if ( nameSelectorDialog.open() == Dialog.OK ){
-							// 순서주의
-							BxmNewJavaProjectWizardPageOne.this.setProjectCode(nameSelectorDialog.getCodeSelected());
-							BxmNewJavaProjectWizardPageOne.this.setProjectName(nameSelectorDialog.getNameSelected());
-
-							newProjectProperties= nameSelectorDialog.getNewProjectProperties();
-							newProjectPropertyName= nameSelectorDialog.getNewProjectPropertyName();
-
-							logicalNameDialogField.setText(nameSelectorDialog.getLogicalNameSelected());
-						}
-					}
-				});
-			}
-			else{
-				// 프로젝트 이름 Selector 가 없는 경우
-				for( Control control: nameControl.getChildren() ){
-					if ( control instanceof Text){
-						Text txt= (Text)control;
-						txt.addModifyListener(this);
-						txt.setEditable(true);	// TODO Project Name 선택 비활성화 2014.09.30
-					}
-				}
-				hasNameSelector= false;
-			}
-		}
-
-		createSeparator(nameControl, columns);
-		createLogicalNameControls(nameControl, columns);
-//		createSeparator(nameControl, columns);
-
-		// 15.07.08
-		if ( BuilderActivator.getDefault().getConfiguration().isNewProjectUsePackagePreview() ){
-			createDefaultPackagePreviewControls(composite);
-		}
-//		createApplicationOptionControls(composite);
-
-		/**
-		 * 배치 옵션 없애고 항상 Jobs 디렉토리 만들도록 변경
-		 */
-//		createBatchOptionControls(composite);
-		createJobsFolderForBatch= true;
-		createShellsFolderForBatch= false;
-
-		// 워킹셋
-		Control workingSetControl = createWorkingSetControl(composite);
-		{
-			GridData data= new GridData(GridData.FILL_HORIZONTAL);
-			workingSetControl.setLayoutData(data);
-		}
-
-		// 안보여야 되는 Control
-		Composite invisibleComposite= new Composite(composite, SWT.BORDER);
-		invisibleComposite.setVisible(false);
-		GridData invisibleData= new GridData();
-		invisibleData.exclude = true;
-		invisibleComposite.setLayoutData(invisibleData);
-		
-		Control jreControl = createJRESelectionControl(invisibleComposite);
-		jreControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Control layoutControl = createProjectLayoutControl(invisibleComposite);
-		layoutControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Control locationControl = createLocationControl(invisibleComposite);
-		locationControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Control infoControl = createInfoControl(invisibleComposite);
-		infoControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		
-//		Composite superComposite = (Composite) getControl();
-//		Control[] children = superComposite.getChildren();
-//		for (Control control : children) {
-//			if(control instanceof Composite) {
-//				Control[] children2 = ((Composite)control).getChildren();
-//				for (Control control2 : children2) {
-//					if(control2 instanceof Text ) {
-//						((Text)control2).addModifyListener(e -> 
-//						setPageComplete(isPageComplete()));
-//						
-//					}
-//				}
-//			}
-//			
-//		}
-		setControl(composite);
-	}
+Composite
+  Composite
+    Label
+    Text
+  Composite
+    Button
+    Label
+    Text
+    Button
+  Group
+    Button
+    Combo
+    Button
+    Combo
+    Button
+    Link
+  Group
+    Button
+    Button
+    Link
+  Group
+    Composite
+      Button
+      Button
+      Label
+      Combo
+      Button
+  Group
+    Button
+    Label
+    Text
+    Button
+    Label
+  Composite
+    Label
+    Link
