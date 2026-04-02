@@ -1,912 +1,1089 @@
+package bxm.ui.decorators;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
+import java.io.InputStreamReader;
+import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.WeakHashMap;
 
+import org.eclipse.core.filebuffers.FileBuffers;
+import org.eclipse.core.filebuffers.IFileBuffer;
+import org.eclipse.core.filebuffers.IFileBufferListener;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExecutableExtension;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
-import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
-import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
-import org.eclipse.jdt.ui.IPackagesViewPart;
-import org.eclipse.jdt.ui.PreferenceConstants;
-import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageTwo;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.internal.core.SourceMethod;
+import org.eclipse.jdt.internal.core.SourceType;
+import org.eclipse.jdt.internal.ui.packageview.ClassPathContainer;
+import org.eclipse.jface.viewers.IDecoration;
+import org.eclipse.jface.viewers.ILightweightLabelDecorator;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IWorkingSet;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
+import org.eclipse.ui.progress.UIJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import bxm.builder.BuilderActivator;
-import bxm.builder.BuilderConstants;
-import bxm.builder.BuilderLog;
-import bxm.builder.build.BuildPropertiesCreator;
-import bxm.builder.configuration.BuilderProperties;
-import bxm.builder.core.BxmProjectNature;
-import bxm.builder.message.BuilderMessages;
-import bxm.builder.template.TemplateManager;
-import bxm.builder.template.TemplateParserDelegator;
-import bxm.builder.ui.configuration.PropertiesConfiguration;
-import bxm.builder.ui.configuration.jaxb.BuilderConfiguration;
-import bxm.builder.ui.customization.BuilderCustomizationManager;
-import bxm.builder.ui.extentions.INewProjectProvider;
-import bxm.builder.ui.extentions.PackageSet;
-import bxm.builder.ui.model.BxmPropertiesModel;
-import bxm.builder.util.Base64Util;
-import bxm.builder.util.Policy;
-import bxm.builder.util.ResourceUtil;
-import bxm.omm.ui.common.PluginLog;
+import bxm.common.instance.config.BxmApplication;
+import bxm.ui.ast.visitor.ClassCategoryFindVisitor;
+import bxm.ui.ast.visitor.DtoGeneratedJavaVisitor;
+import bxm.ui.ast.visitor.OmmGeneratedJavaVisitor;
 import bxm.ui.constants.BxmConstants;
-import bxm.ui.controls.wizard.BxmNewElementWizard;
 import bxm.ui.db.config.ConfigurationUtils;
-import bxm.ui.dialog.MessageDialog;
+import bxm.ui.decorators.configurations.DecorationConfiguration;
+import bxm.ui.decorators.preferences.DecoratorPreferenceManager;
+import bxm.ui.decorators.text.UIText;
+import bxm.ui.decorators.utils.MapperFileUtils;
+import bxm.ui.decorators.utils.UIImage;
+import bxm.ui.util.ASTUtils;
+import bxm.ui.util.BXMConstants.ClassType;
 import bxm.ui.util.BXMUtils;
 import bxm.ui.util.EclipseUtils;
+import bxm.ui.util.StreamUtils;
 import bxm.ui.util.StringUtils;
+import bxm.ui.util.TypeUtils;
 
-/**
- * @file					bxm.builder.wizards.BxmProjectWizard.java
- * @filetype			java source file
- * @brief
- * @author			Chang Young Shin
- * @version			1.0
- * @history
- * 성		명					일		자						근  거  자  료					변  경  내  용
- * ----------------		-------------------		-------------------		--------------------------
- * Chang Young Shin		2011. 10. 24.				product 개발				신규 작성
- *
- */
-
-public class BxmProjectWizard extends BxmNewElementWizard
-implements IExecutableExtension
+@SuppressWarnings("restriction")
+public class BxmDecorator
+extends LabelProvider
+implements ILightweightLabelDecorator
 {
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
-	protected final String defaultCharEncoding = BuilderConstants.CHARSET_DEFAULT;
+	private static Logger logger= LoggerFactory.getLogger(BxmDecorator.class);
+	
+	private static final String CLASSPATH_CONTAINER_ID = "bxm.builder.core.container";
+	private static final String OMM_JAVA = "[omm-java]";
+	private static final String DTO_JAVA = "[dto-java]";
+	private static final String DBIO_INTERFACE = "[dbio-interface]";
 
-	private BxmNewJavaProjectWizardPageOne fFirstPage;
-	private NewJavaProjectWizardPageTwo fSecondPage;
+	public final static String APPLICATION_ROOT_ELEMENT_NAME = "bxm-application";
+	public final static String APPLICATION_NAME_TAG = "name";
+	
+	private FileBufferListener fListener;
 
-	private IConfigurationElement fConfigElement;
+	private UIJob fNotifierJob;
 
-	public BxmProjectWizard()
-	{
-		super("New BXM Project Wizard");
-		setDialogSettings(JavaPlugin.getDefault().getDialogSettings());
+	private Set<Object> fChangedResources;
+
+	public BxmDecorator(){
+		fListener= new FileBufferListener();
+		FileBuffers.getTextFileBufferManager().addFileBufferListener(fListener);
+
+		fChangedResources= new HashSet<Object>();
 	}
 
-	@Override
-	public void addPages() {
-
-		if (fFirstPage == null)
-			fFirstPage = new BxmNewJavaProjectWizardPageOne();
-		fFirstPage.setTitle(BuilderMessages.NEW_BXM_WIZARD_PAGE_1_TITLE);
-		fFirstPage.setDescription(BuilderMessages.NEW_BXM_WIZARD_PAGE_1_DESC);
-		addPage(fFirstPage);
-
-		if (fSecondPage == null)
-			fSecondPage = new NewJavaProjectWizardPageTwo(fFirstPage);
-
-		fFirstPage.init(getSelection(), getActivePart());
+	public void dispose() {
+		FileBuffers.getTextFileBufferManager().removeFileBufferListener(fListener);
 	}
 
-	@Override
-	protected void finishPage(IProgressMonitor monitor)
-			throws InterruptedException, CoreException {
-		logger.trace("BxmProjectWizard#finishPage");
-		EclipseUtils.syncExec(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					// 두번째 페이지 추가를 빼면서 SWT Thread Error 발생 때문에 Runnable()로 구현함.
-					fSecondPage.performFinish(new NullProgressMonitor());// use the full progress monitor
-				} catch (CoreException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+	private class DecorationCache{
+		String label;
+		long timestamp= 0L;
+		@Override
+		public String toString() {
+			return label==null?"":(label);
+		}
+	}
+
+	private Map<Object, DecorationCache> cacheSet= new WeakHashMap<Object, BxmDecorator.DecorationCache>();
+
+	private class FileBufferListener implements IFileBufferListener {
+
+		@Override
+		public void bufferCreated(IFileBuffer buffer) {
+		}
+
+		@Override
+		public void bufferDisposed(IFileBuffer buffer) {
+
+		}
+
+		@Override
+		public void bufferContentAboutToBeReplaced(IFileBuffer buffer) {
+		}
+
+		@Override
+		public void bufferContentReplaced(IFileBuffer buffer) {
+		}
+
+		@Override
+		public void stateChanging(IFileBuffer buffer) {
+			if (buffer.getLocation() != null)
+				update(buffer.getLocation());
+		}
+
+		@Override
+		public void dirtyStateChanged(IFileBuffer buffer, boolean isDirty) {
+		}
+
+		@Override
+		public void stateValidationChanged(IFileBuffer buffer, boolean isStateValidated) {
+		}
+
+		@Override
+		public void underlyingFileMoved(IFileBuffer buffer, IPath path) {
+		}
+
+		@Override
+		public void underlyingFileDeleted(IFileBuffer buffer) {
+		}
+
+		@Override
+		public void stateChangeFailed(IFileBuffer buffer) {
+		}
+	}
+
+	private void update(IPath location) {
+		IFile file= FileBuffers.getWorkspaceFileAtLocation(location);
+		if (file != null) {
+			boolean hasChanges= false;
+			synchronized (this) {
+				hasChanges= fChangedResources.add(file);
 			}
-		});
-		addNature(fSecondPage.getJavaProject().getProject(), monitor);
-		createDefaultResource(fSecondPage.getJavaProject().getProject(), monitor);
-		configureClasspath(fSecondPage.getJavaProject().getProject(), monitor);
-		setDefaultCharSet(fSecondPage.getJavaProject(), monitor);
-		
-		/**
-		 * 온라인 로컬 테스트 관련 리소스
-		 */
-		if(fFirstPage.isOnline()) 
+			if (hasChanges) {
+				if (fNotifierJob == null) {
+					fNotifierJob= new UIJob(Display.getDefault(), "Update BXM Decorations") {
+						public IStatus runInUIThread(IProgressMonitor monitor) {
+							runPendingUpdates();
+							return Status.OK_STATUS;
+						}
+					};
+					fNotifierJob.setSystem(true);
+				}
+				fNotifierJob.schedule();
+			}
+		}
+	}
+
+	private void runPendingUpdates() {
+		Object[] resourceToUpdate= null;
+		synchronized (this) {
+			resourceToUpdate= fChangedResources.toArray();
+			fChangedResources.clear();
+		}
+		if ( logger.isTraceEnabled() ) logger.trace(">> resourceToUpdate.length : {}", resourceToUpdate.length);
+		if (resourceToUpdate.length > 0) {
+			LabelProviderChangedEvent event= new LabelProviderChangedEvent(this, resourceToUpdate);
+			fireLabelProviderChanged(event);
+		}
+	}
+
+	// TODO 패키지 라벨링
+
+	@Override
+	public void decorate(Object element, IDecoration decoration) 
+	{
+		if ( !DecoratorPreferenceManager.useDecorating() )
 		{
-			createLocalTestResource(fSecondPage.getJavaProject().getProject(), monitor);
-			createLocalDevHelpScriptFile(fSecondPage.getJavaProject().getProject(), monitor);
+			return ;
 		}
-		createUpdateLibraryGradleScriptFile(fSecondPage.getJavaProject().getProject(), fFirstPage.isOnline(), monitor);
-		
-		configureDefaultPackages(fSecondPage.getJavaProject(), monitor);
-		configureDefaultFolders(fSecondPage.getJavaProject(), monitor);
-	}
-	
-	private void createUpdateLibraryGradleScriptFile(IProject project, boolean isOnline, IProgressMonitor monitor)
-	{
-		String contents= "";
-		
-		try {
-			contents= getGradleScriptContents(project, isOnline);
-		} catch (Exception e) {
-			MessageDialog.openWarn(e.getMessage());
-			return;
-		}
-		
-		String charSet= BXMUtils.getCurrentCharSet(project);
-		IFile script= project.getFile("build.gradle");
-		InputStream inStrm= null;
-		
-		try {
-			inStrm= new ByteArrayInputStream(contents.getBytes(charSet));
-			script.create(inStrm, IFile.FORCE, monitor);
-		} catch (UnsupportedEncodingException | CoreException e) {
-			MessageDialog.openWarn(e.getMessage());
-			return;
-		}
-	}
-	
-	private String getGradleScriptContents(IProject project, boolean isOnline) throws Exception
-	{
-		final String tmplName= "update_library_gradle_script_template";
-		
-		String tmplContents= 
-				TemplateManager.instance().getTemplateContents(tmplName);
-		
-		TemplateParserDelegator p= new TemplateParserDelegator();
-		
-		p.addCtxt("FRAMEWORK_LIBRARY_DIRECTORY", getFrameworkLibDir(isOnline));
-		p.addCtxt("APPLICATION_LIBRARY_DIRECTORY", getApplicationLibDir(isOnline));
-		
-		p.parse(tmplContents);
-		
-		return p.getResult();
-	}
-	
-	private String getApplicationLibDir(boolean isOnline)
-	{
-		String appLibDir= "";
-		
-		if(isOnline) {
-			appLibDir= BxmConstants.WEB_CONTENT_FOLDER + "/" + BxmConstants.WEB_CONTENT_WEB_INF_FOLDER + "/";
-		}
-		
-		appLibDir= appLibDir + BxmConstants.LIB_FOLDER_NAME_3RD_PARTY;
-		
-		return appLibDir;
-	}
-	
-	private String getFrameworkLibDir(boolean isOnline)
-	{
-		String fwLibDir= "";
-		
-		if(isOnline) {
-			fwLibDir= BxmConstants.WEB_CONTENT_FOLDER + "/" + BxmConstants.WEB_CONTENT_WEB_INF_FOLDER + "/";
-		}
-		
-		fwLibDir= fwLibDir + BxmConstants.WEB_CONTENT_FRAMEWORK_LIB_FOLDER;
-		
-		return fwLibDir;
-	}
-	
-	private void createLocalDevHelpScriptFile(IProject project, IProgressMonitor monitor)
-	{
-		String contents= "";
-		
-		try {
-			contents= getScriptContents(project);
-		} catch (Exception e) {
-			MessageDialog.openWarn(e.getMessage());
-			return;
-		}
-		
-		String charSet= BXMUtils.getCurrentCharSet(project);
-		IFile script= project.getFile("build.xml");
-		InputStream inStrm= null;
-		
-		try {
-			inStrm= new ByteArrayInputStream(contents.getBytes(charSet));
-			script.create(inStrm, IFile.FORCE, monitor);
-		} catch (UnsupportedEncodingException | CoreException e) {
-			MessageDialog.openWarn(e.getMessage());
-			return;
-		}
-	}
-	
-	private String getScriptContents(IProject project) throws Exception
-	{
-		final String tmplName= "local_helper_script_template";
-		
-		String tmplContents= 
-				TemplateManager.instance().getTemplateContents(tmplName);
-		
-		TemplateParserDelegator p= new TemplateParserDelegator();
-		p.addCtxt("PROJECT_UPCASE_NAME", project.getName());
-		p.addCtxt("PROJECT_LOWCASE_NAME", project.getName().toLowerCase());
-		p.addCtxt("REFERENCE_PROJECT_NAME", BuilderProperties.instance().getReferenceProjectName());
-		p.addCtxt("WEB_PROJECT_NAME", BuilderProperties.instance().getWebReferenceProjectName());
-		p.parse(tmplContents);
-		
-		return p.getResult();
-	}
 
-	@Override
-	public boolean performFinish() {
-		logger.trace("BxmProjectWizard#performFinish");
-		boolean res = super.performFinish();
-		if (res) {
-
-			final IJavaElement newElement = getCreatedElement();
-
-			IWorkingSet[] workingSets = fFirstPage.getWorkingSets();
-			if (workingSets.length > 0) {
-				PlatformUI.getWorkbench().getWorkingSetManager().
-				addToWorkingSets(newElement, workingSets);
-			}
-
-			BasicNewProjectResourceWizard.updatePerspective(fConfigElement);
-			selectAndReveal(fSecondPage.getJavaProject().getProject());
-
-			String propertyName= fFirstPage.getNewProjectPropertyName();
-			Properties properties= fFirstPage.getNewProjectProperties();
-
-			if( propertyName!= null && properties != null ){
-				try {
-					BXMUtils.setProjectProperties(fSecondPage.getJavaProject().getProject(), propertyName, properties, false, new NullProgressMonitor());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					IWorkbenchPart activePart = getActivePart();
-					if (activePart instanceof IPackagesViewPart) {
-						PackageExplorerPart view = PackageExplorerPart.
-								openInActivePerspective();
-						view.tryToReveal(newElement);
-					}
-				}
-			});
-		}
-		return res;
-	}
-
-	private IWorkbenchPart getActivePart() {
-		IWorkbenchWindow activeWindow = getWorkbench().getActiveWorkbenchWindow();
-		if (activeWindow != null) {
-			IWorkbenchPage activePage = activeWindow.getActivePage();
-			if (activePage != null) {
-				return activePage.getActivePart();
-			}
-		}
-		return null;
-	}
-
-	@Override
-	protected void handleFinishException(Shell shell, InvocationTargetException e)
-	{
-		String title = NewWizardMessages.JavaProjectWizard_op_error_title;
-		String message = NewWizardMessages.JavaProjectWizard_op_error_create_message;
-		ExceptionHandler.handle(e, getShell(), title, message);
-	}
-
-	@Override
-	public void setInitializationData(IConfigurationElement cfig, String propertyName,
-			Object data) throws CoreException {
-		fConfigElement = cfig;
-
-	}
-
-	@Override
-	public boolean performCancel()
-	{
-		this.fSecondPage.performCancel();
-		return super.performCancel();
-	}
-
-	@Override
-	public IJavaElement getCreatedElement() {
-		return fSecondPage.getJavaProject();
-	}
-
-	/**
-	 * Project에 Nature 추가
-	 * @param project
-	 */
-	private void addNature(IProject project, IProgressMonitor monitor) {
-		BxmProjectNature.addNatureToProject(project, monitor);
-	}
-
-	/**
-	 * 기본 리소스 생성
-	 */
-	private void createDefaultResource(IProject project, IProgressMonitor monitor) {
-		String description= fFirstPage.getCategoryLogicalName();
-
-		InputStream inputStream = new ByteArrayInputStream(
-				ResourceUtil.getBaseBxmApplication(
-						project
-						, fFirstPage.isOnline()
-						, StringUtils.isEmpty(description)?project.getName():description
-						)
-				);
-		try {
-			// 기본 디렉토리 만들기
-			for (int i=0 ; i<BuilderConstants.SYSTEM_FOLDERS.length ; i++) 
+		if(isDecorateTarget(element))
+		{
+			if ( element instanceof IFile )
 			{
-				if(BuilderConstants.SYSTEM_FOLDERS[i].equals(BuilderConstants.SOURCE_GEN_FOLDER)) {
-					if( !ConfigurationUtils.getConfiguration().getGenOmmJavaInSrcGen() ) {
+				decorateInternal((IFile)element, decoration);
+			}
+			else if ( element instanceof IJavaElement ){
+				decorateInternal((IJavaElement)element, decoration);
+			}
+			else if ( element instanceof IFolder ){
+				decorateInternal((IFolder)element, decoration);
+			}
+			else if ( element instanceof ClassPathContainer ){
+				decorateInternal((ClassPathContainer)element, decoration);
+			}
+		}
+	}
+	
+	private boolean isDecorateTarget(Object element)
+	{
+		Set<String> packages= DecorationConfiguration.instance().getNoDecoratePackages();
+		
+		IResource resource= null;
+		
+		if(element instanceof IResource) {
+			resource= (IResource) element;
+		} else if(element instanceof IJavaElement) {
+			IJavaElement javaElement= (IJavaElement) element;
+			resource= javaElement.getResource();
+		}
+
+		List<Path> paths= new ArrayList<Path>();
+		for(String pack : packages)
+		{
+			paths.addAll(getPathsFromPackage(pack));
+		}
+		
+		for(Path path : paths)
+		{
+			if(EclipseUtils.isResourceInDirectory(path, resource))
+			{
+				return false;
+			}
+		}
+		
+		
+		return true;
+	}
+	
+	private List<Path> getPathsFromPackage(final String pack)
+	{
+		List<Path> paths= new ArrayList<Path>();
+		Set<String> pathPrefixes= new HashSet<String>();
+
+		pathPrefixes.add(BxmConstants.SRC_FOLDER_NAME);
+		
+		if(ConfigurationUtils.getConfiguration().getGenOmmJavaInSrcGen()) {
+			pathPrefixes.add(BxmConstants.SRC_GEN_FOLDER_NAME);
+		}
+		pathPrefixes.add(ConfigurationUtils.getConfiguration().getOmmPfr());
+
+		for(String prefix : pathPrefixes)
+		{
+			Path path= new Path(prefix + "/" + pack);
+			paths.add(path);
+		}
+		
+		return paths;
+	}
+
+	private void decorateInternal(final ClassPathContainer element, final IDecoration decoration)
+	{
+		if ( element== null ){
+			return;
+		}
+
+		if ( !DecoratorPreferenceManager.useLibContainerDecorating() ) return ;
+
+		try {
+			if ( element.getJavaProject()==null
+					|| !element.getJavaProject().getProject().hasNature(BxmConstants.BXM_APPLICATION_NATURE_ID) ) return;
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return;
+		}
+
+		IPath path= element.getClasspathEntry().getPath();
+
+		if ( CLASSPATH_CONTAINER_ID.equals(path.toString()) ){
+			decoration.addSuffix(UIText.LABEL_BXM_LIBRARY);
+		}
+	}
+
+	private void decorateInternal(final IJavaElement element, final IDecoration decoration){
+
+		if ( element== null
+				|| !element.exists()
+				){
+			return;
+		}
+
+		try {
+			if ( element.getJavaProject()==null
+					|| !element.getJavaProject().getProject().hasNature(BxmConstants.BXM_APPLICATION_NATURE_ID) ) return;
+		} catch (CoreException e) {
+			e.printStackTrace();
+			return;
+		}
+
+		switch (element.getElementType()) {
+		case IJavaElement.JAVA_PROJECT :
+		{
+			decorateInternal((IJavaProject)element, decoration);
+			break;
+		}
+		case IJavaElement.COMPILATION_UNIT :
+		{
+			decorateInternal((ICompilationUnit)element, decoration);
+			break;
+		}
+		case IJavaElement.PACKAGE_FRAGMENT_ROOT :
+		{
+			decorateInternal((IPackageFragmentRoot)element, decoration);
+			break;
+		}
+		case IJavaElement.PACKAGE_FRAGMENT:
+		{
+			decorateInternal((IPackageFragment)element, decoration);
+			break;
+		}
+		// 16.01.20 Blocked - 비효율적임
+//		case IJavaElement.TYPE :
+//		{
+//			IType type= (IType)element;
+//			if ( !type.isBinary() ){
+//				if ( type instanceof SourceType ){
+////					decorateInternal((SourceType)element, decoration);
+//				}
+//			}
+//			break;
+//		}
+//		case IJavaElement.METHOD :
+//		{
+//			IMethod method= (IMethod)element;
+//			if ( method != null || !method.isBinary() ){
+//				if ( method instanceof SourceMethod )
+//				{
+////					decorateInternal((SourceMethod)element, decoration);
+//				}
+//			}
+//			break;
+//		}
+		default:
+			break;
+		}
+	}
+
+	private String getLogicalName(final CompilationUnit cu, ClassType classType){
+		ClassCategoryFindVisitor visitor = new ClassCategoryFindVisitor();
+		cu.accept( visitor );
+		
+		String logicalName= visitor.getLogicalName();
+		if(StringUtils.isEmpty(logicalName))
+		{
+			/* 첫번째 TypeDeclaration만 검색한다 */
+			List<?> types= cu.types();
+			
+			ASTNode aNode= null;
+			for(Object type : types) {
+				if(type instanceof ASTNode) {
+					aNode= (ASTNode) type;
+					break;
+				}
+			}
+			
+			if(aNode != null)
+			{
+				logicalName= getAliasValue(aNode).trim();
+			}
+		}
+		
+		return logicalName;
+	}
+	
+	private String getAliasValue(ASTNode node)
+	{
+		JavadocVisitor jv= new JavadocVisitor();
+		node.accept(jv);
+		
+		return StringUtils.isEmpty(jv.getAliasValue())?"":jv.getAliasValue();
+	}
+
+	private void decorateInternal(final ICompilationUnit cUnit, final IDecoration decoration)
+	{
+		try {
+			if ( cUnit== null || !cUnit.exists() ) return;
+			if ( !cUnit.getJavaProject().getProject().hasNature(BxmConstants.BXM_APPLICATION_NATURE_ID) ) return;
+		} catch (CoreException e) {
+			e.printStackTrace();
+			PluginLog.info("Invalid Compilation Unit - " + e.getMessage());
+			return;
+		}
+
+		DecorationCache cache= cacheSet.get(cUnit);
+
+		if ( cache== null ){
+			cache= new DecorationCache();
+			cacheSet.put(cUnit, cache);
+			// TODO
+		}
+
+		long modifiedTimestamp= cUnit.getResource().getLocalTimeStamp();
+		if ( logger.isTraceEnabled() ) if ( logger.isTraceEnabled() ) logger.trace(">> ICU : {}, isOpen : {}", new Object[]{cUnit.getElementName(),cUnit.isOpen()});
+		if ( modifiedTimestamp > cache.timestamp ){
+			// TODO 파싱 필요
+			cache.timestamp = modifiedTimestamp;
+			cache.label= "뉴";
+		}
+		else{
+			cache.label= "변경 없음";
+		}
+
+		try {
+			ClassType classType= BXMUtils.getClassType(cUnit);
+
+			CompilationUnit cu= ASTUtils.createCU(cUnit, false);
+
+			final String logicalName = getLogicalName(cu, classType);
+
+			if ( ClassType.BEAN== classType
+//					|| ClassType.BATCHBEAN== classType
+					|| ClassType.CHUNKED_BATCHBEAN== classType
+					|| ClassType.TASKLET_BATCHBEAN== classType
+					|| ClassType.BATCH_CLASS_TASKLET== classType
+					|| ClassType.BATCH_CLASS_TASKENTITY== classType
+					|| ClassType.SUB_SERVICE== classType
+					)
+			{
+				cache.label= String.format(UIText.LABEL_FILE_BEAN_JAVA, logicalName==null?UIText.LABEL_UNREGISTERED_RESOURCE:logicalName);
+				beanIcondecoration(decoration);
+			}
+			else if ( ClassType.SERVICE== classType
+						|| ClassType.MAIN_SERVICE== classType)
+			{
+				cache.label= String.format(UIText.LABEL_FILE_SERVICE_JAVA, logicalName==null?UIText.LABEL_UNREGISTERED_RESOURCE:logicalName);
+				serviceIconDecoration(decoration);
+			}
+			else if ( ClassType.DBIO_INTERFACE== classType )
+			{
+				cache.label= String.format(UIText.LABEL_FILE_DBIO_INTERFACE, logicalName==null?UIText.LABEL_UNREGISTERED_RESOURCE:logicalName);
+				dbioInterfaceIconDecoration(decoration);
+			}
+//			else if ( ClassType.OMM_GENERATED== classType ||
+//						ClassType.BUSINESS_VO== classType ||
+//						ClassType.OTHER_VO== classType)
+			else if ( ClassType.OMM_GENERATED== classType)
+			{
+				String description = null;
+
+				OmmGeneratedJavaVisitor visitor = new OmmGeneratedJavaVisitor();
+				cu.accept(visitor);
+				description = visitor.getDescription();
+
+				cache.label= String.format(UIText.LABEL_FILE_OMM_JAVA, description);
+
+				ommJavaIconDecoration(decoration);
+			}
+			else if ( ClassType.BUSINESS_VO.equals(classType))
+			{
+				cache.label= String.format(UIText.LABEL_FILE_SERVICE_JAVA, logicalName==null?UIText.LABEL_UNREGISTERED_RESOURCE:logicalName);
+				ommJavaIconDecoration(decoration);
+			}
+			else if ( ClassType.DTO_GENERATED== classType )
+			{
+				String description = null;
+
+				DtoGeneratedJavaVisitor visitor = new DtoGeneratedJavaVisitor();
+				cu.accept(visitor);
+				description = visitor.getDescription();
+
+				cache.label= String.format(UIText.LABEL_FILE_DTO_JAVA, description);
+
+				dtoJavaIconDecoration(decoration);
+			}
+			else{
+				cache.label= UIText.LABEL_FILE_NORMAL_JAVA;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		decoration.addSuffix(cache.toString());
+	}
+
+	private void decorateInternal(IJavaProject javaProject, IDecoration decoration)
+	{
+		if ( !DecoratorPreferenceManager.useProjectDecorating() ) return ;
+
+		if ( javaProject == null || !javaProject.exists() ) return;
+
+		projectIconDecoration(decoration);
+
+		IResource resource = javaProject.getProject().findMember(BxmConstants.APPLICATION_XML_FOLDER_NAME);
+		if ( resource == null || !(resource instanceof IFolder) )
+		{
+			decoration.addSuffix(UIText.LABEL_PROJECT_INVALID_NOT_FOUND_META_INF_FOLDER);
+			return;
+		}
+
+		IFolder metaInfFolder = (IFolder)resource;
+
+		IFile file = metaInfFolder.getFile(BxmConstants.APPLICATION_XML_FILE_NAME);
+
+		if ( file == null )
+		{
+			decoration.addSuffix(UIText.LABEL_PROJECT_INVALID_NOT_FOUND_META_INF_FOLDER);
+			return;
+		}
+
+        try {
+        	file.refreshLocal(IResource.DEPTH_ONE, new NullProgressMonitor());
+        	/**
+    		 * BXM Configuration Load
+    		 */
+        	BxmApplication application= BXMUtils.getApplicationDescriptor(javaProject.getProject());
+//        	decoration.addSuffix(
+//        			MessageFormat.format(UIText.LABEL_APPLICATION_NAME,
+//        					//            					applicationName.getNodeValue()
+//        					application.getDescription()
+//        					,application.getName()
+//        					,application.getType().name()
+//        					)
+//        			);
+        	decoration.addSuffix(
+        			MessageFormat.format("[{0}-{1}]",
+        					//            					applicationName.getNodeValue()
+        					application.getDescription()
+        					,application.getType().name()
+        					)
+        			);
+        }
+        catch (Exception e) {
+        	e.printStackTrace();
+        	PluginLog.info("Error occured - decorateInternal(javaProject) : " + e.getMessage());
+		}
+	}
+
+	private void decorateInternal(IFolder folder, IDecoration decoration)
+	{
+		if ( EclipseUtils.isInvalidFolder(folder) ) return;
+
+		if ( !DecoratorPreferenceManager.useFolderDecorating() ) return ;
+
+		try {
+			if ( !folder.getProject().hasNature(BxmConstants.BXM_APPLICATION_NATURE_ID) ) return;
+		} catch (Exception e) {
+		}
+
+		String folderName= folder.getName();
+
+		if ( BxmConstants.TESTCASES_FOLDER_NAME.equals(folderName) ){
+			decoration.addSuffix(UIText.LABEL_TESTCASES_FOLDER);
+		}
+		else if ( BxmConstants.APPLICATION_XML_FOLDER_NAME.equals(folderName) ){
+			decoration.addSuffix(UIText.LABEL_META_INF_FOLDER);
+		}
+		else if ( BxmConstants.BATCH_JOBS_FOLDER_NAME.equals(folderName) ){
+			decoration.addSuffix(UIText.LABEL_JOBS_FOLDER);
+		}
+		else if ( BxmConstants.LIB_FOLDER_NAME_3RD_PARTY.equals(folderName) ){
+			decoration.addSuffix(" [어플리케이션 라이브러리]");
+		}
+		else if ( BxmConstants.WEB_CONTENT_FRAMEWORK_LIB_FOLDER.equals(folderName) ){
+			decoration.addSuffix(" [라이브러리]");
+		}
+		else if ( ".settings".equals(folderName) ){
+			decoration.addSuffix(UIText.LABEL_SETTINGS);
+		}
+		else if ( BxmConstants.BATCH_SHELL_FOLDER_NAME.equals(folderName) ){
+			decoration.addSuffix(UIText.LABEL_SHELLS_FOLDER);
+		}
+	}
+
+	private void decorateInternal(IFile file, IDecoration decoration)
+	{
+		if( file == null || "class".equals(file.getFileExtension()) || !file.exists() || file.isPhantom() || file.isHidden() ) return;
+
+		try {
+			if ( !file.getProject().hasNature(BxmConstants.BXM_APPLICATION_NATURE_ID) ) return;
+		} catch (Exception e) {
+		}
+
+		String ext = file.getFileExtension();
+
+		if ( "omm".equals(ext) )
+		{
+			decorationInternalOmmFile(file, decoration);
+		}
+		else if ( "dto".equals(ext) )
+		{
+			decorationInternalDtoFile(file, decoration);
+		}
+		else if ( "dbio".equals(ext) )
+		{
+			decorationInternalDbioFile(file, decoration);
+		}
+		else if ( BxmConstants.APPLICATION_XML_FILE_NAME.equals(file.getName()) )
+		{
+			decoration.addSuffix(UIText.LABEL_APPLICATION_CONFIG_FILE);
+		}
+		else if ( "case".equals(ext) )
+		{
+			decorationInternalTestCaseFile(file, decoration);
+		}
+		else if ( "classpath".equals(ext) ){
+			decoration.addSuffix(UIText.LABEL_FILE_CLASSPATH_PROPERTY);
+		}
+		else if ( "project".equals(ext) ){
+			decoration.addSuffix(UIText.LABEL_FILE_PROJECT_PROPERTY);
+		}
+		else if ( "bxm".equals(ext)){
+			decoration.addSuffix(UIText.LABEL_FILE_PACKAGE_PROPERTY);
+		}
+		else{
+			if ( logger.isTraceEnabled() ) logger.trace("\tNO DECORATION: ");
+		}
+	}
+
+	private void decorationInternalOmmFile(IFile file, IDecoration decoration)
+	{
+		if ( !DecoratorPreferenceManager.useOmmDecorating() ) return ;
+		if ( logger.isTraceEnabled() ) logger.trace(">> DECORATION - OMM : " + file.getName());
+
+		String logicalName = null;
+
+		InputStreamReader reader= null;
+		try {
+			IProject project= file.getProject();
+			final String currentCharSet= BXMUtils.getCurrentCharSet(project);
+			reader= new InputStreamReader(file.getContents(), currentCharSet);
+			String contents= StreamUtils.getString(reader);
+			StringBuilder sb= new StringBuilder();
+			boolean in= false;
+			for( int i = 0; i < contents.length(); ++i){
+				char c= contents.charAt(i);
+				if ( c== '"'){
+					if ( in ){
+						break;
+					}
+					else{
+						in= true;
 						continue;
 					}
 				}
-				
-				IFolder folder = project.getFolder(BuilderConstants.SYSTEM_FOLDERS[i]);
-				ResourceUtil.ensureFolderExists(folder, Policy.subMonitorFor(monitor, 1));
-			}
-			
-			String ommPfr= ConfigurationUtils.getConfiguration().getOmmPfr();
-			if( !BxmConstants.SRC_FOLDER_NAME.equals(ommPfr) )
-			{
-				IFolder folder= project.getFolder(ommPfr);
-				ResourceUtil.ensureFolderExists(folder, Policy.subMonitorFor(monitor, 1));
-			}
-		
-			/* 온라인, 배치 모두 config 폴더 필요 */
-//			if( !fFirstPage.isOnline() )
-			{
-				IFolder folder= project.getFolder(BxmConstants.CONFIG_FOLDER);
-				ResourceUtil.ensureFolderExists(folder, Policy.subMonitorFor(monitor, 1));
-			}
-			
-			if( !fFirstPage.isOnline() )
-			{
-				IFolder cLib= project.getFolder(BxmConstants.WEB_CONTENT_FRAMEWORK_LIB_FOLDER);
-				ResourceUtil.ensureFolderExists(cLib, Policy.subMonitorFor(monitor, 1));
-				
-				IFolder lib= project.getFolder(BxmConstants.LIB_FOLDER_NAME_3RD_PARTY);
-				ResourceUtil.ensureFolderExists(lib, Policy.subMonitorFor(monitor, 1));
-			}
-			
-			// 기본 파일 만들기
-			IPath path = BuilderConstants.METAINF_FOLDER.append(BuilderConstants.APPLICATION_METAFILE_NAME);
-			IFile file = project.getFile(path);
-			file.create(inputStream, true, monitor);
-			
-			/**
-			 * @author taehoon.kim
-			 * @date 2016.06.02
-			 * 로컬 개발 환경이 구성될 경우 gradle script 파일을 자동 생성합니다.
-			 * -> HDS는 gradle 사용 안함
-			 */
-//			if(BuilderProperties.instance().isUseLocalDevEnv())
-//			{
-//				IBuildScriptCreator creator = new LocalDevBuildScriptCreator();
-//				creator.create(project);
-//			}
 
-			BuilderConfiguration configuration= BuilderActivator.getDefault().getConfiguration();
-
-			BxmPropertiesModel bxmPropertiesModel= new BxmPropertiesModel();
-
-			String protocol= StringUtils.nvl(configuration.getFtpDeployProtocol());
-			String deployIp= StringUtils.nvl(configuration.getFtpDeployIp());
-			String deployPort= StringUtils.nvl(configuration.getFtpDeployPort());
-			String id= StringUtils.nvl(configuration.getFtpDeployId());
-			String encPassword= StringUtils.nvl(configuration.getFtpDeployEncPassword());
-			String endpointURL= StringUtils.nvl(configuration.getDefaultEndpointURL());
-
-			bxmPropertiesModel.setName("Default");
-			bxmPropertiesModel.setProtocol(protocol);
-			bxmPropertiesModel.setIp(deployIp);
-			bxmPropertiesModel.setPort(deployPort);
-			bxmPropertiesModel.setId(id);
-			bxmPropertiesModel.setPassword(Base64Util.decode(encPassword));
-			bxmPropertiesModel.setEndPointUrl(endpointURL);
-
-			String appHomeLocation= configuration.getFtpDeployAppHomeLocation();
-			if ( !StringUtils.isEmpty(appHomeLocation) ){
-				if ( appHomeLocation.endsWith("/")){
-					appHomeLocation= appHomeLocation+ BXMUtils.getApplicationName(project);
+				if ( in ){
+					sb.append(c);
 				}
-				else{
-					appHomeLocation= appHomeLocation+"/" +BXMUtils.getApplicationName(project);
-				}
-				bxmPropertiesModel.setAppHomeDir(appHomeLocation);
 			}
 
-			PropertiesConfiguration pc= new PropertiesConfiguration(project);
-			pc.save(bxmPropertiesModel.getContent());
+			logicalName= sb.toString();
 
 		} catch (Exception e) {
-			BuilderLog.logError(e);
-		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				}
-				catch (IOException e) {
-					BuilderLog.logError(e);
-				}
-			}
-			monitor.done();
+			/*ignore*/
 		}
-	}
-	
-	private void createLocalTestResource(IProject project, IProgressMonitor monitor)
-	{
-		try
-		{
-			/* hdmfTomcat의 클래스 패스에 잡히는 폴더 */
-			IFolder webContent= project.getFolder(BxmConstants.WEB_CONTENT_FOLDER);
-			ResourceUtil.ensureFolderExists(webContent, Policy.subMonitorFor(monitor, 1));
-			webContent.setDerived(true, monitor);
-			
-			IFolder webInf= webContent.getFolder(BxmConstants.WEB_CONTENT_WEB_INF_FOLDER);
-			ResourceUtil.ensureFolderExists(webInf, Policy.subMonitorFor(monitor, 1));
-			webInf.setDerived(true, monitor);
-			
-			IFolder webLib= webInf.getFolder(BxmConstants.WEB_CONTENT_LIB_FOLDER);
-			ResourceUtil.ensureFolderExists(webLib, Policy.subMonitorFor(monitor, 1));
-			webLib.setDerived(true, monitor);
-			
-			/* BXM 프레임워크가 로딩하는 내부 어플리케이션 디렉토리 */
-//			IFolder localDeployApp= project.getFolder(project.getName());
-//			ResourceUtil.ensureFolderExists(localDeployApp, Policy.subMonitorFor(monitor, 1));
-//			localDeployApp.setDerived(true, monitor);
-//			localDeployApp.setTeamPrivateMember(true);
-//			
-//			IFolder localAppClasses= localDeployApp.getFolder(BxmConstants.APP_CLASSES_FOLDER);
-//			ResourceUtil.ensureFolderExists(localAppClasses, Policy.subMonitorFor(monitor, 1));
-//			localAppClasses.setDerived(true, monitor);
-//			localAppClasses.setTeamPrivateMember(true);
-//			
-//			IFolder localAppLibs= localDeployApp.getFolder(BxmConstants.LIB_FOLDER_NAME_3RD_PARTY);
-//			ResourceUtil.ensureFolderExists(localAppLibs, Policy.subMonitorFor(monitor, 1));
-//			localAppLibs.setDerived(true, monitor);
-//			localAppLibs.setTeamPrivateMember(true);
-//			
-//			IFolder localAppMeta= localDeployApp.getFolder(BxmConstants.APPLICATION_XML_FOLDER_NAME);
-//			ResourceUtil.ensureFolderExists(localAppMeta, Policy.subMonitorFor(monitor, 1));
-//			localAppMeta.setDerived(true, monitor);
-//			localAppMeta.setTeamPrivateMember(true);
-		} catch (Exception e) {
-			BuilderLog.logError(e);
-		} finally {
-			monitor.done();
+		finally{
+			StreamUtils.tryClose(reader);
 		}
-	}
 
-	/**
-	 * Classpath 생성
-	 * @param project
-	 * @param monitor
-	 */
-	private void configureClasspath(IProject project, IProgressMonitor monitor) {
-		monitor = Policy.monitorFor(monitor);
-		monitor.beginTask(null, 2);
-		Policy.checkCanceled(monitor);
-
-		IPath projectPath = project.getFullPath();
-		
-		/**
-		 * 온라인의 경우 Output Classpath가 변경되어야 한다...
-		 */
-//		IPath outputLocation = projectPath.append(BuilderConstants.OUTPUT_FOLDER);
-		IPath outputLocation= null;
-		if(fFirstPage.isOnline()) {
-			outputLocation = projectPath.append(BxmConstants.WEB_CONTENT_FOLDER)
-					.append(BxmConstants.WEB_CONTENT_WEB_INF_FOLDER)
-					.append(BxmConstants.WEB_CONTENT_CLASSES_FOLDER);
-		} else {
-			outputLocation = projectPath.append(BuilderConstants.OUTPUT_FOLDER);
-		}
-		
-		List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
-		entries.addAll(Arrays.asList(PreferenceConstants.getDefaultJRELibrary()));
-		
-		/**
-		 * HDS : 클래스 패스 컨테이너 사용 안함
-		 */
-//		entries.add(JavaCore.newContainerEntry(Constants.CLASSPATH_CONTAINER));
-//		try 
-//		{
-//			addFrameworkLibrary(entries, project.getName());
-//		} 
-//		catch (Exception ignoreEx) 
-//		{
-//			ignoreEx.printStackTrace();
-//			Display.getDefault().asyncExec(new Runnable() {
-//				@Override
-//				public void run() {
-//					MessageDialog.openWarn("프로젝트 클래스패스에 framework 라이브러리를 추가하는 도중 에러가 발생하여 클래스패스 추가에 실패하였습니다");
-//				}
-//			});
-//			PluginLog.error("프로젝트 클래스패스에 framework 라이브러리를 추가하는 도중 에러가 발생하였습니다", ignoreEx);
-//		}
-		
-		entries.add(JavaCore.newSourceEntry(
-				projectPath.append(BuilderConstants.SOURCE_FOLDER)));
-		
-		/**
-		 * HDS 관련 처리
-		 */
-		if( ConfigurationUtils.getConfiguration().getGenOmmJavaInSrcGen() ) {
-			entries.add(JavaCore.newSourceEntry(
-					projectPath.append(BuilderConstants.SOURCE_GEN_FOLDER)));
-		}
-		
-		String ommPfr= ConfigurationUtils.getConfiguration().getOmmPfr();
-		
-		if( !BxmConstants.SRC_FOLDER_NAME.equals(ommPfr) ) {
-			entries.add(JavaCore.newSourceEntry(
-					projectPath.append(ommPfr)));
-		}
-		
-		if( fFirstPage.isOnline() ) {
-			entries.add(JavaCore.newSourceEntry(
-					projectPath.append(BxmConstants.TESTCASES_FOLDER_NAME)));
-		} 
-		
-		entries.add(JavaCore.newSourceEntry(
-				projectPath.append(BxmConstants.CONFIG_FOLDER)));
-		
-		IClasspathEntry[] classpathEntrys =
-				(IClasspathEntry[]) entries.toArray(new IClasspathEntry[entries.size()]);
-
-		IJavaProject javaProject = JavaCore.create(project);
 		try {
-			javaProject.setOutputLocation(outputLocation, Policy.subMonitorFor(monitor, 1));
-			javaProject.setRawClasspath(classpathEntrys, Policy.subMonitorFor(monitor, 2));
-			
-			INewProjectProvider[] providers= BuilderCustomizationManager.instance().getNewProjectProviders();
-			for (INewProjectProvider provider : providers) {
-				try {
-					provider.processProjectProperties(javaProject);
-				} catch (Exception e) {
-					BuilderLog.logError(e);
-				}
-			}
-		} catch (CoreException e) {
-			BuilderLog.logError(e);
-		}
-		
-		
-		/**
-		 * workaround
-		 */
-		try {
-			IFolder bin= project.getFolder("bin");
-			if(bin.exists()) {
-				bin.delete(true, monitor);
-			}
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-	}
-	
-	@SuppressWarnings("unused")
-	private void addFrameworkLibrary(List<IClasspathEntry> entries, String projectName) throws Exception
-	{
-		IWorkspaceRoot root= ResourcesPlugin.getWorkspace().getRoot();
-		IProject[] projects= root.getProjects();
-		
-		IProject referenceProj= getReferenceProject(projects);
-		List<IResource> frameworkLibs= getFrameworkLibraries(referenceProj, projectName);
-		
-		for(IResource lib : frameworkLibs)
-		{
-			entries.add(JavaCore.newLibraryEntry(lib.getRawLocation(), null, null));
-		}
-	}
-	
-	private IProject getReferenceProject(IProject[] projects) throws Exception
-	{
-		final String referenceProjectName= BuilderProperties.instance().getReferenceProjectName();
-		
-		if(StringUtils.isEmpty(referenceProjectName)) {
-			throw new Exception("Reference Project 이름이 설정되어 있지 않습니다");
-		}
-		
-		for(IProject proj : projects)
-		{
-			if(referenceProjectName.equals(proj.getName()))
-			{
-				return proj;
-			}
-		}
+			String refined = null;
 
-		throw new Exception("Reference Project(" + referenceProjectName +")이 존재하지 않습니다");
+			if ( logicalName == null )
+				refined = UIText.LABEL_UNREGISTERED_RESOURCE;// + "-" + ResourceManager.instance().getOmmEntity(file).getDescription();
+			else refined = logicalName;
+
+			decoration.addSuffix(
+					String.format(UIText.LABEL_FILE_OMM, refined)
+					);
+		} catch (Exception e) {
+			e.printStackTrace();
+			PluginLog.info("Error occured - decorationInternalOmmFile(file) : " + e.getMessage());
+		}
 	}
 	
-	private List<IResource> getFrameworkLibraries(IProject libProject, String projectName) throws Exception
+	private void decorationInternalDtoFile(IFile file, IDecoration decoration)
 	{
-		IFolder lib= libProject.getFolder(BuilderConstants.LIB_FOLDER);
-		
-		List<IResource> entries= new ArrayList<IResource>();
-		
-		if(lib.exists())
-		{
-			IFolder framework= lib.getFolder(BuilderConstants.CORE_LIB_FOLDER);
-			if(framework.exists()) {
-				entries.addAll(getJarFiles(framework, null));
-			}
-			
-			IFolder business= lib.getFolder(BuilderConstants.BUSINESS_LIB_FOLDER);
-			if(business.exists()) {
-				List<IResource> bizzLibs= getJarFiles(business, BuilderConstants.BUSINESS_LIB_POSTFIX); 
-				
-				/**
-				 * 자기 자신 제외 {bizz.code}-online.jar
-				 */
-				final String excludeName= projectName.toLowerCase() + BuilderConstants.BUSINESS_LIB_POSTFIX;
-				IResource exclude= null;
-				for(IResource bizzLib : bizzLibs)
-				{
-					if(bizzLib.getName().equals(excludeName)) {
-						exclude= bizzLib;
+		if ( !DecoratorPreferenceManager.useOmmDecorating() ) return ;
+		if ( logger.isTraceEnabled() ) logger.trace(">> DECORATION - DTO : " + file.getName());
+
+		String logicalName = null;
+
+		InputStreamReader reader= null;
+		try {
+			reader= new InputStreamReader(file.getContents());
+			String contents= StreamUtils.getString(reader);
+			StringBuilder sb= new StringBuilder();
+			boolean in= false;
+			for( int i = 0; i < contents.length(); ++i){
+				char c= contents.charAt(i);
+				if ( c== '"'){
+					if ( in ){
 						break;
 					}
+					else{
+						in= true;
+						continue;
+					}
 				}
-				
-				if(exclude != null) {
-					bizzLibs.remove(exclude);
-				}
-					
-				entries.addAll(bizzLibs);
-			}
-			
-			IFolder dbio= lib.getFolder(BuilderConstants.DBIO_LIB_FOLDER);
-			if(dbio.exists()) {
-				entries.addAll(getJarFiles(dbio, null));
-			}
-		}
-		
-		return entries;
-	}
-	
-	private List<IResource> getJarFiles(IFolder directory, final String postfix) throws Exception
-	{
-		List<IResource> jars= new ArrayList<IResource>();
-		
-		try 
-		{
-			IResource[] children= directory.members();
-			
-			for(IResource child : children)
-			{
-				jars.addAll(getJarFilesInternal(child, postfix));
-			}
-		} 
-		catch (CoreException e) 
-		{
-			throw new Exception("Jar 파일 목록을 로드 하는 도중 에러가 발생하였습니다", e);
-		}
-		
-		return jars;
-	}
-	
-	private List<IResource> getJarFilesInternal(IResource res, final String postfix)
-	{
-		List<IResource> jars= new ArrayList<IResource>();
-		
-		if(res.getType() == IResource.FOLDER) {
-			IFolder f= (IFolder) res;
-			
-			try {
-				for(IResource child : f.members())
-				{
-					jars.addAll(getJarFilesInternal(child, postfix));
-				}
-			} catch (CoreException e) {
-				e.printStackTrace();
-				PluginLog.error("폴더[" + f.getName() + "] 하위 jar 파일 검색 중 에러가 발생하였습니다", e);
-			}
-			
-		} else if(res.getType() == IResource.FILE) {
-			if(BuilderConstants.LIBRARY_EXTENSION.equals(res.getFileExtension()))
-			{
-				if(StringUtils.isEmpty(postfix)) {
-					jars.add(res);
-				}else if(res.getName().endsWith(postfix)) {
-					jars.add(res);
-				}
-			}
-		}
-		return jars;
-	}
 
-	/**
-	 * create build file
-	 */
-	@SuppressWarnings("unused")
-	private void generateBuildfiles(IJavaProject currentProject, IProgressMonitor monitor) {
-		BuildPropertiesCreator creator= new BuildPropertiesCreator();
-		creator.createBuildProperties(currentProject.getProject(), monitor);
-	}
+				if ( in ){
+					sb.append(c);
+				}
+			}
 
-	protected void setDefaultCharSet(IJavaProject currentProject, IProgressMonitor monitor) {
+			logicalName= sb.toString();
+
+		} catch (Exception e) {
+			/*ignore*/
+		}
+		finally{
+			StreamUtils.tryClose(reader);
+		}
+
 		try {
-			/**
-			 * HDS 에서는 UTF-8로 Studio 인코딩을 기본적으로 강제화 하지 않는다.
-			 */
-			String currentCharEncoding= System.getProperty("file.encoding");
-			if(ConfigurationUtils.getConfiguration().getForceCharSetUtf8()) {
-				currentProject.getProject().setDefaultCharset(defaultCharEncoding, monitor);
-			} else {
-				currentProject.getProject().setDefaultCharset(currentCharEncoding, monitor);
+			String refined = null;
+
+			if ( logicalName == null )
+				refined = UIText.LABEL_UNREGISTERED_RESOURCE;// + "-" + ResourceManager.instance().getOmmEntity(file).getDescription();
+			else refined = logicalName;
+
+			decoration.addSuffix(
+					String.format(UIText.LABEL_FILE_OMM, refined)
+					);
+		} catch (Exception e) {
+			e.printStackTrace();
+			PluginLog.info("Error occured - decorationInternalDtoFile(file) : " + e.getMessage());
+		}
+	}
+
+	private void decorationInternalTestCaseFile(IFile file, IDecoration decoration)
+	{
+		if ( !DecoratorPreferenceManager.useTestCaseDecorating()) return ;
+		if ( logger.isTraceEnabled() ) logger.trace(">> DECORATION - TEST CASE : " + file.getName());
+
+		InputStreamReader isr= null;
+		BufferedReader br= null;
+		try {
+			isr= new InputStreamReader(file.getContents());
+			br= new BufferedReader(isr);
+
+			String temp= null;
+
+			while( (temp=br.readLine()) != null ){
+				if ( temp.startsWith("#TestCaseName")){ // TODO
+					String[] values= temp.split("=");
+					if ( values != null && values.length==2 ){
+						decoration.addSuffix("["+values[1]+"]");
+					}
+					break;
+				}
 			}
-		} catch (CoreException e) {
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			decoration.addSuffix(UIText.LABEL_FILE_TEST_CASE);
+		}
+		finally{
+			StreamUtils.tryClose(br);
+			StreamUtils.tryClose(isr);
+		}
+	}
+
+	private void decorationInternalDbioFile(IFile file, IDecoration decoration)
+	{
+		if ( !DecoratorPreferenceManager.useDbioDecorating()) return ;
+		if ( logger.isTraceEnabled() ) logger.trace(">> DECORATION - DBIO : " + file.getName());
+
+		try {
+			String logicalName = null;
+
+			IFile javaFile = MapperFileUtils.getPairIFile(file);
+			ClassCategoryFindVisitor visitor = new ClassCategoryFindVisitor();
+
+			if ( javaFile == null || !javaFile.exists()) return;
+
+			ICompilationUnit cUnit = JavaCore.createCompilationUnitFrom(javaFile);
+			final CompilationUnit cu = ASTUtils.createCU(cUnit);
+			cu.accept(visitor);
+			logicalName = visitor.getLogicalName();
+
+			String refined = null;
+
+			if ( logicalName == null )
+				refined =  UIText.LABEL_UNREGISTERED_RESOURCE;
+			else refined = logicalName;
+
+			decoration.addSuffix(
+					String.format(UIText.LABEL_FILE_DBIO, refined)
+					);
+		} catch (Exception e) {
+			e.printStackTrace();
+			PluginLog.info("Error occured - decorationInternalDbioFile(file) : " + e.getMessage());
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private void decorateInternal(final SourceType sourceType, final IDecoration decoration)
+	{
+		if ( sourceType == null ) return;
+		if ( logger.isTraceEnabled() ) logger.trace(">> DECORATION - Source: " + sourceType.getElementName());
+
+		try {
+			if ( sourceType.getParent().getElementType() == IJavaElement.COMPILATION_UNIT ){
+
+				ClassType classType= BXMUtils.getClassType((ICompilationUnit)sourceType.getParent());
+
+				if ( classType == ClassType.DBIO_INTERFACE )
+				{
+					if ( !DecoratorPreferenceManager.useDbioDecorating()) return ;
+					decoration.addSuffix(DBIO_INTERFACE);
+				}
+				else if ( classType == ClassType.OMM_GENERATED)
+				{
+					if ( !DecoratorPreferenceManager.useOmmDecorating()) return ;
+					decoration.addSuffix(OMM_JAVA);
+				}
+				else if ( classType == ClassType.BEAN){
+					if ( !DecoratorPreferenceManager.useBeanDecorating()) return ;
+
+					String logicalName= TypeUtils.getLogicalName(sourceType);
+					decoration.addSuffix(String.format(UIText.LABEL_METHOD_BEAN, StringUtils.isEmpty(logicalName)?"":logicalName));
+				}
+				else if ( classType == ClassType.SERVICE){
+					if ( !DecoratorPreferenceManager.useServiceDecorating()) return ;
+
+					String logicalName= TypeUtils.getLogicalName(sourceType);
+					decoration.addSuffix(String.format(UIText.LABEL_METHOD_SERVICE, StringUtils.isEmpty(logicalName)?"":logicalName));
+				}
+			}
+			else if ( sourceType.getParent().getElementType() == IJavaElement.TYPE ){
+				decorateInternal((SourceType)sourceType.getParent(), decoration);
+			}
+			else if ( sourceType.getParent().getElementType() == IJavaElement.METHOD ){
+				decorateInternal((SourceMethod)sourceType.getParent(), decoration);
+			}
+			else{
+				/*ignore*/
+			}
+		} catch (Exception e) {
+			/*ignore*/
+			e.printStackTrace();
+			PluginLog.info("Error occured - decorateInternal(sourceType) : " + e.getMessage());
+		}
+	}
+
+	private void decorateInternal(final SourceMethod sourceMethod, final IDecoration decoration)
+	{
+		ICompilationUnit cUnit = null;
+		if ( logger.isTraceEnabled() ) logger.trace(">> DECORATION - Source Method: " + sourceMethod.getElementName());
+		try {
+			cUnit = (ICompilationUnit)sourceMethod.getParent().getParent();
+
+			ClassType classType= BXMUtils.getClassType(cUnit);
+
+			String logicalName= TypeUtils.getLogicalName(sourceMethod);
+
+			String label = null;
+
+			if ( classType == ClassType.DBIO_INTERFACE )
+			{
+				if ( !DecoratorPreferenceManager.useDbioDecorating()) return ;
+
+				dbioInterfaceIconDecoration(decoration);
+				label= UIText.LABEL_METHOD_DBIO;
+			}
+			else if ( classType == ClassType.BEAN ){
+				if ( !DecoratorPreferenceManager.useBeanDecorating()) return ;
+
+				beanOperationIconDecoration(decoration);
+				label= UIText.LABEL_METHOD_BEAN;
+			}
+			else if ( classType == ClassType.SERVICE ){
+				if ( !DecoratorPreferenceManager.useServiceDecorating()) return ;
+
+				if ( TypeUtils.isServiceOperation(sourceMethod) ){
+					serviceOperationIconDecoration(decoration);
+				}
+				else{
+				}
+				label= UIText.LABEL_METHOD_SERVICE;
+			}
+
+			if ( label != null ){
+				decoration.addSuffix(String.format(label, StringUtils.isEmpty(logicalName)?"":logicalName));
+			}
+
+		} catch (Exception e) {
+			PluginLog.info("Error occured - decorateInternal(sourceMethod) : " + e.getMessage());
+		}
+	}
+
+	private void decorateInternal(IPackageFragmentRoot pfr, IDecoration decoration)
+	{
+		if ( !DecoratorPreferenceManager.usePackageFragmentRootDecorating() ) return ;
+		if ( pfr== null || !pfr.exists() || pfr.isArchive() ) return;
+
+		if ( logger.isTraceEnabled() ) logger.trace(">> DECORATION - PFR: " + pfr.getElementName());
+
+		if ( BxmConstants.SRC_GEN_FOLDER_NAME.equals( pfr.getElementName() ) )
+		{
+			decoration.addSuffix(UIText.LABEL_AUTO_GENERATED_SOURCE);
+		}
+		else if ( BxmConstants.SRC_FOLDER_NAME.equals( pfr.getElementName() ) )
+		{
+			decoration.addSuffix(UIText.LABEL_SOURCE_FOLDER);
+		}
+	}
+
+	private void decorateInternal(IPackageFragment pf, IDecoration decoration)
+	{
+		if ( !DecoratorPreferenceManager.usePackageFragmentDecorating() ) return ;
+
+		if ( pf.isReadOnly() ) return;
+
+		InputStream is= null;
+		InputStreamReader isr= null;
+		try {
+			IFolder folder= (IFolder)pf.getResource();
+			IFile file= folder.getFile(".bxm");
+
+			if ( file != null && file.exists() ){
+				is= file.getContents();
+				isr= new InputStreamReader(is, "UTF8");
+				Properties p= new Properties();
+				p.load(isr);
+				String label= p.getProperty("label");
+				if ( !StringUtils.isEmpty(label) ){
+					decoration.addSuffix(" ["+label+"]");
+				}
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		finally{
+			StreamUtils.tryClose(is);
+			StreamUtils.tryClose(isr);
+		}
 	}
 
-	/**
-	 * src(기본)에 생기는 기본 패키지 목록 생성
-	 * @param javaProject
-	 */
-	private void configureDefaultPackages(IJavaProject javaProject, IProgressMonitor monitor){
+	private void serviceIconDecoration(final IDecoration decoration)
+	{
+		decoration.addOverlay(
+				UIImage.getDescriptor(UIImage.IMG_SERVICE)
+				, IDecoration.TOP_LEFT
+				);
+	}
 
-		try {
-			javaProject.getResource().refreshLocal(IResource.DEPTH_INFINITE, monitor);
-		} catch (CoreException e1) {
-			e1.printStackTrace();
-		}
+	private void beanIcondecoration(final IDecoration decoration)
+	{
+		decoration.addOverlay(
+				UIImage.getDescriptor(UIImage.IMG_BEAN)
+				, IDecoration.TOP_LEFT);
+	}
 
-		IPackageFragmentRoot[] pfrs= null;
-		IPackageFragmentRoot pfr= null;
+	private void ommJavaIconDecoration(final IDecoration decoration)
+	{
+		decoration.addOverlay(
+				UIImage.getDescriptor(UIImage.IMG_OMM_JAVA)
+				, IDecoration.TOP_LEFT
+				);
+	}
+	
+	private void dtoJavaIconDecoration(final IDecoration decoration)
+	{
+		decoration.addOverlay(
+				UIImage.getDescriptor(UIImage.IMG_OMM_JAVA)
+				, IDecoration.TOP_LEFT
+				);
+	}
 
-		try {
-			pfrs= javaProject.getPackageFragmentRoots();
-		} catch (Exception e) {
-			BuilderLog.logError(e);
-			return;
-		}
+	private void dbioInterfaceIconDecoration(final IDecoration decoration)
+	{
+//		decoration.setForegroundColor(UIColor.GRAY);
+		decoration.addOverlay(
+				UIImage.getDescriptor(UIImage.IMG_DBIO_INTERFACE)
+				, IDecoration.TOP_LEFT);
+	}
 
-		for (IPackageFragmentRoot p : pfrs) {
-			// jar 파일 제외
-			if ( p.isArchive() ) continue;
+	private void projectIconDecoration(final IDecoration decoration)
+	{
+//		decoration.addOverlay(
+//				ImageDescriptorManager.instance().getIdProject()
+//				, IDecoration.UNDERLAY);
+	}
 
-			if ( BxmConstants.SRC_FOLDER_NAME.equals( p.getElementName() )){
-				pfr= p;
-				break;
+	private void serviceOperationIconDecoration(final IDecoration decoration){
+		decoration.addOverlay(
+				UIImage.getDescriptor(UIImage.IMG_SERVICE_OPERATION)
+				, IDecoration.TOP_LEFT
+				);
+	}
+
+	private void beanOperationIconDecoration(final IDecoration decoration){
+		decoration.addOverlay(
+				UIImage.getDescriptor(UIImage.IMG_BEAN_OPERATION)
+				, IDecoration.TOP_LEFT
+				);
+	}
+
+	public static void main(String[] args) {
+		String contents= "OMM bpr.nbp.bco.dbio.dto.DBcoEail000Dto <description=\"BCO_EAI로그\">";
+		StringBuilder sb= new StringBuilder();
+		boolean in= false;
+		for( int i = 0; i < contents.length(); ++i){
+			char c= contents.charAt(i);
+			if ( c== '"'){
+				if ( in ){
+					break;
+				}
+				else{
+					in= true;
+					continue;
+				}
+			}
+
+			if ( in ){
+				sb.append(c);
 			}
 		}
+		if ( logger.isTraceEnabled() ) logger.trace("[" + sb.toString() +"]");
+	}
 
-		if ( pfr== null ){
-			BuilderLog.logInfo("["+BxmConstants.SRC_FOLDER_NAME+"] folder does not exist at current project");
-			return;
-		}
-
-//		for (INewProjectProvider provider : providers) {
-////			String[] defaultPackageSet= provider.getDefaultPackageSet(getPackagePrefix());
-//			String[] defaultPackageSet= fFirstPage.getDefaultPackageSet();
-//
-//			for (String defaultPackage : defaultPackageSet) {
-//				try {
-//					pfr.createPackageFragment(defaultPackage, true, Policy.subMonitorFor(monitor, 1));
-//				} catch (JavaModelException e) {
-//					e.printStackTrace();
-//					BuilderLog.logError(e);
+	protected void fireLabelProviderChanged(final LabelProviderChangedEvent event)
+    {
+//		if ( logger.isTraceEnabled() )
+//		{
+//			logger.trace(">> fireLabelProviderChanged");
+//		}
+//		PluginLog.info("fireLabelProviderChanged : " + event.getElements().length);
+		super.fireLabelProviderChanged(event);
+    }
+	
+	class JavadocVisitor extends ASTVisitor
+	{
+		private String aliasValue;
+		
+		@Override
+		public boolean visit(TypeDeclaration node)
+		{
+//			StringBuilder valueBuf= new StringBuilder();
+//			List<?> tags= node.tags();
+//			
+//			for(Object tag : tags)
+//			{
+//				if(tag instanceof TagElement)
+//				{
+//					TagElement tEle= (TagElement) tag;
+//					
+//					if("@alias".equals(tEle.getTagName()))
+//					{
+//						List<?> values= tEle.fragments();
+//						
+//						for(Object value : values)
+//						{
+//							if(value instanceof TextElement)
+//							{
+//								TextElement txtEle= (TextElement) value;
+//								valueBuf.append(txtEle.getText()).append("\n");
+//							}
+//						}
+//					}
 //				}
 //			}
-//		}
-
-		PackageSet[] defaultPackageSet= fFirstPage.getDefaultPackageSet();
-
-		for (PackageSet defaultPackage : defaultPackageSet) {
-			IPackageFragment pf= null;
-			try {
-				pf= pfr.createPackageFragment(defaultPackage.getPackageName(), true, Policy.subMonitorFor(monitor, 1));
-			} catch (JavaModelException e) {
-				e.printStackTrace();
-				BuilderLog.logError(e);
-			}
-
-			try {
-				if ( pf!= null && pf.exists() ){
-					IFolder folder= (IFolder)pf.getResource();
-					IFile file= folder.getFile(".bxm");
-					if ( !file.exists() ){
-						StringBuilder sb= new StringBuilder();
-						sb.append("#Do not modify this file").append("\n");
-						sb.append("label=").append(defaultPackage.getDescription()).append("\n");
-						ByteArrayInputStream bais= new ByteArrayInputStream(sb.toString().getBytes("UTF8"));
-						file.create(bais, true, Policy.subMonitorFor(monitor, 2));
-						bais.close();
-					}
-
-//					IFolder configFolder= folder.getFolder(".bxm");
-//					configFolder.create(true, true, Policy.subMonitorFor(monitor, 2));
-//					configFolder.getRawLocation().toFile().
-//
-//					IFile file= configFolder.getFile("bxm.properties");
-//					if ( !file.exists() ){
-//						String contents= "label=" + defaultPackage.getDescription() + "\n";
-//						ByteArrayInputStream bais= new ByteArrayInputStream(contents.getBytes());
-//						file.create(bais, true, Policy.subMonitorFor(monitor, 2));
-//						file.setHidden(true);
-//						bais.close();
-//					}
-				}
-			} catch (Exception e) {
-				// TODO: handle exception
-			}
+//			
+//			aliasValue= valueBuf.toString();
+			aliasValue= BXMUtils.getAliasValues(node.getJavadoc());
+			return true;
 		}
-	}
-
-	private void configureDefaultFolders(IJavaProject javaProject, IProgressMonitor monitor){
-
-		try {
-			javaProject.getResource().refreshLocal(IResource.DEPTH_INFINITE, monitor);
-		} catch (CoreException e1) {
-			e1.printStackTrace();
+		
+		public String getAliasValue()
+		{
+			return aliasValue;
 		}
-
-		INewProjectProvider[] providers= BuilderCustomizationManager.instance().getNewProjectProviders();
-
-		for (INewProjectProvider provider : providers) {
-			String[] defaultFolderSet= provider.getDefaultFolderSet();
-
-			for (String defaultFolder : defaultFolderSet) {
-				try {
-					if("testcases".equals(defaultFolder))
-					{
-						if( !fFirstPage.isOnline() )
-						{
-							continue;
-						}
-					}
-					IFolder folder = javaProject.getProject().getFolder(defaultFolder);
-					ResourceUtil.ensureFolderExists(folder, Policy.subMonitorFor(monitor, 1));
-				} catch (CoreException e) {
-					e.printStackTrace();
-					BuilderLog.logError(e);
-				}
-			}
-		}
-	}
-
-	@SuppressWarnings("unused")
-	private String getPackagePrefix(){
-		return fFirstPage.getProjectCode();
-	}
-	@Override
-	public void createPageControls(Composite pageContainer) {
-		// TODO Auto-generated method stub
-		super.createPageControls(pageContainer);
 	}
 }
