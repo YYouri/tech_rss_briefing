@@ -1,22 +1,26 @@
-!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.164
-!MESSAGE A URL object was not found for the given URI resource/spring-batch-ex-2.1.xsd from bxm.batch.ui
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+		http://www.es-code.com/schema/batchex http://www.es-code.com/schema/batchex/spring-batch-ex-2.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.303
-!MESSAGE The given URI https://jakarta.ee/xml/ns/jakartaee/application-client_9.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
 
-!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.305
-!MESSAGE The given URI https://jakarta.ee/xml/ns/jakartaee/jobXML_2_0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+	<job-component xmlns="http://www.es-code.com/schema/batchex" id="jobcomp" with-dependon="true">
+		<base-package name="hi.example.batch.bxm.EXYB0001">
+			<include name="EXYB0000*B*"/>
+		</base-package>
+	</job-component>  
+ 
+ 
+	<job id="EXYB0000" xmlns="http://www.es-code.com/schema/batchex">
+		<step id="EXYB0000-001">
+			<tasklet ref="EXYB000101BT" />
+		</step>
+	</job>
 
-!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.306
-!MESSAGE The given URI https://jakarta.ee/xml/ns/jakartaee/beans_3_0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
 
-!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.307
-!MESSAGE The given URI https://jakarta.ee/xml/ns/jaxb/bindingschema_3_0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
-
-!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.466
-!MESSAGE The given URI https://jakarta.ee/xml/ns/validation/validation-configuration-3.0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
-
-!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.493
-!MESSAGE The given URI http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_1.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
-
-!ENTRY org.eclipse.egit.ui 2 0 2026-04-03 16:44:23.205
+</beans>
