@@ -1,26 +1,22 @@
-org.eclipse.core.runtime.CoreException: The builder launch configuration could not be found.
-	at org.eclipse.core.externaltools.internal.model.ExternalToolBuilder.build(ExternalToolBuilder.java:83)
-	at org.eclipse.core.internal.events.BuildManager$2.run(BuildManager.java:1077)
-	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
-	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:296)
-	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:352)
-	at org.eclipse.core.internal.events.BuildManager$1.run(BuildManager.java:441)
-	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
-	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:444)
-	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:403)
-	at org.eclipse.core.internal.events.BuildManager.build(BuildManager.java:668)
-	at org.eclipse.core.internal.resources.Project$1.run(Project.java:604)
-	at org.eclipse.core.internal.resources.Workspace.run(Workspace.java:2451)
-	at org.eclipse.core.internal.resources.Project.internalBuild(Project.java:642)
-	at org.eclipse.core.internal.resources.Project.build(Project.java:154)
-	at org.eclipse.debug.core.model.LaunchConfigurationDelegate.lambda$0(LaunchConfigurationDelegate.java:415)
-	at org.eclipse.core.internal.resources.Workspace.run(Workspace.java:2451)
-	at org.eclipse.core.internal.resources.Workspace.run(Workspace.java:2471)
-	at org.eclipse.debug.core.model.LaunchConfigurationDelegate.buildProjects(LaunchConfigurationDelegate.java:421)
-	at org.eclipse.debug.core.model.LaunchConfigurationDelegate.buildForLaunch(LaunchConfigurationDelegate.java:122)
-	at org.eclipse.debug.internal.core.LaunchConfiguration.launch(LaunchConfiguration.java:780)
-	at org.eclipse.debug.internal.core.LaunchConfiguration.launch(LaunchConfiguration.java:716)
-	at org.eclipse.debug.internal.ui.DebugUIPlugin.buildAndLaunch(DebugUIPlugin.java:1054)
-	at org.eclipse.debug.internal.ui.DebugUIPlugin$1.run(DebugUIPlugin.java:1257)
-	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
-!SUBENTRY 1 org.eclipse.core.externaltools 4 0 2026-04-03 16:36:49.741
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.164
+!MESSAGE A URL object was not found for the given URI resource/spring-batch-ex-2.1.xsd from bxm.batch.ui
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.303
+!MESSAGE The given URI https://jakarta.ee/xml/ns/jakartaee/application-client_9.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.305
+!MESSAGE The given URI https://jakarta.ee/xml/ns/jakartaee/jobXML_2_0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.306
+!MESSAGE The given URI https://jakarta.ee/xml/ns/jakartaee/beans_3_0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.307
+!MESSAGE The given URI https://jakarta.ee/xml/ns/jaxb/bindingschema_3_0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.466
+!MESSAGE The given URI https://jakarta.ee/xml/ns/validation/validation-configuration-3.0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2026-04-03 16:44:08.493
+!MESSAGE The given URI http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_1.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.egit.ui 2 0 2026-04-03 16:44:23.205
