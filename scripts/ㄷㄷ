@@ -1,616 +1,397 @@
-/**
- * <copyright> Copyright (c) 2008-2009 Jonas Helming, Maximilian Koegel. All rights reserved. This program and the
- * accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this
- * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html </copyright>
- */
-package bxm.builder.scm.svn;
+package bxm.das.ui.svn;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.sql.Connection;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.team.svn.core.IStateFilter;
-import org.eclipse.team.svn.core.connector.SVNLock;
 import org.eclipse.team.svn.core.operation.CompositeOperation;
 import org.eclipse.team.svn.core.operation.IActionOperation;
 import org.eclipse.team.svn.core.operation.IRevisionProvider;
-import org.eclipse.team.svn.core.operation.local.AbstractWorkingCopyOperation;
-import org.eclipse.team.svn.core.operation.local.AddToSVNWithPropertiesOperation;
-import org.eclipse.team.svn.core.operation.local.ClearLocalStatusesOperation;
-import org.eclipse.team.svn.core.operation.local.CommitOperation;
-import org.eclipse.team.svn.core.operation.local.RefreshResourcesOperation;
 import org.eclipse.team.svn.core.utility.FileUtility;
-import org.eclipse.team.svn.ui.extension.factory.ICommentDialogPanel;
-import org.eclipse.team.svn.ui.operation.ClearUpdateStatusesOperation;
-import org.eclipse.team.svn.ui.operation.NotifyUnresolvedConflictOperation;
 import org.eclipse.ui.IWorkbenchPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import bxm.builder.BuilderActivator;
-import bxm.builder.BuilderConstants;
-import bxm.builder.BuilderLog;
-import bxm.builder.core.BxmProjectNature;
-import bxm.builder.deploy.ICommonDeployer;
-import bxm.builder.ui.deploy.DeployExecutorManager;
-import bxm.builder.ui.model.BxmPropertiesModel;
-import bxm.builder.ui.model.CommonDeployModel;
-import bxm.builder.util.PlatformUtil;
-import bxm.builder.util.ResourceUtil;
-import bxm.team.scm.svn.BxmCommitFactory;
+import bxm.das.ui.PluginLog;
+import bxm.das.ui.approval.ApprovalDao;
+import bxm.das.ui.approval.ApprovalInterface;
+import bxm.das.ui.approval.ApprovalMapper;
+import bxm.das.ui.config.DASConfigUtils;
+import bxm.das.ui.db.DBUtils;
+import bxm.das.ui.dependency.DependencyDao;
+import bxm.das.ui.dependency.DependenyAnalyzer;
+import bxm.das.ui.text.UIText;
+import bxm.das.ui.util.common.StringUtils;
+import bxm.das.ui.util.view.MessageUtils;
+import bxm.datatools.enablement.exception.DASException;
+import bxm.team.scm.svn.IBxmCommitParticipant;
+import bxm.team.scm.svn.SvnUtils;
+import bxm.ui.db.ConnectionManager;
 import bxm.ui.db.config.ConfigurationUtils;
-import bxm.ui.dialog.MessageDialog;
-import bxm.ui.req.build.BuildRequest;
+import bxm.ui.util.BXMUtils;
 
-public class CommitActionFactory
-extends BxmCommitParticipant
+public class SVNCommitHooker
+implements IBxmCommitParticipant
 {
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
-	protected final static String bxmNatureId = BxmProjectNature.NATURE_ID;
-	public final static String bxmWebProjectNatureId= "bxm.nature.webProjectNature";
+	private Connection conn;
+	private DependenyAnalyzer dependenyAnalyzer;
 
-	protected final static String libraryDir = "lib";
-	protected final static String sourceDir = "src";
-	protected final static String metainfDir = "META-INF";
-	protected final static String dbioFileExtension = "dbio";
-	protected final static String ommFileExtension = "omm";
-	protected final static String jarFileExtension  = "jar";
-	protected final static String javaFileExtension = "java";
-	protected final static String wsdlFileExtension = "wsdl";
-	protected final static String parFileExtension = "par";
-	protected IProject project = null;
-	protected IPath homeLocation = null;
-	protected List<IPath> srcPathList = null;
-	protected IPath classPath = null;
-	protected IPath classLocation = null;
+	private ApprovalMapper approvalMapper;
+	private ApprovalInterface approvalInterface;
 
-	class DeployRunnable implements IRunnableWithProgress{
-		private List<BxmPropertiesModel> propertiesList;
-		private IResource[] resourcesToAdd;
-		private IResource[] resourcesToModify;
-		private IResource[] resourcesToDelete;
+	private Map<IResource, Throwable> errorList;
 
-		private String errorMessage= null;
+	public SVNCommitHooker()
+	{
+	}
 
+	private Logger log() {
+		return LoggerFactory.getLogger(getClass());
+	}
 
-		public DeployRunnable(
-				List<BxmPropertiesModel> propertiesList
-				, IResource[] resourcesToAdd
-				, IResource[] resourcesToModify
-				, IResource[] resourcesToDelete
-				){
-			this.propertiesList= propertiesList;
-			this.resourcesToAdd= resourcesToAdd;
-			this.resourcesToModify= resourcesToModify;
-			this.resourcesToDelete= resourcesToDelete;
+	public void internalPerformAfterCommitTasks(Object preProcessResult, CompositeOperation operation,
+			IRevisionProvider revisionProvider, IActionOperation[] dependsOn, IWorkbenchPart part, IProgressMonitor monitor)
+	{
+		if ( isSkipCommitOperation() ) {
+			log().info("DBIO Commit Operation 처리를 Skip 합니다.");
+			return;
 		}
 
-		@Override
-		public void run(IProgressMonitor monitor)
-				throws InvocationTargetException, InterruptedException {
-			try {
-				System.out.println(">> resourcesToAdd : " + resourcesToAdd.length);
-				System.out.println(">> resourcesToModify : " + resourcesToModify.length);
-				System.out.println(">> resourcesToDelete : " + resourcesToDelete.length);
+		final SVNResourceOperation resourceOper = new SVNResourceOperation();
+		final IResource[] resources = resourceOper.getResources(operation);
+		if ( resources == null ) {
+			log().debug("처리할 resources 가 없습니다.");
+			return;
+		}
 
-				DeployExecutorManager.instance().execute(project, propertiesList, resourcesToAdd, resourcesToModify, resourcesToDelete,
-						monitor
-						);
-				
-				/**
-				 * HDS : TODO : 빌드 요청
-				 */
-				if(ConfigurationUtils.getConfiguration().isUseServerBuild())
+		final IResource[] resourcesToAdd = FileUtility.getResourcesRecursive(resources, IStateFilter.SF_ADDED, 0);
+		final IResource[] resourcesToModify = FileUtility.getResourcesRecursive(resources, IStateFilter.SF_MODIFIED, 0);
+		final IResource[] _resourcesToDelete = FileUtility.getResourcesRecursive(resources, IStateFilter.SF_DELETED, 0);
+
+		/*
+		 * SVN 에 replaced 는  delete / add 에 목록이 추가되므로 delete 가 가장 먼저 처리되어야 함.
+		 * 처리 순서는 dbio -> interface -> dependency 순서로 처리해야 함.
+		 */
+		final IResource[] resourcesToDelete = removeResource(resourcesToAdd, _resourcesToDelete);
+
+		String svnUserId= SvnUtils.getUserId(resources[0]);
+		if ( DASConfigUtils.applyApproval() ) {
+			procApprovalMapper( resourcesToDelete, true, svnUserId );
+			procApprovalMapper( resourcesToAdd, false, svnUserId );
+			procApprovalMapper( resourcesToModify, false, svnUserId );
+
+			procApprovalInterface( resourcesToDelete, true );
+			procApprovalInterface( resourcesToAdd, false );
+			procApprovalInterface( resourcesToModify, false );
+		}
+
+		/**
+		 * FW Connection Name 이
+		 * 업무 Connection Name 에 없어도 관계 없으므로
+		 * 아래 소스 주석처리 함
+		 * 2012.09.06 신창영
+		 */
+//		List<DASDataSource> list = DASConfigUtils.cloneDataSources();
+//		for ( DASDataSource ds : list )
+//		{
+//			if ( temp.equals(ds.getConnection()) )
+//			{
+//				connectionName = ds.getName();
+//				break;
+//			}
+//		}
+
+//		if ( DASConfigUtils.applyDependency() ) {
+//			procDependencyMapper( resourcesToDelete, true, monitor );
+//			procDependencyMapper( resourcesToAdd, false, monitor );
+//			procDependencyMapper( resourcesToModify, false , monitor);
+//		}
+
+		if ( getErrorList().size() > 0 ) {
+
+			resourceOper.removeAll(operation);
+
+			final StringBuilder msg = new StringBuilder();
+
+			msg.append(">> 아래의 Resource 는 Commit 될 수 없습니다. <<\n\n");
+//			msg.append("- 대상 Connection : ");
+//			msg.append(connectionName);
+//			msg.append("\n\n");
+			msg.append( getErrorMessage() );
+			msg.append(">> Commit Operation 을 취소합니다. <<\n");
+
+			MessageUtils.openError(msg.toString());
+
+		} else {
+
+			log().debug(">>> {}", DASConfigUtils.applyDependency());
+
+			if ( DASConfigUtils.applyDependency() ) {
+				procDependencyMapper( resourcesToDelete, true , monitor);
+				procDependencyMapper( resourcesToAdd, false , monitor);
+				procDependencyMapper( resourcesToModify, false , monitor);
+
+				if ( getErrorList().size() > 0 )
 				{
-					BuildRequest br= new BuildRequest();
-					br.request(project, resourcesToAdd, resourcesToModify, resourcesToDelete);
-				}
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-				errorMessage= e.getMessage();
-			}
-		}
+					resourceOper.removeAll(operation);
 
-		public String getErrorMessage() {
-			return errorMessage;
+					final StringBuilder msg = new StringBuilder();
+
+					msg.append(">> 아래의 Resource 는 Commit 될 수 없습니다. <<\n\n");
+//					msg.append("- 대상 Connection : ");
+//					msg.append(connectionName);
+//					msg.append("\n\n");
+					msg.append( getErrorMessage() );
+					msg.append(">> Commit Operation 을 취소합니다. <<\n");
+
+					MessageUtils.openError(msg.toString());
+				}
+			}
+			else{
+				System.out.println(">> DBIO DEPENDENCY를 사용하지 않습니다.");
+			}
 		}
 	}
 
 	@Override
-	public void performAfterCommitTasks(
-			Object preProcessResult,
-			CompositeOperation compositeOperation,
-			IRevisionProvider revisionProvider,
-			IActionOperation[] actionOperation,
-			IWorkbenchPart part)
+	public void performAfterCommitTasks(final Object preProcessResult, final CompositeOperation operation,
+			final IRevisionProvider revisionProvider, final IActionOperation[] dependsOn, final IWorkbenchPart part)
 	{
-		logger.trace("CommitActionFactory#performAfterCommitTasks");
-		ICommentDialogPanel panel= BxmCommitFactory.panel;
-		logger.debug("message!!!!!!!!!!!!!!!!= {}", panel.getMessage());
+		IRunnableWithProgress runnable= new IRunnableWithProgress() {
 
-		CommitHelper svnCommitHelper = new CommitHelper();
-		IResource[] resourcesToCommit =
-				svnCommitHelper.getResourcesToCommit(compositeOperation, revisionProvider);
-		if (resourcesToCommit.length == 0) {
-			logger.debug("커밋대상 리소스가 존재하지 않습니다.");
-			return;
-		}
-
-		if (logger.isDebugEnabled()) {
-			for (IResource res: resourcesToCommit) {
-				logger.debug("CommitDialog 에서 전달된 커밋대상= {}", res);
+			@Override
+			public void run(IProgressMonitor monitor) throws InvocationTargetException,
+					InterruptedException {
+				monitor.beginTask(UIText.DAS_COMMIT_PROCESS,100);
+				internalPerformAfterCommitTasks(preProcessResult, operation, revisionProvider, dependsOn, part, monitor);
+				monitor.done();
 			}
-		}
+		};
 
-		project = resourcesToCommit[0].getProject();
-//		try {
-//			project = resourcesToCommit[0].getProject();
-//			homePath = project.getFullPath();
-//			homeLocation = project.getLocation();
-//			workspaceLocation = project.getWorkspace().getRoot().getLocation();
-//			srcPathList = ResourceUtil.getClasspathCpeSource(project);
-//			classPath = ResourceUtil.getClassOutputLocation(project);
-//			classPath = classPath.removeFirstSegments(1);
-//			classLocation = homeLocation.append(classPath);
-//		} catch (JavaModelException e) {
-//			BuilderLog.logError(e);
-//		}
-
-		boolean cont= false;
-
-		// Bxm Project 가 아니면 종료.
 		try {
-			if ( project.hasNature(bxmNatureId)
-					|| project.hasNature(bxmWebProjectNatureId)
-					){
-				cont= true;
-			}
-			else{
-				List<String> natureIds= BuilderActivator.getDefault().getConfiguration().getProjectNatureForCommitAllow();
-
-				for (String natureId : natureIds) {
-					if ( project.hasNature(natureId) ){
-						cont= true;
-						break;
-					}
-				}
-			}
-		} catch (CoreException e) {
-			BuilderLog.logError(e);
-			cont=false;
-		}
-		logger.debug("커밋 진행 여부= {}", cont);
-		if ( !cont ){
-			return;
-		}
-
-//		FLD 사용 하므로 사용 안함
-//		List<BxmPropertiesModel> propertiesList = PlatformUtil.getPropertiesConfigAll(project);
-		List<BxmPropertiesModel> propertiesList = new ArrayList<BxmPropertiesModel>();
-		CommonDeployModel commonConfig= null;
-		
-		try {
-			commonConfig= PlatformUtil.getCommonDeployConfig(project);
-		} catch (Throwable e) {
-			/**
-			 * 웹자원
-			 */
-			commonConfig= new CommonDeployModel();
-		}
-
-		IResource[] resourcesToAdd = FileUtility.getResourcesRecursive(resourcesToCommit, IStateFilter.SF_ADDED, 0);
-		IResource[] resourcesToModify = FileUtility.getResourcesRecursive(resourcesToCommit, IStateFilter.SF_MODIFIED, 0);
-		IResource[] resourcesToDelete = FileUtility.getResourcesRecursive(resourcesToCommit, IStateFilter.SF_DELETED, 0);
-		if (logger.isDebugEnabled()) {
-			for (IResource res: resourcesToAdd) {
-				logger.debug("신규 리소스 커밋 대상= {}", res);
-			}
-			for (IResource res: resourcesToModify) {
-				logger.debug("수정 리소스 커밋 대상= {}", res);
-			}
-			for (IResource res: resourcesToDelete) {
-				logger.debug("삭제 리소스 커밋 대상= {}", res);
-			}
-		}
-
-		/**
-		 * omm 파일이 커밋 대상이면 omm source gen 파일도 같이 커밋
-		 */
-		CommitOperation commitOperation = getCommitOperation(compositeOperation);
-		replaceResources(commitOperation, resourcesToCommit);
-		AddToSVNWithPropertiesOperation addToSVNWithPropertiesOperation = getAddToSVNWithPropertiesOperation(compositeOperation);
-		ClearLocalStatusesOperation clearLocalStatusesOperation = getClearLocalStatusesOperation(compositeOperation);
-		if (addToSVNWithPropertiesOperation == null) {
-			addToSVNWithPropertiesOperation = new AddToSVNWithPropertiesOperation(resourcesToAdd);
-			compositeOperation.add(addToSVNWithPropertiesOperation);
-
-			clearLocalStatusesOperation = new ClearLocalStatusesOperation(resourcesToAdd);
-			compositeOperation.add(clearLocalStatusesOperation);
-		}
-		else {
-			replaceResources(addToSVNWithPropertiesOperation, resourcesToAdd);
-			replaceResources(clearLocalStatusesOperation, resourcesToAdd);
-		}
-		// OutDatedFiles 이 있으면 종료.
-		Set<IResource> svnCommitFiles = svnCommitHelper.getIResources(resourcesToCommit);
-
-		Set<IResource> svnOutDatedFiles = svnCommitHelper.getOutdatedFiles(svnCommitFiles);
-
-		if (svnOutDatedFiles.size() > 0) {
-			String msg= "";
-			Iterator<IResource> iter= svnOutDatedFiles.iterator();
-			while (iter.hasNext()) {
-				String name= iter.next().getName();
-				msg+=  "File '" +name+ "' is out of date.\n";
-			}
-			MessageDialog.openError(msg);
-			removeAllOperations(compositeOperation);
-			return;
-		}
-		// Locked Files 이 있으면 종료.
-		Map<String, SVNLock> svnLockMap= svnCommitHelper.getSvnLockInfo();
-		if (svnLockMap.size() > 0) {
-			String msg= "";
-			Iterator<String> iter= svnLockMap.keySet().iterator();
-			while (iter.hasNext()) {
-				String key= iter.next();
-				SVNLock value= svnLockMap.get(key);
-				msg+= "File '" +key+ "' is locked. Owner[" + value.owner + "]\n";
-			}
-			MessageDialog.openError(msg);
-			removeAllOperations(compositeOperation);
-			return;
-		}
-
-		// 리소스 상태가 Replace 상태일 경우에 필요
-		sortCompositeOperation(compositeOperation);
-		// 커밋 테스트 할때 주석해제
-
-		/**
-		 * 2013.05.30 changyoung.shin update
-		 * SVN 커밋없이 디플로이가 실행되도록 변경
-		 * SVN 커밋은 디플로이가 끝나면 SVN이 자동으로 실행함.
-		 */
-
-		/**
-		 * 2013.07.21 PARK.Jeongyeob
-		 * 사이트 요청으로 코드를 수정하는데 기존에 잘 돌던 deploy 메소드를 수정하면 발생할
-		 * 잠재적 위험에 대비하기 위해
-		 * 아래 옵션이 true 인 경우에 새로 작성한 코드가 수행되고, false 인 경우에 기존 코드가 그대로 동작합니다.
-		 *
-		 */
-
-		/* 15.03.17
-		 * SVN 계정 정보가 없는 경우(또는 틀린경우) SVN Plug-in 에서 계정정보를 입력하라고 뜸.
-		 * 이때 Cancel 을 진행하거나, 계정 정보를 잘못 입력하고 OK 를 누를 경우 디플로이가 실행됨.
-		 *
-		 * 기본적인 커밋&배포 순서는
-		 *
-		 * 1. 배포
-		 *
-		 * 2. SVN 커밋
-		 *
-		 * 인데, 배포를 먼저 하고 SVN 커밋을 하기 때문에 SVN 커밋 과정에서 계정정보가 잘못된 경우에는 배포만 되고
-		 * 커밋이 안되게 되어 있음.
-		 */
-
-		if(commonConfig.isDeployable())
-		{
-			DeployRunnable runnable= new DeployRunnable(propertiesList, resourcesToAdd, resourcesToModify, resourcesToDelete);
-
 			ProgressMonitorDialog dialog= new ProgressMonitorDialog(part.getSite().getShell());
-			try {
-				dialog.run(false, true, runnable);
-
-				if ( runnable.getErrorMessage() != null ){
-//					MessageDialog.openError(runnable.getErrorMessage());
-//					removeAllOperations(compositeOperation);
-					MessageDialog.openError("deploy error : [" + runnable.getErrorMessage() + "]");
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			dialog.run(false, false, runnable);
+		} catch (Exception e) {
+			e.printStackTrace();
+			PluginLog.error("DBIO Commit process", e);
 		}
 	}
 
-
-	/**
-	 * targetFullPath= apphome/targetBasePath/targetFilePackage/targetFileName
-	 * @param deployer
-	 * @param mode
-	 * @param targetBasePath
-	 * @param targetFilePackage
-	 * @param sourceAbsolutePath
-	 * @param targetFileName
-	 * @throws Exception
-	 */
-	@SuppressWarnings("unchecked")
-	public<K, V> void ftpDeployExecute(
-			ICommonDeployer deployer,
-			int mode,
-			K sourceAbsolutePath,
-			String targetBasePath,
-			String targetFilePackage,
-			V targetFileName) throws Throwable
+	private boolean isSkipCommitOperation()
 	{
-		try {
-			boolean result = false;
-			if (!deployer.cdAppHomeDir()) {
-				BuilderLog.logError("Application home directory failed to move...", null);
-				return;
-			}
+		if ( !DASConfigUtils.applyApproval() ) {
+			log().info("Approval 처리를 Skip 합니다.");
+		}
 
-			if (!deployer.cd(targetBasePath)) {
-				BuilderLog.logError("Target base directory failed to move...", null);
-				return;
-			}
+		if ( !DASConfigUtils.applyDependency() ) {
+			log().info("Dependency 처리를 Skip 합니다.");
+		}
 
-			if (!deployer.cd(targetFilePackage.toString())) {
-				BuilderLog.logError("Target package directory failed to move...", null);
-				return;
-			}
+		return ( !DASConfigUtils.applyApproval() && !DASConfigUtils.applyDependency() );
+	}
 
-			/**
-			 * 2013.02.18 changyoung.shin update
-			 * innerClass 존재 가능성으로 인한 삭제로직 추가
-			 */
-			String fileName= null;
-			if (targetFileName instanceof String) {
-				fileName= (String)targetFileName;
-			} else {
-				fileName= ((List<String>)targetFileName).get(0);
-			}
+	private IResource[] removeResource(IResource[] adds, IResource[] deletes)
+	{
+		List<IResource> results = new ArrayList<IResource>();
 
-			int index= fileName.indexOf(".class");
-			if( index > 0) {
-				fileName= fileName.substring(0, index);
-				List<String> fileList= deployer.list(fileName + "$*.class");
-				if (fileList.size() > 0) {
-					result = deployer.removeAll((List<String>)fileList);
-					if (!result) {
-						BuilderLog.logError("Exception occurred during FTP Upload task.", null);
-						return;
-					}
+		for (IResource resource : deletes) {
+			if ( !contain(adds, resource) ) {
+				results.add(resource);
+			}
+		}
+
+		return results.toArray(new IResource[results.size()]);
+	}
+
+	private boolean contain(IResource[] adds, IResource resource)
+	{
+		for (IResource r : adds) {
+			if ( r.equals(resource) ) {
+				log().debug("Replace Event : {}", r);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private void procApprovalMapper(IResource[] resources, boolean delete, String svnUserId)
+	{
+		for ( IResource resource : resources ) {
+
+			try {
+				if ( !getApprovalMapper().needProcess(resource) ) {
+					continue;
 				}
-			}
-			/**
-			 * 2013.02.18 changyoung.shin update
-			 * end
-			 */
 
-			if (sourceAbsolutePath instanceof String) {
-				switch (mode) {
-				case BuilderConstants.COMMIT_STATS_ADDED:
-				case BuilderConstants.COMMIT_STATS_MODIFIED:
-					result = deployer.put((String)sourceAbsolutePath, (String)targetFileName);
-					break;
-				case BuilderConstants.COMMIT_STATS_DELETED:
-					result = deployer.remove((String)targetFileName);
-					break;
-				default: break;
+				if ( (Boolean) DBUtils.txInvoke(getConnection(), "preCommit", getApprovalMapper(), resource, delete, svnUserId) ) {
+					throw new DASException(UIText.EMSG_APPROVAL_03);
 				}
-			} else {
-				switch (mode) {
-				case BuilderConstants.COMMIT_STATS_ADDED:
-				case BuilderConstants.COMMIT_STATS_MODIFIED:
-					result = deployer.putAll((List<String>)sourceAbsolutePath, (List<String>)targetFileName);
-					break;
-				case BuilderConstants.COMMIT_STATS_DELETED:
-					result = deployer.removeAll((List<String>)targetFileName);
-					break;
-				default: break;
-				}
-			}
 
-			if (!result) {
-				BuilderLog.logError("Exception occurred during FTP Upload task.", null);
+			} catch (DASException e) {
+				getErrorList().put(resource, e);
 			}
-		} catch( Throwable th) {
-			throw th;
 		}
 	}
 
+	private void procApprovalInterface(IResource[] resources, boolean delete)
+	{
+		for ( IResource resource : resources ) {
 
-	@SuppressWarnings("unchecked")
-	private static CommitOperation getCommitOperation(CompositeOperation compositeOperation) {
-		CommitOperation commitOperation = null;
-
-		try {
-			// get operations from CompositeOperation class through reflection
-			Field declaredFieldOperationList = CompositeOperation.class.getDeclaredField("operations");
-			declaredFieldOperationList.setAccessible(true);
-
-			List<Object> operationPairList =
-					(List<Object>) declaredFieldOperationList.get(compositeOperation);
-
-			for (Object operationPair : operationPairList) {
-				Field operationField = operationPair.getClass().getField("operation");
-				IActionOperation operation = (IActionOperation) operationField.get(operationPair);
-				if (operation instanceof CommitOperation) {
-					commitOperation = (CommitOperation) operation;
+			try {
+				if ( !getApprovalInterface().needProcess(resource) ) {
+					continue;
 				}
+
+				getApprovalInterface().preCommit(resource, delete);
+			} catch (DASException e) {
+				getErrorList().put(resource, e);
 			}
 		}
-		catch (Exception e) {
-			BuilderLog.logError(e);
-		}
-		return commitOperation;
 	}
 
-	@SuppressWarnings("unchecked")
-	private static ClearLocalStatusesOperation getClearLocalStatusesOperation(CompositeOperation compositeOperation) {
-		ClearLocalStatusesOperation clearLocalStatusesOperation = null;
+	private void procDependencyMapper(IResource[] resources, boolean delete, IProgressMonitor monitor)
+	{
+		log().debug(">> procDependencyMapper");
+		for ( IResource resource : resources ) {
+			new SubProgressMonitor(monitor, 1).subTask(UIText.DAS_CREATE_DEPENDENCY_META + ": " + resource.getFullPath().toString());
 
-		try {
-			// get operations from CompositeOperation class through reflection
-			Field declaredFieldOperationList = CompositeOperation.class.getDeclaredField("operations");
-			declaredFieldOperationList.setAccessible(true);
-
-			List<Object> operationPairList =
-					(List<Object>) declaredFieldOperationList.get(compositeOperation);
-
-			for (Object operationPair : operationPairList) {
-				Field operationField = operationPair.getClass().getField("operation");
-				IActionOperation operation = (IActionOperation) operationField.get(operationPair);
-				if (operation instanceof ClearLocalStatusesOperation) {
-					clearLocalStatusesOperation = (ClearLocalStatusesOperation) operation;
+			try {
+				if ( !DependenyAnalyzer.needProcess(resource) ) {
+					continue;
 				}
+
+				DBUtils.txInvoke(getConnection(), "preCommit", getDependenyAnalyzer(), resource, delete);
+			} catch (DASException e) {
+				e.printStackTrace();
+				PluginLog.error(
+						MessageFormat.format(
+								UIText.PROCESS_DEPENDENCY_DATA_ERROR
+								, resource.toString()), e);
+
+				getErrorList().put(resource, e);
 			}
-		}
-		catch (Exception e) {
-			BuilderLog.logError(e);
-		}
-		return clearLocalStatusesOperation;
-	}
-
-	@SuppressWarnings("unchecked")
-	private static AddToSVNWithPropertiesOperation getAddToSVNWithPropertiesOperation(CompositeOperation compositeOperation) {
-		AddToSVNWithPropertiesOperation addToSVNWithPropertiesOperation = null;
-
-		try {
-			// get operations from CompositeOperation class through reflection
-			Field declaredFieldOperationList = CompositeOperation.class.getDeclaredField("operations");
-			declaredFieldOperationList.setAccessible(true);
-
-			List<Object> operationPairList =
-					(List<Object>) declaredFieldOperationList.get(compositeOperation);
-
-			for (Object operationPair : operationPairList) {
-				Field operationField = operationPair.getClass().getField("operation");
-				IActionOperation operation = (IActionOperation) operationField.get(operationPair);
-				if (operation instanceof AddToSVNWithPropertiesOperation) {
-					addToSVNWithPropertiesOperation = (AddToSVNWithPropertiesOperation) operation;
-				}
-			}
-		}
-		catch (Exception e) {
-			BuilderLog.logError(e);
-		}
-		return addToSVNWithPropertiesOperation;
-	}
-
-	private void replaceResources(Object commitOperation, IResource[] allFiles) {
-		try {
-			// get operations from CompositeOperation class through reflection
-			Field declaredFieldResources = AbstractWorkingCopyOperation.class.getDeclaredField("resources");
-			declaredFieldResources.setAccessible(true);
-//			declaredFieldResources.set(commitOperation, allFiles.toArray(new IResource[0]));
-			declaredFieldResources.set(commitOperation, allFiles);
-		}
-		catch (Exception e) {
-			BuilderLog.logError(e);
+			monitor.worked(1);
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private static void removeAllOperations(CompositeOperation compositeOperation) {
-		try {
-			// get operations from CompositeOperation class through reflection
-			Field declaredFieldOperationList = CompositeOperation.class.getDeclaredField("operations");
-			declaredFieldOperationList.setAccessible(true);
-
-			List<Object> operationPairList = (List<Object>) declaredFieldOperationList.get(compositeOperation);
-			List<IActionOperation> operationsToRemove = new ArrayList<IActionOperation>();
-			for (Object operationPair : operationPairList) {
-				Field operationField = operationPair.getClass().getField("operation");
-				IActionOperation operation = (IActionOperation) operationField.get(operationPair);
-				operationsToRemove.add(operation);
-			}
-
-			// remove now these operations from the CompositeOperation
-			Iterator<IActionOperation> operationsToRemoveIterator = operationsToRemove.iterator();
-			while (operationsToRemoveIterator.hasNext()) {
-				compositeOperation.remove(operationsToRemoveIterator.next());
-			}
+	@Override
+	public Object getErrorMessage()
+	{
+		if ( getErrorList().isEmpty() ) {
+			return null;
 		}
-		catch (Exception e) {
-			BuilderLog.logError(e);
+
+		final StringBuilder msg = new StringBuilder();
+
+		for ( Entry<IResource, Throwable> item : getErrorList().entrySet()) {
+
+			msg.append( item.getKey().getName() );
+			msg.append(" : ");
+			msg.append( item.getValue().getMessage() );
+			msg.append("\n");
 		}
+
+		return msg.toString();
 	}
 
-	@SuppressWarnings("unused")
-	protected IPath getLocalPath(IResource resource) {
-		String sourceAbsolutePath = resource.getLocation().toString();
-		IPath fullPath = resource.getFullPath();
-		for (IPath srcPath : srcPathList) {
-			boolean isPrefix = srcPath.isPrefixOf(fullPath);
-			if (isPrefix) {
-				int count = srcPath.matchingFirstSegments(fullPath);
-				IPath filePath = fullPath.removeFirstSegments(count);
-			}
-		}
+	@Override
+	public IResource[] getPreResourcesToCommit()
+	{
 		return null;
 	}
 
-	public void sortCompositeOperation(CompositeOperation compositeOperation) {
-		Map<Integer, IActionOperation> sortMap= new HashMap<Integer, IActionOperation>();
+	@Override
+	public Object performPreProcess()
+	{
+		return new boolean[]{
+			DASConfigUtils.applyApproval(),
+			DASConfigUtils.applyDependency()
+		};
+	}
 
-		int fAddToSVNWithProperties= 0;
-		int fClearLocalStatuses= 1;
-		int fCommit= 2;
-		int fClearUpdateStatuses= 3;
-		int fRefreshResources= 4;
-		int fNotifyUnresolvedConflict= 5;
-		sortMap.put(fAddToSVNWithProperties, null);
-		sortMap.put(fClearLocalStatuses, null);
-		sortMap.put(fCommit, null);
-		sortMap.put(fClearUpdateStatuses, null);
-		sortMap.put(fRefreshResources, null);
-		sortMap.put(fNotifyUnresolvedConflict, null);
+	@Override
+	public Object performPostProcess()
+	{
+		return null;
+	}
 
-		try {
-			// get operations from CompositeOperation class through reflection
-			Field declaredFieldOperationList = CompositeOperation.class.getDeclaredField("operations");
-			declaredFieldOperationList.setAccessible(true);
+	@Override
+	public int getPriority()
+	{
+		return PRIORITY_DAS;
+	}
 
-			@SuppressWarnings("unchecked")
-			List<Object> operationPairList = (List<Object>) declaredFieldOperationList.get(compositeOperation);
+	public Map<IResource, Throwable> getErrorList()
+	{
+		if (errorList == null) 	this.errorList = new HashMap<IResource, Throwable>();
+		return errorList;
+	}
 
-			for (Object operationPair : operationPairList) {
-				Field operationField = operationPair.getClass().getField("operation");
-				IActionOperation operation = (IActionOperation) operationField.get(operationPair);
-
-				if (operation instanceof AddToSVNWithPropertiesOperation) {
-					sortMap.put(fAddToSVNWithProperties, operation);
-				} else if (operation instanceof ClearLocalStatusesOperation) {
-					sortMap.put(fClearLocalStatuses, operation);
-				} else if (operation instanceof CommitOperation) {
-					sortMap.put(fCommit, operation);
-				} else if (operation instanceof ClearUpdateStatusesOperation) {
-					sortMap.put(fClearUpdateStatuses, operation);
-				} else if (operation instanceof RefreshResourcesOperation) {
-					sortMap.put(fRefreshResources, operation);
-				} else if (operation instanceof NotifyUnresolvedConflictOperation) {
-					sortMap.put(fNotifyUnresolvedConflict, operation);
-				}
-			}
-
-			// remove now these operations from the CompositeOperation
-			for ( int i = 0 ; i < sortMap.size() ; i++ ) {
-				compositeOperation.remove(sortMap.get(i));
-			}
-
-			// add now these operations to the CompositeOperation
-			for ( int i = 0 ; i < sortMap.size() ; i++ ) {
-				compositeOperation.add(sortMap.get(i));
-			}
+	private DependenyAnalyzer getDependenyAnalyzer() throws DASException
+	{
+		if ( dependenyAnalyzer == null ) {
+			final DependencyDao dependencyDao = new DependencyDao( getConnection() );
+			final String vendor = BXMUtils.getDbmsVendor(ConfigurationUtils.getFWConfigInfo().getConnectName());
+					
+			this.dependenyAnalyzer = new DependenyAnalyzer(dependencyDao, vendor);
 		}
-		catch (Exception e) {
-			BuilderLog.logError(e);
+
+		return dependenyAnalyzer;
+	}
+
+	private ApprovalMapper getApprovalMapper() throws DASException
+	{
+		if ( approvalMapper == null ) {
+			final ApprovalDao approvalDao = new ApprovalDao( getConnection() );
+			this.approvalMapper = new ApprovalMapper(approvalDao);
+			this.approvalInterface = new ApprovalInterface(approvalDao);
+		}
+
+		return approvalMapper;
+	}
+
+	private ApprovalInterface getApprovalInterface() throws DASException
+	{
+		if ( approvalInterface == null ) {
+			final ApprovalDao approvalDao = new ApprovalDao( getConnection() );
+			this.approvalMapper = new ApprovalMapper(approvalDao);
+			this.approvalInterface = new ApprovalInterface(approvalDao);
+		}
+
+		return approvalInterface;
+	}
+
+	private Connection getConnection() throws DASException
+	{
+		if ( conn != null ) {
+			return conn;
+		}
+
+		final String connectionName = ConfigurationUtils.getFWConfigInfo().getConnectName();
+		if ( StringUtils.isEmpty(connectionName) ) {
+			throw new DASException( UIText.EMSG_DB_02 );
+		}
+
+		final Connection connection = ConnectionManager.getConnection(connectionName);
+		if ( connection == null ) {
+			log().debug("Fail to Connect : name =  {}", connectionName);
+//			throw new DASException( EMSG_DB_01 );
+			throw new DASException( UIText.EMSG_SQL_03 );
+		} else {
+			this.conn = connection;
+			return connection;
 		}
 	}
 }
