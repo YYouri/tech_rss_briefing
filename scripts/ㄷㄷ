@@ -1,2 +1,102 @@
-2026-04-09 11:09:16 AM INFO - LLMController.chat(107) | >>> [4] vLLM 응답 body: {"id":"chatcmpl-60af139ec0ea44d4bb48c8ee26f3f697","object":"chat.completion","model":"/app/models/gpt-oss-20b","choices":[{"index":0,"message":{"role":"assistant","content":"```java\n// src/test/java/com/example/sort/SortingTest.java\npackage com.example.sort;\n\nimport static org.junit.jupiter.api.Assertions.assertArrayEquals;\n\nimport java.util.Arrays;\nimport java.util.Random;\n\nimport org.junit.jupiter.api.DisplayName;\nimport org.junit.jupiter.api.Test;\n\nclass SortingTest {\n\n    @Test\n    @DisplayName(\"Arrays.sort 정수 배열 정렬 테스트\")\n    void testArraysSortIntegers() {\n        int[] unsorted = { 5, 3, 8, 1, 9, 2, 7, 4, 6, 0 };\n        int[] expected = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };\n\n        Arrays.sort(unsorted);\n\n        assertArrayEquals(expected, unsorted);\n    }\n\n    @Test\n    @DisplayName(\"Arrays.sort 문자열 배열 정렬 테스트\")\n    void testArraysSortStrings() {\n        String[] unsorted = { \"delta\", \"alpha\", \"charlie\", \"bravo\" };\n        String[] expected = { \"alpha\", \"bravo\", \"charlie\", \"delta\" };\n\n        Arrays.sort(unsorted);\n\n        assertArrayEquals(expected, unsorted);\n    }\n\n    @Test\n    @DisplayName(\"랜덤 정수 배열에 대한 정렬 검증\")\n    void testRandomArraySorting() {\n        Random rnd = new Random(42);\n        int size = 1000;\n        int[] unsorted = new int[size];\n        for (int i = 0; i < size; i++) {\n            unsorted[i] = rnd.nextInt(10000);\n        }\n\n        int[] expected = Arrays.copyOf(unsorted, size);\n        Arrays.sort(expected);\n        Arrays.sort(unsorted);\n\n        assertArrayEquals(expected, unsorted);\n    }\n}\n```\n\n위 코드는 JUnit 5를 사용해 `Arrays.sort`가 정수 배열과 문자열 배열을 올바르게 정렬하는지 검증합니다. 필요에 따라 `SortingTest` 클래스를 프로젝트에 추가하고, `pom.xml`(Maven) 혹은 `build.gradle`(Gradle)에 JUnit 5 의존성을 포함하면 바로 실행할 수 있습니다."},"finish_reason":"stop"}],"usage":{"prompt_tokens":0,"completion_tokens":0,"total_tokens":0}}
-2026-04-09 11:09:16 AM INFO - LLMController.chat(113) | >>> [5] 플러그인으로 응답 완료
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="bxm.ui" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appinfo>
+         <meta.schema plugin="bxm.ui" id="bxm.team.scm.svn.commit" name="Bxm Commit"/>
+      </appinfo>
+      <documentation>
+         [Enter description of this extension point.]
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
+      <complexType>
+         <choice minOccurs="1" maxOccurs="unbounded">
+            <element ref="participant"/>
+         </choice>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appinfo>
+                  <meta.attribute translatable="true"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="participant">
+      <complexType>
+         <attribute name="class" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":bxm.team.scm.svn.IBxmCommitParticipant"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="since"/>
+      </appinfo>
+      <documentation>
+         [Enter the first release in which this extension point appears.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="examples"/>
+      </appinfo>
+      <documentation>
+         [Enter extension point usage example here.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="apiinfo"/>
+      </appinfo>
+      <documentation>
+         [Enter API information here.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="implementation"/>
+      </appinfo>
+      <documentation>
+         [Enter information about supplied implementation of this extension point.]
+      </documentation>
+   </annotation>
+
+
+</schema>
