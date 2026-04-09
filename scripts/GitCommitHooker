@@ -1,0 +1,354 @@
+package bxm.das.ui.git;
+
+import java.lang.reflect.InvocationTargetException;
+import java.sql.Connection;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.swt.widgets.Display;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import bxm.das.ui.PluginLog;
+import bxm.das.ui.approval.ApprovalDao;
+import bxm.das.ui.approval.ApprovalInterface;
+import bxm.das.ui.approval.ApprovalMapper;
+import bxm.das.ui.config.DASConfigUtils;
+import bxm.das.ui.db.DBUtils;
+import bxm.das.ui.dependency.DependencyDao;
+import bxm.das.ui.dependency.DependenyAnalyzer;
+import bxm.das.ui.text.UIText;
+import bxm.das.ui.util.common.StringUtils;
+import bxm.das.ui.util.view.MessageUtils;
+import bxm.datatools.enablement.exception.DASException;
+import bxm.team.scm.git.IBxmGitCommitParticipant;
+import bxm.ui.db.ConnectionManager;
+import bxm.ui.db.config.ConfigurationUtils;
+import bxm.ui.util.BXMUtils;
+
+import java.io.File;
+
+public class GitCommitHooker implements IBxmGitCommitParticipant {
+
+    private Connection conn;
+    private DependenyAnalyzer dependenyAnalyzer;
+    private ApprovalMapper approvalMapper;
+    private ApprovalInterface approvalInterface;
+    private Map<IResource, Throwable> errorList;
+
+    private Logger log() {
+        return LoggerFactory.getLogger(getClass());
+    }
+
+    // -------------------------------------------------------------------------
+    // IBxmGitCommitParticipant
+    // -------------------------------------------------------------------------
+
+    @Override
+    public Object performPreProcess() {
+        return new boolean[]{
+            DASConfigUtils.applyApproval(),
+            DASConfigUtils.applyDependency()
+        };
+    }
+
+    @Override
+    public void performAfterCommitTasks(
+            final Object preProcessResult,
+            final List<String> committedFiles,
+            final File repoRoot) {
+
+        IRunnableWithProgress runnable = new IRunnableWithProgress() {
+            @Override
+            public void run(IProgressMonitor monitor)
+                    throws InvocationTargetException, InterruptedException {
+                monitor.beginTask(UIText.DAS_COMMIT_PROCESS, 100);
+                internalPerformAfterCommitTasks(committedFiles, repoRoot, monitor);
+                monitor.done();
+            }
+        };
+
+        Display.getDefault().asyncExec(() -> {
+            try {
+                ProgressMonitorDialog dialog = new ProgressMonitorDialog(
+                        Display.getDefault().getActiveShell());
+                dialog.run(false, false, runnable);
+            } catch (Exception e) {
+                e.printStackTrace();
+                PluginLog.error("DBIO Git Commit process", e);
+            }
+        });
+    }
+
+    @Override
+    public Object performPostProcess() {
+        return null;
+    }
+
+    @Override
+    public Object getErrorMessage() {
+        if (getErrorList().isEmpty()) return null;
+
+        StringBuilder msg = new StringBuilder();
+        for (Entry<IResource, Throwable> item : getErrorList().entrySet()) {
+            msg.append(item.getKey().getName())
+               .append(" : ")
+               .append(item.getValue().getMessage())
+               .append("\n");
+        }
+        return msg.toString();
+    }
+
+    @Override
+    public int getPriority() {
+        return PRIORITY_DAS;
+    }
+
+    // -------------------------------------------------------------------------
+    // 내부 처리
+    // -------------------------------------------------------------------------
+
+    private void internalPerformAfterCommitTasks(
+            List<String> committedFiles,
+            File repoRoot,
+            IProgressMonitor monitor) {
+
+        if (isSkipCommitOperation()) {
+            log().info("DBIO Commit Operation 처리를 Skip 합니다.");
+            return;
+        }
+
+        // 파일 목록 → IResource 분류
+        List<IResource> addList    = new ArrayList<>();
+        List<IResource> modifyList = new ArrayList<>();
+        List<IResource> deleteList = new ArrayList<>();
+        classifyResources(committedFiles, repoRoot, addList, modifyList, deleteList);
+
+        if (addList.isEmpty() && modifyList.isEmpty() && deleteList.isEmpty()) {
+            log().debug("처리할 resources 가 없습니다.");
+            return;
+        }
+
+        // SVN replace 처리와 동일: delete 목록에서 add와 겹치는 건 제거
+        IResource[] resourcesToAdd    = addList.toArray(new IResource[0]);
+        IResource[] resourcesToModify = modifyList.toArray(new IResource[0]);
+        IResource[] resourcesToDelete = removeResource(resourcesToAdd,
+                deleteList.toArray(new IResource[0]));
+
+        // Git은 userId를 git config에서 가져옴
+        String gitUserId = getGitUserId(repoRoot);
+
+        if (DASConfigUtils.applyApproval()) {
+            procApprovalMapper(resourcesToDelete, true,  gitUserId);
+            procApprovalMapper(resourcesToAdd,    false, gitUserId);
+            procApprovalMapper(resourcesToModify, false, gitUserId);
+
+            procApprovalInterface(resourcesToDelete, true);
+            procApprovalInterface(resourcesToAdd,    false);
+            procApprovalInterface(resourcesToModify, false);
+        }
+
+        if (getErrorList().size() > 0) {
+            showErrorAndReturn();
+            return;
+        }
+
+        if (DASConfigUtils.applyDependency()) {
+            procDependencyMapper(resourcesToDelete, true,  monitor);
+            procDependencyMapper(resourcesToAdd,    false, monitor);
+            procDependencyMapper(resourcesToModify, false, monitor);
+
+            if (getErrorList().size() > 0) {
+                showErrorAndReturn();
+            }
+        } else {
+            log().info(">> DBIO DEPENDENCY를 사용하지 않습니다.");
+        }
+    }
+
+    /**
+     * "A:path", "M:path", "D:path" → IResource 분류
+     */
+    private void classifyResources(
+            List<String> committedFiles, File repoRoot,
+            List<IResource> addList,
+            List<IResource> modifyList,
+            List<IResource> deleteList) {
+
+        IWorkspaceRoot wsRoot = ResourcesPlugin.getWorkspace().getRoot();
+
+        for (String entry : committedFiles) {
+            if (entry.length() < 3) continue;
+            char type = entry.charAt(0);
+            String relativePath = entry.substring(2);
+
+            File absFile = new File(repoRoot, relativePath);
+            IResource resource = wsRoot.getFileForLocation(
+                    new Path(absFile.getAbsolutePath()));
+            if (resource == null) continue;
+
+            switch (type) {
+                case 'A': addList.add(resource);    break;
+                case 'M': modifyList.add(resource); break;
+                case 'D': deleteList.add(resource); break;
+            }
+        }
+    }
+
+    /**
+     * SVN SvnUtils.getUserId() 대체
+     * git config user.name 또는 user.email 사용
+     */
+    private String getGitUserId(File repoRoot) {
+        try (org.eclipse.jgit.lib.Repository repo =
+                new org.eclipse.jgit.storage.file.FileRepositoryBuilder()
+                        .setWorkTree(repoRoot).build()) {
+            org.eclipse.jgit.lib.StoredConfig config = repo.getConfig();
+            String name = config.getString("user", null, "name");
+            return name != null ? name : config.getString("user", null, "email");
+        } catch (Exception e) {
+            log().warn("git userId 조회 실패", e);
+            return "";
+        }
+    }
+
+    private boolean isSkipCommitOperation() {
+        if (!DASConfigUtils.applyApproval())   log().info("Approval 처리를 Skip 합니다.");
+        if (!DASConfigUtils.applyDependency()) log().info("Dependency 처리를 Skip 합니다.");
+        return !DASConfigUtils.applyApproval() && !DASConfigUtils.applyDependency();
+    }
+
+    private IResource[] removeResource(IResource[] adds, IResource[] deletes) {
+        List<IResource> results = new ArrayList<>();
+        for (IResource resource : deletes) {
+            if (!contain(adds, resource)) results.add(resource);
+        }
+        return results.toArray(new IResource[0]);
+    }
+
+    private boolean contain(IResource[] adds, IResource resource) {
+        for (IResource r : adds) {
+            if (r.equals(resource)) {
+                log().debug("Replace Event : {}", r);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void procApprovalMapper(IResource[] resources, boolean delete, String userId) {
+        for (IResource resource : resources) {
+            try {
+                if (!getApprovalMapper().needProcess(resource)) continue;
+                if ((Boolean) DBUtils.txInvoke(getConnection(), "preCommit",
+                        getApprovalMapper(), resource, delete, userId)) {
+                    throw new DASException(UIText.EMSG_APPROVAL_03);
+                }
+            } catch (DASException e) {
+                getErrorList().put(resource, e);
+            }
+        }
+    }
+
+    private void procApprovalInterface(IResource[] resources, boolean delete) {
+        for (IResource resource : resources) {
+            try {
+                if (!getApprovalInterface().needProcess(resource)) continue;
+                getApprovalInterface().preCommit(resource, delete);
+            } catch (DASException e) {
+                getErrorList().put(resource, e);
+            }
+        }
+    }
+
+    private void procDependencyMapper(IResource[] resources, boolean delete, IProgressMonitor monitor) {
+        log().debug(">> procDependencyMapper");
+        for (IResource resource : resources) {
+            new SubProgressMonitor(monitor, 1).subTask(
+                    UIText.DAS_CREATE_DEPENDENCY_META + ": " + resource.getFullPath());
+            try {
+                if (!DependenyAnalyzer.needProcess(resource)) continue;
+                DBUtils.txInvoke(getConnection(), "preCommit",
+                        getDependenyAnalyzer(), resource, delete);
+            } catch (DASException e) {
+                e.printStackTrace();
+                PluginLog.error(MessageFormat.format(
+                        UIText.PROCESS_DEPENDENCY_DATA_ERROR, resource.toString()), e);
+                getErrorList().put(resource, e);
+            }
+            monitor.worked(1);
+        }
+    }
+
+    private void showErrorAndReturn() {
+        StringBuilder msg = new StringBuilder();
+        msg.append(">> 아래의 Resource 는 Commit 될 수 없습니다. <<\n\n");
+        msg.append(getErrorMessage());
+        msg.append(">> Commit Operation 을 취소합니다. <<\n");
+        MessageUtils.openError(msg.toString());
+    }
+
+    public Map<IResource, Throwable> getErrorList() {
+        if (errorList == null) errorList = new HashMap<>();
+        return errorList;
+    }
+
+    // -------------------------------------------------------------------------
+    // DB / 분석기 Lazy init (기존 SVN 코드 그대로)
+    // -------------------------------------------------------------------------
+
+    private DependenyAnalyzer getDependenyAnalyzer() throws DASException {
+        if (dependenyAnalyzer == null) {
+            DependencyDao dao = new DependencyDao(getConnection());
+            String vendor = BXMUtils.getDbmsVendor(
+                    ConfigurationUtils.getFWConfigInfo().getConnectName());
+            dependenyAnalyzer = new DependenyAnalyzer(dao, vendor);
+        }
+        return dependenyAnalyzer;
+    }
+
+    private ApprovalMapper getApprovalMapper() throws DASException {
+        if (approvalMapper == null) {
+            ApprovalDao dao = new ApprovalDao(getConnection());
+            approvalMapper   = new ApprovalMapper(dao);
+            approvalInterface = new ApprovalInterface(dao);
+        }
+        return approvalMapper;
+    }
+
+    private ApprovalInterface getApprovalInterface() throws DASException {
+        if (approvalInterface == null) {
+            ApprovalDao dao = new ApprovalDao(getConnection());
+            approvalMapper   = new ApprovalMapper(dao);
+            approvalInterface = new ApprovalInterface(dao);
+        }
+        return approvalInterface;
+    }
+
+    private Connection getConnection() throws DASException {
+        if (conn != null) return conn;
+        String connectionName = ConfigurationUtils.getFWConfigInfo().getConnectName();
+        if (StringUtils.isEmpty(connectionName)) {
+            throw new DASException(UIText.EMSG_DB_02);
+        }
+        conn = ConnectionManager.getConnection(connectionName);
+        if (conn == null) {
+            log().debug("Fail to Connect : name = {}", connectionName);
+            throw new DASException(UIText.EMSG_SQL_03);
+        }
+        return conn;
+    }
+}
