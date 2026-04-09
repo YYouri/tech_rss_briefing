@@ -1,102 +1,52 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<!-- Schema file written by PDE -->
-<schema targetNamespace="bxm.ui" xmlns="http://www.w3.org/2001/XMLSchema">
-<annotation>
-      <appinfo>
-         <meta.schema plugin="bxm.ui" id="bxm.team.scm.svn.commit" name="Bxm Commit"/>
-      </appinfo>
-      <documentation>
-         [Enter description of this extension point.]
-      </documentation>
-   </annotation>
-
-   <element name="extension">
-      <annotation>
-         <appinfo>
-            <meta.element />
-         </appinfo>
-      </annotation>
-      <complexType>
-         <choice minOccurs="1" maxOccurs="unbounded">
-            <element ref="participant"/>
-         </choice>
-         <attribute name="point" type="string" use="required">
-            <annotation>
-               <documentation>
-                  
-               </documentation>
-            </annotation>
-         </attribute>
-         <attribute name="id" type="string">
-            <annotation>
-               <documentation>
-                  
-               </documentation>
-            </annotation>
-         </attribute>
-         <attribute name="name" type="string">
-            <annotation>
-               <documentation>
-                  
-               </documentation>
-               <appinfo>
-                  <meta.attribute translatable="true"/>
-               </appinfo>
-            </annotation>
-         </attribute>
-      </complexType>
-   </element>
-
-   <element name="participant">
-      <complexType>
-         <attribute name="class" type="string">
-            <annotation>
-               <documentation>
-                  
-               </documentation>
-               <appinfo>
-                  <meta.attribute kind="java" basedOn=":bxm.team.scm.svn.IBxmCommitParticipant"/>
-               </appinfo>
-            </annotation>
-         </attribute>
-      </complexType>
-   </element>
-
-   <annotation>
-      <appinfo>
-         <meta.section type="since"/>
-      </appinfo>
-      <documentation>
-         [Enter the first release in which this extension point appears.]
-      </documentation>
-   </annotation>
-
-   <annotation>
-      <appinfo>
-         <meta.section type="examples"/>
-      </appinfo>
-      <documentation>
-         [Enter extension point usage example here.]
-      </documentation>
-   </annotation>
-
-   <annotation>
-      <appinfo>
-         <meta.section type="apiinfo"/>
-      </appinfo>
-      <documentation>
-         [Enter API information here.]
-      </documentation>
-   </annotation>
-
-   <annotation>
-      <appinfo>
-         <meta.section type="implementation"/>
-      </appinfo>
-      <documentation>
-         [Enter information about supplied implementation of this extension point.]
-      </documentation>
-   </annotation>
+import org.eclipse.core.resources.IResource;
+import org.eclipse.team.svn.core.operation.CompositeOperation;
+import org.eclipse.team.svn.core.operation.IActionOperation;
+import org.eclipse.team.svn.core.operation.IRevisionProvider;
+import org.eclipse.ui.IWorkbenchPart;
 
 
-</schema>
+public interface IBxmCommitParticipant{
+	
+	public static final int PRIORITY_DAS = 10;
+	public static final int PRIORITY_BUILDER  = 21;
+	
+	/**
+	 * 
+	 * @param preProcessResult <code>performPreProcess()</code>에서 수행된 결과를 전달.
+	 * @param operation
+	 * @param revisionProvider
+	 * @param dependsOn
+	 * @param part
+	 */
+	public void performAfterCommitTasks(
+			final Object preProcessResult,
+			final CompositeOperation operation,
+			final IRevisionProvider revisionProvider, 
+			final IActionOperation[] dependsOn,
+			final IWorkbenchPart part
+			);
+	
+	public Object getErrorMessage();
+	
+	public IResource[] getPreResourcesToCommit();
+	
+	/**
+	 * 
+	 * @return <code>performAfterCommitTasks</code>에 전달 될 결과.
+	 */
+	public Object performPreProcess();
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public Object performPostProcess();
+	
+	
+	/**
+	 * DAS는 IBxmCommitParticipant.PRIORITY_DAS를 반환
+	 * BUILDER는 IBxmCommitParticipant.PRIORITY_BUILDER를 반환하여 주시면 됩니다.
+	 * @return
+	 */
+	public int getPriority();	
+}
