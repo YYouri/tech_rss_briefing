@@ -1,0 +1,255 @@
+package bxm.builder.scm.git;
+
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.swt.widgets.Display;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import bxm.builder.BuilderActivator;
+import bxm.builder.BuilderLog;
+import bxm.builder.core.BxmProjectNature;
+import bxm.builder.ui.deploy.DeployExecutorManager;
+import bxm.builder.ui.model.BxmPropertiesModel;
+import bxm.builder.ui.model.CommonDeployModel;
+import bxm.builder.util.PlatformUtil;
+import bxm.team.scm.git.IBxmGitCommitParticipant;
+import bxm.ui.db.config.ConfigurationUtils;
+import bxm.ui.req.build.BuildRequest;
+
+public class GitCommitActionFactory implements IBxmGitCommitParticipant {
+
+    final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    protected final static String bxmNatureId = BxmProjectNature.NATURE_ID;
+    public final static String bxmWebProjectNatureId = "bxm.nature.webProjectNature";
+
+    // 커밋된 파일 분류 결과 (performPreProcess → performAfterCommitTasks 전달용)
+    private IProject project;
+
+    // -------------------------------------------------------------------------
+    // IRunnableWithProgress - 배포 실행
+    // -------------------------------------------------------------------------
+    class DeployRunnable implements IRunnableWithProgress {
+        private final List<BxmPropertiesModel> propertiesList;
+        private final IResource[] resourcesToAdd;
+        private final IResource[] resourcesToModify;
+        private final IResource[] resourcesToDelete;
+        private String errorMessage;
+
+        public DeployRunnable(
+                List<BxmPropertiesModel> propertiesList,
+                IResource[] resourcesToAdd,
+                IResource[] resourcesToModify,
+                IResource[] resourcesToDelete) {
+            this.propertiesList   = propertiesList;
+            this.resourcesToAdd   = resourcesToAdd;
+            this.resourcesToModify = resourcesToModify;
+            this.resourcesToDelete = resourcesToDelete;
+        }
+
+        @Override
+        public void run(IProgressMonitor monitor)
+                throws InvocationTargetException, InterruptedException {
+            try {
+                logger.debug(">> resourcesToAdd    : {}", resourcesToAdd.length);
+                logger.debug(">> resourcesToModify : {}", resourcesToModify.length);
+                logger.debug(">> resourcesToDelete : {}", resourcesToDelete.length);
+
+                DeployExecutorManager.instance().execute(
+                        project, propertiesList,
+                        resourcesToAdd, resourcesToModify, resourcesToDelete,
+                        monitor);
+
+                // 서버빌드 옵션
+                if (ConfigurationUtils.getConfiguration().isUseServerBuild()) {
+                    BuildRequest br = new BuildRequest();
+                    br.request(project, resourcesToAdd, resourcesToModify, resourcesToDelete);
+                }
+
+            } catch (Exception e) {
+                BuilderLog.logError(e);
+                errorMessage = e.getMessage();
+            }
+        }
+
+        public String getErrorMessage() { return errorMessage; }
+    }
+
+    // -------------------------------------------------------------------------
+    // IBxmGitCommitParticipant 구현
+    // -------------------------------------------------------------------------
+
+    @Override
+    public Object performPreProcess() {
+        // Git은 커밋 전 처리 불필요 (SVN은 OutDated/Lock 체크했지만 Git은 불필요)
+        return null;
+    }
+
+    @Override
+    public void performAfterCommitTasks(
+            Object preProcessResult,
+            List<String> committedFiles,   // repo root 기준 상대경로
+            File repoRoot) {
+
+        logger.trace("GitCommitActionFactory#performAfterCommitTasks");
+
+        if (committedFiles == null || committedFiles.isEmpty()) {
+            logger.debug("커밋 대상 파일이 없습니다.");
+            return;
+        }
+
+        // 1. 파일 → IResource 변환 & ADD/MODIFY/DELETE 분류
+        IWorkspaceRoot wsRoot = ResourcesPlugin.getWorkspace().getRoot();
+
+        List<IResource> toAdd    = new ArrayList<>();
+        List<IResource> toModify = new ArrayList<>();
+        List<IResource> toDelete = new ArrayList<>();
+
+        for (GitCommitFile gcf : parseCommittedFiles(committedFiles, repoRoot)) {
+            // repoRoot 절대경로 + 상대경로 → workspace IFile
+            File absFile = new File(repoRoot, gcf.relativePath);
+            IResource resource = wsRoot.getFileForLocation(
+                    new Path(absFile.getAbsolutePath()));
+
+            if (resource == null) continue; // workspace 밖 파일
+
+            switch (gcf.changeType) {
+                case ADD:    toAdd.add(resource);    break;
+                case MODIFY: toModify.add(resource); break;
+                case DELETE: toDelete.add(resource); break;
+            }
+        }
+
+        if (toAdd.isEmpty() && toModify.isEmpty() && toDelete.isEmpty()) {
+            logger.debug("배포 대상 리소스가 없습니다.");
+            return;
+        }
+
+        // 2. 프로젝트 추출 & Nature 체크
+        IResource first = toAdd.isEmpty()
+                ? (toModify.isEmpty() ? toDelete.get(0) : toModify.get(0))
+                : toAdd.get(0);
+        project = first.getProject();
+
+        if (!isDeployableProject(project)) {
+            logger.debug("배포 대상 프로젝트가 아닙니다: {}", project.getName());
+            return;
+        }
+
+        // 3. 배포 실행
+        CommonDeployModel commonConfig;
+        try {
+            commonConfig = PlatformUtil.getCommonDeployConfig(project);
+        } catch (Throwable e) {
+            commonConfig = new CommonDeployModel(); // 웹자원 등 예외케이스
+        }
+
+        if (!commonConfig.isDeployable()) {
+            logger.debug("배포 설정이 비활성화되어 있습니다.");
+            return;
+        }
+
+        List<BxmPropertiesModel> propertiesList = new ArrayList<>();
+        DeployRunnable runnable = new DeployRunnable(
+                propertiesList,
+                toAdd.toArray(new IResource[0]),
+                toModify.toArray(new IResource[0]),
+                toDelete.toArray(new IResource[0]));
+
+        Display.getDefault().asyncExec(() -> {
+            ProgressMonitorDialog dialog = new ProgressMonitorDialog(
+                    Display.getDefault().getActiveShell());
+            try {
+                dialog.run(false, true, runnable);
+                if (runnable.getErrorMessage() != null) {
+                    bxm.ui.dialog.MessageDialog.openError(
+                            "deploy error : [" + runnable.getErrorMessage() + "]");
+                }
+            } catch (Exception e) {
+                BuilderLog.logError(e);
+            }
+        });
+    }
+
+    @Override
+    public Object performPostProcess() {
+        return null;
+    }
+
+    @Override
+    public Object getErrorMessage() {
+        return null;
+    }
+
+    @Override
+    public int getPriority() {
+        return PRIORITY_BUILDER;
+    }
+
+    // -------------------------------------------------------------------------
+    // 내부 유틸
+    // -------------------------------------------------------------------------
+
+    /** Git diff changeType */
+    enum ChangeType { ADD, MODIFY, DELETE }
+
+    static class GitCommitFile {
+        String relativePath;
+        ChangeType changeType;
+        GitCommitFile(String relativePath, ChangeType changeType) {
+            this.relativePath = relativePath;
+            this.changeType   = changeType;
+        }
+    }
+
+    /**
+     * committedFiles 형식: "A:src/main/java/Foo.java" 또는 "M:...", "D:..."
+     * BxmGitRepositoryInitializer에서 prefix 붙여서 넘겨줘야 함
+     */
+    private List<GitCommitFile> parseCommittedFiles(List<String> committedFiles, File repoRoot) {
+        List<GitCommitFile> result = new ArrayList<>();
+        for (String entry : committedFiles) {
+            if (entry.length() < 3) continue;
+            char type = entry.charAt(0);
+            String path = entry.substring(2); // "A:path/to/file"
+            ChangeType ct;
+            switch (type) {
+                case 'A': ct = ChangeType.ADD;    break;
+                case 'M': ct = ChangeType.MODIFY; break;
+                case 'D': ct = ChangeType.DELETE; break;
+                default: continue;
+            }
+            result.add(new GitCommitFile(path, ct));
+        }
+        return result;
+    }
+
+    private boolean isDeployableProject(IProject project) {
+        try {
+            if (project.hasNature(bxmNatureId) || project.hasNature(bxmWebProjectNatureId)) {
+                return true;
+            }
+            List<String> allowed = BuilderActivator.getDefault()
+                    .getConfiguration().getProjectNatureForCommitAllow();
+            for (String natureId : allowed) {
+                if (project.hasNature(natureId)) return true;
+            }
+        } catch (CoreException e) {
+            BuilderLog.logError(e);
+        }
+        return false;
+    }
+}
