@@ -1,0 +1,85 @@
+package bxm.team.scm.git;
+
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.core.runtime.*;
+import org.eclipse.egit.core.RepositoryUtil;
+
+import java.io.File;
+import java.util.*;
+
+public class BxmGitRepositoryInitializer {
+
+    public void init(Repository repo) {
+        repo.getListenerList().addRefsChangedListener(event -> {
+            try (Git git = new Git(repo)) {
+                RevCommit latest = git.log().setMaxCount(1).call().iterator().next();
+                List<String> files = getChangedFiles(git, repo, latest);
+                fireParticipants(files, repo.getWorkTree());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private List<String> getChangedFiles(Git git, Repository repo, RevCommit commit) throws Exception {
+        List<String> result = new ArrayList<>();
+        if (commit.getParentCount() == 0) return result;
+
+        RevCommit parent = commit.getParent(0);
+        List<DiffEntry> diffs = git.diff()
+                .setOldTree(prepareTreeParser(repo, parent))
+                .setNewTree(prepareTreeParser(repo, commit))
+                .call();
+
+        for (DiffEntry diff : diffs) {
+            switch (diff.getChangeType()) {
+                case ADD:    result.add("A:" + diff.getNewPath()); break;
+                case MODIFY: result.add("M:" + diff.getNewPath()); break;
+                case DELETE: result.add("D:" + diff.getOldPath()); break;
+                default: break;
+            }
+        }
+        return result;
+    }
+
+    private void fireParticipants(List<String> files, File repoRoot) {
+        IExtensionRegistry registry = Platform.getExtensionRegistry();
+        IExtensionPoint ep = registry.getExtensionPoint("bxm.ui", "bxm.team.scm.git.commit");
+        if (ep == null) return;
+
+        // priority 순 정렬
+        List<IBxmGitCommitParticipant> participants = new ArrayList<>();
+        for (IExtension ext : ep.getExtensions()) {
+            for (IConfigurationElement el : ext.getConfigurationElements()) {
+                try {
+                    IBxmGitCommitParticipant p =
+                        (IBxmGitCommitParticipant) el.createExecutableExtension("class");
+                    participants.add(p);
+                } catch (CoreException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        participants.sort(Comparator.comparingInt(IBxmGitCommitParticipant::getPriority));
+
+        for (IBxmGitCommitParticipant p : participants) {
+            Object pre = p.performPreProcess();
+            p.performAfterCommitTasks(pre, files, repoRoot);
+            p.performPostProcess();
+        }
+    }
+
+    private org.eclipse.jgit.treewalk.AbstractTreeIterator prepareTreeParser(
+            Repository repo, RevCommit commit) throws Exception {
+        try (org.eclipse.jgit.revwalk.RevWalk walk = new org.eclipse.jgit.revwalk.RevWalk(repo)) {
+            org.eclipse.jgit.lib.ObjectReader reader = repo.newObjectReader();
+            org.eclipse.jgit.treewalk.CanonicalTreeParser parser =
+                    new org.eclipse.jgit.treewalk.CanonicalTreeParser();
+            parser.reset(reader, walk.parseTree(commit.getTree()));
+            return parser;
+        }
+    }
+}
