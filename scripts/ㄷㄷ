@@ -1,151 +1,133 @@
-!STACK 0
-java.lang.IllegalStateException: call to beginTask() missing
-	at org.eclipse.jface.action.StatusLineManager$1.worked(StatusLineManager.java:221)
-	at org.eclipse.core.runtime.ProgressMonitorWrapper.worked(ProgressMonitorWrapper.java:172)
-	at org.eclipse.ui.internal.dialogs.EventLoopProgressMonitor.worked(EventLoopProgressMonitor.java:184)
-	at bxm.omm.ui.editor.page.OmmGraphicEditorFormPage.doSave(OmmGraphicEditorFormPage.java:303)
-	at bxm.omm.ui.editor.OmmGraphicEditor.doSaveInternal(OmmGraphicEditor.java:173)
-	at bxm.ui.controls.editor.BxmFormEditor.doSave(BxmFormEditor.java:114)
-	at org.eclipse.ui.internal.SaveableHelper.lambda$0(SaveableHelper.java:156)
-	at org.eclipse.ui.internal.SaveableHelper.lambda$3(SaveableHelper.java:261)
-	at org.eclipse.jface.operation.ModalContext.runInCurrentThread(ModalContext.java:434)
-	at org.eclipse.jface.operation.ModalContext.run(ModalContext.java:354)
-	at org.eclipse.ui.internal.WorkbenchWindow.lambda$7(WorkbenchWindow.java:2341)
-	at org.eclipse.swt.custom.BusyIndicator.showWhile(BusyIndicator.java:67)
-	at org.eclipse.ui.internal.WorkbenchWindow.run(WorkbenchWindow.java:2338)
-	at org.eclipse.ui.internal.SaveableHelper.runProgressMonitorOperation(SaveableHelper.java:268)
-	at org.eclipse.ui.internal.SaveableHelper.savePart(SaveableHelper.java:160)
-	at org.eclipse.ui.internal.WorkbenchPage.saveSaveable(WorkbenchPage.java:3819)
-	at org.eclipse.ui.internal.WorkbenchPage.saveEditor(WorkbenchPage.java:3832)
-	at org.eclipse.ui.internal.handlers.SaveHandler.execute(SaveHandler.java:81)
-	at org.eclipse.ui.internal.handlers.HandlerProxy.execute(HandlerProxy.java:277)
-	at org.eclipse.ui.internal.handlers.E4HandlerProxy.execute(E4HandlerProxy.java:98)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at org.eclipse.e4.core.internal.di.MethodRequestor.execute(MethodRequestor.java:56)
-	at org.eclipse.e4.core.internal.di.InjectorImpl.invokeUsingClass(InjectorImpl.java:299)
-	at org.eclipse.e4.core.internal.di.InjectorImpl.invoke(InjectorImpl.java:233)
-	at org.eclipse.e4.core.contexts.ContextInjectionFactory.invoke(ContextInjectionFactory.java:174)
-	at org.eclipse.e4.core.commands.internal.HandlerServiceHandler.execute(HandlerServiceHandler.java:165)
-	at org.eclipse.core.commands.Command.executeWithChecks(Command.java:488)
-	at org.eclipse.core.commands.ParameterizedCommand.executeWithChecks(ParameterizedCommand.java:485)
-	at org.eclipse.e4.core.commands.internal.HandlerServiceImpl.executeHandler(HandlerServiceImpl.java:204)
-	at org.eclipse.e4.ui.bindings.keys.KeyBindingDispatcher.executeCommand(KeyBindingDispatcher.java:308)
-	at org.eclipse.e4.ui.bindings.keys.KeyBindingDispatcher.press(KeyBindingDispatcher.java:569)
-	at org.eclipse.e4.ui.bindings.keys.KeyBindingDispatcher.processKeyEvent(KeyBindingDispatcher.java:644)
-	at org.eclipse.e4.ui.bindings.keys.KeyBindingDispatcher.filterKeySequenceBindings(KeyBindingDispatcher.java:439)
-	at org.eclipse.e4.ui.bindings.keys.KeyBindingDispatcher$KeyDownFilter.handleEvent(KeyBindingDispatcher.java:96)
-	at org.eclipse.swt.widgets.EventTable.sendEvent(EventTable.java:91)
-	at org.eclipse.swt.widgets.Display.filterEvent(Display.java:1319)
-	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1173)
-	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1198)
-	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1183)
-	at org.eclipse.swt.widgets.Widget.sendKeyEvent(Widget.java:1225)
-	at org.eclipse.swt.widgets.Widget.sendKeyEvent(Widget.java:1221)
-	at org.eclipse.swt.widgets.Widget.wmChar(Widget.java:1704)
-	at org.eclipse.swt.widgets.Control.WM_CHAR(Control.java:4849)
-	at org.eclipse.swt.widgets.Tree.WM_CHAR(Tree.java:6155)
-	at org.eclipse.swt.widgets.Control.windowProc(Control.java:4727)
-	at org.eclipse.swt.widgets.Tree.windowProc(Tree.java:6150)
-	at org.eclipse.swt.widgets.Display.windowProc(Display.java:5091)
-	at org.eclipse.swt.internal.win32.OS.DispatchMessage(Native Method)
-	at org.eclipse.swt.widgets.Display.readAndDispatch(Display.java:3710)
-	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine$5.run(PartRenderingEngine.java:1151)
-	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
-	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.run(PartRenderingEngine.java:1042)
-	at org.eclipse.e4.ui.internal.workbench.E4Workbench.createAndRunUI(E4Workbench.java:153)
-	at org.eclipse.ui.internal.Workbench.lambda$3(Workbench.java:639)
-	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
-	at org.eclipse.ui.internal.Workbench.createAndRunWorkbench(Workbench.java:546)
-	at org.eclipse.ui.PlatformUI.createAndRunWorkbench(PlatformUI.java:173)
-	at bxm.ui.ide.application.IDEApplication.start(IDEApplication.java:170)
-	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:208)
-	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:143)
-	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:109)
-	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:439)
-	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:271)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:668)
-	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:605)
-	at org.eclipse.equinox.launcher.Main.run(Main.java:1481)
-	at org.eclipse.equinox.launcher.Main.main(Main.java:1454)
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: BX Framework IDE OMM UI
+Bundle-Vendor: BankwareGlobal.com
+Bundle-Version: 3.0.0.qualifier
+Bundle-Localization: plugin
+Bundle-SymbolicName: bxm.omm.ui; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: bxm.ui;bundle-version="3.0.0";visibility:=reexport,
+ bxm.omm;bundle-version="3.0.0";visibility:=reexport,
+ bxm.omm.ui.common;bundle-version="3.0.0";visibility:=reexport,
+ bxm.datatools.enablement;bundle-version="3.0.0",
+ bxm.code.inspection.ui;bundle-version="3.0.0",
+ org.eclipse.xtext.ui,
+ org.eclipse.ui.editors;bundle-version="3.18.0",
+ org.eclipse.ui.forms;bundle-version="3.13.300",
+ org.eclipse.ui.ide;bundle-version="3.22.300",
+ org.eclipse.xtext.ui.shared,
+ org.eclipse.ui,
+ org.eclipse.xtext.builder,
+ org.eclipse.xtext.xbase.lib,
+ org.eclipse.xtext.common.types.ui,
+ org.eclipse.xtext.ui.codetemplates.ui,
+ org.eclipse.compare,
+ org.eclipse.jdt.core;bundle-version="3.39.0",
+ slf4j.api;bundle-version="2.0.16",
+ org.eclipse.xtext.xtext.generator;bundle-version="2.35.0",
+ com.google.gson;bundle-version="2.13.2",
+ org.eclipse.core.expressions;bundle-version="3.9.400",
+ bxm.omm.meta;bundle-version="3.0.0",
+ org.eclipse.jdt.ui;bundle-version="3.33.0",
+ org.eclipse.jdt.core.manipulation;bundle-version="1.21.200",
+ bxm.ui.ide.application
+Import-Package: org.apache.log4j
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Export-Package: bxm.omm.ui,
+ bxm.omm.ui.action,
+ bxm.omm.ui.builder,
+ bxm.omm.ui.builder.config,
+ bxm.omm.ui.classloader,
+ bxm.omm.ui.codegen.javaeditor.action,
+ bxm.omm.ui.codegen.javaeditor.dialog,
+ bxm.omm.ui.configuration,
+ bxm.omm.ui.contentassist,
+ bxm.omm.ui.contentassist.antlr,
+ bxm.omm.ui.contentassist.antlr.internal,
+ bxm.omm.ui.editor,
+ bxm.omm.ui.editor.contributor,
+ bxm.omm.ui.editor.delegator,
+ bxm.omm.ui.editor.dialog,
+ bxm.omm.ui.editor.form,
+ bxm.omm.ui.editor.menu.propertytable.action,
+ bxm.omm.ui.editor.model,
+ bxm.omm.ui.editor.operation,
+ bxm.omm.ui.editor.page,
+ bxm.omm.ui.editor.propertyviewer,
+ bxm.omm.ui.editor.validator,
+ bxm.omm.ui.editor.validator.impl,
+ bxm.omm.ui.excel.dialog,
+ bxm.omm.ui.excel.wizard,
+ bxm.omm.ui.excel.wizard.page,
+ bxm.omm.ui.excel.wizard.viewer,
+ bxm.omm.ui.field,
+ bxm.omm.ui.generator,
+ bxm.omm.ui.handler,
+ bxm.omm.ui.help.dialog,
+ bxm.omm.ui.internal,
+ bxm.omm.ui.listener,
+ bxm.omm.ui.menu.excel,
+ bxm.omm.ui.omm.options,
+ bxm.omm.ui.omm.proxy,
+ bxm.omm.ui.preference,
+ bxm.omm.ui.refactoring.change,
+ bxm.omm.ui.refactoring.core,
+ bxm.omm.ui.refactoring.paricipants,
+ bxm.omm.ui.resource,
+ bxm.omm.ui.resource.manager,
+ bxm.omm.ui.search,
+ bxm.omm.ui.syntaxcoloring,
+ bxm.omm.ui.template,
+ bxm.omm.ui.text,
+ bxm.omm.ui.texteditor.hyperlink,
+ bxm.omm.ui.texteditor.hyperlink.detectors,
+ bxm.omm.ui.util,
+ bxm.omm.ui.validator,
+ bxm.omm.ui.view.omm,
+ bxm.omm.ui.view.samplemessage.dialog,
+ bxm.omm.ui.wizards
+Bundle-Activator: bxm.omm.ui.internal.OmmDslActivator
+Bundle-ClassPath: .,
+ lib_21/bxm-common-3.1.0.jar,
+ lib_21/commons-logging-1.3.0.jar,
+ lib_21/istack-commons-runtime-4.1.1.jar,
+ lib_21/jackson-annotations-2.17.3.jar,
+ lib_21/jackson-core-2.17.3.jar,
+ lib_21/jackson-databind-2.17.3.jar,
+ lib_21/jakarta.xml.bind-api-4.0.2.jar,
+ lib_21/jakarta.xml.soap-api-3.0.1.jar,
+ lib_21/jaxb-core-4.0.2.jar,
+ lib_21/jaxb-runtime-4.0.2.jar,
+ lib_21/jef-application-3.1.0.jar,
+ lib_21/jef-foundation-3.1.0.jar,
+ lib_21/jef-logging-3.1.0.jar,
+ lib_21/JsonConverter-1.1.0-jakarta.jar,
+ lib_21/spring-core-6.2.8.jar
 
-!ENTRY org.eclipse.e4.ui.workbench.swt 4 2 2026-04-10 13:54:47.325
-!MESSAGE Problems occurred when invoking code from plug-in: "org.eclipse.e4.ui.workbench.swt".
-!STACK 0
-java.lang.NoClassDefFoundError: [Lbxm/omm/meta/data/MetaData;
-	at java.base/java.lang.Class.getDeclaredMethods0(Native Method)
-	at java.base/java.lang.Class.privateGetDeclaredMethods(Class.java:3580)
-	at java.base/java.lang.Class.getDeclaredMethods(Class.java:2678)
-	at org.eclipse.e4.core.internal.di.InjectorImpl.getDeclaredMethods(InjectorImpl.java:810)
-	at org.eclipse.e4.core.internal.di.InjectorImpl.invokeUsingClass(InjectorImpl.java:284)
-	at org.eclipse.e4.core.internal.di.InjectorImpl.invoke(InjectorImpl.java:227)
-	at org.eclipse.e4.core.contexts.ContextInjectionFactory.invoke(ContextInjectionFactory.java:148)
-	at org.eclipse.ui.internal.e4.compatibility.CompatibilityPart.persistState(CompatibilityPart.java:143)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at org.eclipse.e4.core.internal.di.MethodRequestor.execute(MethodRequestor.java:56)
-	at org.eclipse.e4.core.internal.di.InjectorImpl.invokeUsingClass(InjectorImpl.java:299)
-	at org.eclipse.e4.core.internal.di.InjectorImpl.invokeUsingClass(InjectorImpl.java:305)
-	at org.eclipse.e4.core.internal.di.InjectorImpl.invoke(InjectorImpl.java:227)
-	at org.eclipse.e4.core.contexts.ContextInjectionFactory.invoke(ContextInjectionFactory.java:148)
-	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.safeRemoveGui(PartRenderingEngine.java:925)
-	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine$4.run(PartRenderingEngine.java:857)
-	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
-	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.removeGui(PartRenderingEngine.java:841)
-	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.subscribeTopicToBeRendered(PartRenderingEngine.java:184)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at org.eclipse.e4.core.internal.di.MethodRequestor.execute(MethodRequestor.java:56)
-	at org.eclipse.e4.core.di.internal.extensions.EventObjectSupplier$DIEventHandler.handleEvent(EventObjectSupplier.java:92)
-	at org.eclipse.equinox.internal.event.EventHandlerWrapper.handleEvent(EventHandlerWrapper.java:206)
-	at org.eclipse.equinox.internal.event.EventHandlerTracker.dispatchEvent(EventHandlerTracker.java:201)
-	at org.eclipse.equinox.internal.event.EventHandlerTracker.dispatchEvent(EventHandlerTracker.java:1)
-	at org.eclipse.osgi.framework.eventmgr.EventManager.dispatchEvent(EventManager.java:230)
-	at org.eclipse.osgi.framework.eventmgr.ListenerQueue.dispatchEventSynchronous(ListenerQueue.java:151)
-	at org.eclipse.equinox.internal.event.EventAdminImpl.dispatchEvent(EventAdminImpl.java:131)
-	at org.eclipse.equinox.internal.event.EventAdminImpl.sendEvent(EventAdminImpl.java:73)
-	at org.eclipse.equinox.internal.event.EventComponent.sendEvent(EventComponent.java:44)
-	at org.eclipse.e4.ui.services.internal.events.EventBroker.send(EventBroker.java:55)
-	at org.eclipse.e4.ui.internal.workbench.UIEventPublisher.notifyChanged(UIEventPublisher.java:60)
-	at org.eclipse.emf.common.notify.impl.BasicNotifierImpl.eNotify(BasicNotifierImpl.java:424)
-	at org.eclipse.e4.ui.model.application.ui.impl.UIElementImpl.setToBeRendered(UIElementImpl.java:316)
-	at org.eclipse.e4.ui.internal.workbench.PartServiceImpl.hidePart(PartServiceImpl.java:1411)
-	at org.eclipse.e4.ui.internal.workbench.PartServiceImpl.hidePart(PartServiceImpl.java:1341)
-	at org.eclipse.e4.ui.workbench.renderers.swt.StackRenderer.closePart(StackRenderer.java:1362)
-	at org.eclipse.e4.ui.workbench.renderers.swt.StackRenderer$3.close(StackRenderer.java:1227)
-	at org.eclipse.swt.custom.CTabFolder.onMouse(CTabFolder.java:1975)
-	at org.eclipse.swt.custom.CTabFolder.lambda$0(CTabFolder.java:336)
-	at org.eclipse.swt.widgets.EventTable.sendEvent(EventTable.java:91)
-	at org.eclipse.swt.widgets.Display.sendEvent(Display.java:4326)
-	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1174)
-	at org.eclipse.swt.widgets.Display.runDeferredEvents(Display.java:4124)
-	at org.eclipse.swt.widgets.Display.readAndDispatch(Display.java:3712)
-	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine$5.run(PartRenderingEngine.java:1151)
-	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
-	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.run(PartRenderingEngine.java:1042)
-	at org.eclipse.e4.ui.internal.workbench.E4Workbench.createAndRunUI(E4Workbench.java:153)
-	at org.eclipse.ui.internal.Workbench.lambda$3(Workbench.java:639)
-	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
-	at org.eclipse.ui.internal.Workbench.createAndRunWorkbench(Workbench.java:546)
-	at org.eclipse.ui.PlatformUI.createAndRunWorkbench(PlatformUI.java:173)
-	at bxm.ui.ide.application.IDEApplication.start(IDEApplication.java:170)
-	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:208)
-	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:143)
-	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:109)
-	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:439)
-	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:271)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:668)
-	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:605)
-	at org.eclipse.equinox.launcher.Main.run(Main.java:1481)
-	at org.eclipse.equinox.launcher.Main.main(Main.java:1454)
-Caused by: java.lang.ClassNotFoundException: bxm.omm.meta.data.MetaData cannot be found by bxm.omm.ui_3.0.0.qualifier
-	at org.eclipse.osgi.internal.loader.BundleLoader.generateException(BundleLoader.java:562)
-	at org.eclipse.osgi.internal.loader.BundleLoader.findClass0(BundleLoader.java:557)
-	at org.eclipse.osgi.internal.loader.BundleLoader.findClass(BundleLoader.java:434)
-	at org.eclipse.osgi.internal.loader.ModuleClassLoader.loadClass(ModuleClassLoader.java:174)
-	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:526)
-	... 67 more
+Manifest-Version: 1.0
+Bundle-ActivationPolicy: lazy
+Bundle-ManifestVersion: 2
+Bundle-Name: Bxm OMM META
+Bundle-SymbolicName: bxm.omm.meta
+Bundle-Version: 3.0.0.qualifier
+Export-Package: bxm.omm.meta,
+ bxm.omm.meta.comparator,
+ bxm.omm.meta.config,
+ bxm.omm.meta.data,
+ bxm.omm.meta.dataobject.generator,
+ bxm.omm.meta.dataobject.model,
+ bxm.omm.meta.javafield,
+ bxm.omm.meta.reader,
+ bxm.omm.meta.repository,
+ bxm.omm.meta.repository.exception,
+ bxm.omm.meta.template,
+ bxm.omm.meta.util,
+ bxm.omm.meta.version,
+ bxm.omm.meta.writer
+Bundle-Vendor: BankwareGlobal.com
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Bundle-ClassPath: .,
+ lib_21/bxm-common-3.1.0.jar,
+ lib_21/bxm-omm-common-3.1.0.jar
+
+
