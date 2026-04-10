@@ -1,369 +1,81 @@
-package bxm.das.ui.wizard;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
-import org.eclipse.jdt.internal.ui.dialogs.TextFieldNavigationHandler;
-import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
-import org.eclipse.jdt.internal.ui.wizards.dialogfields.IDialogFieldListener;
-import org.eclipse.jdt.internal.ui.wizards.dialogfields.IStringButtonAdapter;
-import org.eclipse.jdt.internal.ui.wizards.dialogfields.LayoutUtil;
-import org.eclipse.jdt.internal.ui.wizards.dialogfields.StringDialogField;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.PlatformUI;
-
-import bxm.code.inspection.ui.naming.validator.IResourceNameValidator;
-import bxm.code.inspection.ui.naming.validator.manager.ResourceNameValidatorManager;
-import bxm.das.ui.PluginLog;
-import bxm.das.ui.config.DASProperties;
-import bxm.das.ui.text.UIText;
-import bxm.das.ui.util.common.StreamUtils;
-import bxm.ui.constants.BxmConstants.ResourceType;
-import bxm.ui.controls.dialog.TableSelectDialog;
-import bxm.ui.controls.wizard.page.BxmNewClassWizardPage;
-import bxm.ui.db.config.ConfigurationUtils;
-import bxm.ui.provider.ResourceNamingProviderManager;
-import bxm.ui.util.StringUtils;
-import bxm.ui.wizard.option.WizardOptions;
-
-@SuppressWarnings("restriction")
-public class MapperNewWizardPage2
-extends BxmNewClassWizardPage
-{
-	protected static final String FILE_TEMPLATE = "mapper.template";
-	protected static final String FILE_TEMPLATE_LOGICALNAME = "mapper_with_logicalname.template";
-
-	private class TypeFieldsAdapter
-    implements IStringButtonAdapter, IDialogFieldListener
-    {
-		@Override
-		public void changeControlPressed(DialogField dialogfield) {
-
-			if(dialogfield == typeNameDialogField){
-				TableSelectDialog dialog= new TableSelectDialog(getShell());
-				if ( dialog.open() == Dialog.OK ){
-
-					String name= dialog.getSelectedTable();
-					if ( !StringUtils.isEmpty(name) ){
-
-						try {
-							String toCamel= StringUtils.toCamelCase(name);
-							String realName = Character.toUpperCase(toCamel.charAt(0)) + toCamel.substring(1);
-							setTypeName(
-									ResourceNamingProviderManager.instance().getClassName(ResourceType.DBIO, null, realName, "")
-									, true);
-							typePageDialogFieldChanged(dialogfield);
-							setFocus();
-						} catch (Exception e) {
-							PluginLog.error("You can not change the table name as Camel notation", e);
-						}
-					}
-				}
-			}
-		}
-
-		@Override
-		public void dialogFieldChanged(DialogField dialogfield) {
-			if(dialogfield == typeNameDialogField){
-				typePageDialogFieldChanged(dialogfield);
-			}
-		}
-    }
-
-	public MapperNewWizardPage2()
-	{
-		super("New Dbio Page"
-				, UIText.MAPPER_NEW_WIZARD_TITLE
-				, UIText.MAPPER_NEW_WIZARD_DESC
-				);
-
-//		typeNameDialogField= new StringButtonDialogField(adapter);
-//		typeNameDialogField.setLabelText(getTypeNameLabel());
-//		typeNameDialogField.setButtonLabel(NewWizardMessages.NewTypeWizardPage_package_button);
-//		typeNameDialogField.setDialogFieldListener(adapter);
-		typeNameDialogField= new StringDialogField();
-		typeNameDialogField.setLabelText(getTypeNameLabel());
-		typeNameDialogField.setDialogFieldListener(new TypeFieldsAdapter());
-	}
-
-//	private StringButtonDialogField typeNameDialogField= null;
-	private StringDialogField typeNameDialogField= null;
-
-	private void typePageDialogFieldChanged(DialogField field)
-	{
-		if(field == typeNameDialogField)
-		{
-			fTypeNameStatus = typeNameChanged();
-			handleFieldChanged("NewTypeWizardPage.typename");
-		}
-	}
-
-	@Override
-	protected IStatus typeNameChanged() {
-		String type = getTypeName();
-
-		StatusInfo status = new StatusInfo();
-
-		if ( !StringUtils.isEmpty(type) )
-		{
-			try {
-				/**
-				 * 파일이름이 같지만 케이스가 다른 파일 검색
-				 */
-				Object[] objs = getPackageFragment().getNonJavaResources();
-				for ( Object obj : objs )
-				{
-					if ( obj instanceof IFile )
-					{
-						IFile file = (IFile)obj;
-						String fileName = file.getName();
-
-						int dotLoc = fileName.lastIndexOf(".");
-
-						if ( dotLoc > -1 ) fileName = fileName.substring(0, dotLoc);
-						if ( "dbio".equals(file.getFileExtension().toLowerCase()) )
-						{
-
-							if ( fileName.toLowerCase().equals(type.toLowerCase()) )
-							{
-								status.setError(UIText.DBIO_WIZARD_SAME_DBIO);
-								return status;
-							}
-						}
-					}
-				}
-			} catch (Exception e) {
-				/*ignore*/
-			}
-		}
-		return super.typeNameChanged();
-	}
-
-	@Override
-	public String getTypeName()
-    {
-        String typeName= typeNameDialogField.getText();
-        return typeName;
-    }
-	
-	@Override
-	public void setTypeName(String name, boolean canBeModified)
-    {
-		typeNameDialogField.setText(name);
-		typeNameDialogField.setEnabled(canBeModified);
-    }
-	
-	private void doStatus_Update()
-    {
-		/**
-		 * HDS : OMM, DBIO는 명명규칙 시 위자드에서 선행 검사를 해준다.
-		 * 수정이 복잡해 개발자의 생산성이 떨어질 수 있기 때문..
-		 */
-		if(DASProperties.instance().isCheckNameWhenSaveAndCreate())
-		{
-			fTypeNameStatus= validateClassName();
-			fPackageStatus= validatePackageName();
-		}
-		
-        IStatus status[] = {
-            fContainerStatus,  fPackageStatus, fTypeNameStatus
-        };
-        updateStatus(status);
-    }
-	
-	private StatusInfo validatePackageName()
-	{
-		StatusInfo status= new StatusInfo();
-		
-		final String dbioName= getPackageText();
-		
-		IProject project= getJavaProject().getProject();
-		
-		
-		String[] messages=
-			ResourceNameValidatorManager.instance().validate(
-					project,
-					IResourceNameValidator.DBIO_PACKAGE, 
-					project, 
-					dbioName, "");
-		
-		for(String message : messages)
-		{
-			if( !StringUtils.isEmpty(message) )
-			{
-				status.setError(message);
-				return status;
-			}
-		}
-		
-		status.setOK();
-		return status;
-	}
-	
-	private StatusInfo validateClassName()
-	{
-		StatusInfo status= new StatusInfo();
-		
-		final String dbioClassName= getTypeName();
-		
-		IProject project= getJavaProject().getProject();
-		
-		String[] messages=
-			ResourceNameValidatorManager.instance().validate(
-					project,
-					IResourceNameValidator.DBIO_CLASS_FOR_WIZARD, 
-					project, 
-					getPackageText() + "." + dbioClassName, "");
-		
-		for(String message : messages)
-		{
-			if( !StringUtils.isEmpty(message) )
-			{
-				status.setError(message);
-				return status;
-			}
-		}
-		
-		
-		status.setOK();
-		return status;
-	}
-
-	@Override
-	protected void updateStatus(IStatus status) {
-		// TODO Auto-generated method stub
-		super.updateStatus(status);
-	}
-
-	@Override
-	public void createControl(Composite parent) {
-
-		initializeDialogUnits(parent);
-        Composite composite = new Composite(parent, 0);
-        composite.setFont(parent.getFont());
-        int nColumns = 4;
-        GridLayout layout = new GridLayout();
-        layout.numColumns = nColumns;
-        composite.setLayout(layout);
-
-		createContainerControls(composite, nColumns);
-
-		createPackageControls(composite, nColumns);
-
-		createSeparator(composite, nColumns);
-
-		createTypeNameControls(composite, nColumns);
-
-		// 2012.11.21 PARK.Jeongyeob [[
-		if ( WizardOptions.instance().isBeanNewWizardLogicalNameEnabled())
-		{
-			createLogicalNameControls(composite, nColumns);
-			createDescriptionControls(composite, nColumns);
-		}
-		// 2012.11.21 PARK.Jeongyeob [[
-
-		setControl(composite);
-		Dialog.applyDialogFont(composite);
-		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, "org.eclipse.jdt.ui.new_class_wizard_page_context");
-	}
-
-	/*default*/
-	IFile createNewFile(IProgressMonitor monitor) throws Exception{
-
-		final IFile dbioFile;
-		IPackageFragment pf= getPackageFragment();
-
-		if ( !pf.exists() ){
-			getPackageFragmentRoot().createPackageFragment(getPackageText(), true, monitor);
-		}
-
-		IContainer container= (IContainer)pf.getResource();
-
-		dbioFile= container.getFile( new Path(getTypeName() ).addFileExtension("dbio") );
-
-		InputStream is= getInitialContents();
-
-		if ( dbioFile.exists() ){
-			dbioFile.setContents(is, true, true, monitor);
-		}
-		else{
-			dbioFile.create(is, true, monitor);
-		}
-
-		return dbioFile;
-	}
-
-	protected void setFocus()
-    {
-        if(typeNameDialogField.isEnabled())
-        	typeNameDialogField.setFocus();
-        else
-            setFocusOnContainer();
-    }
-
-	@Override
-	protected void createTypeNameControls(Composite composite, int nColumns) {
-        typeNameDialogField.doFillIntoGrid(composite, nColumns - 1);
-        DialogField.createEmptySpace(composite);
-        Text text = typeNameDialogField.getTextControl(null);
-        LayoutUtil.setWidthHint(text, getMaxFieldWidth());
-        LayoutUtil.setHorizontalGrabbing(text);
-        TextFieldNavigationHandler.install(text);
-	}
-
-	protected InputStream getInitialContents()
-	{
-		InputStream in = null;
-
-		String template = null;
-		try {
-			in = getClass().getClassLoader().getResourceAsStream(FILE_TEMPLATE);
-			template = new String(StreamUtils.getBytes(in));
-			
-			final ByteArrayInputStream byteIn = new ByteArrayInputStream(template.getBytes());
-			return byteIn;
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-		finally {
-			StreamUtils.tryClose(in);
-		}
-	}
-
-	@Override
-	protected ResourceType getResourceType(){
-		return ResourceType.DBIO;
-	}
-
-	protected String getResourceName(){
-		return "DBIO";
-	}
-
-	@Override
-	protected String getPreferPackageSuffix(){
-		return ResourceNamingProviderManager.instance().getDbioPackageSuffix();
-	}
-
-	protected void handleFieldChanged(String fieldName)
-    {
-        super.handleFieldChanged(fieldName);
-        doStatus_Update();
-    }
-
-	protected boolean checkPackageName(){
-		return ConfigurationUtils.getConfiguration().isCheckPackageNameForDbioWizard();
-	}
-}
+jakarta.xml.bind.JAXBException: "bxm.das.tester.input.jaxb"에 ObjectFactory.class 또는 jaxb.index가 포함되어 있지 않습니다.
+	at org.glassfish.jaxb.runtime.v2.ContextFactory.createContext(ContextFactory.java:241)
+	at org.glassfish.jaxb.runtime.v2.JAXBContextFactory.createContext(JAXBContextFactory.java:58)
+	at jakarta.xml.bind.ContextFinder.find(ContextFinder.java:322)
+	at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:392)
+	at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:349)
+	at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:260)
+	at bxm.das.tester.input.jaxb.MapperTestInputConverter.marshal(MapperTestInputConverter.java:66)
+	at bxm.das.ui.tester.MapperQuery2TestInput.query2xml(MapperQuery2TestInput.java:66)
+	at bxm.das.ui.tester.MapperLaunchShortcut.addTestInput2Configuration(MapperLaunchShortcut.java:183)
+	at bxm.das.ui.tester.MapperLaunchShortcut.launch(MapperLaunchShortcut.java:136)
+	at org.eclipse.debug.internal.ui.launchConfigurations.LaunchShortcutExtension.launch(LaunchShortcutExtension.java:412)
+	at bxm.das.ui.editor.part.edit.EditPartSQL$TestButtonListener.widgetSelected(EditPartSQL.java:986)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(TypedListener.java:265)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(EventTable.java:91)
+	at org.eclipse.swt.widgets.Display.sendEvent(Display.java:4326)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1174)
+	at org.eclipse.swt.widgets.Display.runDeferredEvents(Display.java:4124)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Display.java:3712)
+	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine$5.run(PartRenderingEngine.java:1151)
+	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
+	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.run(PartRenderingEngine.java:1042)
+	at org.eclipse.e4.ui.internal.workbench.E4Workbench.createAndRunUI(E4Workbench.java:153)
+	at org.eclipse.ui.internal.Workbench.lambda$3(Workbench.java:639)
+	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
+	at org.eclipse.ui.internal.Workbench.createAndRunWorkbench(Workbench.java:546)
+	at org.eclipse.ui.PlatformUI.createAndRunWorkbench(PlatformUI.java:173)
+	at bxm.ui.ide.application.IDEApplication.start(IDEApplication.java:170)
+	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:208)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:143)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:109)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:439)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:271)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:668)
+	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:605)
+	at org.eclipse.equinox.launcher.Main.run(Main.java:1481)
+	at org.eclipse.equinox.launcher.Main.main(Main.java:1454)
+java.io.IOException: jakarta.xml.bind.JAXBException: "bxm.das.tester.input.jaxb"에 ObjectFactory.class 또는 jaxb.index가 포함되어 있지 않습니다.
+	at bxm.das.tester.input.jaxb.MapperTestInputConverter.marshal(MapperTestInputConverter.java:79)
+	at bxm.das.ui.tester.MapperQuery2TestInput.query2xml(MapperQuery2TestInput.java:66)
+	at bxm.das.ui.tester.MapperLaunchShortcut.addTestInput2Configuration(MapperLaunchShortcut.java:183)
+	at bxm.das.ui.tester.MapperLaunchShortcut.launch(MapperLaunchShortcut.java:136)
+	at org.eclipse.debug.internal.ui.launchConfigurations.LaunchShortcutExtension.launch(LaunchShortcutExtension.java:412)
+	at bxm.das.ui.editor.part.edit.EditPartSQL$TestButtonListener.widgetSelected(EditPartSQL.java:986)
+	at org.eclipse.swt.widgets.TypedListener.handleEvent(TypedListener.java:265)
+	at org.eclipse.swt.widgets.EventTable.sendEvent(EventTable.java:91)
+	at org.eclipse.swt.widgets.Display.sendEvent(Display.java:4326)
+	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1174)
+	at org.eclipse.swt.widgets.Display.runDeferredEvents(Display.java:4124)
+	at org.eclipse.swt.widgets.Display.readAndDispatch(Display.java:3712)
+	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine$5.run(PartRenderingEngine.java:1151)
+	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
+	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.run(PartRenderingEngine.java:1042)
+	at org.eclipse.e4.ui.internal.workbench.E4Workbench.createAndRunUI(E4Workbench.java:153)
+	at org.eclipse.ui.internal.Workbench.lambda$3(Workbench.java:639)
+	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
+	at org.eclipse.ui.internal.Workbench.createAndRunWorkbench(Workbench.java:546)
+	at org.eclipse.ui.PlatformUI.createAndRunWorkbench(PlatformUI.java:173)
+	at bxm.ui.ide.application.IDEApplication.start(IDEApplication.java:170)
+	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:208)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:143)
+	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:109)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:439)
+	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:271)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:668)
+	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:605)
+	at org.eclipse.equinox.launcher.Main.run(Main.java:1481)
+	at org.eclipse.equinox.launcher.Main.main(Main.java:1454)
+Caused by: jakarta.xml.bind.JAXBException: "bxm.das.tester.input.jaxb"에 ObjectFactory.class 또는 jaxb.index가 포함되어 있지 않습니다.
+	at org.glassfish.jaxb.runtime.v2.ContextFactory.createContext(ContextFactory.java:241)
+	at org.glassfish.jaxb.runtime.v2.JAXBContextFactory.createContext(JAXBContextFactory.java:58)
+	at jakarta.xml.bind.ContextFinder.find(ContextFinder.java:322)
+	at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:392)
+	at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:349)
+	at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:260)
+	at bxm.das.tester.input.jaxb.MapperTestInputConverter.marshal(MapperTestInputConverter.java:66)
+	... 31 more
