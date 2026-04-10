@@ -1,70 +1,145 @@
-	public void doSave( final IProgressMonitor monitor )
+package bxm.das.ui.wizard;
+
+import java.lang.reflect.InvocationTargetException;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.INewWizard;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import bxm.das.ui.config.ProjectApplicationDescriptor;
+import bxm.das.ui.editor.resource.InterfaceFileCreator;
+import bxm.das.ui.text.UIText;
+import bxm.das.ui.util.MapperFileUtils;
+import bxm.das.ui.util.view.MessageUtils;
+import bxm.ui.controls.wizard.BxmWizard;
+
+public class MapperNewWizard
+extends BxmWizard
+implements INewWizard
+{
+	private MapperNewWizardPage2 page;
+	private IStructuredSelection selection;
+
+	public MapperNewWizard()
 	{
-		ValidateResult result = isEditorValid();
-		if ( !result.isValid() )
+		super("New DBIO Wizard");
+		setNeedsProgressMonitor(true);
+	}
+
+	Logger log() {
+		return LoggerFactory.getLogger(getClass());
+	}
+
+	@Override
+	public void init(final IWorkbench workbench, final IStructuredSelection selection)
+	{
+		this.selection = selection;
+	}
+
+	@Override
+	public void addPages()
+	{
+		page = new MapperNewWizardPage2();
+		page.init(selection);
+		addPage(page);
+	}
+
+	@Override
+	public boolean performFinish()
+	{
+		final String logicalName = page.getCategoryLogicalName();
+		final String description = page.getCategoryDescription();
+
+		final IRunnableWithProgress op = new IRunnableWithProgress()
 		{
-			StringBuilder sb = new StringBuilder();
-			sb.append(TEXT_SAVE_NOT_ALLOWED);
-			sb.append(result.getMessage().toString());
+			@Override
+			public void run(final IProgressMonitor monitor) throws InvocationTargetException
+			{
+				try {
+					final IFile dbioFile = page.createNewFile(monitor);
 
-			MessageDialog.openError(getSite().getShell(), TEXT_ERROR,  sb.toString());
-			monitor.done();
-			return;
-		}
-		
-		/**
-		 * HDS 요청 : offset
-		 */
-		propertySectionPart.configOffsets();
-		
-		final IFileEditorInput input = (IFileEditorInput) getEditorInput();
-		IFile file = input.getFile();
-		
-		/**
-		 * HDS : OMM의 패키지, 이름이 명명규칙을 따르지 않는 경우
-		 */
-		OmmStructure os= getOmmStructure();
-		IProject project= null;
-		if(input.getFile() != null)
-		{
-			project= input.getFile().getProject();
-		}
-		
-		super.doSave( monitor );
+					try {
+						Thread.sleep(500);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 
+					final IFile javaFile = MapperFileUtils.getPairIFile(dbioFile);
+					final InterfaceFileCreator creator = new InterfaceFileCreator();
+					try {
 
-		//12.12.01 [[
-		final String key = String.format("%s_%s", file.getProject().getName(), ommStructure.getOmmName());
-		PropertyWrapperValidateUtil.removeSuperTypeCache(key);
-		//12.12.01 ]]
+						/**
+						 * 데이터소스를 BXM_BUILDER_CONFIG에서 가져오지 않고
+						 * bxm_application.xml에서 가져오도록 변경.
+						 */
+//						List<DASDataSource> datasourceList= DASConfigUtils.getDataSources();
+						ProjectApplicationDescriptor appDescriptor= new ProjectApplicationDescriptor();
+						String[] dataSourceArr= appDescriptor.getDataSources(JavaCore.create(javaFile.getProject()));
+						
+						dbioFile.getProject();
 
-		synchronized (file) {
-			InputStream ommFileStream = null;
+						if ( dataSourceArr != null && dataSourceArr.length > 0 ){
 
-			try {
-				String currentEncoding= BXMUtils.getCurrentCharSet(project);
-				ommFileStream = new ByteArrayInputStream(ommStructure.getContent().getBytes(currentEncoding));
+							String datasource= dataSourceArr[0];
 
-				if (file.exists()) {
-					file.setContents(ommFileStream, true, true, monitor);
-				} else {
-					file.create(ommFileStream, true, monitor);
+							creator.create(javaFile, MapperFileUtils.getResourcePath(dbioFile), logicalName, description, datasource);
+						}
+						else{
+							creator.create(javaFile, MapperFileUtils.getResourcePath(dbioFile), logicalName, description);
+						}
+
+					} catch (CoreException e1) {
+						MessageUtils.openError(UIText.MAPPER_NEW_WIZARD_EMSG_001);
+						e1.printStackTrace();
+					}
+
+					try {
+						getShell().getDisplay().syncExec(new Runnable()
+						{
+							@Override
+							public void run()
+							{
+								IWorkbenchPage page = PlatformUI.getWorkbench()
+										.getActiveWorkbenchWindow().getActivePage();
+								try {
+									IDE.openEditor(page, dbioFile, true);
+								} catch (PartInitException e) {
+								}
+							}
+						});
+					} finally {
+						monitor.done();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
-			catch ( final CoreException e )
-			{
-				throw new IllegalStateException( e );
-			} catch (UnsupportedEncodingException e) {
-				logger.error(e.getMessage());
-			}
-			finally
-			{
-				monitor.done();
-				StreamUtils.tryClose( ommFileStream );
-				backup();
-			}
+		};
 
-			monitor.worked(1);
-			monitor.setTaskName( "Save..." );
+		try {
+			getContainer().run(false, false, op);
+		} catch (final InterruptedException e) {
+			e.printStackTrace();
+			return false;
+		} catch (final InvocationTargetException e) {
+			e.printStackTrace();
+
+			final Throwable realException = e.getTargetException();
+			bxm.ui.dialog.MessageDialog.openError(realException.getMessage());
+			return false;
 		}
+		return true;
 	}
+
+}
