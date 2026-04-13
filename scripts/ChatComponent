@@ -1,0 +1,226 @@
+package com.chabicht.code_intelligence.chat;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+
+public class ChatComponent extends Composite {
+
+    private StyledText styledText;
+    private final Set<UUID> knownMessages = new HashSet<>();
+    private final List<ChatEntry> entries = new ArrayList<>();
+    private final Map<UUID, Integer> messageIndexMap = new HashMap<>();
+
+    private volatile boolean pendingRefresh = false;
+    private static final int REFRESH_INTERVAL_MS = 80;
+
+    private static class ChatEntry {
+        UUID id;
+        String role;
+        String content;
+        boolean finished;
+
+        ChatEntry(UUID id, String role) {
+            this.id = id;
+            this.role = role;
+            this.content = "";
+            this.finished = false;
+        }
+    }
+
+    public ChatComponent(Composite parent, int style) {
+        super(parent, style);
+
+        GridLayout layout = new GridLayout(1, false);
+        layout.marginWidth = 0;
+        layout.marginHeight = 0;
+        setLayout(layout);
+
+        styledText = new StyledText(this,
+                SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL | SWT.BORDER);
+        styledText.setEditable(false);
+        styledText.setAlwaysShowScrollBars(false);
+        styledText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        Display display = parent.getDisplay();
+        styledText.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+        styledText.setForeground(display.getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
+
+        try {
+            Font monoFont = new Font(display, new FontData("Courier New", 10, SWT.NORMAL));
+            styledText.setFont(monoFont);
+            styledText.addDisposeListener(e -> monoFont.dispose());
+        } catch (Exception e) {
+            // 기본 폰트 사용
+        }
+    }
+
+    public boolean isReady() {
+        return true;
+    }
+
+    public void addMessage(UUID messageId, String role, String html, boolean updating) {
+        if (knownMessages.contains(messageId)) return;
+        knownMessages.add(messageId);
+
+        Display.getDefault().asyncExec(() -> {
+            ChatEntry entry = new ChatEntry(messageId, role);
+            entry.content = stripHtml(html);
+            messageIndexMap.put(messageId, entries.size());
+            entries.add(entry);
+            scheduleRefresh();
+        });
+    }
+
+    public void updateMessage(UUID messageId, String html) {
+        Display.getDefault().asyncExec(() -> {
+            Integer idx = messageIndexMap.get(messageId);
+            if (idx != null && idx < entries.size()) {
+                entries.get(idx).content = stripHtml(html);
+                scheduleRefresh();
+            }
+        });
+    }
+
+    public void markMessageFinished(UUID messageId) {
+        Display.getDefault().asyncExec(() -> {
+            Integer idx = messageIndexMap.get(messageId);
+            if (idx != null && idx < entries.size()) {
+                entries.get(idx).finished = true;
+            }
+        });
+    }
+
+    public void markAllMessagesFinished() {
+        Display.getDefault().asyncExec(() -> {
+            entries.forEach(e -> e.finished = true);
+        });
+    }
+
+    public boolean isMessageKnown(UUID messageId) {
+        return knownMessages.contains(messageId);
+    }
+
+    public void reset() {
+        Display.getDefault().asyncExec(() -> {
+            entries.clear();
+            messageIndexMap.clear();
+            knownMessages.clear();
+            if (!styledText.isDisposed()) {
+                styledText.setText("");
+            }
+        });
+    }
+
+    public boolean setFocus() {
+        return styledText.setFocus();
+    }
+
+    // Browser 의존 코드 제거 — 빈 구현으로 호환성 유지
+    public void addLocationListener(org.eclipse.swt.browser.LocationListener listener) {}
+    public void addProgressListener(org.eclipse.swt.browser.ProgressListener listener) {}
+    public void removeLocationListener(org.eclipse.swt.browser.LocationListener listener) {}
+    public void removeProgressListener(org.eclipse.swt.browser.ProgressListener listener) {}
+    public org.eclipse.swt.browser.Browser getBrowser() { return null; }
+
+    private void scheduleRefresh() {
+        if (!pendingRefresh) {
+            pendingRefresh = true;
+            Display.getDefault().timerExec(REFRESH_INTERVAL_MS, () -> {
+                pendingRefresh = false;
+                refreshView();
+            });
+        }
+    }
+
+    private void refreshView() {
+        if (styledText == null || styledText.isDisposed()) return;
+
+        StringBuilder sb = new StringBuilder();
+        List<int[]> boldRanges = new ArrayList<>();
+
+        for (ChatEntry entry : entries) {
+            String header = "user".equals(entry.role)
+                    ? "▶ 나\n"
+                    : "▶ AI 어시스턴트\n";
+
+            int headerStart = sb.length();
+            sb.append(header);
+            boldRanges.add(new int[]{headerStart, header.length()});
+
+            sb.append(entry.content.isEmpty() ? "(응답 대기 중...)" : entry.content);
+            sb.append("\n");
+            sb.append("─".repeat(60));
+            sb.append("\n\n");
+        }
+
+        String newText = sb.toString();
+        if (newText.equals(styledText.getText())) return;
+
+        styledText.setRedraw(false);
+        try {
+            styledText.setText(newText);
+
+            List<StyleRange> styles = new ArrayList<>();
+            for (int[] range : boldRanges) {
+                StyleRange style = new StyleRange();
+                style.start = range[0];
+                style.length = range[1];
+                style.fontStyle = SWT.BOLD;
+                styles.add(style);
+            }
+            styledText.setStyleRanges(styles.toArray(new StyleRange[0]));
+        } finally {
+            styledText.setRedraw(true);
+        }
+
+        styledText.setTopIndex(styledText.getLineCount() - 1);
+    }
+
+    private String stripHtml(String html) {
+        if (html == null) return "";
+        return html
+                .replaceAll("<br\\s*/?>", "\n")
+                .replaceAll("<p[^>]*>", "")
+                .replaceAll("</p>", "\n")
+                .replaceAll("<li[^>]*>", "  • ")
+                .replaceAll("</li>", "\n")
+                .replaceAll("<h[1-6][^>]*>", "\n")
+                .replaceAll("</h[1-6]>", "\n")
+                .replaceAll("<pre[^>]*>", "\n")
+                .replaceAll("</pre>", "\n")
+                .replaceAll("<code[^>]*>", "")
+                .replaceAll("</code>", "")
+                .replaceAll("<details[^>]*>", "")
+                .replaceAll("</details>", "")
+                .replaceAll("<summary[^>]*>", "[")
+                .replaceAll("</summary>", "]\n")
+                .replaceAll("<blockquote[^>]*>", "")
+                .replaceAll("</blockquote>", "\n")
+                .replaceAll("<[^>]+>", "")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&amp;", "&")
+                .replace("&nbsp;", " ")
+                .replace("&#39;", "'")
+                .replace("&quot;", "\"")
+                .replaceAll("\n{3,}", "\n\n")
+                .trim();
+    }
+}
