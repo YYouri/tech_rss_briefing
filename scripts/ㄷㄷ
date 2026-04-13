@@ -1,81 +1,1211 @@
-jakarta.xml.bind.JAXBException: "bxm.das.tester.input.jaxb"에 ObjectFactory.class 또는 jaxb.index가 포함되어 있지 않습니다.
-	at org.glassfish.jaxb.runtime.v2.ContextFactory.createContext(ContextFactory.java:241)
-	at org.glassfish.jaxb.runtime.v2.JAXBContextFactory.createContext(JAXBContextFactory.java:58)
-	at jakarta.xml.bind.ContextFinder.find(ContextFinder.java:322)
-	at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:392)
-	at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:349)
-	at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:260)
-	at bxm.das.tester.input.jaxb.MapperTestInputConverter.marshal(MapperTestInputConverter.java:66)
-	at bxm.das.ui.tester.MapperQuery2TestInput.query2xml(MapperQuery2TestInput.java:66)
-	at bxm.das.ui.tester.MapperLaunchShortcut.addTestInput2Configuration(MapperLaunchShortcut.java:183)
-	at bxm.das.ui.tester.MapperLaunchShortcut.launch(MapperLaunchShortcut.java:136)
-	at org.eclipse.debug.internal.ui.launchConfigurations.LaunchShortcutExtension.launch(LaunchShortcutExtension.java:412)
-	at bxm.das.ui.editor.part.edit.EditPartSQL$TestButtonListener.widgetSelected(EditPartSQL.java:986)
-	at org.eclipse.swt.widgets.TypedListener.handleEvent(TypedListener.java:265)
-	at org.eclipse.swt.widgets.EventTable.sendEvent(EventTable.java:91)
-	at org.eclipse.swt.widgets.Display.sendEvent(Display.java:4326)
-	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1174)
-	at org.eclipse.swt.widgets.Display.runDeferredEvents(Display.java:4124)
-	at org.eclipse.swt.widgets.Display.readAndDispatch(Display.java:3712)
-	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine$5.run(PartRenderingEngine.java:1151)
-	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
-	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.run(PartRenderingEngine.java:1042)
-	at org.eclipse.e4.ui.internal.workbench.E4Workbench.createAndRunUI(E4Workbench.java:153)
-	at org.eclipse.ui.internal.Workbench.lambda$3(Workbench.java:639)
-	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
-	at org.eclipse.ui.internal.Workbench.createAndRunWorkbench(Workbench.java:546)
-	at org.eclipse.ui.PlatformUI.createAndRunWorkbench(PlatformUI.java:173)
-	at bxm.ui.ide.application.IDEApplication.start(IDEApplication.java:170)
-	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:208)
-	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:143)
-	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:109)
-	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:439)
-	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:271)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:668)
-	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:605)
-	at org.eclipse.equinox.launcher.Main.run(Main.java:1481)
-	at org.eclipse.equinox.launcher.Main.main(Main.java:1454)
-java.io.IOException: jakarta.xml.bind.JAXBException: "bxm.das.tester.input.jaxb"에 ObjectFactory.class 또는 jaxb.index가 포함되어 있지 않습니다.
-	at bxm.das.tester.input.jaxb.MapperTestInputConverter.marshal(MapperTestInputConverter.java:79)
-	at bxm.das.ui.tester.MapperQuery2TestInput.query2xml(MapperQuery2TestInput.java:66)
-	at bxm.das.ui.tester.MapperLaunchShortcut.addTestInput2Configuration(MapperLaunchShortcut.java:183)
-	at bxm.das.ui.tester.MapperLaunchShortcut.launch(MapperLaunchShortcut.java:136)
-	at org.eclipse.debug.internal.ui.launchConfigurations.LaunchShortcutExtension.launch(LaunchShortcutExtension.java:412)
-	at bxm.das.ui.editor.part.edit.EditPartSQL$TestButtonListener.widgetSelected(EditPartSQL.java:986)
-	at org.eclipse.swt.widgets.TypedListener.handleEvent(TypedListener.java:265)
-	at org.eclipse.swt.widgets.EventTable.sendEvent(EventTable.java:91)
-	at org.eclipse.swt.widgets.Display.sendEvent(Display.java:4326)
-	at org.eclipse.swt.widgets.Widget.sendEvent(Widget.java:1174)
-	at org.eclipse.swt.widgets.Display.runDeferredEvents(Display.java:4124)
-	at org.eclipse.swt.widgets.Display.readAndDispatch(Display.java:3712)
-	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine$5.run(PartRenderingEngine.java:1151)
-	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
-	at org.eclipse.e4.ui.internal.workbench.swt.PartRenderingEngine.run(PartRenderingEngine.java:1042)
-	at org.eclipse.e4.ui.internal.workbench.E4Workbench.createAndRunUI(E4Workbench.java:153)
-	at org.eclipse.ui.internal.Workbench.lambda$3(Workbench.java:639)
-	at org.eclipse.core.databinding.observable.Realm.runWithDefault(Realm.java:339)
-	at org.eclipse.ui.internal.Workbench.createAndRunWorkbench(Workbench.java:546)
-	at org.eclipse.ui.PlatformUI.createAndRunWorkbench(PlatformUI.java:173)
-	at bxm.ui.ide.application.IDEApplication.start(IDEApplication.java:170)
-	at org.eclipse.equinox.internal.app.EclipseAppHandle.run(EclipseAppHandle.java:208)
-	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.runApplication(EclipseAppLauncher.java:143)
-	at org.eclipse.core.runtime.internal.adaptor.EclipseAppLauncher.start(EclipseAppLauncher.java:109)
-	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:439)
-	at org.eclipse.core.runtime.adaptor.EclipseStarter.run(EclipseStarter.java:271)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:668)
-	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:605)
-	at org.eclipse.equinox.launcher.Main.run(Main.java:1481)
-	at org.eclipse.equinox.launcher.Main.main(Main.java:1454)
-Caused by: jakarta.xml.bind.JAXBException: "bxm.das.tester.input.jaxb"에 ObjectFactory.class 또는 jaxb.index가 포함되어 있지 않습니다.
-	at org.glassfish.jaxb.runtime.v2.ContextFactory.createContext(ContextFactory.java:241)
-	at org.glassfish.jaxb.runtime.v2.JAXBContextFactory.createContext(JAXBContextFactory.java:58)
-	at jakarta.xml.bind.ContextFinder.find(ContextFinder.java:322)
-	at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:392)
-	at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:349)
-	at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:260)
-	at bxm.das.tester.input.jaxb.MapperTestInputConverter.marshal(MapperTestInputConverter.java:66)
-	... 31 more
+package com.github.gradusnikov.eclipse.assistai.view;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.e4.core.di.annotations.Creatable;
+import org.eclipse.e4.ui.di.Focus;
+import org.eclipse.e4.ui.di.UISynchronize;
+import org.eclipse.jface.fieldassist.ContentProposalAdapter;
+import org.eclipse.jface.fieldassist.IContentProposal;
+import org.eclipse.jface.fieldassist.IContentProposalProvider;
+import org.eclipse.jface.fieldassist.TextContentAdapter;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.ImageTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.PlatformUI;
+
+import com.github.gradusnikov.eclipse.assistai.chat.Attachment;
+import com.github.gradusnikov.eclipse.assistai.chat.Attachment.UiVisitor;
+import com.github.gradusnikov.eclipse.assistai.models.ModelApiDescriptor;
+import com.github.gradusnikov.eclipse.assistai.prompt.MarkdownParser;
+import com.github.gradusnikov.eclipse.assistai.tools.AssistaiSharedFiles;
+import com.github.gradusnikov.eclipse.assistai.tools.AssistaiSharedFonts;
+import com.github.gradusnikov.eclipse.assistai.tools.AssistaiSharedImages;
+import com.github.gradusnikov.eclipse.assistai.view.dnd.DropManager;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+
+@Creatable
+public class ChatView
+{
+
+    @Inject
+    private UISynchronize        uiSync;
+
+    @Inject
+    private ILog                 logger;
+
+    @Inject
+    private ChatViewPresenter     presenter;
+
+    @Inject
+    private DropManager          dropManager;
+
+    @Inject
+    private AssistaiSharedImages sharedImages;
+
+    @Inject
+    private AssistaiSharedFiles  sharedFiles;
+
+    @Inject
+    private AssistaiSharedFonts sharedFonts;
+
+    // Browser 대신 StyledText 사용
+    private StyledText           chatArea;
+
+    private Text                 inputArea;
+
+    private ScrolledComposite    scrolledComposite;
+
+    private Composite            imagesContainer;
+
+    private ToolItem             modelDropdownItem;
+
+    private ToolBar              actionToolBar;
+
+    private Menu                 modelMenu;
+
+    private Map<String, String>  autocompleteModel;
+
+    private boolean              autoScrollEnabled = true;
+
+    private int                  notificationIdCounter = 0;
+
+    // 알림 표시용 Label
+    private Label                notificationLabel;
+
+    // 채팅 메시지 목록 (Browser.execute 대신 Java로 관리)
+    private final List<ChatMessage> messages = new ArrayList<>();
+
+    public enum NotificationType
+    {
+        INFO, WARNING, ERROR
+    }
+
+    /**
+     * 채팅 메시지를 Java에서 관리하기 위한 내부 클래스
+     */
+    private static class ChatMessage
+    {
+        String  id;
+        String  role;
+        String  content;
+        boolean hidden;
+
+        ChatMessage( String id, String role )
+        {
+            this.id = id;
+            this.role = role;
+            this.content = "";
+            this.hidden = false;
+        }
+    }
+
+    public ChatView()
+    {
+        autocompleteModel = new LinkedHashMap<>();
+    }
+
+    public void setAutocompleteModel( Map<String, String> map )
+    {
+        autocompleteModel.clear();
+        autocompleteModel.putAll( map );
+    }
+
+    @Focus
+    public void setFocus()
+    {
+        inputArea.setFocus();
+        presenter.onViewVisible();
+    }
+
+    public void clearChatView()
+    {
+        uiSync.asyncExec( () -> {
+            messages.clear();
+            refreshChatArea();
+        } );
+    }
+
+    public void clearUserInput()
+    {
+        uiSync.asyncExec( () -> inputArea.setText( "" ) );
+    }
+
+    @PostConstruct
+    public void createControls( Composite parent )
+    {
+        SashForm sashForm = new SashForm( parent, SWT.VERTICAL );
+        sashForm.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true ) );
+
+        Composite chatContainer = new Composite( sashForm, SWT.NONE );
+        chatContainer.setLayout( new GridLayout( 1, false ) );
+
+        // 알림 레이블 (상단)
+        notificationLabel = new Label( chatContainer, SWT.WRAP );
+        notificationLabel.setLayoutData( new GridData( SWT.FILL, SWT.TOP, true, false ) );
+        notificationLabel.setVisible( false );
+
+        // StyledText 채팅 영역
+        chatArea = createChatView( chatContainer );
+        chatArea.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true ) );
+
+        // 채팅 영역 컨텍스트 메뉴 (코드복사 등 기존 BrowserFunction 대체)
+        initializeChatAreaMenu( chatArea );
+
+        Composite controls = new Composite( sashForm, SWT.NONE );
+        GridLayout controlsLayout = new GridLayout( 1, false );
+        controlsLayout.marginWidth = 5;
+        controlsLayout.marginHeight = 5;
+        controls.setLayout( controlsLayout );
+
+        // 첨부파일 패널
+        Composite attachmentsPanel = createAttachmentsPanel( controls );
+        attachmentsPanel.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, false ) );
+
+        // 입력 영역
+        Composite inputContainer = new Composite( controls, SWT.NONE );
+        GridLayout inputLayout = new GridLayout( 2, false );
+        inputLayout.marginWidth = 0;
+        inputLayout.marginHeight = 0;
+        inputLayout.horizontalSpacing = 5;
+        inputContainer.setLayout( inputLayout );
+        inputContainer.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true ) );
+
+        inputArea = createUserInput( inputContainer );
+        inputArea.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true ) );
+        setupAutocomplete( inputArea );
+
+        // 버튼 바
+        Composite buttonBar = new Composite( controls, SWT.NONE );
+        GridLayout buttonBarLayout = new GridLayout( 2, false );
+        buttonBarLayout.marginHeight = 0;
+        buttonBarLayout.marginWidth = 0;
+        buttonBar.setLayout( buttonBarLayout );
+        buttonBar.setLayoutData( new GridData( SWT.FILL, SWT.CENTER, true, false ) );
+
+        actionToolBar = new ToolBar( buttonBar, SWT.FLAT | SWT.RIGHT );
+        actionToolBar.setLayoutData( new GridData( SWT.RIGHT, SWT.CENTER, true, false ) );
+
+        modelDropdownItem = createModelSelectorComposite( actionToolBar );
+        createAttachmentToolItem( actionToolBar );
+        createReplayToolItem( actionToolBar );
+        createClearChatToolItem( actionToolBar );
+        createStopToolItem( actionToolBar );
+        createSendToolItem( actionToolBar );
+
+        sashForm.setWeights( new int[] { 70, 30 } );
+
+        dropManager.registerDropTarget( controls );
+
+        clearAttachments();
+    }
+
+    /**
+     * StyledText 채팅 영역 생성
+     */
+    private StyledText createChatView( Composite parent )
+    {
+        StyledText styledText = new StyledText( parent,
+                SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL | SWT.BORDER );
+        styledText.setEditable( false );
+        styledText.setAlwaysShowScrollBars( false );
+
+        Display display = parent.getDisplay();
+        styledText.setBackground( display.getSystemColor( SWT.COLOR_WIDGET_BACKGROUND ) );
+        styledText.setForeground( display.getSystemColor( SWT.COLOR_WIDGET_FOREGROUND ) );
+
+        // 모노스페이스 폰트 적용
+        try
+        {
+            org.eclipse.swt.graphics.Font monoFont = new org.eclipse.swt.graphics.Font(
+                    display, new FontData( "Courier New", 10, SWT.NORMAL ) );
+            styledText.setFont( monoFont );
+            styledText.addDisposeListener( e -> monoFont.dispose() );
+        }
+        catch ( Exception e )
+        {
+            // 폰트 설정 실패 시 기본 폰트 사용
+        }
+
+        return styledText;
+    }
+
+    /**
+     * 기존 BrowserFunction들을 컨텍스트 메뉴로 대체
+     */
+    private void initializeChatAreaMenu( StyledText styledText )
+    {
+        Menu menu = new Menu( styledText );
+        styledText.setMenu( menu );
+
+        menu.addMenuListener( new MenuAdapter()
+        {
+            @Override
+            public void menuShown( MenuEvent e )
+            {
+                for ( MenuItem item : menu.getItems() )
+                {
+                    item.dispose();
+                }
+
+                boolean hasSelection = !styledText.getSelectionText().isEmpty();
+
+                // 코드 복사 (기존 CopyCodeFunction)
+                MenuItem copyItem = new MenuItem( menu, SWT.NONE );
+                copyItem.setText( "코드 복사" );
+                copyItem.setEnabled( hasSelection );
+                copyItem.addListener( SWT.Selection, ev -> {
+                    String selected = styledText.getSelectionText();
+                    if ( !selected.isEmpty() )
+                    {
+                        presenter.onCopyCode( selected );
+                    }
+                } );
+
+                // 패치 적용 (기존 ApplyPatchFunction)
+                MenuItem patchItem = new MenuItem( menu, SWT.NONE );
+                patchItem.setText( "패치 적용" );
+                patchItem.setEnabled( hasSelection );
+                patchItem.addListener( SWT.Selection, ev -> {
+                    String selected = styledText.getSelectionText();
+                    if ( !selected.isEmpty() )
+                    {
+                        presenter.onApplyPatch( selected );
+                    }
+                } );
+
+                // 코드 삽입 (기존 InsertCodeFunction)
+                MenuItem insertItem = new MenuItem( menu, SWT.NONE );
+                insertItem.setText( "코드 삽입" );
+                insertItem.setEnabled( hasSelection );
+                insertItem.addListener( SWT.Selection, ev -> {
+                    String selected = styledText.getSelectionText();
+                    if ( !selected.isEmpty() )
+                    {
+                        presenter.onInsertCode( selected );
+                    }
+                } );
+
+                // Diff 보기 (기존 DiffCodeFunction)
+                MenuItem diffItem = new MenuItem( menu, SWT.NONE );
+                diffItem.setText( "Diff 보기" );
+                diffItem.setEnabled( hasSelection );
+                diffItem.addListener( SWT.Selection, ev -> {
+                    String selected = styledText.getSelectionText();
+                    if ( !selected.isEmpty() )
+                    {
+                        presenter.onDiffCode( selected );
+                    }
+                } );
+
+                new MenuItem( menu, SWT.SEPARATOR );
+
+                // 전체 복사
+                MenuItem copyAllItem = new MenuItem( menu, SWT.NONE );
+                copyAllItem.setText( "전체 복사" );
+                copyAllItem.addListener( SWT.Selection, ev -> {
+                    Clipboard clipboard = new Clipboard( Display.getCurrent() );
+                    clipboard.setContents(
+                            new Object[] { styledText.getText() },
+                            new org.eclipse.swt.dnd.Transfer[] { TextTransfer.getInstance() } );
+                    clipboard.dispose();
+                } );
+            }
+        } );
+    }
+
+    /**
+     * 채팅 영역을 messages 목록 기준으로 다시 그림
+     */
+    private void refreshChatArea()
+    {
+        if ( chatArea == null || chatArea.isDisposed() )
+        {
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        List<int[]> boldRanges = new ArrayList<>(); // [offset, length] 쌍
+
+        for ( ChatMessage msg : messages )
+        {
+            if ( msg.hidden )
+            {
+                continue;
+            }
+
+            String header = "user".equals( msg.role )
+                    ? "▶ 나\n"
+                    : "▶ AI 어시스턴트\n";
+
+            int headerStart = sb.length();
+            sb.append( header );
+            boldRanges.add( new int[] { headerStart, header.length() } );
+
+            sb.append( msg.content.isEmpty() ? "(응답 대기 중...)" : msg.content );
+            sb.append( "\n" );
+            sb.append( "─".repeat( 60 ) );
+            sb.append( "\n\n" );
+        }
+
+        String text = sb.toString();
+        chatArea.setText( text );
+
+        // 헤더 볼드 처리
+        Display display = chatArea.getDisplay();
+        Color headerColor = "user".equals( "user" )
+                ? display.getSystemColor( SWT.COLOR_DARK_BLUE )
+                : display.getSystemColor( SWT.COLOR_DARK_GREEN );
+
+        List<StyleRange> styles = new ArrayList<>();
+        for ( int[] range : boldRanges )
+        {
+            StyleRange style = new StyleRange();
+            style.start = range[0];
+            style.length = range[1];
+            style.fontStyle = SWT.BOLD;
+            styles.add( style );
+        }
+        chatArea.setStyleRanges( styles.toArray( new StyleRange[0] ) );
+
+        // 자동 스크롤
+        if ( autoScrollEnabled )
+        {
+            chatArea.setTopIndex( chatArea.getLineCount() - 1 );
+        }
+    }
+
+    public void appendMessage( String messageId, String role )
+    {
+        uiSync.asyncExec( () -> {
+            // 이미 존재하는 id면 추가하지 않음
+            boolean exists = messages.stream().anyMatch( m -> m.id.equals( messageId ) );
+            if ( !exists )
+            {
+                messages.add( new ChatMessage( messageId, role ) );
+                refreshChatArea();
+            }
+        } );
+    }
+
+    public void setMessageHtml( String messageId, String messageBody )
+    {
+        uiSync.asyncExec( () -> {
+            MarkdownParser parser = new MarkdownParser( messageBody );
+            String html = parser.parseToHtml();
+            String plainText = stripHtml( html );
+
+            messages.stream()
+                    .filter( m -> m.id.equals( messageId ) )
+                    .findFirst()
+                    .ifPresent( m -> {
+                        m.content = plainText;
+                        refreshChatArea();
+                    } );
+        } );
+    }
+
+    public void hideMessage( String messageId )
+    {
+        uiSync.asyncExec( () -> {
+            messages.stream()
+                    .filter( m -> m.id.equals( messageId ) )
+                    .findFirst()
+                    .ifPresent( m -> {
+                        m.hidden = true;
+                        refreshChatArea();
+                    } );
+        } );
+    }
+
+    public void removeMessage( String messageId )
+    {
+        uiSync.asyncExec( () -> {
+            messages.removeIf( m -> m.id.equals( messageId ) );
+            refreshChatArea();
+        } );
+    }
+
+    /**
+     * HTML 태그를 제거하고 일반 텍스트로 변환
+     */
+    private String stripHtml( String html )
+    {
+        if ( html == null )
+        {
+            return "";
+        }
+        // 코드 블록은 내용 보존
+        String result = html
+                .replaceAll( "<br\\s*/?>", "\n" )
+                .replaceAll( "<p[^>]*>", "" )
+                .replaceAll( "</p>", "\n" )
+                .replaceAll( "<li[^>]*>", "  • " )
+                .replaceAll( "</li>", "\n" )
+                .replaceAll( "<h[1-6][^>]*>", "\n" )
+                .replaceAll( "</h[1-6]>", "\n" )
+                .replaceAll( "<pre[^>]*>", "\n" )
+                .replaceAll( "</pre>", "\n" )
+                .replaceAll( "<code[^>]*>", "" )
+                .replaceAll( "</code>", "" )
+                .replaceAll( "<[^>]+>", "" )
+                .replace( "&lt;", "<" )
+                .replace( "&gt;", ">" )
+                .replace( "&amp;", "&" )
+                .replace( "&nbsp;", " " )
+                .replace( "&#39;", "'" )
+                .replace( "&quot;", "\"" )
+                .replaceAll( "\n{3,}", "\n\n" ); // 연속 빈줄 정리
+        return result.trim();
+    }
+
+    /**
+     * 알림 표시 (기존 browser.execute("showNotification(...)") 대체)
+     */
+    public void showNotification( String message, Duration duration, NotificationType type )
+    {
+        uiSync.asyncExec( () -> {
+            if ( notificationLabel == null || notificationLabel.isDisposed() )
+            {
+                return;
+            }
+
+            Display display = Display.getCurrent();
+            switch ( type )
+            {
+                case INFO:
+                    notificationLabel.setBackground( display.getSystemColor( SWT.COLOR_INFO_BACKGROUND ) );
+                    notificationLabel.setForeground( display.getSystemColor( SWT.COLOR_INFO_FOREGROUND ) );
+                    notificationLabel.setText( "[정보] " + message );
+                    break;
+                case WARNING:
+                    notificationLabel.setBackground( new Color( display, 210, 153, 34 ) );
+                    notificationLabel.setForeground( display.getSystemColor( SWT.COLOR_BLACK ) );
+                    notificationLabel.setText( "[경고] " + message );
+                    break;
+                case ERROR:
+                    notificationLabel.setBackground( display.getSystemColor( SWT.COLOR_RED ) );
+                    notificationLabel.setForeground( display.getSystemColor( SWT.COLOR_WHITE ) );
+                    notificationLabel.setText( "[오류] " + message );
+                    break;
+            }
+
+            notificationLabel.setVisible( true );
+            updateLayout( notificationLabel.getParent() );
+
+            if ( duration.toMillis() > 0 )
+            {
+                display.timerExec( (int) duration.toMillis(), () -> {
+                    if ( !notificationLabel.isDisposed() )
+                    {
+                        notificationLabel.setVisible( false );
+                        notificationLabel.setText( "" );
+                        updateLayout( notificationLabel.getParent() );
+                    }
+                } );
+            }
+        } );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 이하 기존 코드 (변경 없음)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public void setupAutocomplete( Text textField )
+    {
+        IContentProposalProvider proposalProvider = new IContentProposalProvider()
+        {
+            @Override
+            public IContentProposal[] getProposals( String contents, int position )
+            {
+                if ( contents.startsWith( "/" ) )
+                {
+                    String prefix = contents.substring( 1 );
+                    List<String> matchingCommands = autocompleteModel.keySet()
+                                                                     .stream()
+                                                                     .filter( s -> s.startsWith( prefix ) )
+                                                                     .collect( Collectors.toList() );
+                    return matchingCommands.stream()
+                            .map( cmd -> new CommandContentProposal( cmd ) )
+                            .toArray( IContentProposal[]::new );
+                }
+                return new IContentProposal[0];
+            }
+        };
+
+        ContentProposalAdapter adapter = new ContentProposalAdapter(
+                textField,
+                new TextContentAdapter(),
+                proposalProvider,
+                null,
+                null );
+
+        adapter.setProposalAcceptanceStyle( ContentProposalAdapter.PROPOSAL_REPLACE );
+        adapter.setPopupSize( new Point( 300, 200 ) );
+
+        textField.addKeyListener( new KeyAdapter()
+        {
+            @Override
+            public void keyPressed( KeyEvent e )
+            {
+                if ( e.keyCode == SWT.TAB && textField.getText().startsWith( "/" ) )
+                {
+                    adapter.openProposalPopup();
+                    e.doit = false;
+                }
+            }
+        } );
+
+        textField.addVerifyListener( new VerifyListener()
+        {
+            @Override
+            public void verifyText( VerifyEvent e )
+            {
+                if ( e.character == SWT.TAB && textField.getText().startsWith( "/" ) )
+                {
+                    e.doit = false;
+                }
+            }
+        } );
+    }
+
+    class CommandContentProposal implements IContentProposal
+    {
+        private String command;
+
+        public CommandContentProposal( String command )
+        {
+            this.command = command;
+        }
+
+        @Override
+        public String getContent()
+        {
+            return "/" + command;
+        }
+
+        @Override
+        public int getCursorPosition()
+        {
+            return getContent().length();
+        }
+
+        @Override
+        public String getLabel()
+        {
+            return "/" + command;
+        }
+
+        @Override
+        public String getDescription()
+        {
+            return autocompleteModel.get( command );
+        }
+    }
+
+    private Composite createAttachmentsPanel( Composite parent )
+    {
+        Composite attachmentsPanel = new Composite( parent, SWT.NONE );
+        attachmentsPanel.setLayout( new GridLayout( 1, false ) );
+
+        scrolledComposite = new ScrolledComposite( attachmentsPanel, SWT.H_SCROLL | SWT.V_SCROLL );
+        GridData scrolledData = new GridData( SWT.FILL, SWT.FILL, true, false );
+        scrolledData.heightHint = 0;
+        scrolledComposite.setLayoutData( scrolledData );
+        scrolledComposite.setExpandHorizontal( true );
+        scrolledComposite.setExpandVertical( true );
+
+        imagesContainer = new Composite( scrolledComposite, SWT.NONE );
+        RowLayout rowLayout = new RowLayout( SWT.HORIZONTAL );
+        rowLayout.spacing = 8;
+        rowLayout.marginTop = 4;
+        rowLayout.marginBottom = 4;
+        rowLayout.marginLeft = 4;
+        rowLayout.marginRight = 4;
+        rowLayout.wrap = true;
+        imagesContainer.setLayout( rowLayout );
+
+        scrolledComposite.setContent( imagesContainer );
+        scrolledComposite.setMinSize( imagesContainer.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+
+        imagesContainer.addKeyListener( new KeyAdapter()
+        {
+            @Override
+            public void keyPressed( KeyEvent e )
+            {
+                if ( e.keyCode == SWT.DEL || e.keyCode == SWT.BS )
+                {
+                    java.util.List<Integer> selectedIndices = new java.util.ArrayList<>();
+                    for ( var child : imagesContainer.getChildren() )
+                    {
+                        if ( child instanceof Label )
+                        {
+                            Boolean selected = (Boolean) child.getData( "selected" );
+                            if ( selected != null && selected )
+                            {
+                                Integer index = (Integer) child.getData( "attachmentIndex" );
+                                if ( index != null )
+                                {
+                                    selectedIndices.add( index );
+                                }
+                            }
+                        }
+                    }
+                    selectedIndices.sort( java.util.Collections.reverseOrder() );
+                    for ( int index : selectedIndices )
+                    {
+                        presenter.onRemoveAttachment( index );
+                    }
+                }
+            }
+        } );
+
+        return attachmentsPanel;
+    }
+
+    private ToolItem createAttachmentToolItem( ToolBar toolbar )
+    {
+        ToolItem item = new ToolItem( toolbar, SWT.PUSH );
+        try
+        {
+            Image attachIcon = PlatformUI.getWorkbench().getSharedImages().getImage( ISharedImages.IMG_OBJ_ADD );
+            item.setImage( attachIcon );
+        }
+        catch ( Exception e )
+        {
+            logger.error( e.getMessage(), e );
+        }
+        item.setToolTipText( "Add image attachment" );
+        item.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                presenter.onAddAttachment();
+            }
+        } );
+        return item;
+    }
+
+    private ToolItem createSendToolItem( ToolBar toolbar )
+    {
+        ToolItem item = new ToolItem( toolbar, SWT.PUSH );
+        try
+        {
+            Image sendIcon = PlatformUI.getWorkbench().getSharedImages().getImage( ISharedImages.IMG_TOOL_FORWARD );
+            item.setImage( sendIcon );
+        }
+        catch ( Exception e )
+        {
+            logger.error( e.getMessage(), e );
+        }
+        item.setToolTipText( "Send message (Ctrl+Enter)" );
+        item.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                String text = inputArea.getText().trim();
+                if ( !text.isEmpty() )
+                {
+                    presenter.onSendUserMessage( text );
+                }
+            }
+        } );
+        return item;
+    }
+
+    private ToolItem createReplayToolItem( ToolBar toolbar )
+    {
+        ToolItem item = new ToolItem( toolbar, SWT.PUSH );
+        try
+        {
+            Image replayIcon = PlatformUI.getWorkbench().getSharedImages().getImage( ISharedImages.IMG_TOOL_REDO );
+            item.setImage( replayIcon );
+        }
+        catch ( Exception e )
+        {
+            logger.error( e.getMessage(), e );
+        }
+        item.setToolTipText( "Regenerate response" );
+        item.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                presenter.onReplayLastMessage();
+            }
+        } );
+        return item;
+    }
+
+    private ToolItem createClearChatToolItem( ToolBar toolbar )
+    {
+        ToolItem item = new ToolItem( toolbar, SWT.PUSH );
+        try
+        {
+            Image clearIcon = PlatformUI.getWorkbench().getSharedImages().getImage( ISharedImages.IMG_ETOOL_CLEAR );
+            item.setImage( clearIcon );
+        }
+        catch ( Exception e )
+        {
+            logger.error( e.getMessage(), e );
+        }
+        item.setToolTipText( "Clear conversation" );
+        item.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                presenter.onClear();
+            }
+        } );
+        return item;
+    }
+
+    private ToolItem createStopToolItem( ToolBar toolbar )
+    {
+        ToolItem item = new ToolItem( toolbar, SWT.PUSH );
+        Image stopIcon = PlatformUI.getWorkbench().getSharedImages().getImage( ISharedImages.IMG_ELCL_STOP );
+        item.setImage( stopIcon );
+        item.setToolTipText( "Stop generation" );
+        item.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                presenter.onStop();
+            }
+        } );
+        return item;
+    }
+
+    private ToolItem createModelSelectorComposite( ToolBar modelToolBar )
+    {
+        ToolItem modelDropdownItem = new ToolItem( modelToolBar, SWT.DROP_DOWN );
+        modelDropdownItem.setImage( sharedImages.getImage( "assistai-16" ) );
+        modelDropdownItem.setText( "Undefined" );
+        modelDropdownItem.setToolTipText( "Select AI Model" );
+        return modelDropdownItem;
+    }
+
+    private Text createUserInput( Composite parent )
+    {
+        Text inputArea = new Text( parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL );
+        inputArea.setMessage( "Type a message or question here... (Press Ctrl+Enter to send)" );
+        inputArea.addKeyListener( new KeyAdapter()
+        {
+            @Override
+            public void keyPressed( KeyEvent e )
+            {
+                if ( e.keyCode == SWT.CR && (e.stateMask & SWT.CTRL) != 0 )
+                {
+                    e.doit = false;
+                    String text = inputArea.getText().trim();
+                    if ( !text.isEmpty() )
+                    {
+                        presenter.onSendUserMessage( text );
+                    }
+                }
+            }
+        } );
+        createCustomMenu( inputArea );
+        return inputArea;
+    }
+
+    private void createCustomMenu( Text inputArea )
+    {
+        Menu menu = new Menu( inputArea );
+        inputArea.setMenu( menu );
+        menu.addMenuListener( new MenuAdapter()
+        {
+            @Override
+            public void menuShown( MenuEvent e )
+            {
+                MenuItem[] items = menu.getItems();
+                for ( MenuItem item : items )
+                {
+                    item.dispose();
+                }
+                addMenuItem( menu, "Cut", () -> inputArea.cut() );
+                addMenuItem( menu, "Copy", () -> inputArea.copy() );
+                MenuItem pasteItem = addMenuItem( menu, "Paste", () -> handlePasteOperation() );
+                Clipboard clipboard = new Clipboard( Display.getCurrent() );
+                boolean enablePaste = clipboard.getContents( TextTransfer.getInstance() ) != null
+                        || clipboard.getContents( ImageTransfer.getInstance() ) != null;
+                pasteItem.setEnabled( enablePaste );
+                clipboard.dispose();
+            }
+        } );
+    }
+
+    private MenuItem addMenuItem( Menu parent, String text, Runnable action )
+    {
+        MenuItem item = new MenuItem( parent, SWT.NONE );
+        item.setText( text );
+        item.addListener( SWT.Selection, e -> action.run() );
+        return item;
+    }
+
+    private void handlePasteOperation()
+    {
+        Clipboard clipboard = new Clipboard( Display.getCurrent() );
+        if ( clipboard.getContents( ImageTransfer.getInstance() ) != null )
+        {
+            ImageData imageData = (ImageData) clipboard.getContents( ImageTransfer.getInstance() );
+            presenter.onAttachmentAdded( imageData );
+        }
+        else
+        {
+            String textData = (String) clipboard.getContents( TextTransfer.getInstance() );
+            if ( textData != null )
+            {
+                inputArea.insert( textData );
+            }
+        }
+    }
+
+    public void setAvailableModels( List<ModelApiDescriptor> availableModels, String selected )
+    {
+        uiSync.asyncExec( () -> {
+            availableModels.stream()
+                           .filter( model -> model.uid().equals( selected ) )
+                           .map( model -> new ModelApiDescriptorDecorator( model, selected ) )
+                           .findFirst()
+                           .ifPresent( model -> {
+                               uiSync.asyncExec( () -> {
+                                   modelDropdownItem.setText( model.getDisplayName() );
+                                   modelDropdownItem.setImage( model.getDisplayIcon() );
+                                   updateLayout( actionToolBar );
+                               } );
+                           } );
+        } );
+
+        if ( Objects.nonNull( modelMenu ) )
+        {
+            Menu oldMenu = modelMenu;
+            Stream.of( modelMenu.getListeners( SWT.Selection ) ).forEach( l -> oldMenu.removeListener( SWT.Selection, l ) );
+            oldMenu.dispose();
+        }
+
+        modelMenu = new Menu( actionToolBar.getShell(), SWT.POP_UP );
+
+        modelDropdownItem.addListener( SWT.Selection, event -> {
+            if ( event.detail == SWT.ARROW )
+            {
+                Rectangle rect = modelDropdownItem.getBounds();
+                Point pt = new Point( rect.x, rect.y + rect.height );
+                pt = actionToolBar.toDisplay( pt );
+
+                for ( MenuItem item : modelMenu.getItems() )
+                {
+                    item.dispose();
+                }
+
+                availableModels.stream()
+                               .map( model -> new ModelApiDescriptorDecorator( model, selected ) )
+                               .forEach( model -> createModelMenuItem( modelMenu, model ) );
+                modelMenu.setLocation( pt.x, pt.y );
+                modelMenu.setVisible( true );
+            }
+        } );
+    }
+
+    private void createModelMenuItem( final Menu modelMenu, ModelApiDescriptorDecorator model )
+    {
+        MenuItem menuItem = new MenuItem( modelMenu, SWT.CHECK );
+        menuItem.setText( model.getDisplayName() );
+        menuItem.setSelection( model.isSelected() );
+        menuItem.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                presenter.onChatModelSelected( model.getModelId() );
+            }
+        } );
+    }
+
+    public void updateLayout( Composite composite )
+    {
+        if ( composite != null )
+        {
+            composite.layout();
+            updateLayout( composite.getParent() );
+        }
+    }
+
+    public void setInputEnabled( boolean enabled )
+    {
+        uiSync.asyncExec( () -> {
+            inputArea.setEnabled( enabled );
+            if ( enabled )
+            {
+                Display.getCurrent().timerExec( 100, () -> {
+                    if ( !inputArea.isDisposed() )
+                    {
+                        inputArea.setFocus();
+                    }
+                } );
+            }
+        } );
+    }
+
+    public void clearAttachments()
+    {
+        setAttachments( Collections.emptyList() );
+    }
+
+    public void setAttachments( List<Attachment> attachments )
+    {
+        uiSync.asyncExec( () -> {
+            for ( var child : imagesContainer.getChildren() )
+            {
+                child.dispose();
+            }
+
+            imagesContainer.setLayout( new RowLayout( SWT.HORIZONTAL ) );
+            RowLayout rowLayout = (RowLayout) imagesContainer.getLayout();
+            rowLayout.spacing = 8;
+            rowLayout.marginTop = 4;
+            rowLayout.marginBottom = 4;
+            rowLayout.marginLeft = 4;
+            rowLayout.marginRight = 4;
+
+            if ( attachments.isEmpty() )
+            {
+                scrolledComposite.setVisible( false );
+                ( (GridData) scrolledComposite.getLayoutData() ).heightHint = 0;
+            }
+            else
+            {
+                AttachmentVisitor attachmentVisitor = new AttachmentVisitor();
+                for ( var attachment : attachments )
+                {
+                    attachment.accept( attachmentVisitor );
+                }
+                scrolledComposite.setVisible( true );
+
+                int thumbnailSize = 96;
+                int spacing = 8;
+                int margin = 8;
+                int maxHeight = (thumbnailSize + spacing) * 2 + margin;
+
+                Point size = imagesContainer.computeSize( SWT.DEFAULT, SWT.DEFAULT );
+                imagesContainer.setSize( size );
+                scrolledComposite.setMinSize( size );
+
+                ( (GridData) scrolledComposite.getLayoutData() ).heightHint = Math.min( size.y + margin, maxHeight );
+            }
+            updateLayout( imagesContainer );
+        } );
+    }
+
+    private class AttachmentVisitor implements UiVisitor
+    {
+        private static final int THUMBNAIL_SIZE = 96;
+        private static final int BORDER_WIDTH   = 2;
+
+        @Override
+        public void add( ImageData preview, String caption )
+        {
+            Display display = Display.getCurrent();
+            Image thumbnailImage = createThumbnailWithBorder( preview, display, false );
+            Image selectedThumbnailImage = createThumbnailWithBorder( preview, display, true );
+            final boolean[] isSelected = { false };
+
+            Label imageLabel = new Label( imagesContainer, SWT.NONE );
+            imageLabel.setImage( thumbnailImage );
+
+            int attachmentIndex = imagesContainer.getChildren().length - 1;
+            imageLabel.setData( "attachmentIndex", attachmentIndex );
+            imageLabel.setData( "selected", false );
+            imageLabel.setData( "normalImage", thumbnailImage );
+            imageLabel.setData( "selectedImage", selectedThumbnailImage );
+
+            if ( caption != null )
+            {
+                imageLabel.setToolTipText( caption );
+            }
+
+            imageLabel.addMouseListener( new MouseAdapter()
+            {
+                @Override
+                public void mouseUp( MouseEvent e )
+                {
+                    boolean ctrlPressed = (e.stateMask & SWT.CTRL) != 0;
+                    if ( !ctrlPressed )
+                    {
+                        for ( var child : imagesContainer.getChildren() )
+                        {
+                            if ( child instanceof Label && child != imageLabel )
+                            {
+                                Boolean wasSelected = (Boolean) child.getData( "selected" );
+                                if ( wasSelected != null && wasSelected )
+                                {
+                                    child.setData( "selected", false );
+                                    ( (Label) child ).setImage( (Image) child.getData( "normalImage" ) );
+                                }
+                            }
+                        }
+                    }
+                    isSelected[0] = !isSelected[0];
+                    imageLabel.setData( "selected", isSelected[0] );
+                    imageLabel.setImage( isSelected[0] ? selectedThumbnailImage : thumbnailImage );
+                    imagesContainer.setFocus();
+                }
+            } );
+
+            imageLabel.addDisposeListener( e -> {
+                if ( thumbnailImage != null && !thumbnailImage.isDisposed() )
+                {
+                    thumbnailImage.dispose();
+                }
+                if ( selectedThumbnailImage != null && !selectedThumbnailImage.isDisposed() )
+                {
+                    selectedThumbnailImage.dispose();
+                }
+            } );
+        }
+
+        private Image createThumbnailWithBorder( ImageData sourceData, Display display, boolean selected )
+        {
+            int borderWidth = selected ? 3 : BORDER_WIDTH;
+            Color borderColor = selected ? new Color( display, 0, 120, 215 ) : new Color( display, 128, 128, 128 );
+            Color bgColor = imagesContainer.getBackground();
+
+            Image result = new Image( display, THUMBNAIL_SIZE, THUMBNAIL_SIZE );
+            GC gc = new GC( result );
+
+            try
+            {
+                gc.setAntialias( SWT.ON );
+                gc.setInterpolation( SWT.HIGH );
+                gc.setAdvanced( true );
+                gc.setBackground( bgColor );
+                gc.fillRectangle( 0, 0, THUMBNAIL_SIZE, THUMBNAIL_SIZE );
+                gc.setBackground( borderColor );
+                gc.fillRectangle( 0, 0, THUMBNAIL_SIZE, THUMBNAIL_SIZE );
+
+                int innerSize = THUMBNAIL_SIZE - borderWidth * 2;
+
+                if ( sourceData != null )
+                {
+                    int srcWidth = sourceData.width;
+                    int srcHeight = sourceData.height;
+                    int cropSize = Math.min( srcWidth, srcHeight );
+                    int cropX = (srcWidth - cropSize) / 2;
+                    int cropY = (srcHeight - cropSize) / 2;
+
+                    Image sourceImage = new Image( display, sourceData );
+                    gc.drawImage( sourceImage,
+                            cropX, cropY, cropSize, cropSize,
+                            borderWidth, borderWidth, innerSize, innerSize );
+                    sourceImage.dispose();
+                }
+                else
+                {
+                    Color fillColor = new Color( display, 60, 60, 60 );
+                    gc.setBackground( fillColor );
+                    gc.fillRectangle( borderWidth, borderWidth, innerSize, innerSize );
+                    fillColor.dispose();
+                }
+            }
+            finally
+            {
+                gc.dispose();
+                borderColor.dispose();
+            }
+
+            return result;
+        }
+    }
+
+    private class ModelApiDescriptorDecorator
+    {
+        private final ModelApiDescriptor descriptor;
+        private final String             selectedUid;
+
+        public ModelApiDescriptorDecorator( ModelApiDescriptor descriptor, String selectedUid )
+        {
+            this.descriptor = descriptor;
+            this.selectedUid = selectedUid;
+        }
+
+        public String getDisplayName()
+        {
+            return StringUtils.abbreviate( descriptor.modelName(), 20 );
+        }
+
+        public Image getDisplayIcon()
+        {
+            return switch ( descriptor.apiUrl() )
+            {
+                case String s when s.contains( "anthropic" ) -> sharedImages.getImage( "claude-ai-icon-16" );
+                case String s when s.contains( "openai" ) -> sharedImages.getImage( "chatgpt-icon-16" );
+                case String s when s.contains( "grok" ) || s.contains( "x.ai" ) -> sharedImages.getImage( "grok-icon-16" );
+                case String s when s.contains( "google" ) -> sharedImages.getImage( "google-gemini-icon-16" );
+                case String s when s.contains( "deepseek" ) -> sharedImages.getImage( "deepseek-logo-icon-16" );
+                default -> sharedImages.getImage( "assistai-16" );
+            };
+        }
+
+        public String getModelId()
+        {
+            return descriptor.uid();
+        }
+
+        public boolean isSelected()
+        {
+            return descriptor.uid().equals( selectedUid );
+        }
+    }
+}
