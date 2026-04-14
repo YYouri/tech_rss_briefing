@@ -1,296 +1,48 @@
-fw-template.xml
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!--
-/*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
--->
-
-<templates>
-<template name="logger" description="%Templates.logger" id="bxm.builder.ui.templates.logger" context="java-members" enabled="true" autoinsert="false">${imp:import(org.slf4j.Logger,org.slf4j.LoggerFactory)}protected final Logger logger = LoggerFactory.getLogger(this.getClass());${cursor}</template>
-<template name="trace" description="%Templates.trace" id="bxm.builder.ui.templates.logger_trace" context="java-statements" enabled="true" autoinsert="false">logger.trace("=====${enclosing_type}.${enclosing_method}=====");${cursor}</template>
-<template name="debug" description="%Templates.trace" id="bxm.builder.ui.templates.logger_debug" context="java-statements" enabled="true" autoinsert="false">logger.debug(${word_selection}${});${cursor}</template>
-<template name="info" description="%Templates.info" id="bxm.builder.ui.templates.logger_info" context="java-statements" enabled="true" autoinsert="false">logger.info(${word_selection}${});${cursor}</template>
-<template name="warn" description="%Templates.warn" id="bxm.builder.ui.templates.logger_warn" context="java-statements" enabled="true" autoinsert="false">logger.warn(${word_selection}${});${cursor}</template>
-<template name="error" description="%Templates.error" id="bxm.builder.ui.templates.logger_error" context="java-statements" enabled="true" autoinsert="false">logger.error(${word_selection}${});${cursor}</template>
-<template autoinsert="true" context="java-members" deleted="false" description="Sub Service에서 일반적이 처리 로직이 있는 Method를 생성합니다." enabled="true" id="bxm.builder.ui.templates.fw_bean_change" name="fw_subservice_change">public void ${method_name}(${input_type} input, ...) throws BizException {/*inpt parameter는 업무에 맞게 type이랑 갯수를 조정하세요. */&#13;
-	${cursor}&#13;
-	// TODO: 필수입력값 validation을 check하세요.&#13;
-	//...&#13;
-&#13;
-	// TODO: 업무 처리 로직을 구현하세요.&#13;
-	// ......&#13;
-&#13;
-	// TODO: 오류시는 예외를 발생하세요.&#13;
-    // throw new ${throw_new_exception}(...);&#13;
-&#13;
-}${imp:import(jef.application.exception.BizException)}</template>
-<template autoinsert="true" context="java-members" deleted="false" description="페이징 처리하는 조회 Sub Service의 template" enabled="true" id="bxm.builder.ui.templates.fw_bean_page" name="fw_subservice_page">public ${return_type} ${method_name}(int pageNum, int pageCount, ${input_type} input, ...) throws BizException {/*inpt parameter는 업무에 맞게 type이랑 갯수를 조정하세요. */&#13;
-	${return_type}	output = null;&#13;
-	${cursor}&#13;
-&#13;
-	if(pageNum &lt;= 0) {&#13;
-		// 페이지 정보가 올바르지 않아서 조회 할 수 없습니다. {0}업무 IT 담당자에게 문의해야 합니다.( 오류내용:화면에서 전송된 페이지 번호가 0이하 입니다. )&#13;
-		// throw new ${throw_new_exception}(...);&#13;
-	}&#13;
-	if(pageCount &lt;= 0) {&#13;
-		//페이지 정보가 올바르지 않아서 조회 할 수 없습니다. {0}업무 IT 담당자에게 문의해야 합니다.( 오류내용:화면에서 전송된 페이지 크기가 0이하 입니다. )&#13;
-		// throw new ${throw_new_exception}(...);&#13;
-	}&#13;
-&#13;
-	// TODO: 필수입력값 validation을 check하세요.&#13;
-	//...&#13;
-&#13;
-	// TODO: 업무 처리 로직을 구현하세요.&#13;
-	// output = bean.selectMultiTBxxxxxx(...);&#13;
-	if(pageNum == 0 &amp;&amp; output.size() == 0) {&#13;
-		/* 요청하신 자료가 존재하지 않습니다. */&#13;
-		// throw new ${throw_new_exception}(...);&#13;
-	}&#13;
-    &#13;
-	return output;&#13;
-&#13;
-}${imp:import(jef.application.exception.BizException)}</template>
-<template autoinsert="true" context="java-members" deleted="false" description="Sub Service의 일반적인 조회성 method를 생성합니다." enabled="true" id="bxm.builder.ui.templates.fw_bean_select" name="fw_subservice_select">public ${output_type} ${method_name}(${input_type} input, ...) throws BizException {/*inpt parameter는 업무에 맞게 type이랑 갯수를 조정하세요. */&#13;
-	${output_type} output = null;&#13;
-	${cursor}&#13;
-	// TODO: 필수입력값 validation을 check하세요.&#13;
-	//...&#13;
-&#13;
-	// TODO: 업무 처리 로직을 구현하세요.&#13;
-	// ......&#13;
-	// output = dbio.selectOneTBxxxxx(...);&#13;
-&#13;
-	// TODO: 오류시는 예외를 발생하세요.&#13;
-	if(output == null) {&#13;
-		// KIOKI0004 : 요청하신 자료가 존재하지 않습니다.&#13;
-		// throw new ${throw_new_exception}(...);&#13;
-	}&#13;
-&#13;
-	return output;&#13;
-&#13;
-}${imp:import(jef.application.exception.BizException)}</template>
-<template autoinsert="true" context="java-members" deleted="false" description="등록 / 수정 / 삭제 등의 operation" enabled="true" id="bxm.builder.ui.templates.fw_svc_change" name="fw_mainservice_change">@BxmTranID(name="${tran_id}", description="${description}", transaction="auto")
-public void perform${tran_id}(${input_type} input) throws Exception {
-	${imp:import(bxm.container.annotation.BxmTranID,bxm.common.annotaion.BxmCategory)}${cursor}
-
-
-	// ${todo}: 업무에 맞게 정상 처리 메시지코드와  값은 설정해주세요.
-	// DefaultApplicationContext.addMessage("KIOKI0009", null, null);
-}</template>
-<template autoinsert="true" context="java-members" deleted="false" description="페이징 처리하는 조회 operation을 개발합니다." enabled="true" id="bxm.builder.ui.templates.fw_svc_page" name="fw_mainservice_page">@BxmTranID(name="${tran_id}", description="${description}", transaction="auto")
-public ${output_type} perform${tran_id}(${input_type} input) throws Exception {
-	${output_type} output = new ${output_type}();
-	List&lt;${list_omm}&gt;	list = null;
-	${imp:import(bxm.container.annotation.BxmTranID,bxm.context.das.DasUtils,bxm.common.annotaion.BxmCategory)}${cursor}
-
-
-	// ${todo}: bean의 method를 호출하고 output 설정하는 로직을 입력하세요.
-	// list = bean.getXxxList(input.getPageNum(), input.getPageCount(), a, b, c);
-	// ...
-
-	// 조회된 내용이 첫페이지부터 없는 경우, 오류처리
-	if(input.getPageNum() &lt;= 1 &amp;&amp; list.size() == 0) {
-		// KIOKI0004 : 요청하신 자료가 존재하지 않습니다.
-		throw new ${throw_new_exception}(...);&#13;
-	}
-
-	// ${todo}: bean의 output을 OMM에 설정하는 로직을 입력하세요.
-	// ......
-
-	/* 다음페이지가 존재하는 지 여부를 판단하여 recrdNxtYn 변수에 Y/N을 설정한다. */
-	if(DasUtils.existNextResult(list)) {
-		output.setRecrdNxtYn("Y");
-	} else {
-		output.setRecrdNxtYn("N");
-	}
-
-	// ${todo}: 업무에 맞게 정상 조회 메시지코드와  값은 설정해주세요.
-
-	if(list.size() == 0) {
-		// KIOKI0004 : 요청하신 자료가 존재하지 않습니다.
-		// DefaultApplicationContext.addMessage("KIOKI0004", null, null);
-	} else if("Y".equals(output.getRecrdNxtYn())) {
-		/* 정상처리 결과 메시지: 요청하신 내용이 {0}건 조회 되었습니다. - 자료를 계속하여 조회할 수 있습니다. */
-		// DefaultApplicationContext.addMessage("KIOKI0003", new Object[] {list.size()}, null);
-	} else {
-		/* 정상처리 결과 메시지: 요청하신 내용이 {0}건 조회 되었습니다. */
-		// DefaultApplicationContext.addMessage("KIOKI0002", new Object[] {list.size()}, null);
-	}
-
-	return output;
-}</template>
-<template autoinsert="true" context="java-members" deleted="false" description="다건 조회용 operation을 개발합니다." enabled="true" id="bxm.builder.ui.templates.fw_svc_select_multi" name="fw_mainservice_select_multi">@BxmTranID(name="${tran_id}", description="${description}", transaction="auto")&#13;
-public ${output_type} perform${tran_id}(${input_type} input) throws Exception {&#13;
-	${output_type} 	output	= new ${output_type}();&#13;
-	${list_type}	list	= null;&#13;
-	${imp:import(bxm.container.annotation.BxmTranID,bxm.common.annotaion.BxmCategory)}${cursor}&#13;
-&#13;
-&#13;
-	// ${todo}: bean의 method를 호출하는 로직 작성하세요.&#13;
-	// list = bean.getXxxList(input.getXXX(), input.getYYY(), input.getZZZ());&#13;
-&#13;
-	// 조회된 내용이 없는 경우, 오류처리하려면&#13;
-	if(list.size() == 0) {&#13;
-		// KIOKI0004 : 요청하신 자료가 존재하지 않습니다.&#13;
-		// throw new ${throw_new_exception}(...);&#13;
-	}&#13;
-&#13;
-	// ${todo}: bean의 output을 OMM에 설정하는 로직을 입력하세요.&#13;
-	// ......&#13;
-&#13;
-&#13;
-	// ${todo}: 업무에 맞게 정상 조회 메시지코드와  값은 설정해주세요.&#13;
-	// 조회가 0건 조회되어도 정상처리하려면 &#13;
-	if(list.size() == 0) {&#13;
-		// KIOKI0004 : 요청하신 자료가 존재하지 않습니다.&#13;
-		// DefaultApplicationContext.addMessage("KIOKI0004", null, null);&#13;
-	} else {&#13;
-		// KIOKI0002: 요청하신 내용 {0}건이 조회 되었습니다.&#13;
-		// DefaultApplicationContext.addMessage("KIOKI0002", new Object[] {${list}.size()}, null);&#13;
-	}&#13;
-	return output;&#13;
-}&#13;
-</template>
-<template autoinsert="true" context="java-members" deleted="false" description="단건 조회용 operation을 개발합니다." enabled="true" id="bxm.builder.ui.templates.fw_svc_select_single" name="fw_mainservice_select_single">@BxmTranID(name="${tran_id}", description="${description}", transaction="auto")&#13;
-public ${output_type} perform${tran_id}(${input_type} input) throws Exception {&#13;
-	${output_type} 	output = new ${output_type}();&#13;
-	${bean_output}  bean_out = null;&#13;
-	${imp:import(bxm.container.annotation.BxmTranID,bxm.common.annotaion.BxmCategory)}${cursor}&#13;
-&#13;
-	// ${todo}: bean의 method를 호출하는 로직 작성하세요.&#13;
-	// ......&#13;
-&#13;
-&#13;
-	// 조회된 내용이 없는 경우, 오류처리&#13;
-	if(bean_out == null) {&#13;
-		// KIOKI0004 : 요청하신 자료가 존재하지 않습니다.&#13;
-		// throw new ${throw_new_exception}(...);&#13;
-	}&#13;
-	// ${todo}: bean의 output을 OMM에 설정하는 로직을 입력하세요.&#13;
-	// output.setXXX(bean_out.getXXX());&#13;
-    // ......&#13;
-&#13;
-	&#13;
-	// ${todo}: 업무에 맞게 정상 조회 메시지코드와  값은 설정해주세요.&#13;
-	// KIOKI001 : 요청하신 내용이 조회 되었습니다.&#13;
-	// DefaultApplicationContext.addMessage("KIOKI0001", null, null);&#13;
-	return output;&#13;
-}&#13;
-</template>
-</templates>
-
-plugin.xml
-   <extension
-         point="org.eclipse.ui.editors.templates">
-      <contextTypeRegistry
-            id="org.eclipse.jdt.ui.CompilationUnitEditor">
-      </contextTypeRegistry>
-      <include
-      		file="templates/ad-templates.xml"
-      		translations="templates/ad-templates.properties">
-      </include>
-      <include
-      		file="templates/fw-templates.xml"
-      		translations="templates/fw-templates.properties">
-      </include>
-      <include
-      		file="templates/fw-codetemplates.xml"
-      		translations="templates/fw-templates.properties">
-      </include>
-   </extension>
-
-mainservice 생성 위자드 
 /**
  *
  */
-package bxm.builder.wizards;
+package bxm.builder.ui.templates;
 
-import java.text.MessageFormat;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.Calendar;
+import java.util.HashSet;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.core.manipulation.CodeTemplateContext;
-import org.eclipse.jdt.internal.core.manipulation.StubUtility;
-import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
-import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
-import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
-import org.eclipse.jdt.internal.ui.wizards.dialogfields.LayoutUtil;
-import org.eclipse.jdt.internal.ui.wizards.dialogfields.SelectionButtonDialogFieldGroup;
-import org.eclipse.jdt.ui.CodeGeneration;
-import org.eclipse.jface.bindings.keys.KeyStroke;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.fieldassist.ContentProposalAdapter;
-import org.eclipse.jface.fieldassist.IContentProposalProvider;
-import org.eclipse.jface.fieldassist.SimpleContentProposalProvider;
-import org.eclipse.jface.fieldassist.TextContentAdapter;
+import org.eclipse.jdt.internal.core.manipulation.CodeTemplateContextType;
+import org.eclipse.jdt.internal.core.manipulation.ProjectTemplateStore;
+import org.eclipse.jdt.internal.corext.util.Strings;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.JavaUIStatus;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.templates.Template;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.BaseLabelProvider;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.jface.text.templates.TemplateBuffer;
+import org.eclipse.jface.text.templates.TemplateException;
+import org.eclipse.jface.text.templates.TemplateVariable;
+import org.eclipse.text.edits.DeleteEdit;
+import org.eclipse.text.edits.MalformedTreeException;
+import org.eclipse.text.edits.MultiTextEdit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import bxm.builder.BuilderActivator;
-import bxm.builder.core.PluginLog;
-import bxm.builder.message.BuilderMessages;
-import bxm.builder.ui.customization.BuilderCustomizationManager;
-import bxm.builder.ui.extentions.INewProjectProvider;
-import bxm.builder.ui.extentions.ServiceOperationSet;
-import bxm.builder.ui.templates.CodeTemplateContextManager;
-import bxm.ui.constants.BxmConstants.ResourceType;
-import bxm.ui.db.config.ConfigurationUtils;
-import bxm.ui.dialog.MessageDialog;
-import bxm.ui.provider.ResourceNamingProviderManager;
-import bxm.ui.text.UIText;
-import bxm.ui.util.BXMConstants;
 import bxm.ui.util.BXMConstants.ClassType;
-import bxm.ui.util.EclipseUtils;
-import bxm.ui.util.JavaUtils;
 import bxm.ui.util.StringUtils;
-import bxm.ui.viewer.AbstractTableViewer;
 import bxm.ui.wizard.option.WizardOptions;
 
 /**
- * @file			bxm.builder.wizards.NewServiceClassWizardPage.java
+ * @file			bxm.builder.ui.templates.StubUtility.java
  * @filetype		java source file
  * @brief
  * @author			ShinChangYoung
@@ -298,756 +50,518 @@ import bxm.ui.wizard.option.WizardOptions;
  * @history
  * 성		명			일		자				근  거  자  료					변  경  내  용
  * ----------------		-------------------		-------------------		--------------------------
- * ShinChangYoung		2012. 1. 30.			product 개발				신규 작성
+ * ShinChangYoung		2012. 2. 7.			product 개발				신규 작성
  *
  */
-public class NewMainServiceClassWizardPage extends NewHdsTypeWizardPage {
+public class StubUtility {
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private static final String[] EMPTY= new String[0];
 
-	private final static String PAGE_NAME = "NewMainServiceClassWizardPage";
-	private final static String SETTINGS_CREATEMAIN= "create_main";
-	private final static String SETTINGS_CREATECONSTR= "create_constructor";
-	private final static String SETTINGS_CREATEUNIMPLEMENTED= "create_unimplemented";
+//	private static final Set<String> VALID_TYPE_BODY_TEMPLATES;
+//	static {
+//		VALID_TYPE_BODY_TEMPLATES= new HashSet<String>();
+//		VALID_TYPE_BODY_TEMPLATES.add(BxmCodeTemplateContextType.SERVICEBODY_ID);
+//		VALID_TYPE_BODY_TEMPLATES.add(BxmCodeTemplateContextType.INTERFACEBODY_ID);
+//		VALID_TYPE_BODY_TEMPLATES.add(BxmCodeTemplateContextType.ENUMBODY_ID);
+//		VALID_TYPE_BODY_TEMPLATES.add(BxmCodeTemplateContextType.ANNOTATIONBODY_ID);
+//	}
 
-	class OperationViewerLabelProvider extends BaseLabelProvider
-	implements ITableLabelProvider
-	{
-		@Override
-		public Image getColumnImage(Object obj, int i) {
+	public static String getCompilationUnitContent(ICompilationUnit cu,
+			String fileComment, String typeComment,
+			String typeContent, String lineDelimiter,
+			String name, String logicalName, String description, ClassType classType)
+	throws CoreException {
+		IPackageFragment pack= (IPackageFragment)cu.getParent();
+		String packDecl= pack.isDefaultPackage() ? "" : "package " + pack.getElementName() + ';'; //$NON-NLS-1$ //$NON-NLS-2$
+		return getCompilationUnitContent(
+				cu, packDecl, fileComment, typeComment, typeContent, 
+				lineDelimiter, name, logicalName, description, classType);
+	}
+
+	public static String getCompilationUnitContent(ICompilationUnit cu, String packDecl,
+			String fileComment, String typeComment,
+			String typeContent, String lineDelimiter,
+			String name, String logicalName, String description, ClassType classType)
+	throws CoreException {
+		/**
+		 * NEWTYPE_ID -> SERVICE_ID 로 변경하기 위해 수정
+		 */
+		String contextTypeID;
+		if (ClassType.SERVICE.equals(classType)) {
+			contextTypeID = CodeTemplateContextManager.instance().getServiceId();
+		}
+		else {
+			contextTypeID = CodeTemplateContextManager.instance().getBeanId();
+		}
+		Template template = getCodeTemplate(contextTypeID, cu.getJavaProject());
+
+		if (template == null) {
 			return null;
 		}
 
-		@Override
-		public String getColumnText(Object obj, int i) {
-			if ( obj instanceof ServiceOperationSet ){
-				ServiceOperationSet sos= (ServiceOperationSet)obj;
-				switch (i) {
-				case 0: return sos.getOperationName();
-				case 1: return sos.getMethodName();
-				case 2: return sos.getInputOmm();
-				case 3: return sos.getOutputOmm();
-				default:
-					return "";
-				}
+		IJavaProject project= cu.getJavaProject();
+		CodeTemplateContext context= new CodeTemplateContext(template.getContextTypeId(), project, lineDelimiter);
+		context.setCompilationUnitVariables(cu);
+		context.setVariable(BxmCodeTemplateContextType.PACKAGE_DECLARATION, packDecl);
+		context.setVariable(BxmCodeTemplateContextType.FILE_COMMENT, fileComment != null ? fileComment : ""); //$NON-NLS-1$
+		context.setVariable(BxmCodeTemplateContextType.TYPE_DECLARATION, typeContent);
+		context.setVariable(BxmCodeTemplateContextType.TYPENAME, JavaCore.removeJavaLikeExtension(cu.getElementName()));
+
+		/**
+		 * FW에서 추가한 템플릿 변수 값 셋팅
+		 */
+		if (ClassType.SERVICE.equals(classType)) {
+			context.setVariable(BxmCodeTemplateContextType.SERVICENAME, getServiceAnnotation(name, logicalName, description));
+			context.setVariable(BxmCodeTemplateContextType.SERVICE_COMMENT, typeComment != null ? typeComment : ""); //$NON-NLS-1$
+
+			if ( WizardOptions.instance().isServiceNewWizardLogicalNameEnabled() )
+			{
+				context.setVariable(BxmCodeTemplateContextType.EXTENED_IMPORTS, "import bxm.common.annotaion.BxmCategory;");
 			}
-			else{
-				return "";
-			}
+			else context.setVariable(BxmCodeTemplateContextType.EXTENED_IMPORTS, "");
 		}
-	}
+		else
+		{
+			/*2012.11.21 PARK.Jeongyeob [[*/
+			context.setVariable(BxmCodeTemplateContextType.BEANNAME, getBeanAnnotation(logicalName, description));
+			context.setVariable(BxmCodeTemplateContextType.BEAN_COMMENT, typeComment != null ? typeComment : ""); //$NON-NLS-1$
 
-	class OperationViewer extends AbstractTableViewer{
-
-		public OperationViewer(Composite parent, int style) {
-			super(parent, style);
-
-			createColumn(UIText.OPERATION, 80);
-			createColumn(UIText.METHOD, 80);
-			createColumn(UIText.INPUT, 250);
-			createColumn(UIText.OUTPUT, 250);
-
-			setHeaderVisible(true);
-			setLineVisible(true);
-		}
-	}
-
-	private OperationViewer operationViewer= null;
-
-	private ServiceOperationSet[] serviceOperationSetList= null;
-
-	private boolean createInputOmmWhenNoExist= false;
-	private boolean createOutputOmmWhenNoExist= false;
-	private boolean applyLogicalNameToOperation= true;
-	private boolean applyLogicalNameToIO= true;
-
-	private SelectionButtonDialogFieldGroup fMethodStubsButtons;
-
-	public NewMainServiceClassWizardPage() {
-		super(true, PAGE_NAME);
-
-		setTitle(BuilderMessages.NEW_SERVICE_WIZARD_PAGE_1_TITLE);
-		setDescription(BuilderMessages.NEW_SERVICE_WIZARD_PAGE_1_DESC);
-
-		String[] buttonNames3= new String[] {
-			NewWizardMessages.NewClassWizardPage_methods_main, NewWizardMessages.NewClassWizardPage_methods_constructors,
-			NewWizardMessages.NewClassWizardPage_methods_inherited
-		};
-		fMethodStubsButtons= new SelectionButtonDialogFieldGroup(SWT.CHECK, buttonNames3, 1);
-		fMethodStubsButtons.setLabelText(NewWizardMessages.NewClassWizardPage_methods_label);
-	}
-
-	public void init(IStructuredSelection selection) {
-
-		IJavaElement jelem= getInitialJavaElement(selection);
-
-		if ( jelem== null ){
-			Object object= selection.getFirstElement();
-
-			if ( object instanceof IFile ){
-				IFile file= (IFile)object;
-				jelem= JavaCore.create(file);
+			if ( WizardOptions.instance().isBeanNewWizardLogicalNameEnabled() )
+			{
+				context.setVariable(BxmCodeTemplateContextType.EXTENED_IMPORTS, "import bxm.common.annotaion.BxmCategory;");
 			}
+			else context.setVariable(BxmCodeTemplateContextType.EXTENED_IMPORTS, "");
+		}
+
+
+
+		String[] fullLine= { CodeTemplateContextType.PACKAGE_DECLARATION, CodeTemplateContextType.FILE_COMMENT, CodeTemplateContextType.TYPE_COMMENT };
+		return evaluateTemplate(context, template, fullLine);
+	}
+
+	/**
+	 * Don't use this method directly, use CodeGeneration.
+	 *
+	 * @param templateID the template id of the type body to get. Valid id's are
+	 *            {@link CodeTemplateContextType#CLASSBODY_ID},
+	 *            {@link CodeTemplateContextType#INTERFACEBODY_ID},
+	 *            {@link CodeTemplateContextType#ENUMBODY_ID},
+	 *            {@link CodeTemplateContextType#ANNOTATIONBODY_ID},
+	 * @param cu the compilation unit to which the template is added
+	 * @param typeName the type name
+	 * @param lineDelim the line delimiter to use
+	 * @return return the type body template or <code>null</code>
+	 * @throws CoreException thrown if the template could not be evaluated
+	 * @see org.eclipse.jdt.ui.CodeGeneration#getTypeBody(String, ICompilationUnit, String, String)
+	 */
+	public static String getTypeBody(String templateID, ICompilationUnit cu, String typeName, String lineDelim) throws CoreException {
+		Template template= getCodeTemplate(templateID, cu.getJavaProject());
+		if (template == null) {
+			return null;
+		}
+		CodeTemplateContext context= new CodeTemplateContext(template.getContextTypeId(), cu.getJavaProject(), lineDelim);
+		context.setCompilationUnitVariables(cu);
+		context.setVariable(CodeTemplateContextType.TYPENAME, typeName);
+
+		return evaluateTemplate(context, template);
+	}
+
+	public static String getTypeComment(
+			ICompilationUnit cu,
+			String typeQualifiedName,
+			String[] typeParameterNames,
+			String lineDelim,
+			String serviceName,
+			ClassType classType
+			)
+	throws CoreException
+	{
+		String templateId;
+		
+		switch(classType)
+		{
+			case SERVICE :
+				templateId= CodeTemplateContextManager.instance().getServiceCommentId();
+				break;
+			default :
+				templateId= CodeTemplateContextManager.instance().getBeanCommentId();
+				break;
+		}
+		
+		Template template= getCodeTemplate(templateId, cu.getJavaProject());
+
+		if (template == null) {
+			System.out.println(">> template is null");
+			return null;
+		}
+
+		CodeTemplateContext context= new CodeTemplateContext(template.getContextTypeId(), cu.getJavaProject(), lineDelim);
+		context.setCompilationUnitVariables(cu);
+		context.setVariable(BxmCodeTemplateContextType.ENCLOSING_TYPE, Signature.getQualifier(typeQualifiedName));
+		context.setVariable(BxmCodeTemplateContextType.TYPENAME, Signature.getSimpleName(typeQualifiedName));
+		
+//		String userName= System.getProperty("user.name");
+//		byte[] userNameByte= userName.getBytes();
+//		
+//		String newEncodedUserName;
+//		try {
+//			newEncodedUserName= new String(userNameByte, "UTF-8");
+//		} catch (UnsupportedEncodingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//			PluginLog.logError("To UTF-8 Fail", e1);
+//			newEncodedUserName= userName;
+//		}
+//		
+//		PluginLog.logInfo("userName : " + userName);
+//		PluginLog.logInfo("newEncodedUserName : " + newEncodedUserName);
+		
+		context.setVariable(BxmCodeTemplateContextType.USER_NAME_COMMENT, System.getProperty("user.name"));
+		context.setVariable(BxmCodeTemplateContextType.SINCE_COMMENT, 
+				new SimpleDateFormat("yyyyMMdd").format(Calendar.getInstance().getTime()));
+		if ( ClassType.SERVICE.equals(classType) ){
+			context.setVariable(BxmCodeTemplateContextType.SERVICENAME, serviceName);
 		}
 		else{
+			context.setVariable(BxmCodeTemplateContextType.BEANNAME, serviceName);
 		}
-		initContainerPage(jelem);
-		initTypePage(jelem);
-		doStatus_Update();
 
-		boolean createMain= false;
-		boolean createConstructors= false;
-		boolean createUnimplemented= true;
-		IDialogSettings dialogSettings= getDialogSettings();
-		if (dialogSettings != null) {
-			IDialogSettings section= dialogSettings.getSection(PAGE_NAME);
-			if (section != null) {
-				createMain= section.getBoolean(SETTINGS_CREATEMAIN);
-				createConstructors= section.getBoolean(SETTINGS_CREATECONSTR);
-				createUnimplemented= section.getBoolean(SETTINGS_CREATEUNIMPLEMENTED);
+		TemplateBuffer buffer;
+		try {
+			buffer= context.evaluate(template);
+		} catch (BadLocationException e) {
+			throw new CoreException(Status.CANCEL_STATUS);
+		} catch (TemplateException e) {
+			throw new CoreException(Status.CANCEL_STATUS);
+		}
+		String str= buffer.getString();
+		if (Strings.containsOnlyWhitespaces(str)) {
+			return null;
+		}
+
+		TemplateVariable position= findVariable(buffer, BxmCodeTemplateContextType.TAGS); // look if Javadoc tags have to be added
+		if (position == null) {
+			return str;
+		}
+
+		IDocument document= new Document(str);
+		int[] tagOffsets= position.getOffsets();
+		for (int i= tagOffsets.length - 1; i >= 0; i--) { // from last to first
+			try {
+				insertTag(document, tagOffsets[i], position.getLength(), EMPTY, EMPTY, null, typeParameterNames, false, lineDelim);
+			} catch (BadLocationException e) {
+				throw new CoreException(JavaUIStatus.createError(IStatus.ERROR, e));
 			}
 		}
-
-		setMethodStubSelection(createMain, createConstructors, createUnimplemented, true);
+		return document.get();
 	}
-
-	private void doStatus_Update() {
-		// status of all used components
-		IStatus[] status= null;
-
-		if ( WizardOptions.instance().isBeanNewWizardLogicalNameEnabled())
-		{
-			status= new IStatus[] {
-					fContainerStatus,
-					isEnclosingTypeSelected() ? fEnclosingTypeStatus : fPackageStatus,
-					fTypeNameStatus,
-					fServiceNameStatus,
-					fModifierStatus,
-					fSuperClassStatus,
-					fSuperInterfacesStatus,
-					fLogicalNameStatus,
-					fDescriptionStatus
-				};
-		}
-		else{
-			status= new IStatus[] {
-					fContainerStatus,
-					isEnclosingTypeSelected() ? fEnclosingTypeStatus : fPackageStatus,
-					fTypeNameStatus,
-					fServiceNameStatus,
-					fModifierStatus,
-					fSuperClassStatus,
-					fSuperInterfacesStatus
-				};
+	
+	public static String getFileComment(ICompilationUnit cu, String lineDelimiter) throws CoreException {
+		Template template= getCodeTemplate(CodeTemplateContextType.FILECOMMENT_ID, cu.getJavaProject());
+		if (template == null) {
+			return null;
 		}
 
-		// the mode severe status will be displayed and the OK button enabled/disabled.
-		updateStatus(status);
+		IJavaProject project= cu.getJavaProject();
+		CodeTemplateContext context= new CodeTemplateContext(template.getContextTypeId(), project, lineDelimiter);
+		context.setCompilationUnitVariables(cu);
+		context.setVariable(CodeTemplateContextType.TYPENAME, JavaCore.removeJavaLikeExtension(cu.getElementName()));
+		return evaluateTemplate(context, template);
 	}
 
-	@Override
-	protected void handleFieldChanged(String fieldName) {
-		super.handleFieldChanged(fieldName);
+	public static Template getCodeTemplate(String id, IJavaProject project) {
 
-		if ("NewContainerWizardPage.container".equals(fieldName)){
-			IJavaProject javaProject= getJavaProject();
+		System.out.println(">> getCodeTemplate : [" + id+ "]");
+		if (project == null)
+			return JavaPlugin.getDefault().getCodeTemplateStore().findTemplateById(id);
+		ProjectTemplateStore projectStore= new ProjectTemplateStore(project.getProject());
+		try {
+			projectStore.load();
+		} catch (IOException e) {
+			JavaPlugin.log(e);
+		}
+		return projectStore.findTemplateById(id);
+	}
 
-			if ( javaProject != null ){
-				String packageName= ResourceNamingProviderManager.instance().getPackageName(ResourceType.SERVICE, javaProject.getProject(), "", "");
+	public static String evaluateTemplate(CodeTemplateContext context, Template template) throws CoreException {
+		TemplateBuffer buffer;
+		try {
+			buffer= context.evaluate(template);
+		} catch (BadLocationException e) {
+			throw new CoreException(Status.CANCEL_STATUS);
+		} catch (TemplateException e) {
+			throw new CoreException(Status.CANCEL_STATUS);
+		}
+		if (buffer == null)
+			return null;
+		String str= buffer.getString();
+		if (Strings.containsOnlyWhitespaces(str)) {
+			return null;
+		}
+		return str;
+	}
 
-				if ( !StringUtils.isEmpty(packageName) ){
-					IPackageFragment pf=getPackageFragmentRoot().getPackageFragment(packageName);
-					setPackageFragment(pf, true);
-					setFocus();
+	public static String evaluateTemplate(CodeTemplateContext context, Template template, String[] fullLineVariables) throws CoreException {
+		TemplateBuffer buffer;
+		try {
+			buffer= context.evaluate(template);
+			if (buffer == null)
+				return null;
+			String str= fixEmptyVariables(buffer, fullLineVariables);
+			if (Strings.containsOnlyWhitespaces(str)) {
+				return null;
+			}
+			return str;
+		} catch (BadLocationException e) {
+			throw new CoreException(Status.CANCEL_STATUS);
+		} catch (TemplateException e) {
+			throw new CoreException(Status.CANCEL_STATUS);
+		}
+	}
+
+	// remove lines for empty variables
+	private static String fixEmptyVariables(TemplateBuffer buffer, String[] variables) throws MalformedTreeException, BadLocationException {
+		IDocument doc= new Document(buffer.getString());
+		int nLines= doc.getNumberOfLines();
+		MultiTextEdit edit= new MultiTextEdit();
+		HashSet<Integer> removedLines= new HashSet<Integer>();
+		for (int i= 0; i < variables.length; i++) {
+			TemplateVariable position= findVariable(buffer, variables[i]); // look if Javadoc tags have to be added
+			if (position == null || position.getLength() > 0) {
+				continue;
+			}
+			int[] offsets= position.getOffsets();
+			for (int k= 0; k < offsets.length; k++) {
+				int line= doc.getLineOfOffset(offsets[k]);
+				IRegion lineInfo= doc.getLineInformation(line);
+				int offset= lineInfo.getOffset();
+				String str= doc.get(offset, lineInfo.getLength());
+				if (Strings.containsOnlyWhitespaces(str) && nLines > line + 1 && removedLines.add(new Integer(line))) {
+					int nextStart= doc.getLineOffset(line + 1);
+					edit.addChild(new DeleteEdit(offset, nextStart - offset));
 				}
 			}
 		}
-
-		doStatus_Update();
+		edit.apply(doc, 0);
+		return doc.get();
 	}
 
-	@Override
-	public void createControl(Composite parent) {
-		logger.trace("NewServiceClassWizardPage.createControl");
-		initializeDialogUnits(parent);
-
-		Composite composite= new Composite(parent, SWT.NONE);
-		composite.setFont(parent.getFont());
-
-		int columns= 4;
-
-		composite.setLayout(new GridLayout(columns, false));
-
-		// pick & choose the wanted UI components
-
-		createContainerControls(composite, columns);
-		createPackageControls(composite, columns);
-//		createEnclosingTypeControls(composite, nColumns);
-		createSeparator(composite, columns);
-
-		createTypeNameControls(composite, columns);
-		createServiceNameControls(composite, columns);
-
-		// 2012.11.21 PARK.Jeongyeob [[
-		if ( WizardOptions.instance().isBeanNewWizardLogicalNameEnabled())
-		{
-			createSeparator(composite, columns);
-			createLogicalNameControls(composite, columns);
-			createDescriptionControls(composite, columns);
+	private static TemplateVariable findVariable(TemplateBuffer buffer, String variable) {
+		TemplateVariable[] positions= buffer.getVariables();
+		for (int i= 0; i < positions.length; i++) {
+			TemplateVariable curr= positions[i];
+			if (variable.equals(curr.getType())) {
+				return curr;
+			}
 		}
-		// 2012.11.21 PARK.Jeongyeob [[
-
-		createSeparator(composite, columns);
-
-		// 15.07.08
-		if ( BuilderActivator.getDefault().getConfiguration().isNewServiceUseOperationPreview() ){
-			createDefaultOperationControls(composite, columns);
-		}
-
-//		createModifierControls(composite, nColumns);
-
-//		createSuperClassControls(composite, nColumns);
-//		createSuperInterfacesControls(composite, nColumns);
-
-//		createMethodStubSelectionControls(composite, nColumns);
-
-//		createCommentControls(composite, columns);
-		setAddComments(true,false);
-		enableCommentControl(true);
-
-		setControl(composite);
-
-		Dialog.applyDialogFont(composite);
-		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IJavaHelpContextIds.NEW_CLASS_WIZARD_PAGE);
-
-
-
+		return null;
 	}
 
-	protected void createDefaultOperationControls(Composite parent, int columns){
-
-		final int buttonColumns= 1;
-		Group group= new Group(parent, SWT.NORMAL);
-		{
-			group.setLayout(new GridLayout(buttonColumns,false));
-			GridData data= new GridData(GridData.FILL_HORIZONTAL);
-			data.horizontalSpan= columns;
-			group.setLayoutData(data);
+	private static void insertTag(IDocument textBuffer, int offset, int length, String[] paramNames, String[] exceptionNames, String returnType, String[] typeParameterNames, boolean isDeprecated,
+			String lineDelimiter) throws BadLocationException {
+		IRegion region= textBuffer.getLineInformationOfOffset(offset);
+		if (region == null) {
+			return;
 		}
-		group.setText("Operation Preview");
+		String lineStart= textBuffer.get(region.getOffset(), offset - region.getOffset());
 
-		Button btnCreateInput= new Button(group, SWT.CHECK);
-		btnCreateInput.setText(BuilderMessages.ServiceNewWizard_button_001);
-		btnCreateInput.setSelection(createInputOmmWhenNoExist);
-
-		btnCreateInput.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				Button btn= (Button)e.widget;
-				createInputOmmWhenNoExist= btn.getSelection();
+		StringBuffer buf= new StringBuffer();
+		for (int i= 0; i < typeParameterNames.length; i++) {
+			if (buf.length() > 0) {
+				buf.append(lineDelimiter).append(lineStart);
 			}
-		});
-
-		Button btnCreateOutput= new Button(group, SWT.CHECK);
-		btnCreateOutput.setText(BuilderMessages.ServiceNewWizard_button_002);
-		btnCreateOutput.setSelection(createOutputOmmWhenNoExist);
-		btnCreateOutput.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				Button btn= (Button)e.widget;
-				createOutputOmmWhenNoExist= btn.getSelection();
-			}
-		});
-
-		// 서비스의 논리명, 설명을 오퍼레이션의 논리명, 설명에 적용할 것인지 여부
-		Button btnApplyLogicalNameToOperation= new Button(group, SWT.CHECK);
-		btnApplyLogicalNameToOperation.setText(BuilderMessages.ServiceNewWizard_button_003);
-		btnApplyLogicalNameToOperation.setSelection(applyLogicalNameToOperation);
-		btnApplyLogicalNameToOperation.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				Button btn= (Button)e.widget;
-				applyLogicalNameToOperation= btn.getSelection();
-			}
-		});
-
-		// 서비스의 논리명, 설명을 오퍼레이션 IO 논리명에 적용할 것인지 여부
-		Button btnApplyLogicalNameToIO= new Button(group, SWT.CHECK);
-		btnApplyLogicalNameToIO.setText(BuilderMessages.ServiceNewWizard_button_004);
-		btnApplyLogicalNameToIO.setSelection(applyLogicalNameToIO);
-		btnApplyLogicalNameToIO.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				Button btn= (Button)e.widget;
-				applyLogicalNameToIO= btn.getSelection();
-			}
-		});
-
-		operationViewer= new OperationViewer(group, SWT.BORDER);
-		operationViewer.setContentProvider( new ArrayContentProvider() );
-		operationViewer.setLabelProvider( new OperationViewerLabelProvider());
-
-		{
-			GridData data= new GridData(GridData.FILL_HORIZONTAL);
-			data.heightHint= 100;
-			data.horizontalSpan=buttonColumns;
-			operationViewer.getControl().setLayoutData(data);
+			buf.append("@param <").append(typeParameterNames[i]).append('>'); //$NON-NLS-1$
 		}
-
-		bindServiceOperation();
-	}
-
-	@Override
-	public void setVisible(boolean visible) {
-		logger.trace("NewServiceClassWizardPage.setVisible");
-		super.setVisible(visible);
-		if (visible) {
-			setFocus();
-		} else {
-			IDialogSettings dialogSettings= getDialogSettings();
-			if (dialogSettings != null) {
-				IDialogSettings section= dialogSettings.getSection(PAGE_NAME);
-				if (section == null) {
-					section= dialogSettings.addNewSection(PAGE_NAME);
+		for (int i= 0; i < paramNames.length; i++) {
+			if (buf.length() > 0) {
+				buf.append(lineDelimiter).append(lineStart);
+			}
+			buf.append("@param ").append(paramNames[i]); //$NON-NLS-1$
+		}
+		if (returnType != null && !returnType.equals("void")) { //$NON-NLS-1$
+			if (buf.length() > 0) {
+				buf.append(lineDelimiter).append(lineStart);
+			}
+			buf.append("@return"); //$NON-NLS-1$
+		}
+		if (exceptionNames != null) {
+			for (int i= 0; i < exceptionNames.length; i++) {
+				if (buf.length() > 0) {
+					buf.append(lineDelimiter).append(lineStart);
 				}
-				section.put(SETTINGS_CREATEMAIN, isCreateMain());
-				section.put(SETTINGS_CREATECONSTR, isCreateConstructors());
-				section.put(SETTINGS_CREATEUNIMPLEMENTED, isCreateInherited());
+				buf.append("@throws ").append(exceptionNames[i]); //$NON-NLS-1$
 			}
 		}
-	}
-
-	private void createMethodStubSelectionControls(Composite composite, int nColumns) {
-		logger.trace("NewServiceClassWizardPage.createMethodStubSelectionControls");
-		Control labelControl= fMethodStubsButtons.getLabelControl(composite);
-		LayoutUtil.setHorizontalSpan(labelControl, nColumns);
-
-		DialogField.createEmptySpace(composite);
-
-		Control buttonGroup= fMethodStubsButtons.getSelectionButtonsGroup(composite);
-		LayoutUtil.setHorizontalSpan(buttonGroup, nColumns - 1);
-	}
-
-	/**
-	 * Returns the current selection state of the 'Create Main' checkbox.
-	 *
-	 * @return the selection state of the 'Create Main' checkbox
-	 */
-	public boolean isCreateMain() {
-		return fMethodStubsButtons.isSelected(0);
-	}
-
-	/**
-	 * Returns the current selection state of the 'Create Constructors' checkbox.
-	 *
-	 * @return the selection state of the 'Create Constructors' checkbox
-	 */
-	public boolean isCreateConstructors() {
-		return fMethodStubsButtons.isSelected(1);
-	}
-
-	/**
-	 * Returns the current selection state of the 'Create inherited abstract methods'
-	 * checkbox.
-	 *
-	 * @return the selection state of the 'Create inherited abstract methods' checkbox
-	 */
-	public boolean isCreateInherited() {
-		return fMethodStubsButtons.isSelected(2);
-	}
-
-	/**
-	 * Sets the selection state of the method stub checkboxes.
-	 *
-	 * @param createMain initial selection state of the 'Create Main' checkbox.
-	 * @param createConstructors initial selection state of the 'Create Constructors' checkbox.
-	 * @param createInherited initial selection state of the 'Create inherited abstract methods' checkbox.
-	 * @param canBeModified if <code>true</code> the method stub checkboxes can be changed by
-	 * the user. If <code>false</code> the buttons are "read-only"
-	 */
-	public void setMethodStubSelection(boolean createMain, boolean createConstructors, boolean createInherited, boolean canBeModified) {
-		logger.trace("NewServiceClassWizardPage.setMethodStubSelection");
-		fMethodStubsButtons.setSelection(0, createMain);
-		fMethodStubsButtons.setSelection(1, createConstructors);
-		fMethodStubsButtons.setSelection(2, createInherited);
-
-		fMethodStubsButtons.setEnabled(canBeModified);
-	}
-
-	@Override
-	protected void createTypeMembers(IType type, ImportsManager imports, IProgressMonitor monitor) throws CoreException {
-		logger.trace("NewServiceClassWizardPage.createTypeMembers");
-		boolean doMain= isCreateMain();
-		boolean doConstr= isCreateConstructors();
-		boolean doInherited= isCreateInherited();
-		createInheritedMethods(type, doConstr, doInherited, imports, new SubProgressMonitor(monitor, 1));
-
-		if (doMain) {
-			StringBuffer buf= new StringBuffer();
-			final String lineDelim= "\n"; // OK, since content is formatted afterwards
-			String comment= CodeGeneration.getMethodComment(type.getCompilationUnit(), type.getTypeQualifiedName('.'), "main", new String[] {"args"}, new String[0], Signature.createTypeSignature("void", true), null, lineDelim);
-			if (comment != null) {
-				buf.append(comment);
-				buf.append(lineDelim);
+		if (isDeprecated) {
+			if (buf.length() > 0) {
+				buf.append(lineDelimiter).append(lineStart);
 			}
-			buf.append("public static void main(");
-			buf.append(imports.addImport("java.lang.String"));
-			buf.append("[] args) {");
-			buf.append(lineDelim);
-			final String content= CodeGeneration.getMethodBodyContent(type.getCompilationUnit(), type.getTypeQualifiedName('.'), "main", false, "", lineDelim);
-			if (content != null && content.length() != 0)
-				buf.append(content);
-			buf.append(lineDelim);
-			buf.append("}");
-			type.createMethod(buf.toString(), null, false, null);
+			buf.append("@deprecated"); //$NON-NLS-1$
 		}
-
-		if (monitor != null) {
-			monitor.done();
+		if (buf.length() == 0 && isAllCommentWhitespace(lineStart)) {
+			int prevLine= textBuffer.getLineOfOffset(offset) - 1;
+			if (prevLine > 0) {
+				IRegion prevRegion= textBuffer.getLineInformation(prevLine);
+				int prevLineEnd= prevRegion.getOffset() + prevRegion.getLength();
+				// clear full line
+				textBuffer.replace(prevLineEnd, offset + length - prevLineEnd, ""); //$NON-NLS-1$
+				return;
+			}
 		}
+		textBuffer.replace(offset, length, buf.toString());
 	}
 
-	protected String constructSimpleTypeStub() {
-		StringBuffer buf= new StringBuffer("public class ");
-		buf.append(getTypeName());
-		buf.append("{ }");
+	private static boolean isAllCommentWhitespace(String lineStart) {
+		for (int i= 0; i < lineStart.length(); i++) {
+			char ch= lineStart.charAt(i);
+			if (!Character.isWhitespace(ch) && ch != '*') {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	protected static String getServiceAnnotation(String serviceName) {
+		StringBuffer buf= new StringBuffer("");
+		buf.append("@BxmService(\"");
+		buf.append(serviceName);
+		buf.append("\")\n");
 		return buf.toString();
 	}
 
-	@Override
-	protected void createPackageControls(Composite composite, int nColumns) {
-		super.createPackageControls(composite, nColumns);
+	protected static String getServiceAnnotation(String serviceName, String logicalName, String description) {
 
-		if ( !ConfigurationUtils.getConfiguration().isCheckPackageNameForServiceWizard()) return;
+		StringBuilder sb= new StringBuilder();
+		sb.append("@BxmService(\"");
+		sb.append(serviceName);
+		sb.append("\")");
 
-		try {
-			if ( getPackageFragmentRoot() != null ){
+		if ( WizardOptions.instance().isBeanNewWizardLogicalNameEnabled() )
+		{
 
-				IJavaProject javaProject= getJavaProject();
-				if ( javaProject == null ) return;
+			sb
+			.append("@BxmCategory(");
 
-				String selectedPackageName= getPackageText();
+			String type = BuilderActivator.getDefault().getConfiguration().getCategoryTypeForService();
 
-				if ( !selectedPackageName.endsWith( getPreferPackageSuffix() ) ){
-
-					String packageName= ResourceNamingProviderManager.instance().getPackageName(ResourceType.SERVICE, javaProject.getProject(), "", "");
-
-					String message= MessageFormat.format(BuilderMessages.PACKAGE_SELECTION_MESSAGE
-							, "Service"
-							, selectedPackageName
-							, packageName
-							);
-					MessageDialog.openInfo(message);
-
-					IPackageFragment pf=getPackageFragmentRoot().getPackageFragment(packageName);
-					setPackageFragment(pf, true);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	protected IPackageFragmentRoot chooseContainer()
-    {
-		return EclipseUtils.chooseSrcContainer(getShell());
-    }
-
-	protected String getPreferPackageSuffix(){
-		return ResourceNamingProviderManager.instance().getServicePackageSuffix();
-	}
-
-	@Override
-	protected void updateStatus(IStatus status) {
-		super.updateStatus(status);
-
-		bindServiceOperation();
-	}
-
-	private void bindServiceOperation(){
-		if ( operationViewer != null ){
-
-			INewProjectProvider[] providers= BuilderCustomizationManager.instance().getNewProjectProviders();
-
-			String packageName= getPackageText();
-			String serviceName= getServiceName();
-
-			Set<ServiceOperationSet> serviceOperationSet= new LinkedHashSet<ServiceOperationSet>();
-
-			if ( providers != null )
-			{
-				for (INewProjectProvider provider : providers) {
-					ServiceOperationSet[] sos= provider.getDefaultServiceOperationSet(packageName, serviceName);
-
-					if ( sos != null && sos.length > 0){
-						for (ServiceOperationSet so : sos) {
-							serviceOperationSet.add(so);
-						}
-					}
-				}
+			if ( !StringUtils.isEmpty(type) ){
+				sb
+				.append("type=\"" + type +"\", ")
+				;
 			}
 
-			serviceOperationSetList= serviceOperationSet.toArray( new ServiceOperationSet[serviceOperationSet.size()]);
-			operationViewer.setInput(serviceOperationSetList);
-		}
-	}
-
-	public ServiceOperationSet[] getServiceOperationSetList() {
-		// 15.07.08
-		if ( BuilderActivator.getDefault().getConfiguration().isNewServiceUseOperationPreview() ){
-			return serviceOperationSetList;
-		}
-		else{
-			return new ServiceOperationSet[0];
-		}
-	}
-
-	private void writeExtendedBodyContents(StringBuffer buf, ImportsManager imports, String lineDelimiter, String logicalName, String description){
-		if ( serviceOperationSetList== null || serviceOperationSetList.length == 0 ){
-			return;
-		}
-
-		boolean first= true;
-
-		for (ServiceOperationSet sos : serviceOperationSetList) {
-
-			if ( first ){
-				first= false;
-			}
-			else{
-				buf.append(lineDelimiter);
-			}
-
-			String inputQName= sos.getInputOmm();
-			String inputSName= JavaUtils.getClassName(inputQName);
-
-			String outputQName= sos.getOutputOmm();
-			String outputSName= JavaUtils.getClassName(outputQName);
-
-			imports.addImport(inputQName);
-			imports.addImport(outputQName);
-			imports.addImport("bxm.container.annotation.BxmServiceOperation");
-			imports.addImport("bxm.common.annotaion.BxmCategory");
-
-			String throwsClassName= sos.getThrowsClassName();
-
-			buf
-			.append("@BxmServiceOperation")
-			.append("(\"")
-			.append(sos.getOperationName())
-			.append("\")")
-			.append(lineDelimiter)
-
-			.append("@BxmCategory")
-			.append("(")
+			sb
 			.append("logicalName=\"")
 			.append(logicalName)
 			.append("\"")
-			.append(", ")
-			.append("description=\"")
+
+			.append(", description=\"")
 			.append(description)
-			.append("\")")
-			.append(lineDelimiter)
+			.append("\"")
 
-			.append("public ")
-			.append(outputSName)
-			.append(" ")
-			.append(sos.getMethodName())
-			.append("(")
-			.append(inputSName)
-			.append(" " )
-			.append("input")
-			.append(")")
-			.append(" ")
-			.append("throws")
-			.append(" ")
-			;
+			.append(")");
 
-			if ( StringUtils.isEmpty(throwsClassName) ){
-				imports.addImport("bxm.app.ApplicationException");
-				buf
-				.append("ApplicationException")
-				.append(lineDelimiter)
+
+//			int count = 0;
+//			if ( !StringUtils.isEmpty(logicalName) )
+//			{
+//				buf.append("logicalName=\"")
+//				.append(logicalName)
+//				.append("\"");
+//				count++;
+//			}
+//
+//			if ( !StringUtils.isEmpty(description) )
+//			{
+//				if ( count > 0 ) buf.append(", ");
+//
+//				buf.append("\n" )
+//				.append("description=\"")
+//				.append(description)
+//				.append("\"");
+//				count++;
+//			}
+//			buf.append(")");
+
+//			sb.append("logicalName=\"")
+//			.append(logicalName)
+//			.append("\"");
+//
+//			sb.append(", description=\"")
+//			.append(description)
+//			.append("\"");
+//
+//			sb.append(", type=\"\"")
+//			.append(")");
+
+
+		}
+
+		return sb.toString();
+	}
+
+	// 2012.11.21 PARK.Jeongyeob [[
+	private static String getBeanAnnotation(String logicalName, String description)
+	{
+		if ( WizardOptions.instance().isBeanNewWizardLogicalNameEnabled() )
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.append("@BxmBean")
+			.append("\n")
+			.append("@BxmCategory(");
+
+			String type = BuilderActivator.getDefault().getConfiguration().getCategoryTypeForBean();
+
+			if ( !StringUtils.isEmpty(type) ){
+				sb
+				.append("type=\"" + type +"\", ")
 				;
 			}
-			else{
-				imports.addImport(throwsClassName);
-				String throwsClassSimpleName= JavaUtils.getClassName(throwsClassName);
-				buf
-				.append(throwsClassSimpleName)
-				.append(lineDelimiter)
-				;
-			}
 
-			buf
-			.append("{")
-			.append(lineDelimiter)
-			.append(lineDelimiter)
-			.append("logger.debug(\"============== SERVICE START ==============\");").append(lineDelimiter)
-			.append("logger.debug(\"input = {}\", input);").append(lineDelimiter).append(lineDelimiter)
-			.append(outputSName)
-			.append(" output = new ")
-			.append(outputSName )
-			.append("();")
-			.append(lineDelimiter)
-			.append(lineDelimiter)
-			.append("// TODO write code here")
-			.append(lineDelimiter)
-			.append(lineDelimiter)
-			.append("logger.debug(\"output = {}\", output);").append(lineDelimiter)
-			.append("logger.debug(\"============== SERVICE END ==============\");").append(lineDelimiter)
-			.append(lineDelimiter)
-			.append("return output;").append(lineDelimiter)
-			.append("}")
+			sb.append("logicalName=\"")
+			.append(logicalName)
+			.append("\"")
 
-			;
-		}
-	}
+			.append(", description=\"")
+			.append(description)
+			.append("\"")
 
-	@Override
-	protected void writeExtendedBodyContents(StringBuffer buff, ImportsManager imports, String lineDelimiter) {
+			.append(")");
 
+//			int count = 0;
+//			if ( !StringUtils.isEmpty(logicalName) )
+//			{
+//				sb.append("logicalName=\"")
+//				.append(logicalName)
+//				.append("\"");
+//				count++;
+//			}
+//
+//			if ( !StringUtils.isEmpty(description) )
+//			{
+//				if ( count > 0 ) sb.append(", ");
+//				sb.append("description=\"")
+//				.append(description)
+//				.append("\"");
+//				count++;
+//			}
 
+//			sb.append("logicalName=\"")
+//			.append(logicalName)
+//			.append("\"");
+//
+//			sb.append(", description=\"")
+//			.append(description)
+//			.append("\"");
+//
+//			sb.append(", type=\"\"")
+//			.append(")");
 
-		this.writeExtendedBodyContents(
-				buff
-				, imports
-				, lineDelimiter
-				, applyLogicalNameToOperation?getLogicalName():""
-				, applyLogicalNameToOperation?getDescription():""
-				);
-	}
-
-	public boolean isCreateInputOmmWhenNoExist() {
-		return createInputOmmWhenNoExist;
-	}
-
-	public boolean isCreateOutputOmmWhenNoExist() {
-		return createOutputOmmWhenNoExist;
-	}
-
-	public boolean isApplyLogicalNameToOperation() {
-		return applyLogicalNameToOperation;
-	}
-
-	public boolean isApplyLogicalNameToIO() {
-		return applyLogicalNameToOperation;
-	}
-
-	private ContentProposalAdapter typeNameContentProposalAdapter;
-
-	@Override
-	protected void addTypeNameContentProposalAdapter(Text text) {
-
-		if ( getPackageFragmentRoot() != null ){
-			try {
-				char[] autoActivationCharacters= {};
-
-				IProject project= getPackageFragmentRoot().getJavaProject().getProject();
-
-				IContentProposalProvider contentProposalProvider=
-						new SimpleContentProposalProvider(ResourceNamingProviderManager.instance().getServiceNameProposals(project, ""));
-
-				KeyStroke keyStroke= KeyStroke.getInstance("Ctrl+Space");
-				typeNameContentProposalAdapter= new ContentProposalAdapter(
-						text
-						, new TextContentAdapter()
-						, contentProposalProvider
-						, keyStroke
-						, autoActivationCharacters
-						);
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	@Override
-	protected IStatus containerChanged() {
-
-		if ( typeNameContentProposalAdapter != null ){
-			IProject project= getPackageFragmentRoot().getJavaProject().getProject();
-
-			IContentProposalProvider contentProposalProvider=
-					new SimpleContentProposalProvider(ResourceNamingProviderManager.instance().getServiceNameProposals(project, ""));
-
-			typeNameContentProposalAdapter.setContentProposalProvider(contentProposalProvider);
+			return sb.toString();
 		}
 
-		return super.containerChanged();
+		return "@BxmBean";
 	}
-
-	@Override
-	protected ClassType getClassTypeToCreate() {
-		return ClassType.MAIN_SERVICE;
-	}
-
-	@Override
-	protected String getCuContents(IPackageFragment pack, ICompilationUnit icu) 
-	{
-		final String lineDelimiter= StubUtility.getLineDelimiterUsed(pack.getJavaProject());
-		final String comment= getMainServiceComment(lineDelimiter, pack, icu);
-		return getMainService(lineDelimiter, pack, icu, comment);
-	}
-	
-	private String getMainServiceComment(String lineDelimiter, IPackageFragment pack, ICompilationUnit icu)
-	{
-		final String tmplId= CodeTemplateContextManager.SERVICE_COMMENT_ID;
-		Template tmpl= bxm.builder.ui.templates.StubUtility.getCodeTemplate(tmplId, pack.getJavaProject());
-		
-		if(tmpl == null)
-		{
-			PluginLog.logInfo("Cannot find template information : " + tmplId);
-			return "";
-		}
-		
-		CodeTemplateContext context= new CodeTemplateContext(tmpl.getContextTypeId(), pack.getJavaProject(), lineDelimiter);
-		context.setCompilationUnitVariables(icu);
-		
-		long time= System.currentTimeMillis();
-		SimpleDateFormat timeFormatter= new SimpleDateFormat("yyyy-MM-dd");
-		
-		context.setVariable("date", timeFormatter.format(new Date(time)));
-		
-		try {
-			return bxm.builder.ui.templates.StubUtility.evaluateTemplate(context, tmpl);
-		} catch (CoreException e) {
-			PluginLog.logError("fail to create service comment contents", e);
-			return "";
-		}
-	}
-	
-	private String getMainService(String lineDelimiter, IPackageFragment pack, ICompilationUnit icu, String comment)
-	{
-		final String tmplId= CodeTemplateContextManager.MAIN_SERVICE_ID;
-		Template tmpl= bxm.builder.ui.templates.StubUtility.getCodeTemplate(tmplId, pack.getJavaProject());
-		
-		if(tmpl == null)
-		{
-			PluginLog.logInfo("Cannot find template information : " + tmplId);
-			return "";
-		}
-		
-		CodeTemplateContext context= new CodeTemplateContext(tmpl.getContextTypeId(), pack.getJavaProject(), lineDelimiter);
-		context.setCompilationUnitVariables(icu);
-		context.setVariable("package_declaration", "package " + pack.getElementName() + ";");
-		context.setVariable("import_declaration", "");
-		context.setVariable("service_comment", comment);
-		context.setVariable("main_service_name", getTypeName());
-		context.setVariable("logical_name", getLogicalName());
-		context.setVariable("description", getDescription());
-		context.setVariable("method_declaration", "");
-		context.setVariable("field_declaration", "");
-		context.setVariable("main_service_annotation_qname", BXMConstants.Annotations.MAIN_SERVICE_QNAME);
-		context.setVariable("main_service_annotation_sname", BXMConstants.Annotations.MAIN_SERVICE_SNAME);
-		
-		try {
-			return bxm.builder.ui.templates.StubUtility.evaluateTemplate(context, tmpl);
-		} catch (CoreException e) {
-			PluginLog.logError("fail to create main service contents", e);
-			return "";
-		}
-	}
-
+	// 2012.11.21 PARK.Jeongyeob ]]
 }
 
