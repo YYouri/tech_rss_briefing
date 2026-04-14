@@ -1,20 +1,1053 @@
-!ENTRY org.eclipse.e4.ui.workbench 1 0 2026-04-14 12:03:06.150
-!MESSAGE Sending request to OpenAI API.
+fw-template.xml
+<?xml version="1.0" encoding="UTF-8"?>
 
-{"model":"/app/models/gemma4-26b-a4b-it-awq-4bit","tools":[{"type":"function","function":{"name":"eclipse-runner__getStackTrace","description":"Gets the stack trace of all threads for a suspended debug session. Shows the call stack, and local variables for the top frame. The application must be stopped at a breakpoint.","parameters":{"properties":{"nameOrClass":{"description":"A substring to match against the debug session name or main class","type":"string"}},"type":"object","required":["nameOrClass"]}}},{"type":"function","function":{"name":"eclipse-runner__removeAllBreakpoints","description":"Removes all breakpoints from the workspace.","parameters":{"properties":{},"type":"object","required":[]}}},{"type":"function","function":{"name":"eclipse-runner__debugJavaApplication","description":"Launches a Java application in debug mode. The application will stop at breakpoints. Use toggleBreakpoint to set breakpoints before launching.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the main class","type":"string"},"mainClass":{"description":"The fully qualified name of the main class (e.g., 'com.example.Main')","type":"string"},"programArgs":{"description":"Optional program arguments passed to the main method","type":"string"},"vmArgs":{"description":"Optional JVM arguments (e.g., '-Xmx512m -Dfoo=bar')","type":"string"},"timeout":{"description":"Timeout in seconds to wait for completion. Use '0' to launch in background without waiting. Default: '0'","type":"string"}},"type":"object","required":["projectName","mainClass"]}}},{"type":"function","function":{"name":"eclipse-runner__setConditionalBreakpoint","description":"Sets a breakpoint with a condition expression. The breakpoint only triggers when the condition evaluates to true. Replaces any existing breakpoint at the same location.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the source file","type":"string"},"typeName":{"description":"The fully qualified type name (e.g., 'com.example.Main')","type":"string"},"lineNumber":{"description":"The 1-based line number where the breakpoint should be set","type":"string"},"condition":{"description":"A Java boolean expression (e.g., 'i > 100', 'name.equals(\"test\")')","type":"string"},"hitCount":{"description":"Optional: breakpoint triggers only after being hit N times. Default: '0' (disabled)","type":"string"}},"type":"object","required":["projectName","typeName","lineNumber","condition"]}}},{"type":"function","function":{"name":"eclipse-runner__stopApplication","description":"Stops a running or debugging Java application. Matches against the launch configuration name or main class name (substring match, case-insensitive).","parameters":{"properties":{"nameOrClass":{"description":"A substring to match against the application name or main class (e.g., 'Main' or 'com.example')","type":"string"}},"type":"object","required":["nameOrClass"]}}},{"type":"function","function":{"name":"eclipse-runner__listActiveLaunches","description":"Lists all currently running or debugging applications with their status, mode (run/debug), and process information.","parameters":{"properties":{},"type":"object","required":[]}}},{"type":"function","function":{"name":"eclipse-runner__listBreakpoints","description":"Lists all breakpoints currently set in the workspace, showing their location, enabled status, and any conditions.","parameters":{"properties":{},"type":"object","required":[]}}},{"type":"function","function":{"name":"eclipse-runner__hotCodeReplace","description":"Triggers hot code replace (HCR) in an active debug session. Compiles the latest code changes and pushes them into the running JVM without restarting the application. The JVM must support HCR (most standard JVMs do).","parameters":{"properties":{"nameOrClass":{"description":"A substring to match against the debug session name or main class","type":"string"}},"type":"object","required":["nameOrClass"]}}},{"type":"function","function":{"name":"eclipse-runner__toggleBreakpoint","description":"Sets or removes a line breakpoint at the specified location. If a breakpoint already exists at the line, it is removed. Otherwise, a new breakpoint is created.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the source file","type":"string"},"typeName":{"description":"The fully qualified type name (e.g., 'com.example.Main')","type":"string"},"lineNumber":{"description":"The 1-based line number where the breakpoint should be set","type":"string"}},"type":"object","required":["projectName","typeName","lineNumber"]}}},{"type":"function","function":{"name":"eclipse-runner__resumeDebug","description":"Resumes execution of a suspended debug session. The application will continue running until it hits the next breakpoint or terminates.","parameters":{"properties":{"nameOrClass":{"description":"A substring to match against the debug session name or main class","type":"string"}},"type":"object","required":["nameOrClass"]}}},{"type":"function","function":{"name":"eclipse-runner__evaluateExpression","description":"Evaluates a Java expression in the context of a suspended debug frame. The application must be stopped at a breakpoint. Can evaluate any valid Java expression including method calls, field access, arithmetic, etc.","parameters":{"properties":{"nameOrClass":{"description":"A substring to match against the debug session name or main class","type":"string"},"expression":{"description":"The Java expression to evaluate (e.g., 'myList.size()', 'x + y', 'this.toString()')","type":"string"}},"type":"object","required":["nameOrClass","expression"]}}},{"type":"function","function":{"name":"eclipse-runner__runJavaApplication","description":"Launches a Java application in run mode. Specify the project and fully qualified main class. If timeout > 0, waits for the process to finish and returns stdout/stderr. If timeout = 0, launches in background and returns immediately.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the main class","type":"string"},"mainClass":{"description":"The fully qualified name of the main class (e.g., 'com.example.Main')","type":"string"},"programArgs":{"description":"Optional program arguments passed to the main method","type":"string"},"vmArgs":{"description":"Optional JVM arguments (e.g., '-Xmx512m -Dfoo=bar')","type":"string"},"timeout":{"description":"Timeout in seconds to wait for completion. Use '0' to launch in background without waiting. Default: '30'","type":"string"}},"type":"object","required":["projectName","mainClass"]}}},{"type":"function","function":{"name":"eclipse-runner__stepOver","description":"Steps over the current line in a suspended debug session. Executes the current line without entering method calls.","parameters":{"properties":{"nameOrClass":{"description":"A substring to match against the debug session name or main class","type":"string"}},"type":"object","required":["nameOrClass"]}}},{"type":"function","function":{"name":"eclipse-runner__stepReturn","description":"Steps out of the current method in a suspended debug session. Runs until the current method returns to its caller.","parameters":{"properties":{"nameOrClass":{"description":"A substring to match against the debug session name or main class","type":"string"}},"type":"object","required":["nameOrClass"]}}},{"type":"function","function":{"name":"eclipse-runner__stepInto","description":"Steps into the method call at the current line in a suspended debug session. Enters the called method.","parameters":{"properties":{"nameOrClass":{"description":"A substring to match against the debug session name or main class","type":"string"}},"type":"object","required":["nameOrClass"]}}},{"type":"function","function":{"name":"eclipse-coder__createFile","description":"Create and open a new file in a specified project. Ensure the file doesn't already exist.","parameters":{"properties":{"projectName":{"description":"The name of the project where the file should be created","type":"string"},"filePath":{"description":"The path to the file relative to the project root. Do not include project name!","type":"string"},"content":{"description":"The content to write to the file","type":"string"}},"type":"object","required":["projectName","filePath","content"]}}},{"type":"function","function":{"name":"eclipse-coder__createDirectories","description":"Creates a directory structure (recursively) in the specified project.","parameters":{"properties":{"projectName":{"description":"The name of the project where directories should be created","type":"string"},"directoryPath":{"description":"The path of directories to create, relative to the project root. Do not include project name!","type":"string"}},"type":"object","required":["projectName","directoryPath"]}}},{"type":"function","function":{"name":"eclipse-coder__deleteFile","description":"Deletes a file from the specified project.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the file","type":"string"},"filePath":{"description":"The path to the file relative to the project root. Do not include project name!","type":"string"}},"type":"object","required":["projectName","filePath"]}}},{"type":"function","function":{"name":"eclipse-coder__undoEdit","description":"Undoes the last edit operation by restoring a file from its backup.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the file","type":"string"},"filePath":{"description":"The path to the file relative to the project root. Do not include project name!","type":"string"}},"type":"object","required":["projectName","filePath"]}}},{"type":"function","function":{"name":"eclipse-coder__organizeImports","description":"Organizes imports in a Java file using Eclipse's organize imports mechanism. This removes unused imports, adds missing imports, and sorts them according to project settings. Equivalent to pressing Ctrl+Shift+O in Eclipse.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the Java file","type":"string"},"filePath":{"description":"The path to the Java file relative to the project root (e.g., 'src/com/example/MyClass.java')","type":"string"}},"type":"object","required":["projectName","filePath"]}}},{"type":"function","function":{"name":"eclipse-coder__insertIntoFile","description":"Insert content into a file at a specified line position, using 1-based line indexing. The new content will be inserted BEFORE the specified line, and existing content at that line and below will be shifted down.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the file","type":"string"},"filePath":{"description":"The path to the file relative to the project root. Do not include project name!","type":"string"},"content":{"description":"The content to insert into the file","type":"string"},"line":{"description":"The line number before which to insert the text (1-based index). Existing content at this line and below will be shifted down. Use line=1 to insert at the beginning of the file.","type":"string"}},"type":"object","required":["projectName","filePath","content"]}}},{"type":"function","function":{"name":"eclipse-coder__refactorRenameJavaType","description":"Renames a Java class/interface/enum using Eclipse's refactoring mechanism. This updates the type name, file name, and ALL references throughout the workspace. Use this instead of renameFile for Java files to ensure all references are updated correctly.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the Java file","type":"string"},"filePath":{"description":"The path to the Java file relative to the project root (e.g., 'src/com/example/MyClass.java')","type":"string"},"newTypeName":{"description":"The new name for the Java type (without .java extension, e.g., 'NewClassName')","type":"string"}},"type":"object","required":["projectName","filePath","newTypeName"]}}},{"type":"function","function":{"name":"eclipse-coder__refactorMoveJavaType","description":"Moves a Java class/interface/enum to a different package using Eclipse's refactoring mechanism. This updates the package declaration and ALL references throughout the workspace. The target package will be created if it doesn't exist.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the Java file","type":"string"},"filePath":{"description":"The path to the Java file relative to the project root (e.g., 'src/com/example/MyClass.java')","type":"string"},"targetPackage":{"description":"The fully qualified target package name (e.g., 'com.example.newpackage')","type":"string"}},"type":"object","required":["projectName","filePath","targetPackage"]}}},{"type":"function","function":{"name":"eclipse-coder__refactorRenamePackage","description":"Renames a Java package using Eclipse's refactoring mechanism. This renames the package directory, updates all package declarations in contained files, and updates ALL references throughout the workspace.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the package","type":"string"},"packageName":{"description":"The current fully qualified package name (e.g., 'com.example.oldpackage')","type":"string"},"newPackageName":{"description":"The new package name - can be fully qualified (e.g., 'com.example.newpackage') or just the last segment to rename","type":"string"}},"type":"object","required":["projectName","packageName","newPackageName"]}}},{"type":"function","function":{"name":"eclipse-coder__organizeImportsInPackage","description":"Organizes imports in all Java files within a package. This is useful for cleaning up imports across multiple files at once.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the package","type":"string"},"packageName":{"description":"The fully qualified package name (e.g., 'com.example.mypackage')","type":"string"}},"type":"object","required":["projectName","packageName"]}}},{"type":"function","function":{"name":"eclipse-coder__moveResource","description":"Moves a file or folder to a different location within the project. For Java files, prefer using refactorMoveJavaType instead to ensure all references are updated.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the resource","type":"string"},"sourcePath":{"description":"The path to the file or folder relative to the project root","type":"string"},"targetPath":{"description":"The target directory path relative to the project root where the resource should be moved to","type":"string"}},"type":"object","required":["projectName","sourcePath","targetPath"]}}},{"type":"function","function":{"name":"eclipse-coder__deleteLinesInFile","description":"Deletes a range of lines in a file, using 1-based line indexing.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the file","type":"string"},"filePath":{"description":"The path to the file relative to the project root. Do not include project name!","type":"string"},"startLine":{"description":"The line number to start deletion from (1-based index)","type":"string"},"endLine":{"description":"The line number to end deletion at (inclusive, 1-based index)","type":"string"}},"type":"object","required":["projectName","filePath","startLine","endLine"]}}},{"type":"function","function":{"name":"eclipse-coder__replaceFileContent","description":"Replaces the entire content of a file with new content.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the file","type":"string"},"filePath":{"description":"The path to the file relative to the project root. Do not include project name!","type":"string"},"content":{"description":"The new content to write to the file","type":"string"}},"type":"object","required":["projectName","filePath","content"]}}},{"type":"function","function":{"name":"eclipse-coder__replaceString","description":"Find and replace a specific string in a file, with optional line range for targeted replacement.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the file","type":"string"},"filePath":{"description":"The path to the file relative to the project root. Do not include project name!","type":"string"},"oldString":{"description":"The text to replace (must match exactly, including whitespace and indentation)","type":"string"},"newString":{"description":"The new text to insert in place of the old text","type":"string"},"startLine":{"description":"Optional line number to start searching from (1-based index)","type":"string"},"endLine":{"description":"Optional line number to end searching at (1-based index)","type":"string"}},"type":"object","required":["projectName","filePath","oldString","newString"]}}},{"type":"function","function":{"name":"eclipse-coder__renameFile","description":"Renames a file in the specified project.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the file","type":"string"},"filePath":{"description":"The path to the file relative to the project root. Do not include project name!","type":"string"},"newFileName":{"description":"The new name for the file","type":"string"}},"type":"object","required":["projectName","filePath","newFileName"]}}},{"type":"function","function":{"name":"eclipse-coder__applyPatch","description":"Applies a unified diff patch to a file. The patch should be in standard unified diff format with @@ hunk headers. Context lines are used for fuzzy matching, so the patch can be applied even if line numbers have shifted. This is more reliable than replaceString for multi-hunk edits. Optionally shows Eclipse's Apply Patch dialog for user review.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the file","type":"string"},"filePath":{"description":"The path to the file relative to the project root. Do not include project name!","type":"string"},"patch":{"description":"The unified diff content to apply. Should contain @@ hunk headers and lines prefixed with ' ' (context), '-' (remove), or '+' (add). File headers (--- and +++) are optional.","type":"string"},"showDialog":{"description":"If 'true', shows Eclipse's Apply Patch wizard dialog for user review instead of applying directly. Default is 'false'.","type":"string"}},"type":"object","required":["projectName","filePath","patch"]}}},{"type":"function","function":{"name":"eclipse-coder__formatFile","description":"Formats an entire Java file using Eclipse's code formatter (equivalent to Ctrl+Shift+F). Applies the project-specific or workspace formatter settings.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the file","type":"string"},"filePath":{"description":"The path to the Java file relative to the project root. Do not include project name!","type":"string"}},"type":"object","required":["projectName","filePath"]}}},{"type":"function","function":{"name":"memory__completion_meta","description":"Internal sink for code completion. Use this tool to output any non-code text (markdown, explanations, reasoning, meta commentary) instead of writing it into the completion CONTENT stream. The code completion CONTENT stream must contain ONLY the exact source code to insert.","parameters":{"properties":{"text":{"description":"Non-code meta text that should not appear in the completion output","type":"string"}},"type":"object","required":["text"]}}},{"type":"function","function":{"name":"memory__think","description":"Use this tool to think about something. It will not obtain new information or perform changes, but will put your thought into a log, so that it is accessible to you. Use it for complex reasoning or as memory cache when you need to store some temporary information that you may consider useful to complete the task.","parameters":{"properties":{"thought":{"description":"A thought or information worth using in solving a task","type":"string"}},"type":"object","required":["thought"]}}},{"type":"function","function":{"name":"webpage-reader__readWebPage","description":"Reads the content of the given web site and returns its content as a markdown text.","parameters":{"properties":{"url":{"description":"A web site URL","type":"string"}},"type":"object","required":["url"]}}},{"type":"function","function":{"name":"duck-duck-search__webSearch","description":"Performs a search using a Duck Duck Go search engine and returns the search result json.","parameters":{"properties":{"query":{"description":"A search query","type":"string"}},"type":"object","required":["query"]}}},{"type":"function","function":{"name":"time__currentTime","description":"Returns the current date and time in the following format: yyyy-MM-dd HH:mm:ss","parameters":{"properties":{},"type":"object","required":[]}}},{"type":"function","function":{"name":"time__convertTimeZone","description":"Converts time from one time zone to another. Returns a converted time in the yyyy-MM-dd HH:mm:ss z format.","parameters":{"properties":{"time":{"description":"Date/time in the format yyyy-MM-dd HH:mm:ss","type":"string"},"sourceZone":{"description":"Source time zone id such as, such as Europe/Paris or CST. Default: system time zone","type":"string"},"targetZone":{"description":"Target time zone id, such as Europer/Paris or CST. Default: UTC","type":"string"}},"type":"object","required":["time","sourceZone","targetZone"]}}},{"type":"function","function":{"name":"eclipse-ide__getSource","description":"Get the source for the given class.","parameters":{"properties":{"fullyQualifiedClassName":{"description":"A fully qualified class name of the Java class","type":"string"}},"type":"object","required":["fullyQualifiedClassName"]}}},{"type":"function","function":{"name":"eclipse-ide__readProjectResource","description":"Read the content of a text resource from a specified project. Supports line numbers and reading specific line ranges to avoid loading entire large files.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the resource","type":"string"},"resourcePath":{"description":"The path to the resource relative to the project root","type":"string"},"showLineNumbers":{"description":"If 'true', prepends line numbers to each line (like cat -n). Useful for creating accurate patches. Default: 'false'","type":"string"},"startLine":{"description":"Optional 1-based start line to read from. If omitted, reads from the beginning.","type":"string"},"endLine":{"description":"Optional 1-based end line to read to (inclusive). If omitted, reads to the end.","type":"string"}},"type":"object","required":["projectName","resourcePath"]}}},{"type":"function","function":{"name":"eclipse-ide__getProjectProperties","description":"Retrieves the properties and configuration of a specified project.","parameters":{"properties":{"projectName":{"description":"The name of the project to analyze","type":"string"}},"type":"object","required":["projectName"]}}},{"type":"function","function":{"name":"eclipse-ide__getProjectDependencies","description":"Gets Maven project dependencies.","parameters":{"properties":{"projectName":{"description":"The name of the Maven project","type":"string"}},"type":"object","required":["projectName"]}}},{"type":"function","function":{"name":"eclipse-ide__runMavenBuild","description":"Runs a Maven build with the specified goals on a project.","parameters":{"properties":{"projectName":{"description":"The name of the project to build","type":"string"},"goals":{"description":"The Maven goals to execute (e.g., \"clean install\")","type":"string"},"profiles":{"description":"Optional Maven profiles to activate","type":"string"},"timeout":{"description":"Maximum time in seconds to wait for build completion (0 for no timeout)","type":"string"}},"type":"object","required":["projectName","goals"]}}},{"type":"function","function":{"name":"eclipse-ide__listProjects","description":"List all available projects in the workspace with their detected natures (Java, C/C++, Python, etc.).","parameters":{"properties":{},"type":"object","required":[]}}},{"type":"function","function":{"name":"eclipse-ide__runAllTests","description":"Runs all tests in a specified project and returns the results.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the tests","type":"string"},"timeout":{"description":"Maximum time in seconds to wait for test completion (default: 60)","type":"string"}},"type":"object","required":["projectName"]}}},{"type":"function","function":{"name":"eclipse-ide__listMavenProjects","description":"Lists all available Maven projects in the workspace.","parameters":{"properties":{},"type":"object","required":[]}}},{"type":"function","function":{"name":"eclipse-ide__searchAndReplace","description":"Search and replace across multiple files in the workspace using Eclipse's text search engine.","parameters":{"properties":{"containingText":{"description":"Plain text to find (not regex)","type":"string"},"replacementText":{"description":"Replacement text (can be empty)","type":"string"},"fileNamePatterns":{"description":"Optional file name patterns. Accepts either an array (e.g. [\"*.java\", \"*.xml\"]) or a string (e.g. \"*.java,*.xml\"). If omitted, all files are searched.","type":"string"}},"type":"object","required":["containingText","replacementText"]}}},{"type":"function","function":{"name":"eclipse-ide__runPackageTests","description":"Runs tests in a specific package and returns the results.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the tests","type":"string"},"packageName":{"description":"The fully qualified package name containing the tests","type":"string"},"timeout":{"description":"Maximum time in seconds to wait for test completion (default: 60)","type":"string"}},"type":"object","required":["projectName","packageName"]}}},{"type":"function","function":{"name":"eclipse-ide__runTestMethod","description":"Runs a specific test method and returns the results.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the tests","type":"string"},"className":{"description":"The fully qualified name of the test class","type":"string"},"methodName":{"description":"The name of the test method to run","type":"string"},"timeout":{"description":"Maximum time in seconds to wait for test completion (default: 60)","type":"string"}},"type":"object","required":["projectName","className","methodName"]}}},{"type":"function","function":{"name":"eclipse-ide__fileSearchRegExp","description":"Searches workspace files using a Java regular expression via Eclipse's text search engine.","parameters":{"properties":{"pattern":{"description":"Java regular expression","type":"string"},"fileNamePatterns":{"description":"Optional file name patterns. Accepts either an array (e.g. [\"*.java\", \"*.xml\"]) or a string (e.g. \"*.java,*.xml\"). If omitted, all files are searched.","type":"string"}},"type":"object","required":["pattern"]}}},{"type":"function","function":{"name":"eclipse-ide__getProjectLayout","description":"Get the file and folder structure of a specified project in a hierarchical format. For large projects, use scopePath to limit to a subdirectory and/or maxDepth to limit tree depth.","parameters":{"properties":{"projectName":{"description":"The name of the project to analyze","type":"string"},"scopePath":{"description":"Optional path relative to the project root to limit the listing (e.g., 'src/main/java/com/example'). If omitted, shows the entire project.","type":"string"},"maxDepth":{"description":"Optional maximum depth of the directory tree to display (e.g., '3' for 3 levels deep). If omitted, shows all levels.","type":"string"}},"type":"object","required":["projectName"]}}},{"type":"function","function":{"name":"eclipse-ide__findTestClasses","description":"Finds all test classes in a project.","parameters":{"properties":{"projectName":{"description":"The name of the project to search","type":"string"}},"type":"object","required":["projectName"]}}},{"type":"function","function":{"name":"eclipse-ide__runClassTests","description":"Runs tests for a specific class and returns the results.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the tests","type":"string"},"className":{"description":"The fully qualified name of the test class","type":"string"},"timeout":{"description":"Maximum time in seconds to wait for test completion (default: 60)","type":"string"}},"type":"object","required":["projectName","className"]}}},{"type":"function","function":{"name":"eclipse-ide__getEffectivePom","description":"Gets the effective POM for a Maven project.","parameters":{"properties":{"projectName":{"description":"The name of the Maven project","type":"string"}},"type":"object","required":["projectName"]}}},{"type":"function","function":{"name":"eclipse-ide__fileSearch","description":"Searches for a plain substring in workspace files using Eclipse's text search engine.","parameters":{"properties":{"containingText":{"description":"Text that must be contained in a line (plain substring, not regex)","type":"string"},"fileNamePatterns":{"description":"Optional file name patterns. Accepts either an array (e.g. [\"*.java\", \"*.xml\"]) or a string (e.g. \"*.java,*.xml\"). If omitted, all files are searched.","type":"string"}},"type":"object","required":["containingText"]}}},{"type":"function","function":{"name":"eclipse-ide__findFiles","description":"Finds workspace files matching the given glob patterns.","parameters":{"properties":{"fileNamePatterns":{"description":"Glob patterns. Accepts either an array (e.g. [\"*.java\", \"pom.xml\"]) or a string (e.g. \"*.java, pom.xml\"). If omitted, defaults to '*'","type":"string"},"maxResults":{"description":"Maximum number of results to return (default: 200)","type":"string"}},"type":"object","required":[]}}},{"type":"function","function":{"name":"eclipse-ide__getJavaDoc","description":"Get the JavaDoc for the given compilation unit.  For example,a class B defined as a member type of a class A in package x.y should have athe fully qualified name \"x.y.A.B\".Note that in order to be found, a type name (or its top level enclosingtype name) must match its corresponding compilation unit name.","parameters":{"properties":{"fullyQualifiedName":{"description":"A fully qualified name of the compilation unit","type":"string"}},"type":"object","required":["fullyQualifiedName"]}}},{"type":"function","function":{"name":"eclipse-ide__formatCode","description":"Formats code according to the current Eclipse formatter settings.","parameters":{"properties":{"code":{"description":"The code to be formatted","type":"string"},"projectName":{"description":"Optional project name to use project-specific formatter settings","type":"string"}},"type":"object","required":["code"]}}},{"type":"function","function":{"name":"eclipse-ide__getTypeHierarchy","description":"Retrieves the type hierarchy (supertypes, implemented interfaces, and subtypes) for a given Java class or interface.","parameters":{"properties":{"fullyQualifiedClassName":{"description":"The fully qualified name of the class (e.g., 'com.example.MyClass')","type":"string"}},"type":"object","required":["fullyQualifiedClassName"]}}},{"type":"function","function":{"name":"eclipse-ide__getQuickFixes","description":"Gets available quick fixes for compilation errors in a Java file. Shows problem details and suggested corrections for each error.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the file","type":"string"},"filePath":{"description":"The path to the Java file relative to the project root","type":"string"},"lineNumber":{"description":"Optional line number to filter fixes for a specific error","type":"string"}},"type":"object","required":["projectName","filePath"]}}},{"type":"function","function":{"name":"eclipse-ide__findReferences","description":"Finds all references/usages of a Java type, method, or field across the entire workspace. Essential before renaming or deleting code elements.","parameters":{"properties":{"fullyQualifiedClassName":{"description":"The fully qualified name of the class containing the element","type":"string"},"elementName":{"description":"Optional method or field name to search for. If omitted, searches for references to the class itself.","type":"string"}},"type":"object","required":["fullyQualifiedClassName"]}}},{"type":"function","function":{"name":"eclipse-ide__getConsoleOutput","description":"Retrieves the recent output from Eclipse console(s).","parameters":{"properties":{"consoleName":{"description":"Name of the specific console to retrieve (optional, leave empty for all or most recent console)","type":"string"},"maxLines":{"description":"Maximum number of lines to retrieve (default: 100)","type":"string"},"includeAllConsoles":{"description":"Whether to include output from all available consoles (default: false)","type":"string"}},"type":"object","required":[]}}},{"type":"function","function":{"name":"eclipse-ide__getEditorSelection","description":"Gets the currently selected text or lines in the active editor.","parameters":{"properties":{},"type":"object","required":[]}}},{"type":"function","function":{"name":"eclipse-ide__getCompilationErrors","description":"Retrieves compilation errors and problems from the current workspace or a specific project.","parameters":{"properties":{"projectName":{"description":"The name of the specific project to check (optional, leave empty for all projects)","type":"string"},"severity":{"description":"Filter by severity level: 'ERROR', 'WARNING', or 'ALL' (default)","type":"string"},"maxResults":{"description":"Maximum number of problems to return (default: 50)","type":"string"}},"type":"object","required":[]}}},{"type":"function","function":{"name":"eclipse-ide__getCurrentlyOpenedFile","description":"Gets information about the currently active file in the Eclipse editor.","parameters":{"properties":{},"type":"object","required":[]}}},{"type":"function","function":{"name":"eclipse-ide__getMethodCallHierarchy","description":"Retrieves the call hierarchy (callers) for a specified method to understand how it's used in the codebase.","parameters":{"properties":{"fullyQualifiedClassName":{"description":"The fully qualified name of the class containing the method","type":"string"},"methodName":{"description":"The name of the method to analyze","type":"string"},"methodSignature":{"description":"The signature of the method (optional, required if method is overloaded)","type":"string"},"maxDepth":{"description":"Maximum depth of the call hierarchy to retrieve (default: 3)","type":"string"}},"type":"object","required":["fullyQualifiedClassName","methodName"]}}},{"type":"function","function":{"name":"eclipse-ide__getImportSuggestions","description":"Finds import candidates for unresolved types in a Java file. Shows matching fully qualified names from the workspace for each unresolved type error.","parameters":{"properties":{"projectName":{"description":"The name of the project containing the file","type":"string"},"filePath":{"description":"The path to the Java file relative to the project root","type":"string"}},"type":"object","required":["projectName","filePath"]}}}],"tool_choice":"auto","messages":[{"role":"developer","content":"항상 한국어로 답변하세요.코드 설명, 주석, 모든 답변을 한국어로 답변하세요. \n\nYou are an AI assistant expert in software engineering, integrated as a plugin in an IDE. Your primary role is to assist the user in writing and analyzing source code. Adhere to these guidelines to ensure effective assistance:\r\n\r\n1. Focus on Coding: Provide code solutions or suggestions directly. Avoid elaborating on your responses unless the user specifically asks for explanations.\r\n2. Markdown Formatting: When presenting code examples or snippets, always use Markdown code blocks. This ensures clarity and readability within the IDE environment.\r\n3. Concise Explanations: If the user requests an explanation, keep your response accurate and concise. Avoid lengthy or unnecessary elaboration.\r\n4. Step-by-Step Approach: Tackle problems in a systematic, step-by-step manner. This method helps in breaking down complex tasks and ensures thoroughness in solving coding issues.\r\n5. Responsive Interaction: Engage with the user's queries responsively, adapting your assistance based on the user's input and feedback. Aim to collaboratively find the most accurate and efficient solution.\r\n6. Math equations formatting: When presenting mathematical equations in text always use use latex in `$` for inline and `$$` for equation blocks, e.g. $f(t)= \\int F(w) e^{jwt} dw$\r\n\r\nRemember, your primary goal is to aid in code development and problem-solving, prioritizing direct and efficient assistance."},{"role":"user","content":[{"type":"text","text":"test"}]},{"role":"user","content":[{"type":"text","text":"test"}]},{"role":"user","content":[{"type":"text","text":"ggg"}]}],"temperature":0,"stream":false}
+<!--
+/*******************************************************************************
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *******************************************************************************/
+-->
 
-!ENTRY org.eclipse.e4.ui.workbench 4 0 2026-04-14 12:03:08.483
-!MESSAGE HTTP 400: {"error":{"message":"1 validation error:\n  {'type': 'json_invalid', 'loc': ('body', 50), 'msg': 'JSON decode error', 'input': {}, 'ctx': {'error': 'Extra data'}}\n\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/utils.py\", line 40, in create_chat_completion\n    POST /v1/chat/completions [{'type': 'json_invalid', 'loc': ('body', 50), 'msg': 'JSON decode error', 'input': {}, 'ctx': {'error': 'Extra data'}}]","type":"Bad Request","param":null,"code":400}}
-!STACK 0
-java.lang.Exception: HTTP 400: {"error":{"message":"1 validation error:\n  {'type': 'json_invalid', 'loc': ('body', 50), 'msg': 'JSON decode error', 'input': {}, 'ctx': {'error': 'Extra data'}}\n\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/utils.py\", line 40, in create_chat_completion\n    POST /v1/chat/completions [{'type': 'json_invalid', 'loc': ('body', 50), 'msg': 'JSON decode error', 'input': {}, 'ctx': {'error': 'Extra data'}}]","type":"Bad Request","param":null,"code":400}}
-	at com.github.gradusnikov.eclipse.assistai.network.clients.OpenAIStreamJavaHttpClient.lambda$10(OpenAIStreamJavaHttpClient.java:320)
-	at com.github.gradusnikov.eclipse.assistai.jobs.SendConversationJob.run(SendConversationJob.java:63)
-	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+<templates>
+<template name="logger" description="%Templates.logger" id="bxm.builder.ui.templates.logger" context="java-members" enabled="true" autoinsert="false">${imp:import(org.slf4j.Logger,org.slf4j.LoggerFactory)}protected final Logger logger = LoggerFactory.getLogger(this.getClass());${cursor}</template>
+<template name="trace" description="%Templates.trace" id="bxm.builder.ui.templates.logger_trace" context="java-statements" enabled="true" autoinsert="false">logger.trace("=====${enclosing_type}.${enclosing_method}=====");${cursor}</template>
+<template name="debug" description="%Templates.trace" id="bxm.builder.ui.templates.logger_debug" context="java-statements" enabled="true" autoinsert="false">logger.debug(${word_selection}${});${cursor}</template>
+<template name="info" description="%Templates.info" id="bxm.builder.ui.templates.logger_info" context="java-statements" enabled="true" autoinsert="false">logger.info(${word_selection}${});${cursor}</template>
+<template name="warn" description="%Templates.warn" id="bxm.builder.ui.templates.logger_warn" context="java-statements" enabled="true" autoinsert="false">logger.warn(${word_selection}${});${cursor}</template>
+<template name="error" description="%Templates.error" id="bxm.builder.ui.templates.logger_error" context="java-statements" enabled="true" autoinsert="false">logger.error(${word_selection}${});${cursor}</template>
+<template autoinsert="true" context="java-members" deleted="false" description="Sub Service에서 일반적이 처리 로직이 있는 Method를 생성합니다." enabled="true" id="bxm.builder.ui.templates.fw_bean_change" name="fw_subservice_change">public void ${method_name}(${input_type} input, ...) throws BizException {/*inpt parameter는 업무에 맞게 type이랑 갯수를 조정하세요. */&#13;
+	${cursor}&#13;
+	// TODO: 필수입력값 validation을 check하세요.&#13;
+	//...&#13;
+&#13;
+	// TODO: 업무 처리 로직을 구현하세요.&#13;
+	// ......&#13;
+&#13;
+	// TODO: 오류시는 예외를 발생하세요.&#13;
+    // throw new ${throw_new_exception}(...);&#13;
+&#13;
+}${imp:import(jef.application.exception.BizException)}</template>
+<template autoinsert="true" context="java-members" deleted="false" description="페이징 처리하는 조회 Sub Service의 template" enabled="true" id="bxm.builder.ui.templates.fw_bean_page" name="fw_subservice_page">public ${return_type} ${method_name}(int pageNum, int pageCount, ${input_type} input, ...) throws BizException {/*inpt parameter는 업무에 맞게 type이랑 갯수를 조정하세요. */&#13;
+	${return_type}	output = null;&#13;
+	${cursor}&#13;
+&#13;
+	if(pageNum &lt;= 0) {&#13;
+		// 페이지 정보가 올바르지 않아서 조회 할 수 없습니다. {0}업무 IT 담당자에게 문의해야 합니다.( 오류내용:화면에서 전송된 페이지 번호가 0이하 입니다. )&#13;
+		// throw new ${throw_new_exception}(...);&#13;
+	}&#13;
+	if(pageCount &lt;= 0) {&#13;
+		//페이지 정보가 올바르지 않아서 조회 할 수 없습니다. {0}업무 IT 담당자에게 문의해야 합니다.( 오류내용:화면에서 전송된 페이지 크기가 0이하 입니다. )&#13;
+		// throw new ${throw_new_exception}(...);&#13;
+	}&#13;
+&#13;
+	// TODO: 필수입력값 validation을 check하세요.&#13;
+	//...&#13;
+&#13;
+	// TODO: 업무 처리 로직을 구현하세요.&#13;
+	// output = bean.selectMultiTBxxxxxx(...);&#13;
+	if(pageNum == 0 &amp;&amp; output.size() == 0) {&#13;
+		/* 요청하신 자료가 존재하지 않습니다. */&#13;
+		// throw new ${throw_new_exception}(...);&#13;
+	}&#13;
+    &#13;
+	return output;&#13;
+&#13;
+}${imp:import(jef.application.exception.BizException)}</template>
+<template autoinsert="true" context="java-members" deleted="false" description="Sub Service의 일반적인 조회성 method를 생성합니다." enabled="true" id="bxm.builder.ui.templates.fw_bean_select" name="fw_subservice_select">public ${output_type} ${method_name}(${input_type} input, ...) throws BizException {/*inpt parameter는 업무에 맞게 type이랑 갯수를 조정하세요. */&#13;
+	${output_type} output = null;&#13;
+	${cursor}&#13;
+	// TODO: 필수입력값 validation을 check하세요.&#13;
+	//...&#13;
+&#13;
+	// TODO: 업무 처리 로직을 구현하세요.&#13;
+	// ......&#13;
+	// output = dbio.selectOneTBxxxxx(...);&#13;
+&#13;
+	// TODO: 오류시는 예외를 발생하세요.&#13;
+	if(output == null) {&#13;
+		// KIOKI0004 : 요청하신 자료가 존재하지 않습니다.&#13;
+		// throw new ${throw_new_exception}(...);&#13;
+	}&#13;
+&#13;
+	return output;&#13;
+&#13;
+}${imp:import(jef.application.exception.BizException)}</template>
+<template autoinsert="true" context="java-members" deleted="false" description="등록 / 수정 / 삭제 등의 operation" enabled="true" id="bxm.builder.ui.templates.fw_svc_change" name="fw_mainservice_change">@BxmTranID(name="${tran_id}", description="${description}", transaction="auto")
+public void perform${tran_id}(${input_type} input) throws Exception {
+	${imp:import(bxm.container.annotation.BxmTranID,bxm.common.annotaion.BxmCategory)}${cursor}
 
-!ENTRY org.eclipse.e4.ui.workbench 4 0 2026-04-14 12:03:08.484
-!MESSAGE HTTP 400: {"error":{"message":"1 validation error:\n  {'type': 'json_invalid', 'loc': ('body', 50), 'msg': 'JSON decode error', 'input': {}, 'ctx': {'error': 'Extra data'}}\n\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/utils.py\", line 40, in create_chat_completion\n    POST /v1/chat/completions [{'type': 'json_invalid', 'loc': ('body', 50), 'msg': 'JSON decode error', 'input': {}, 'ctx': {'error': 'Extra data'}}]","type":"Bad Request","param":null,"code":400}}
-!STACK 0
-java.lang.Exception: HTTP 400: {"error":{"message":"1 validation error:\n  {'type': 'json_invalid', 'loc': ('body', 50), 'msg': 'JSON decode error', 'input': {}, 'ctx': {'error': 'Extra data'}}\n\n  File \"/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/utils.py\", line 40, in create_chat_completion\n    POST /v1/chat/completions [{'type': 'json_invalid', 'loc': ('body', 50), 'msg': 'JSON decode error', 'input': {}, 'ctx': {'error': 'Extra data'}}]","type":"Bad Request","param":null,"code":400}}
-	at com.github.gradusnikov.eclipse.assistai.network.clients.OpenAIStreamJavaHttpClient.lambda$10(OpenAIStreamJavaHttpClient.java:320)
-	at com.github.gradusnikov.eclipse.assistai.jobs.SendConversationJob.run(SendConversationJob.java:63)
-	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+
+	// ${todo}: 업무에 맞게 정상 처리 메시지코드와  값은 설정해주세요.
+	// DefaultApplicationContext.addMessage("KIOKI0009", null, null);
+}</template>
+<template autoinsert="true" context="java-members" deleted="false" description="페이징 처리하는 조회 operation을 개발합니다." enabled="true" id="bxm.builder.ui.templates.fw_svc_page" name="fw_mainservice_page">@BxmTranID(name="${tran_id}", description="${description}", transaction="auto")
+public ${output_type} perform${tran_id}(${input_type} input) throws Exception {
+	${output_type} output = new ${output_type}();
+	List&lt;${list_omm}&gt;	list = null;
+	${imp:import(bxm.container.annotation.BxmTranID,bxm.context.das.DasUtils,bxm.common.annotaion.BxmCategory)}${cursor}
+
+
+	// ${todo}: bean의 method를 호출하고 output 설정하는 로직을 입력하세요.
+	// list = bean.getXxxList(input.getPageNum(), input.getPageCount(), a, b, c);
+	// ...
+
+	// 조회된 내용이 첫페이지부터 없는 경우, 오류처리
+	if(input.getPageNum() &lt;= 1 &amp;&amp; list.size() == 0) {
+		// KIOKI0004 : 요청하신 자료가 존재하지 않습니다.
+		throw new ${throw_new_exception}(...);&#13;
+	}
+
+	// ${todo}: bean의 output을 OMM에 설정하는 로직을 입력하세요.
+	// ......
+
+	/* 다음페이지가 존재하는 지 여부를 판단하여 recrdNxtYn 변수에 Y/N을 설정한다. */
+	if(DasUtils.existNextResult(list)) {
+		output.setRecrdNxtYn("Y");
+	} else {
+		output.setRecrdNxtYn("N");
+	}
+
+	// ${todo}: 업무에 맞게 정상 조회 메시지코드와  값은 설정해주세요.
+
+	if(list.size() == 0) {
+		// KIOKI0004 : 요청하신 자료가 존재하지 않습니다.
+		// DefaultApplicationContext.addMessage("KIOKI0004", null, null);
+	} else if("Y".equals(output.getRecrdNxtYn())) {
+		/* 정상처리 결과 메시지: 요청하신 내용이 {0}건 조회 되었습니다. - 자료를 계속하여 조회할 수 있습니다. */
+		// DefaultApplicationContext.addMessage("KIOKI0003", new Object[] {list.size()}, null);
+	} else {
+		/* 정상처리 결과 메시지: 요청하신 내용이 {0}건 조회 되었습니다. */
+		// DefaultApplicationContext.addMessage("KIOKI0002", new Object[] {list.size()}, null);
+	}
+
+	return output;
+}</template>
+<template autoinsert="true" context="java-members" deleted="false" description="다건 조회용 operation을 개발합니다." enabled="true" id="bxm.builder.ui.templates.fw_svc_select_multi" name="fw_mainservice_select_multi">@BxmTranID(name="${tran_id}", description="${description}", transaction="auto")&#13;
+public ${output_type} perform${tran_id}(${input_type} input) throws Exception {&#13;
+	${output_type} 	output	= new ${output_type}();&#13;
+	${list_type}	list	= null;&#13;
+	${imp:import(bxm.container.annotation.BxmTranID,bxm.common.annotaion.BxmCategory)}${cursor}&#13;
+&#13;
+&#13;
+	// ${todo}: bean의 method를 호출하는 로직 작성하세요.&#13;
+	// list = bean.getXxxList(input.getXXX(), input.getYYY(), input.getZZZ());&#13;
+&#13;
+	// 조회된 내용이 없는 경우, 오류처리하려면&#13;
+	if(list.size() == 0) {&#13;
+		// KIOKI0004 : 요청하신 자료가 존재하지 않습니다.&#13;
+		// throw new ${throw_new_exception}(...);&#13;
+	}&#13;
+&#13;
+	// ${todo}: bean의 output을 OMM에 설정하는 로직을 입력하세요.&#13;
+	// ......&#13;
+&#13;
+&#13;
+	// ${todo}: 업무에 맞게 정상 조회 메시지코드와  값은 설정해주세요.&#13;
+	// 조회가 0건 조회되어도 정상처리하려면 &#13;
+	if(list.size() == 0) {&#13;
+		// KIOKI0004 : 요청하신 자료가 존재하지 않습니다.&#13;
+		// DefaultApplicationContext.addMessage("KIOKI0004", null, null);&#13;
+	} else {&#13;
+		// KIOKI0002: 요청하신 내용 {0}건이 조회 되었습니다.&#13;
+		// DefaultApplicationContext.addMessage("KIOKI0002", new Object[] {${list}.size()}, null);&#13;
+	}&#13;
+	return output;&#13;
+}&#13;
+</template>
+<template autoinsert="true" context="java-members" deleted="false" description="단건 조회용 operation을 개발합니다." enabled="true" id="bxm.builder.ui.templates.fw_svc_select_single" name="fw_mainservice_select_single">@BxmTranID(name="${tran_id}", description="${description}", transaction="auto")&#13;
+public ${output_type} perform${tran_id}(${input_type} input) throws Exception {&#13;
+	${output_type} 	output = new ${output_type}();&#13;
+	${bean_output}  bean_out = null;&#13;
+	${imp:import(bxm.container.annotation.BxmTranID,bxm.common.annotaion.BxmCategory)}${cursor}&#13;
+&#13;
+	// ${todo}: bean의 method를 호출하는 로직 작성하세요.&#13;
+	// ......&#13;
+&#13;
+&#13;
+	// 조회된 내용이 없는 경우, 오류처리&#13;
+	if(bean_out == null) {&#13;
+		// KIOKI0004 : 요청하신 자료가 존재하지 않습니다.&#13;
+		// throw new ${throw_new_exception}(...);&#13;
+	}&#13;
+	// ${todo}: bean의 output을 OMM에 설정하는 로직을 입력하세요.&#13;
+	// output.setXXX(bean_out.getXXX());&#13;
+    // ......&#13;
+&#13;
+	&#13;
+	// ${todo}: 업무에 맞게 정상 조회 메시지코드와  값은 설정해주세요.&#13;
+	// KIOKI001 : 요청하신 내용이 조회 되었습니다.&#13;
+	// DefaultApplicationContext.addMessage("KIOKI0001", null, null);&#13;
+	return output;&#13;
+}&#13;
+</template>
+</templates>
+
+plugin.xml
+   <extension
+         point="org.eclipse.ui.editors.templates">
+      <contextTypeRegistry
+            id="org.eclipse.jdt.ui.CompilationUnitEditor">
+      </contextTypeRegistry>
+      <include
+      		file="templates/ad-templates.xml"
+      		translations="templates/ad-templates.properties">
+      </include>
+      <include
+      		file="templates/fw-templates.xml"
+      		translations="templates/fw-templates.properties">
+      </include>
+      <include
+      		file="templates/fw-codetemplates.xml"
+      		translations="templates/fw-templates.properties">
+      </include>
+   </extension>
+
+mainservice 생성 위자드 
+/**
+ *
+ */
+package bxm.builder.wizards;
+
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.Signature;
+import org.eclipse.jdt.internal.core.manipulation.CodeTemplateContext;
+import org.eclipse.jdt.internal.core.manipulation.StubUtility;
+import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
+import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.DialogField;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.LayoutUtil;
+import org.eclipse.jdt.internal.ui.wizards.dialogfields.SelectionButtonDialogFieldGroup;
+import org.eclipse.jdt.ui.CodeGeneration;
+import org.eclipse.jface.bindings.keys.KeyStroke;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.fieldassist.ContentProposalAdapter;
+import org.eclipse.jface.fieldassist.IContentProposalProvider;
+import org.eclipse.jface.fieldassist.SimpleContentProposalProvider;
+import org.eclipse.jface.fieldassist.TextContentAdapter;
+import org.eclipse.jface.text.templates.Template;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.BaseLabelProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.PlatformUI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import bxm.builder.BuilderActivator;
+import bxm.builder.core.PluginLog;
+import bxm.builder.message.BuilderMessages;
+import bxm.builder.ui.customization.BuilderCustomizationManager;
+import bxm.builder.ui.extentions.INewProjectProvider;
+import bxm.builder.ui.extentions.ServiceOperationSet;
+import bxm.builder.ui.templates.CodeTemplateContextManager;
+import bxm.ui.constants.BxmConstants.ResourceType;
+import bxm.ui.db.config.ConfigurationUtils;
+import bxm.ui.dialog.MessageDialog;
+import bxm.ui.provider.ResourceNamingProviderManager;
+import bxm.ui.text.UIText;
+import bxm.ui.util.BXMConstants;
+import bxm.ui.util.BXMConstants.ClassType;
+import bxm.ui.util.EclipseUtils;
+import bxm.ui.util.JavaUtils;
+import bxm.ui.util.StringUtils;
+import bxm.ui.viewer.AbstractTableViewer;
+import bxm.ui.wizard.option.WizardOptions;
+
+/**
+ * @file			bxm.builder.wizards.NewServiceClassWizardPage.java
+ * @filetype		java source file
+ * @brief
+ * @author			ShinChangYoung
+ * @version			1.0
+ * @history
+ * 성		명			일		자				근  거  자  료					변  경  내  용
+ * ----------------		-------------------		-------------------		--------------------------
+ * ShinChangYoung		2012. 1. 30.			product 개발				신규 작성
+ *
+ */
+public class NewMainServiceClassWizardPage extends NewHdsTypeWizardPage {
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	private final static String PAGE_NAME = "NewMainServiceClassWizardPage";
+	private final static String SETTINGS_CREATEMAIN= "create_main";
+	private final static String SETTINGS_CREATECONSTR= "create_constructor";
+	private final static String SETTINGS_CREATEUNIMPLEMENTED= "create_unimplemented";
+
+	class OperationViewerLabelProvider extends BaseLabelProvider
+	implements ITableLabelProvider
+	{
+		@Override
+		public Image getColumnImage(Object obj, int i) {
+			return null;
+		}
+
+		@Override
+		public String getColumnText(Object obj, int i) {
+			if ( obj instanceof ServiceOperationSet ){
+				ServiceOperationSet sos= (ServiceOperationSet)obj;
+				switch (i) {
+				case 0: return sos.getOperationName();
+				case 1: return sos.getMethodName();
+				case 2: return sos.getInputOmm();
+				case 3: return sos.getOutputOmm();
+				default:
+					return "";
+				}
+			}
+			else{
+				return "";
+			}
+		}
+	}
+
+	class OperationViewer extends AbstractTableViewer{
+
+		public OperationViewer(Composite parent, int style) {
+			super(parent, style);
+
+			createColumn(UIText.OPERATION, 80);
+			createColumn(UIText.METHOD, 80);
+			createColumn(UIText.INPUT, 250);
+			createColumn(UIText.OUTPUT, 250);
+
+			setHeaderVisible(true);
+			setLineVisible(true);
+		}
+	}
+
+	private OperationViewer operationViewer= null;
+
+	private ServiceOperationSet[] serviceOperationSetList= null;
+
+	private boolean createInputOmmWhenNoExist= false;
+	private boolean createOutputOmmWhenNoExist= false;
+	private boolean applyLogicalNameToOperation= true;
+	private boolean applyLogicalNameToIO= true;
+
+	private SelectionButtonDialogFieldGroup fMethodStubsButtons;
+
+	public NewMainServiceClassWizardPage() {
+		super(true, PAGE_NAME);
+
+		setTitle(BuilderMessages.NEW_SERVICE_WIZARD_PAGE_1_TITLE);
+		setDescription(BuilderMessages.NEW_SERVICE_WIZARD_PAGE_1_DESC);
+
+		String[] buttonNames3= new String[] {
+			NewWizardMessages.NewClassWizardPage_methods_main, NewWizardMessages.NewClassWizardPage_methods_constructors,
+			NewWizardMessages.NewClassWizardPage_methods_inherited
+		};
+		fMethodStubsButtons= new SelectionButtonDialogFieldGroup(SWT.CHECK, buttonNames3, 1);
+		fMethodStubsButtons.setLabelText(NewWizardMessages.NewClassWizardPage_methods_label);
+	}
+
+	public void init(IStructuredSelection selection) {
+
+		IJavaElement jelem= getInitialJavaElement(selection);
+
+		if ( jelem== null ){
+			Object object= selection.getFirstElement();
+
+			if ( object instanceof IFile ){
+				IFile file= (IFile)object;
+				jelem= JavaCore.create(file);
+			}
+		}
+		else{
+		}
+		initContainerPage(jelem);
+		initTypePage(jelem);
+		doStatus_Update();
+
+		boolean createMain= false;
+		boolean createConstructors= false;
+		boolean createUnimplemented= true;
+		IDialogSettings dialogSettings= getDialogSettings();
+		if (dialogSettings != null) {
+			IDialogSettings section= dialogSettings.getSection(PAGE_NAME);
+			if (section != null) {
+				createMain= section.getBoolean(SETTINGS_CREATEMAIN);
+				createConstructors= section.getBoolean(SETTINGS_CREATECONSTR);
+				createUnimplemented= section.getBoolean(SETTINGS_CREATEUNIMPLEMENTED);
+			}
+		}
+
+		setMethodStubSelection(createMain, createConstructors, createUnimplemented, true);
+	}
+
+	private void doStatus_Update() {
+		// status of all used components
+		IStatus[] status= null;
+
+		if ( WizardOptions.instance().isBeanNewWizardLogicalNameEnabled())
+		{
+			status= new IStatus[] {
+					fContainerStatus,
+					isEnclosingTypeSelected() ? fEnclosingTypeStatus : fPackageStatus,
+					fTypeNameStatus,
+					fServiceNameStatus,
+					fModifierStatus,
+					fSuperClassStatus,
+					fSuperInterfacesStatus,
+					fLogicalNameStatus,
+					fDescriptionStatus
+				};
+		}
+		else{
+			status= new IStatus[] {
+					fContainerStatus,
+					isEnclosingTypeSelected() ? fEnclosingTypeStatus : fPackageStatus,
+					fTypeNameStatus,
+					fServiceNameStatus,
+					fModifierStatus,
+					fSuperClassStatus,
+					fSuperInterfacesStatus
+				};
+		}
+
+		// the mode severe status will be displayed and the OK button enabled/disabled.
+		updateStatus(status);
+	}
+
+	@Override
+	protected void handleFieldChanged(String fieldName) {
+		super.handleFieldChanged(fieldName);
+
+		if ("NewContainerWizardPage.container".equals(fieldName)){
+			IJavaProject javaProject= getJavaProject();
+
+			if ( javaProject != null ){
+				String packageName= ResourceNamingProviderManager.instance().getPackageName(ResourceType.SERVICE, javaProject.getProject(), "", "");
+
+				if ( !StringUtils.isEmpty(packageName) ){
+					IPackageFragment pf=getPackageFragmentRoot().getPackageFragment(packageName);
+					setPackageFragment(pf, true);
+					setFocus();
+				}
+			}
+		}
+
+		doStatus_Update();
+	}
+
+	@Override
+	public void createControl(Composite parent) {
+		logger.trace("NewServiceClassWizardPage.createControl");
+		initializeDialogUnits(parent);
+
+		Composite composite= new Composite(parent, SWT.NONE);
+		composite.setFont(parent.getFont());
+
+		int columns= 4;
+
+		composite.setLayout(new GridLayout(columns, false));
+
+		// pick & choose the wanted UI components
+
+		createContainerControls(composite, columns);
+		createPackageControls(composite, columns);
+//		createEnclosingTypeControls(composite, nColumns);
+		createSeparator(composite, columns);
+
+		createTypeNameControls(composite, columns);
+		createServiceNameControls(composite, columns);
+
+		// 2012.11.21 PARK.Jeongyeob [[
+		if ( WizardOptions.instance().isBeanNewWizardLogicalNameEnabled())
+		{
+			createSeparator(composite, columns);
+			createLogicalNameControls(composite, columns);
+			createDescriptionControls(composite, columns);
+		}
+		// 2012.11.21 PARK.Jeongyeob [[
+
+		createSeparator(composite, columns);
+
+		// 15.07.08
+		if ( BuilderActivator.getDefault().getConfiguration().isNewServiceUseOperationPreview() ){
+			createDefaultOperationControls(composite, columns);
+		}
+
+//		createModifierControls(composite, nColumns);
+
+//		createSuperClassControls(composite, nColumns);
+//		createSuperInterfacesControls(composite, nColumns);
+
+//		createMethodStubSelectionControls(composite, nColumns);
+
+//		createCommentControls(composite, columns);
+		setAddComments(true,false);
+		enableCommentControl(true);
+
+		setControl(composite);
+
+		Dialog.applyDialogFont(composite);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(composite, IJavaHelpContextIds.NEW_CLASS_WIZARD_PAGE);
+
+
+
+	}
+
+	protected void createDefaultOperationControls(Composite parent, int columns){
+
+		final int buttonColumns= 1;
+		Group group= new Group(parent, SWT.NORMAL);
+		{
+			group.setLayout(new GridLayout(buttonColumns,false));
+			GridData data= new GridData(GridData.FILL_HORIZONTAL);
+			data.horizontalSpan= columns;
+			group.setLayoutData(data);
+		}
+		group.setText("Operation Preview");
+
+		Button btnCreateInput= new Button(group, SWT.CHECK);
+		btnCreateInput.setText(BuilderMessages.ServiceNewWizard_button_001);
+		btnCreateInput.setSelection(createInputOmmWhenNoExist);
+
+		btnCreateInput.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Button btn= (Button)e.widget;
+				createInputOmmWhenNoExist= btn.getSelection();
+			}
+		});
+
+		Button btnCreateOutput= new Button(group, SWT.CHECK);
+		btnCreateOutput.setText(BuilderMessages.ServiceNewWizard_button_002);
+		btnCreateOutput.setSelection(createOutputOmmWhenNoExist);
+		btnCreateOutput.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Button btn= (Button)e.widget;
+				createOutputOmmWhenNoExist= btn.getSelection();
+			}
+		});
+
+		// 서비스의 논리명, 설명을 오퍼레이션의 논리명, 설명에 적용할 것인지 여부
+		Button btnApplyLogicalNameToOperation= new Button(group, SWT.CHECK);
+		btnApplyLogicalNameToOperation.setText(BuilderMessages.ServiceNewWizard_button_003);
+		btnApplyLogicalNameToOperation.setSelection(applyLogicalNameToOperation);
+		btnApplyLogicalNameToOperation.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Button btn= (Button)e.widget;
+				applyLogicalNameToOperation= btn.getSelection();
+			}
+		});
+
+		// 서비스의 논리명, 설명을 오퍼레이션 IO 논리명에 적용할 것인지 여부
+		Button btnApplyLogicalNameToIO= new Button(group, SWT.CHECK);
+		btnApplyLogicalNameToIO.setText(BuilderMessages.ServiceNewWizard_button_004);
+		btnApplyLogicalNameToIO.setSelection(applyLogicalNameToIO);
+		btnApplyLogicalNameToIO.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Button btn= (Button)e.widget;
+				applyLogicalNameToIO= btn.getSelection();
+			}
+		});
+
+		operationViewer= new OperationViewer(group, SWT.BORDER);
+		operationViewer.setContentProvider( new ArrayContentProvider() );
+		operationViewer.setLabelProvider( new OperationViewerLabelProvider());
+
+		{
+			GridData data= new GridData(GridData.FILL_HORIZONTAL);
+			data.heightHint= 100;
+			data.horizontalSpan=buttonColumns;
+			operationViewer.getControl().setLayoutData(data);
+		}
+
+		bindServiceOperation();
+	}
+
+	@Override
+	public void setVisible(boolean visible) {
+		logger.trace("NewServiceClassWizardPage.setVisible");
+		super.setVisible(visible);
+		if (visible) {
+			setFocus();
+		} else {
+			IDialogSettings dialogSettings= getDialogSettings();
+			if (dialogSettings != null) {
+				IDialogSettings section= dialogSettings.getSection(PAGE_NAME);
+				if (section == null) {
+					section= dialogSettings.addNewSection(PAGE_NAME);
+				}
+				section.put(SETTINGS_CREATEMAIN, isCreateMain());
+				section.put(SETTINGS_CREATECONSTR, isCreateConstructors());
+				section.put(SETTINGS_CREATEUNIMPLEMENTED, isCreateInherited());
+			}
+		}
+	}
+
+	private void createMethodStubSelectionControls(Composite composite, int nColumns) {
+		logger.trace("NewServiceClassWizardPage.createMethodStubSelectionControls");
+		Control labelControl= fMethodStubsButtons.getLabelControl(composite);
+		LayoutUtil.setHorizontalSpan(labelControl, nColumns);
+
+		DialogField.createEmptySpace(composite);
+
+		Control buttonGroup= fMethodStubsButtons.getSelectionButtonsGroup(composite);
+		LayoutUtil.setHorizontalSpan(buttonGroup, nColumns - 1);
+	}
+
+	/**
+	 * Returns the current selection state of the 'Create Main' checkbox.
+	 *
+	 * @return the selection state of the 'Create Main' checkbox
+	 */
+	public boolean isCreateMain() {
+		return fMethodStubsButtons.isSelected(0);
+	}
+
+	/**
+	 * Returns the current selection state of the 'Create Constructors' checkbox.
+	 *
+	 * @return the selection state of the 'Create Constructors' checkbox
+	 */
+	public boolean isCreateConstructors() {
+		return fMethodStubsButtons.isSelected(1);
+	}
+
+	/**
+	 * Returns the current selection state of the 'Create inherited abstract methods'
+	 * checkbox.
+	 *
+	 * @return the selection state of the 'Create inherited abstract methods' checkbox
+	 */
+	public boolean isCreateInherited() {
+		return fMethodStubsButtons.isSelected(2);
+	}
+
+	/**
+	 * Sets the selection state of the method stub checkboxes.
+	 *
+	 * @param createMain initial selection state of the 'Create Main' checkbox.
+	 * @param createConstructors initial selection state of the 'Create Constructors' checkbox.
+	 * @param createInherited initial selection state of the 'Create inherited abstract methods' checkbox.
+	 * @param canBeModified if <code>true</code> the method stub checkboxes can be changed by
+	 * the user. If <code>false</code> the buttons are "read-only"
+	 */
+	public void setMethodStubSelection(boolean createMain, boolean createConstructors, boolean createInherited, boolean canBeModified) {
+		logger.trace("NewServiceClassWizardPage.setMethodStubSelection");
+		fMethodStubsButtons.setSelection(0, createMain);
+		fMethodStubsButtons.setSelection(1, createConstructors);
+		fMethodStubsButtons.setSelection(2, createInherited);
+
+		fMethodStubsButtons.setEnabled(canBeModified);
+	}
+
+	@Override
+	protected void createTypeMembers(IType type, ImportsManager imports, IProgressMonitor monitor) throws CoreException {
+		logger.trace("NewServiceClassWizardPage.createTypeMembers");
+		boolean doMain= isCreateMain();
+		boolean doConstr= isCreateConstructors();
+		boolean doInherited= isCreateInherited();
+		createInheritedMethods(type, doConstr, doInherited, imports, new SubProgressMonitor(monitor, 1));
+
+		if (doMain) {
+			StringBuffer buf= new StringBuffer();
+			final String lineDelim= "\n"; // OK, since content is formatted afterwards
+			String comment= CodeGeneration.getMethodComment(type.getCompilationUnit(), type.getTypeQualifiedName('.'), "main", new String[] {"args"}, new String[0], Signature.createTypeSignature("void", true), null, lineDelim);
+			if (comment != null) {
+				buf.append(comment);
+				buf.append(lineDelim);
+			}
+			buf.append("public static void main(");
+			buf.append(imports.addImport("java.lang.String"));
+			buf.append("[] args) {");
+			buf.append(lineDelim);
+			final String content= CodeGeneration.getMethodBodyContent(type.getCompilationUnit(), type.getTypeQualifiedName('.'), "main", false, "", lineDelim);
+			if (content != null && content.length() != 0)
+				buf.append(content);
+			buf.append(lineDelim);
+			buf.append("}");
+			type.createMethod(buf.toString(), null, false, null);
+		}
+
+		if (monitor != null) {
+			monitor.done();
+		}
+	}
+
+	protected String constructSimpleTypeStub() {
+		StringBuffer buf= new StringBuffer("public class ");
+		buf.append(getTypeName());
+		buf.append("{ }");
+		return buf.toString();
+	}
+
+	@Override
+	protected void createPackageControls(Composite composite, int nColumns) {
+		super.createPackageControls(composite, nColumns);
+
+		if ( !ConfigurationUtils.getConfiguration().isCheckPackageNameForServiceWizard()) return;
+
+		try {
+			if ( getPackageFragmentRoot() != null ){
+
+				IJavaProject javaProject= getJavaProject();
+				if ( javaProject == null ) return;
+
+				String selectedPackageName= getPackageText();
+
+				if ( !selectedPackageName.endsWith( getPreferPackageSuffix() ) ){
+
+					String packageName= ResourceNamingProviderManager.instance().getPackageName(ResourceType.SERVICE, javaProject.getProject(), "", "");
+
+					String message= MessageFormat.format(BuilderMessages.PACKAGE_SELECTION_MESSAGE
+							, "Service"
+							, selectedPackageName
+							, packageName
+							);
+					MessageDialog.openInfo(message);
+
+					IPackageFragment pf=getPackageFragmentRoot().getPackageFragment(packageName);
+					setPackageFragment(pf, true);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	protected IPackageFragmentRoot chooseContainer()
+    {
+		return EclipseUtils.chooseSrcContainer(getShell());
+    }
+
+	protected String getPreferPackageSuffix(){
+		return ResourceNamingProviderManager.instance().getServicePackageSuffix();
+	}
+
+	@Override
+	protected void updateStatus(IStatus status) {
+		super.updateStatus(status);
+
+		bindServiceOperation();
+	}
+
+	private void bindServiceOperation(){
+		if ( operationViewer != null ){
+
+			INewProjectProvider[] providers= BuilderCustomizationManager.instance().getNewProjectProviders();
+
+			String packageName= getPackageText();
+			String serviceName= getServiceName();
+
+			Set<ServiceOperationSet> serviceOperationSet= new LinkedHashSet<ServiceOperationSet>();
+
+			if ( providers != null )
+			{
+				for (INewProjectProvider provider : providers) {
+					ServiceOperationSet[] sos= provider.getDefaultServiceOperationSet(packageName, serviceName);
+
+					if ( sos != null && sos.length > 0){
+						for (ServiceOperationSet so : sos) {
+							serviceOperationSet.add(so);
+						}
+					}
+				}
+			}
+
+			serviceOperationSetList= serviceOperationSet.toArray( new ServiceOperationSet[serviceOperationSet.size()]);
+			operationViewer.setInput(serviceOperationSetList);
+		}
+	}
+
+	public ServiceOperationSet[] getServiceOperationSetList() {
+		// 15.07.08
+		if ( BuilderActivator.getDefault().getConfiguration().isNewServiceUseOperationPreview() ){
+			return serviceOperationSetList;
+		}
+		else{
+			return new ServiceOperationSet[0];
+		}
+	}
+
+	private void writeExtendedBodyContents(StringBuffer buf, ImportsManager imports, String lineDelimiter, String logicalName, String description){
+		if ( serviceOperationSetList== null || serviceOperationSetList.length == 0 ){
+			return;
+		}
+
+		boolean first= true;
+
+		for (ServiceOperationSet sos : serviceOperationSetList) {
+
+			if ( first ){
+				first= false;
+			}
+			else{
+				buf.append(lineDelimiter);
+			}
+
+			String inputQName= sos.getInputOmm();
+			String inputSName= JavaUtils.getClassName(inputQName);
+
+			String outputQName= sos.getOutputOmm();
+			String outputSName= JavaUtils.getClassName(outputQName);
+
+			imports.addImport(inputQName);
+			imports.addImport(outputQName);
+			imports.addImport("bxm.container.annotation.BxmServiceOperation");
+			imports.addImport("bxm.common.annotaion.BxmCategory");
+
+			String throwsClassName= sos.getThrowsClassName();
+
+			buf
+			.append("@BxmServiceOperation")
+			.append("(\"")
+			.append(sos.getOperationName())
+			.append("\")")
+			.append(lineDelimiter)
+
+			.append("@BxmCategory")
+			.append("(")
+			.append("logicalName=\"")
+			.append(logicalName)
+			.append("\"")
+			.append(", ")
+			.append("description=\"")
+			.append(description)
+			.append("\")")
+			.append(lineDelimiter)
+
+			.append("public ")
+			.append(outputSName)
+			.append(" ")
+			.append(sos.getMethodName())
+			.append("(")
+			.append(inputSName)
+			.append(" " )
+			.append("input")
+			.append(")")
+			.append(" ")
+			.append("throws")
+			.append(" ")
+			;
+
+			if ( StringUtils.isEmpty(throwsClassName) ){
+				imports.addImport("bxm.app.ApplicationException");
+				buf
+				.append("ApplicationException")
+				.append(lineDelimiter)
+				;
+			}
+			else{
+				imports.addImport(throwsClassName);
+				String throwsClassSimpleName= JavaUtils.getClassName(throwsClassName);
+				buf
+				.append(throwsClassSimpleName)
+				.append(lineDelimiter)
+				;
+			}
+
+			buf
+			.append("{")
+			.append(lineDelimiter)
+			.append(lineDelimiter)
+			.append("logger.debug(\"============== SERVICE START ==============\");").append(lineDelimiter)
+			.append("logger.debug(\"input = {}\", input);").append(lineDelimiter).append(lineDelimiter)
+			.append(outputSName)
+			.append(" output = new ")
+			.append(outputSName )
+			.append("();")
+			.append(lineDelimiter)
+			.append(lineDelimiter)
+			.append("// TODO write code here")
+			.append(lineDelimiter)
+			.append(lineDelimiter)
+			.append("logger.debug(\"output = {}\", output);").append(lineDelimiter)
+			.append("logger.debug(\"============== SERVICE END ==============\");").append(lineDelimiter)
+			.append(lineDelimiter)
+			.append("return output;").append(lineDelimiter)
+			.append("}")
+
+			;
+		}
+	}
+
+	@Override
+	protected void writeExtendedBodyContents(StringBuffer buff, ImportsManager imports, String lineDelimiter) {
+
+
+
+		this.writeExtendedBodyContents(
+				buff
+				, imports
+				, lineDelimiter
+				, applyLogicalNameToOperation?getLogicalName():""
+				, applyLogicalNameToOperation?getDescription():""
+				);
+	}
+
+	public boolean isCreateInputOmmWhenNoExist() {
+		return createInputOmmWhenNoExist;
+	}
+
+	public boolean isCreateOutputOmmWhenNoExist() {
+		return createOutputOmmWhenNoExist;
+	}
+
+	public boolean isApplyLogicalNameToOperation() {
+		return applyLogicalNameToOperation;
+	}
+
+	public boolean isApplyLogicalNameToIO() {
+		return applyLogicalNameToOperation;
+	}
+
+	private ContentProposalAdapter typeNameContentProposalAdapter;
+
+	@Override
+	protected void addTypeNameContentProposalAdapter(Text text) {
+
+		if ( getPackageFragmentRoot() != null ){
+			try {
+				char[] autoActivationCharacters= {};
+
+				IProject project= getPackageFragmentRoot().getJavaProject().getProject();
+
+				IContentProposalProvider contentProposalProvider=
+						new SimpleContentProposalProvider(ResourceNamingProviderManager.instance().getServiceNameProposals(project, ""));
+
+				KeyStroke keyStroke= KeyStroke.getInstance("Ctrl+Space");
+				typeNameContentProposalAdapter= new ContentProposalAdapter(
+						text
+						, new TextContentAdapter()
+						, contentProposalProvider
+						, keyStroke
+						, autoActivationCharacters
+						);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	@Override
+	protected IStatus containerChanged() {
+
+		if ( typeNameContentProposalAdapter != null ){
+			IProject project= getPackageFragmentRoot().getJavaProject().getProject();
+
+			IContentProposalProvider contentProposalProvider=
+					new SimpleContentProposalProvider(ResourceNamingProviderManager.instance().getServiceNameProposals(project, ""));
+
+			typeNameContentProposalAdapter.setContentProposalProvider(contentProposalProvider);
+		}
+
+		return super.containerChanged();
+	}
+
+	@Override
+	protected ClassType getClassTypeToCreate() {
+		return ClassType.MAIN_SERVICE;
+	}
+
+	@Override
+	protected String getCuContents(IPackageFragment pack, ICompilationUnit icu) 
+	{
+		final String lineDelimiter= StubUtility.getLineDelimiterUsed(pack.getJavaProject());
+		final String comment= getMainServiceComment(lineDelimiter, pack, icu);
+		return getMainService(lineDelimiter, pack, icu, comment);
+	}
+	
+	private String getMainServiceComment(String lineDelimiter, IPackageFragment pack, ICompilationUnit icu)
+	{
+		final String tmplId= CodeTemplateContextManager.SERVICE_COMMENT_ID;
+		Template tmpl= bxm.builder.ui.templates.StubUtility.getCodeTemplate(tmplId, pack.getJavaProject());
+		
+		if(tmpl == null)
+		{
+			PluginLog.logInfo("Cannot find template information : " + tmplId);
+			return "";
+		}
+		
+		CodeTemplateContext context= new CodeTemplateContext(tmpl.getContextTypeId(), pack.getJavaProject(), lineDelimiter);
+		context.setCompilationUnitVariables(icu);
+		
+		long time= System.currentTimeMillis();
+		SimpleDateFormat timeFormatter= new SimpleDateFormat("yyyy-MM-dd");
+		
+		context.setVariable("date", timeFormatter.format(new Date(time)));
+		
+		try {
+			return bxm.builder.ui.templates.StubUtility.evaluateTemplate(context, tmpl);
+		} catch (CoreException e) {
+			PluginLog.logError("fail to create service comment contents", e);
+			return "";
+		}
+	}
+	
+	private String getMainService(String lineDelimiter, IPackageFragment pack, ICompilationUnit icu, String comment)
+	{
+		final String tmplId= CodeTemplateContextManager.MAIN_SERVICE_ID;
+		Template tmpl= bxm.builder.ui.templates.StubUtility.getCodeTemplate(tmplId, pack.getJavaProject());
+		
+		if(tmpl == null)
+		{
+			PluginLog.logInfo("Cannot find template information : " + tmplId);
+			return "";
+		}
+		
+		CodeTemplateContext context= new CodeTemplateContext(tmpl.getContextTypeId(), pack.getJavaProject(), lineDelimiter);
+		context.setCompilationUnitVariables(icu);
+		context.setVariable("package_declaration", "package " + pack.getElementName() + ";");
+		context.setVariable("import_declaration", "");
+		context.setVariable("service_comment", comment);
+		context.setVariable("main_service_name", getTypeName());
+		context.setVariable("logical_name", getLogicalName());
+		context.setVariable("description", getDescription());
+		context.setVariable("method_declaration", "");
+		context.setVariable("field_declaration", "");
+		context.setVariable("main_service_annotation_qname", BXMConstants.Annotations.MAIN_SERVICE_QNAME);
+		context.setVariable("main_service_annotation_sname", BXMConstants.Annotations.MAIN_SERVICE_SNAME);
+		
+		try {
+			return bxm.builder.ui.templates.StubUtility.evaluateTemplate(context, tmpl);
+		} catch (CoreException e) {
+			PluginLog.logError("fail to create main service contents", e);
+			return "";
+		}
+	}
+
+}
+
