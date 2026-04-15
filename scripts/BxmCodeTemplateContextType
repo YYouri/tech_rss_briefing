@@ -1,225 +1,326 @@
-/**
+/*******************************************************************************
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  *
- */
-package bxm.builder.ui.templates;
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *******************************************************************************/
+package bxm.builder;
 
-import java.util.ArrayList;
-import org.eclipse.jdt.internal.core.manipulation.CodeTemplateContextType;
-import org.eclipse.jdt.internal.corext.util.Messages;
-import org.eclipse.jdt.internal.ui.viewsupport.BasicElementLabels;
+import java.io.IOException;
+import java.net.URL;
+
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.Platform;
+//import org.eclipse.jdt.internal.ui.CompatibilityTemplateStore;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.templates.ContextTypeRegistry;
-import org.eclipse.jface.text.templates.TemplateException;
-import org.eclipse.jface.text.templates.TemplateVariable;
+import org.eclipse.jface.text.templates.Template;
+import org.eclipse.jface.text.templates.persistence.TemplatePersistenceData;
+import org.eclipse.jface.text.templates.persistence.TemplateStore;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.editors.text.templates.ContributionTemplateStore;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import bxm.builder.message.BuilderMessages;
+import bxm.builder.configuration.IBuilderConfiguration;
+import bxm.builder.model.ServiceListInfo;
+import bxm.builder.ui.configuration.PreferenceConfiguration;
+import bxm.builder.ui.configuration.jaxb.BuilderConfiguration;
+import bxm.builder.ui.customization.BuilderCustomizationManager;
+import bxm.builder.ui.deploy.DeployExecutorManager;
+import bxm.builder.ui.templates.BxmCodeTemplateContextType;
+import bxm.builder.ui.templates.CodeTemplateContextManager;
+import bxm.builder.ui.testcase.TestCaseValueManager;
+import bxm.ui.db.config.ConfigurationUtils;
 
 /**
- * @file			bxm.builder.ui.templates.BxmCodeTemplateContextType.java
+ * @file				bxm.builder.BuilderActivator.java
  * @filetype		java source file
  * @brief
- * @author			ShinChangYoung
- * @version			1.0
+ * @author		ShinChangYoung
+ * @version		1.0
  * @history
- * 성		명			일		자				근  거  자  료					변  경  내  용
+ * 성		명					일		자						근  거  자  료					변  경  내  용
  * ----------------		-------------------		-------------------		--------------------------
- * ShinChangYoung		2012. 2. 6.			product 개발				신규 작성
+ * ShinChangYoung		2011.10.21					product 개발				신규 작성
  *
  */
-public class BxmCodeTemplateContextType extends CodeTemplateContextType {
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
+public class BuilderActivator extends AbstractUIPlugin {
+	protected final static Logger logger = LoggerFactory.getLogger(BuilderActivator.class);
 
-	/* resolver types */
-	public static final String SERVICENAME = "service_name";
-	public static final String BEANNAME = "bean_name";
-	public static final String SERVICE_BODY = "servicebody";
-	public static final String SERVICE_COMMENT = "servicecomment";
-	public static final String BEAN_COMMENT = "beancomment";
-	public static final String USER_NAME_COMMENT= "user_name";
-	public static final String SINCE_COMMENT= "date";
+	// The plug-in ID
+	public static final String PLUGIN_ID = "bxm.builder";
 
-	public static final String EXTENED_IMPORTS = "extened_imports"; // 2012.11.21 PARK.Jeongyeob
+	private static final String CODE_TEMPLATES_KEY= "org.eclipse.jdt.ui.text.custom_code_templates";
 
-	private boolean fIsComment;
+	private static final String CODE_TEMPLATES_MIGRATION_KEY= "org.eclipse.jdt.ui.text.code_templates_migrated";
 
-	public BxmCodeTemplateContextType(String contextName) {
-		super(contextName);
-		System.out.println(">> contextName : " + contextName);
-		fIsComment = false;
+	// The shared instance
+	private static BuilderActivator plugin;
 
-		if (CodeTemplateContextManager.instance().getServiceContextId().equals(contextName)) {
-			System.out.println(">> getServiceContextId");
-			addResolver(new BxmReolver(TYPENAME,  BuilderMessages.CodeTemplateContextType_variable_description_typename));
-			addResolver(new BxmReolver(PACKAGE_DECLARATION,  BuilderMessages.CodeTemplateContextType_variable_description_packdeclaration));
-			addResolver(new BxmReolver(TYPE_DECLARATION,  BuilderMessages.CodeTemplateContextType_variable_description_typedeclaration));
-			addResolver(new BxmReolver(SERVICE_COMMENT,  BuilderMessages.CodeTemplateContextType_variable_description_servicecomment));
-			addResolver(new BxmReolver(FILE_COMMENT,  BuilderMessages.CodeTemplateContextType_variable_description_filecomment));
-			addResolver(new BxmReolver(SERVICENAME, BuilderMessages.CodeTemplateContextType_variable_description_service));
-			// 2012.11.21 [[
-			addResolver(new BxmReolver(EXTENED_IMPORTS, BuilderMessages.CodeTemplateContextType_variable_description_extendedimport));
-			// 2012.11.21 ]]
-			addCompilationUnitVariables();
-		} else if (CodeTemplateContextManager.instance().getServiceBodyContextId().equals(contextName)) {
-			System.out.println(">> getServiceBodyContextId");
-			addResolver(new CodeTemplateVariableResolver(TYPENAME,  BuilderMessages.CodeTemplateContextType_variable_description_typename));
-			addCompilationUnitVariables();
-		} else if (CodeTemplateContextManager.instance().getBeanContextId().equals(contextName)) {
-			System.out.println(">> getBeanContextId");
-			addResolver(new BxmReolver(TYPENAME,  BuilderMessages.CodeTemplateContextType_variable_description_typename));
-			addResolver(new BxmReolver(PACKAGE_DECLARATION,  BuilderMessages.CodeTemplateContextType_variable_description_packdeclaration));
-			addResolver(new BxmReolver(TYPE_DECLARATION,  BuilderMessages.CodeTemplateContextType_variable_description_typedeclaration));
-			addResolver(new BxmReolver(BEAN_COMMENT,  BuilderMessages.CodeTemplateContextType_variable_description_servicecomment));
-			addResolver(new BxmReolver(FILE_COMMENT,  BuilderMessages.CodeTemplateContextType_variable_description_filecomment));
-			// 2012.11.21 [[
-			addResolver(new BxmReolver(BEANNAME, BuilderMessages.CodeTemplateContextType_variable_description_bean));
-			addResolver(new BxmReolver(EXTENED_IMPORTS, BuilderMessages.CodeTemplateContextType_variable_description_extendedimport));
-			// 2012.11.21 ]]
-			addCompilationUnitVariables();
-		} else if (CodeTemplateContextManager.instance().getServiceCommentContextId().equals(contextName)) {
-			System.out.println(">> getServiceCommentContextId");
-			addResolver(new CodeTemplateVariableResolver(SERVICENAME,  BuilderMessages.CodeTemplateContextType_variable_description_servicename));
-			addResolver(new CodeTemplateVariableResolver(TYPENAME,  BuilderMessages.CodeTemplateContextType_variable_description_typename));
-			addResolver(new CodeTemplateVariableResolver(ENCLOSING_TYPE,  BuilderMessages.CodeTemplateContextType_variable_description_enclosingtype));
-			addResolver(new BxmReolver("user_name", "author name"));
-			addResolver(new BxmReolver("date", "since date(format: yyyyMMdd)"));
-			addResolver(new TagsVariableResolver());
-			addCompilationUnitVariables();
-			fIsComment= true;
-		} else if (CodeTemplateContextManager.instance().getBeanCommentContextId().equals(contextName)) {
-			System.out.println(">> getBeanCommentContextId");
-			addResolver(new CodeTemplateVariableResolver(BEANNAME,  BuilderMessages.CodeTemplateContextType_variable_description_servicename));
-			addResolver(new CodeTemplateVariableResolver(TYPENAME,  BuilderMessages.CodeTemplateContextType_variable_description_typename));
-			addResolver(new CodeTemplateVariableResolver(ENCLOSING_TYPE,  BuilderMessages.CodeTemplateContextType_variable_description_enclosingtype));
-			addResolver(new TagsVariableResolver());
-			addResolver(new BxmReolver("user_name", "author name"));
-			addResolver(new BxmReolver("date", "since date(format: yyyyMMdd)"));
-			addCompilationUnitVariables();
-			fIsComment= true;
-		} else if(CodeTemplateContextManager.MAIN_SERVICE_CONTEXTTYPE.equals(contextName)) {
-			addResolver(new CodeTemplateVariableResolver("package_declaration", BuilderMessages.CodeTemplateContextType_variable_description_packdeclaration));
-			addResolver(new CodeTemplateVariableResolver("import_declaration", BuilderMessages.CodeTemplateContextType_variable_description_extendedimport));
-			addResolver(new CodeTemplateVariableResolver("main_service_name", BuilderMessages.CodeTemplateContextType_variable_description_service));
-			addResolver(new CodeTemplateVariableResolver("logical_name", "resource logical name"));
-			addResolver(new CodeTemplateVariableResolver("description", "resource description"));
-			addResolver(new CodeTemplateVariableResolver("service_comment", "Main Service Class Comment"));
-			addResolver(new CodeTemplateVariableResolver("method_declaration", "Main Service method"));
-			addResolver(new CodeTemplateVariableResolver("field_declaration", "Main Service field"));
-			addResolver(new CodeTemplateVariableResolver("main_service_annotation_qname", "Main Service Annotation Fully Qualified Name"));
-			addResolver(new CodeTemplateVariableResolver("main_service_annotation_sname", "Main Service Annotation Short name"));
-		} else if(CodeTemplateContextManager.MAINSUB_SERVICE_COMMENT_CONTEXTTYPE.equals(contextName)) {
-			addResolver(new CodeTemplateVariableResolver("date", "Class generated date"));
-		} else if(CodeTemplateContextManager.SUB_SERVICE_CONTEXTTYPE.equals(contextName)) {
-			addResolver(new CodeTemplateVariableResolver("package_declaration", BuilderMessages.CodeTemplateContextType_variable_description_packdeclaration));
-			addResolver(new CodeTemplateVariableResolver("import_declaration", BuilderMessages.CodeTemplateContextType_variable_description_extendedimport));
-			addResolver(new CodeTemplateVariableResolver("sub_service_annotation_qname", "Sub Service Annotation Fully Qualified Name"));
-			addResolver(new CodeTemplateVariableResolver("sub_service_annotation", "Write sub service annotation if it is spring bean"));
-			addResolver(new CodeTemplateVariableResolver("sub_service_name", BuilderMessages.CodeTemplateContextType_variable_description_service));
-			addResolver(new CodeTemplateVariableResolver("logical_name", "resource logical name"));
-			addResolver(new CodeTemplateVariableResolver("description", "resource description"));
-			addResolver(new CodeTemplateVariableResolver("service_comment", "Main Service Class Comment"));
-			addResolver(new CodeTemplateVariableResolver("method_declaration", "Main Service method"));
-			addResolver(new CodeTemplateVariableResolver("field_declaration", "Main Service field"));
-		} else if(CodeTemplateContextManager.TASKLET_BATCH_JOB_CONTEXTTYPE.equals(contextName) ||
-				CodeTemplateContextManager.CHUNKED_BATCH_JOB_CONTEXTTYPE.equals(contextName)) {
-			addResolver(new CodeTemplateVariableResolver("encoding", "Write xml encoding"));
-			addResolver(new CodeTemplateVariableResolver("bean_package", "Write batch bean package"));
-			addResolver(new CodeTemplateVariableResolver("bean_name", "Write batch bean name"));
-			addResolver(new CodeTemplateVariableResolver("job_id", "write job id"));
-			addResolver(new CodeTemplateVariableResolver("datasource", "write datasource name"));
-		} else if(CodeTemplateContextManager.TASKLET_BATCH_BEAN_CONTEXTTYPE.equals(contextName)) {
-			addResolver(new CodeTemplateVariableResolver("package_declaration", "Write batch bean package"));
-			addResolver(new CodeTemplateVariableResolver("import_declaration", "Write batch bean additional import"));
-			addResolver(new CodeTemplateVariableResolver("bean_comment", "Write batch bean comment"));
-			addResolver(new CodeTemplateVariableResolver("batch_bean_name", "Write batch bean name"));
-			addResolver(new CodeTemplateVariableResolver("logical_name", "Write batch bean logical name"));
-			addResolver(new CodeTemplateVariableResolver("description", "Write batch bean description"));
-		} else if(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_CONTEXTTYPE.equals(contextName)) {
-			addResolver(new CodeTemplateVariableResolver("package_declaration", "Write batch bean package"));
-			addResolver(new CodeTemplateVariableResolver("import_declaration", "Write batch bean additional import"));
-			addResolver(new CodeTemplateVariableResolver("bean_comment", "Write batch bean comment"));
-			addResolver(new CodeTemplateVariableResolver("batch_bean_name", "Write batch bean name"));
-			addResolver(new CodeTemplateVariableResolver("logical_name", "Write batch bean logical name"));
-			addResolver(new CodeTemplateVariableResolver("description", "Write batch bean description"));
-			addResolver(new CodeTemplateVariableResolver("implements_statement", "Write batch bean super class"));
-			addResolver(new CodeTemplateVariableResolver("method_declaration", "Write method that batch bean should implement"));
-		} else if(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_READ_CONTEXTTYPE.equals(contextName)) {
-			addResolver(new CodeTemplateVariableResolver("reader_class_name", "Write batch bean reader class name"));
-		} else if(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_PROCESS_CONTEXTTYPE.equals(contextName)) {
-			addResolver(new CodeTemplateVariableResolver("reader_class_name", "Write batch bean reader class name"));
-			addResolver(new CodeTemplateVariableResolver("writer_class_name", "Write batch bean writer class name"));
-		} else if(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_WRITE_CONTEXTTYPE.equals(contextName)) {
-			addResolver(new CodeTemplateVariableResolver("writer_class_name", "Write batch bean writer class name"));
-		}
+	private static ContextTypeRegistry codeTemplateContextTypeRegistry;
+
+	private TemplateStore fCodeTemplateStore;
+
+	private BuilderConfiguration configuration;
+
+	private ServiceListInfo fServiceListInfo;
+
+	/**
+	 * The constructor
+	 */
+	public BuilderActivator() {
 	}
 
+	public void start(BundleContext context) throws Exception {
+		super.start(context);
+		plugin = this;
+		
+		org.eclipse.jdt.internal.core.util.Messages.build_compiling="자바 컴파일 {0}";
 
-	private void addCompilationUnitVariables() {
-		addResolver(new BxmReolver(FILENAME, BuilderMessages.CodeTemplateContextType_variable_description_filename));
-		addResolver(new BxmReolver(PACKAGENAME, BuilderMessages.CodeTemplateContextType_variable_description_packagename));
-		addResolver(new BxmReolver(PROJECTNAME, BuilderMessages.CodeTemplateContextType_variable_description_projectname));
+
+		/* 2012.11.05 - 설정항목 선수행 */
+		loadConfigurationExtensionRegistry();
+
+		getCodeTemplateContextRegistry();
+//		getConfigureLogger();
+
+		loadNewProjectProviderExtensionRegistry();
+		loadTestCaseValueProviderExtensionRegistry();
+
+
+		DeployExecutorManager.instance();
+
+		processTemplate();
 	}
 
-	@Override
-	protected void validateVariables(TemplateVariable[] variables) throws TemplateException {
-		logger.trace("BxmCodeTemplateContextType.validateVariables");
-		ArrayList<String> required=  new ArrayList<String>(5);
-		String contextName= getId();
-		if (CodeTemplateContextManager.instance().getServiceContextId().equals(contextName)) {
-			required.add(PACKAGE_DECLARATION);
-			required.add(TYPE_DECLARATION);
-			required.add(SERVICENAME);
+	public void stop(BundleContext context) throws Exception {
+		plugin = null;
+		super.stop(context);
+	}
+
+	/**
+	 * Returns an image descriptor for the image file at the given
+	 * plug-in relative path
+	 *
+	 * @param path the path
+	 * @return the image descriptor
+	 */
+	public static ImageDescriptor getImageDescriptor(String path) {
+		return imageDescriptorFromPlugin(PLUGIN_ID, path);
+	}
+
+	/**
+	 * Returns the shared instance
+	 *
+	 * @return the shared instance
+	 */
+	public static BuilderActivator getDefault() {
+		return plugin;
+	}
+
+	public BuilderConfiguration getConfiguration() {
+		if (configuration == null) {
+			configuration= configurationLoad();
 		}
-		else if (CodeTemplateContextManager.instance().getBeanContextId().equals(contextName)) {
-			required.add(PACKAGE_DECLARATION);
-			required.add(TYPE_DECLARATION);
+
+		return configuration;
+	}
+
+	public ServiceListInfo getServiceListInfo() {
+		if (this.fServiceListInfo == null) {
+			this.fServiceListInfo= new ServiceListInfo();
 		}
-		for (int i= 0; i < variables.length; i++) {
-			String type= variables[i].getType();
-			
-			System.out.println("#################################################################################");
-			System.out.println("#################################################################################");
-			System.out.println("#################################################################################");
-			System.out.println(type);
-			if (getResolver(type) == null) {
-				String unknown= BasicElementLabels.getJavaElementName(type);
-				throw new TemplateException(Messages.format(BuilderMessages.CodeTemplateContextType_validate_unknownvariable, unknown));
+
+		return this.fServiceListInfo;
+	}
+
+	public static IWorkspace getWorkspace() {
+		return ResourcesPlugin.getWorkspace();
+	}
+
+	public static IWorkbenchPage getActivePage() {
+		return getDefault().internalGetActivePage();
+	}
+
+	public static IWorkbenchWindow getActiveWorkbenchWindow() {
+		return getDefault().getWorkbench().getActiveWorkbenchWindow();
+	}
+
+	public static Shell getActiveWorkbenchShell() {
+		 IWorkbenchWindow window= getActiveWorkbenchWindow();
+		 if (window != null) {
+		 	return window.getShell();
+		 }
+		 return null;
+	}
+
+	public static String getPluginId() {
+		return BuilderActivator.PLUGIN_ID;
+	}
+
+	/**
+	 * Preferences > Java > Code Style > Code Templates
+	 * Code Templates에 ContextType을 등록한다.
+	 * @return ContextTypeRegistry
+	 */
+	public ContextTypeRegistry getCodeTemplateContextRegistry() {
+		logger.debug("BuilderActivator.getCodeTemplateContextRegistry : " + codeTemplateContextTypeRegistry);
+		if (codeTemplateContextTypeRegistry == null) {
+			codeTemplateContextTypeRegistry = JavaPlugin.getDefault().getCodeTemplateContextRegistry();
+
+			BxmCodeTemplateContextType.registerContextTypes(codeTemplateContextTypeRegistry);
+		}
+
+		return codeTemplateContextTypeRegistry;
+	}
+
+	public TemplateStore getCodeTemplateStore() {
+		logger.debug("BuilderActivator.getCodeTemplateStore : " + fCodeTemplateStore);
+		if (fCodeTemplateStore == null) {
+			IPreferenceStore store= getPreferenceStore();
+			boolean alreadyMigrated= store.getBoolean(CODE_TEMPLATES_MIGRATION_KEY);
+			if (alreadyMigrated)
+				fCodeTemplateStore= new ContributionTemplateStore(getCodeTemplateContextRegistry(), store, CODE_TEMPLATES_KEY);
+			else {
+				fCodeTemplateStore= new TemplateStore(getCodeTemplateContextRegistry(), store, CODE_TEMPLATES_KEY);
+				store.setValue(CODE_TEMPLATES_MIGRATION_KEY, true);
 			}
-			required.remove(type);
+
+			try {
+				fCodeTemplateStore.load();
+			} catch (IOException e) {
+				logger.error("", e);
+			}
+
+			fCodeTemplateStore.startListeningForPreferenceChanges();
+
+			// compatibility / bug fixing code for duplicated templates
+			// TODO remove for 3.0
+//			CompatibilityTemplateStore.prunwldnjewleDuplicates(fCodeTemplateStore, true);//21 확인
+			
 		}
-		if (!required.isEmpty()) {
-			String missing= BasicElementLabels.getJavaElementName(required.get(0));
-			throw new TemplateException(Messages.format(BuilderMessages.CodeTemplateContextType_validate_missingvariable, missing));
+
+		return fCodeTemplateStore;
+	}
+
+	/**
+	 * Private deprecated method to avoid deprecation warnings
+	 *
+	 * @return the deprecated code template store
+	 * @deprecated to avoid deprecation warnings
+	 */
+//	private org.eclipse.jdt.internal.corext.template.java.CodeTemplates getOldCodeTemplateStoreInstance() {
+//		return org.eclipse.jdt.internal.corext.template.java.CodeTemplates.getInstance();
+//	}
+
+	private IWorkbenchPage internalGetActivePage() {
+		IWorkbenchWindow window= getWorkbench().getActiveWorkbenchWindow();
+		if (window == null)
+			return null;
+		return window.getActivePage();
+	}
+
+	private BuilderConfiguration configurationLoad() {
+		BuilderConfiguration config= null;
+		try {
+			config= PreferenceConfiguration.load();
 		}
-		super.validateVariables(variables);
+		catch (Exception e) {
+			config= PreferenceConfiguration.loadDefault();
+			BuilderLog.logInfo("Builder - Load default configuration");
+		}
+		return config;
+	}
+
+	private void getConfigureLogger()
+	{
+//		final URL url = getClass().getClassLoader().getResource("log4j.properties");
+		final URL url = getClass().getClassLoader().getResource("log4j2.xml");
+		if (null == url) {
+			return;
+		}
+
+//		PropertyConfigurator.configure(url);
 	}
 
 	/*
-	 * 다른 플러긴에서 확장 가능하도록 수정
+	 * 2012.11.05 PARK.Jeongyeob
+	 *
+	 * 빌더 플러긴에 대한 extension 항목 호출 - Configuration 항목
 	 */
-	public static void registerContextTypes(ContextTypeRegistry registry) {
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.instance().getServiceContextId()));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.instance().getServiceBodyContextId()));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.instance().getBeanContextId()));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.instance().getServiceCommentContextId()));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.instance().getBeanCommentContextId()));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.MAIN_SERVICE_CONTEXTTYPE));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.MAINSUB_SERVICE_COMMENT_CONTEXTTYPE));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.SUB_SERVICE_CONTEXTTYPE));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.TASKLET_BATCH_JOB_CONTEXTTYPE));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_JOB_CONTEXTTYPE));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.TASKLET_BATCH_BEAN_CONTEXTTYPE));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_CONTEXTTYPE));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_OPEN_CONTEXTTYPE));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_READ_CONTEXTTYPE));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_PROCESS_CONTEXTTYPE));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_WRITE_CONTEXTTYPE));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_UPDATE_CONTEXTTYPE));
-		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_CLOSE_CONTEXTTYPE));
+	private void loadConfigurationExtensionRegistry() throws Exception
+	{
+		CodeTemplateContextManager.instance();		// 초기화를 위한 호출
+		logger.debug("Builder - loadConfigurationExtensionRegistry()");
+		try {
+			IConfigurationElement[] configs = Platform.getExtensionRegistry().getConfigurationElementsFor("bxm.builder.configuration");
+
+			for (IConfigurationElement e : configs) {
+
+				final Object o = e.createExecutableExtension("class");
+
+				if (o instanceof IBuilderConfiguration ) {
+					try {
+						IBuilderConfiguration bc = (IBuilderConfiguration)o;
+						if ( bc != null )
+						{
+							logger.debug("Do config : {}", bc.getId());
+							bc.doConfig();
+						}
+					} catch (Exception e2) {
+						BuilderLog.logError("Error : IBuilderConfiguration ", e2);
+						e2.printStackTrace();
+					}
+				}
+			}
+		} catch (Exception e) {
+			BuilderLog.logError("Error - load extension-point: bxm.builder.configuration ", e);
+			e.printStackTrace();
+		}
+	}
+
+	private void loadNewProjectProviderExtensionRegistry() throws Exception
+	{
+		BuilderCustomizationManager.instance();
+	}
+
+	private void loadTestCaseValueProviderExtensionRegistry() throws Exception
+	{
+		TestCaseValueManager.instance();
+	}
+
+	public void processTemplate(){
+
+		// 기본 제공 템플릿 사용여부 설정
+		if ( !ConfigurationUtils.getConfiguration().isUseDefaultTemplate() ){
+			TemplatePersistenceData[] datas= JavaPlugin.getDefault().getTemplateStore().getTemplateData(false);
+
+			for (TemplatePersistenceData data : datas) {
+				Template template= data.getTemplate();
+				if ( template.getName().startsWith("fw_")){
+					JavaPlugin.getDefault().getTemplateStore().delete(data);
+				}
+			}
+
+			try {
+				JavaPlugin.getDefault().getTemplateStore().save();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
-
-
-
-
-
