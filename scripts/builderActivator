@@ -1,0 +1,69 @@
+import org.eclipse.jface.text.templates.persistence.TemplateStore;
+import org.eclipse.ui.editors.text.templates.ContributionTemplateStore;
+
+public class BuilderActivator extends AbstractUIPlugin {
+
+    private TemplateStore templateStore;
+    private ContextTypeRegistry contextTypeRegistry;
+
+    public ContextTypeRegistry getTemplateContextRegistry() {
+        if (contextTypeRegistry == null) {
+            contextTypeRegistry = new ContextTypeRegistry();
+            BxmCodeTemplateContextType.registerContextTypes(contextTypeRegistry);
+        }
+        return contextTypeRegistry;
+    }
+
+    public TemplateStore getTemplateStore() {
+        if (templateStore == null) {
+            templateStore = new ContributionTemplateStore(
+                getTemplateContextRegistry(),
+                getPreferenceStore(),
+                "bxm.builder.ui.custom_templates"
+            );
+            try {
+                templateStore.load();
+            } catch (IOException e) {
+                log(e);
+            }
+        }
+        return templateStore;
+    }
+}
+
+
+
+
+public static Template getCodeTemplate(String id, IJavaProject project) {
+    System.out.println(">> getCodeTemplate : [" + id + "]");
+
+    // 1) 플러그인 자체 ContributionTemplateStore에서 먼저 탐색
+    //    → plugin.xml로 등록한 fw-codetemplates.xml 템플릿이 여기 있음
+    TemplateStore pluginStore = BuilderActivator.getDefault().getTemplateStore();
+    if (pluginStore != null) {
+        Template template = pluginStore.findTemplateById(id);
+        if (template != null) {
+            return template;
+        }
+    }
+
+    // 2) 프로젝트별 커스텀 템플릿 탐색
+    if (project != null) {
+        ProjectTemplateStore projectStore =
+            new ProjectTemplateStore(project.getProject());
+        try {
+            projectStore.load();
+        } catch (IOException e) {
+            JavaPlugin.log(e);
+        }
+        Template template = projectStore.findTemplateById(id);
+        if (template != null) {
+            return template;
+        }
+    }
+
+    // 3) JDT 글로벌 스토어 탐색 (fallback)
+    return JavaPlugin.getDefault()
+                     .getCodeTemplateStore()
+                     .findTemplateById(id);
+}
