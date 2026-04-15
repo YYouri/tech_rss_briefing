@@ -1,0 +1,58 @@
+public TemplateStore getCodeTemplateStore() {
+    if (fCodeTemplateStore == null) {
+        IPreferenceStore store = getPreferenceStore();
+        
+        // 항상 ContributionTemplateStore 사용 (plugin.xml 기여 템플릿 포함)
+        fCodeTemplateStore = new ContributionTemplateStore(
+            getCodeTemplateContextRegistry(), 
+            store, 
+            CODE_TEMPLATES_KEY
+        );
+
+        try {
+            fCodeTemplateStore.load();
+        } catch (IOException e) {
+            logger.error("", e);
+        }
+
+        fCodeTemplateStore.startListeningForPreferenceChanges();
+    }
+    return fCodeTemplateStore;
+}
+
+
+
+
+public static Template getCodeTemplate(String id, IJavaProject project) {
+    System.out.println(">> getCodeTemplate : [" + id + "]");
+
+    // 1) BuilderActivator의 ContributionTemplateStore에서 탐색
+    //    → fw-codetemplates.xml의 템플릿이 여기 있음
+    Template template = BuilderActivator.getDefault()
+                            .getCodeTemplateStore()
+                            .findTemplateById(id);
+    if (template != null) {
+        return template;
+    }
+
+    // 2) 프로젝트별 오버라이드 템플릿 탐색
+    if (project != null) {
+        ProjectTemplateStore projectStore =
+            new ProjectTemplateStore(project.getProject());
+        try {
+            projectStore.load();
+        } catch (IOException e) {
+            JavaPlugin.log(e);
+        }
+        template = projectStore.findTemplateById(id);
+        if (template != null) {
+            return template;
+        }
+    }
+
+    // 3) JDT 글로벌 스토어 fallback
+    return JavaPlugin.getDefault()
+                     .getCodeTemplateStore()
+                     .findTemplateById(id);
+}
+
