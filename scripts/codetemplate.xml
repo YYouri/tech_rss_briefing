@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+/*******************************************************************************
+ * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *     John Kaplan, johnkaplantech@gmail.com - 108071 [code templates] template for body of newly created class
+ *******************************************************************************/
+-->
+
+<templates>
+
+<template name="bxm_servicecomment" id="bxm.builder.ui.codetemplates.servicecomment" description="%Bxm.CodeTemplates.servicecomment" context="servicecomment_context" enabled="true"><![CDATA[/**
+ * <br><br><b>History :</b>
+ * <pre>
+ * 
+ * 버전          성명                   일자              변경내용
+ * -------       ----------------       -----------       -----------------
+ * 1.0.0         개발자(한글이름)      ${date}           신규작성
+ * <pre>
+ * 
+ * @since ${date}
+ * @version 1.0.0
+ * @author 개발자(한글이름)
+ */]]></template>
+<template name="bxm_beancomment" id="bxm.builder.ui.codetemplates.beancomment" description="%Bxm.CodeTemplates.beancomment" context="beancomment_context" enabled="true"><![CDATA[/**
+ * <br><br><b>History :</b>
+ * <pre>
+ * 
+ * 버전          성명                   일자              변경내용
+ * -------       ----------------       -----------       -----------------
+ * 1.0.0         개발자(한글이름)      ${date}           신규작성
+ * <pre>
+ * 
+ * @since ${date}
+ * @version 1.0.0
+ * @author 개발자(한글이름)
+ */]]></template>
+
+<template name="newservice" id="bxm.builder.ui.codetemplates.newservice" description="%Bxm.CodeTemplates.newservice" context="service_context" enabled="true">${package_declaration}
+
+import bxm.container.annotation.BxmService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+${extened_imports}
+
+${servicecomment}
+${service_name}
+${type_declaration}
+</template>
+<template name="newbean" id="bxm.builder.ui.codetemplates.newbean" description="%Bxm.CodeTemplates.newbean" context="bean_context" enabled="true">${package_declaration}
+
+import bxm.container.annotation.BxmBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+${extened_imports}
+
+${beancomment}
+${bean_name}
+${type_declaration}
+</template>
+<template name="servicebody" id="bxm.builder.ui.codetemplates.servicebody" description="%Bxm.CodeTemplates.servicebody" context="servicebody_context" enabled="true">private final Logger logger = LoggerFactory.getLogger(this.getClass());
+</template>
+
+<template name="newmainservice" id="bxm.builder.ui.codetemplates.newmainservice" description="New Main Service Template" context="main_service_context" enabled="true">${package_declaration}
+
+import bxm.common.annotaion.BxmCategory;
+import ${main_service_annotation_qname};
+
+import jef.application.context.ServiceContext;
+import jef.application.services.AbstractMainService;
+
+${import_declaration}
+
+${service_comment}
+
+@${main_service_annotation_sname}
+@BxmCategory(logicalName="${logical_name}", description="${description}")
+public class ${main_service_name} extends AbstractMainService 
+{
+	${field_declaration}
+	
+	public ${main_service_name}(){ }
+	
+	public ${main_service_name}(ServiceContext ctx) {
+		super(ctx);
+	}
+	
+	${method_declaration}
+}
+</template>
+
+<template name="newsubservice" id="bxm.builder.ui.codetemplates.newsubservice" description="New Sub Service Template" context="sub_service_context" enabled="true">${package_declaration}
+
+import bxm.common.annotaion.BxmCategory;
+import ${sub_service_annotation_qname};
+
+import jef.application.context.ServiceContext;
+import jef.application.services.AbstractSubService;
+
+${import_declaration}
+
+${service_comment}
+
+${sub_service_annotation}
+@BxmCategory(logicalName="${logical_name}", description="${description}")
+public class ${sub_service_name} extends AbstractSubService 
+{
+	${field_declaration}
+
+	public ${sub_service_name}() { }
+
+	public ${sub_service_name}(ServiceContext ctx) {
+		super(ctx);
+	}
+	
+	
+	${method_declaration}
+}
+</template>
+
+<template name="newbatchbeantasklet" id="bxm.builder.ui.codetemplates.newbatchbean.tasklet" description="New Batch Bean Tasklet Template" context="batch_bean_tasklet_context" enabled="true">${package_declaration}
+
+import bxm.batch.core.step.AbstractTasklet;
+import org.springframework.context.annotation.Scope;
+import bxm.common.annotaion.BxmCategory;
+import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.batch.core.scope.context.ChunkContext;
+import bxm.container.annotation.BxmBean;
+import org.springframework.batch.core.StepContribution;
+
+${import_declaration}
+
+${bean_comment}
+
+@BxmBean("${batch_bean_name}")
+@Scope("step")
+@BxmCategory(logicalName="${logical_name}", description="${description}")
+public class ${batch_bean_name} extends AbstractTasklet {
+	/*
+	 * Tasklet
+	 * - 단순 DB CRUD 수행이나 반드시 한 번에 Commit/Rollback 되어야 하는 배치에서 사용하는 패턴
+	 */
+	@Override
+	@BxmCategory(logicalName="${logical_name}", description="${description}")
+	public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception
+	{
+		return RepeatStatus.FINISHED;
+	}
+}
+</template>
+
+<template name="newbatchbeanchunked" id="bxm.builder.ui.codetemplates.newbatchbean.chunked" description="New Batch Bean Chunked Template" context="batch_bean_chunked_context" enabled="true">${package_declaration}
+
+import java.util.List;
+
+import bxm.batch.core.step.AbstractChunked;
+import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemStream;
+import org.springframework.batch.item.ItemStreamException;
+import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.NonTransientResourceException;
+import org.springframework.batch.item.ParseException;
+import org.springframework.batch.item.UnexpectedInputException;
+import org.springframework.context.annotation.Scope;
+import bxm.common.annotaion.BxmCategory;
+import bxm.container.annotation.BxmBean;
+
+${import_declaration}
+
+${bean_comment}
+
+@BxmBean("${batch_bean_name}")
+@Scope("step")
+@BxmCategory(logicalName="${logical_name}", description="${description}")
+public class ${batch_bean_name} ${implements_statement} {
+	${method_declaration}
+}
+</template>
+
+<template name="batchbeanchunkedopen" id="bxm.builder.ui.codetemplates.batchbeanchunked.open" description="New Batch Bean Chunked Open Method Template" context="batch_bean_chunked_open_context" enabled="true">@Override
+@BxmCategory(logicalName = "", description = "")
+public void open(ExecutionContext executionContext) throws ItemStreamException
+{
+	/*
+	 * TODO
+	 */
+}
+</template>
+
+<template name="batchbeanchunkedread" id="bxm.builder.ui.codetemplates.batchbeanchunked.read" description="New Batch Bean Chunked Read Method Template" context="batch_bean_chunked_read_context" enabled="true">@Override
+@BxmCategory(logicalName = "", description = "")
+public ${reader_class_name} read() throws Exception, UnexpectedInputException, 
+		ParseException, NonTransientResourceException
+{
+	${reader_class_name} out = null;
+
+	/*
+	 * TODO
+	 */
+
+	return out;
+}
+</template>
+
+<template name="batchbeanchunkedprocess" id="bxm.builder.ui.codetemplates.batchbeanchunked.process" description="New Batch Bean Chunked Process Method Template" context="batch_bean_chunked_process_context" enabled="true">@Override
+@BxmCategory(logicalName = "", description = "")
+public ${writer_class_name} process(${reader_class_name} in) throws Exception
+{
+	${writer_class_name} out = null;
+
+	/*
+	 * TODO
+	 */
+
+	return out;
+}
+</template>
+
+<template name="batchbeanchunkedwrite" id="bxm.builder.ui.codetemplates.batchbeanchunked.write" description="New Batch Bean Chunked Write Method Template" context="batch_bean_chunked_write_context" enabled="true">@Override
+@BxmCategory(logicalName = "", description = "")
+public void write(List&lt;? extends ${writer_class_name}&gt; inList) throws Exception
+{
+	/*
+	 * TODO
+	 */	
+}
+</template>
+
+<template name="batchbeanchunkedupdate" id="bxm.builder.ui.codetemplates.batchbeanchunked.update" description="New Batch Bean Chunked Update Method Template" context="batch_bean_chunked_update_context" enabled="true">@Override
+@BxmCategory(logicalName = "", description = "")
+public void update(ExecutionContext executionContext) throws ItemStreamException 
+{
+	/*
+	 * TODO
+	 */
+}
+</template>
+
+<template name="batchbeanchunkedclose" id="bxm.builder.ui.codetemplates.batchbeanchunked.close" description="New Batch Bean Chunked Close Method Template" context="batch_bean_chunked_close_context" enabled="true">@Override
+@BxmCategory(logicalName = "", description = "")
+public void close() throws ItemStreamException 
+{
+	/*
+	 * TODO
+	 */
+}
+</template>
+
+<template name="hds_servicecomment" id="bxm.builder.ui.codetemplates.hds_servicecomment" description="Main / Sub Service Class Comment" context="hds_servicecomment_context" enabled="true"><![CDATA[/**
+ * <br><br><b>History :</b>
+ * <pre>
+ * 
+ * 버전          성명                   일자              변경내용
+ * -------       ----------------       -----------       -----------------
+ * 1.0.0         개발자(한글이름)       ${date}           신규작성
+ * <pre>
+ * 
+ * @since ${date}
+ * @version 1.0.0
+ * @author 개발자(한글이름)
+ */]]></template>
+ 
+<template name="hi2_batch_tasklet" id="bxm.builder.ui.codetemplates.hi2_batch_tasklet" description="Hi2-Framework Batch Job Config Tasklet Structure" context="hi2_batch_tasklet_context" enabled="true"><![CDATA[<?xml version="1.0" encoding="${encoding}"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+		http://www.es-code.com/schema/batchex http://www.es-code.com/schema/batchex/spring-batch-ex-2.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+
+
+	<job-component xmlns="http://www.es-code.com/schema/batchex" id="jobcomp" with-dependon="true">
+		<base-package name="${bean_package}">
+			<include name="${bean_name}"/>
+		</base-package>
+	</job-component>
+
+
+	<job id="${job_id}" xmlns="http://www.es-code.com/schema/batchex">
+		<step id="${job_id}-001" parent="parentStep">
+			<tasklet tm-datasource="${datasource}" ref="${bean_name}"/>
+		</step>
+	</job>
+</beans>]]>
+</template>
+
+<template name="hi2_batch_chunked" id="bxm.builder.ui.codetemplates.hi2_batch_chunked" description="Hi2-Framework Batch Job Config Chunked Structure" context="hi2_batch_chunked_context" enabled="true"><![CDATA[<?xml version="1.0" encoding="${encoding}"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+		http://www.es-code.com/schema/batchex http://www.es-code.com/schema/batchex/spring-batch-ex-2.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+
+
+	<job-component xmlns="http://www.es-code.com/schema/batchex" id="jobcomp" with-dependon="true">
+		<base-package name="${bean_package}">
+			<include name="${bean_name}"/>
+		</base-package>
+	</job-component>
+
+
+	<job id="${job_id}" xmlns="http://www.es-code.com/schema/batchex">
+		<step id="${job_id}-001" parent="parentStep">
+			<tasklet tm-datasource="${datasource}">
+				<chunk reader="${bean_name}" processor="${bean_name}" writer="${bean_name}"/>
+			</tasklet>
+		</step>
+	</job>
+</beans>]]>
+</template>
+
+</templates>

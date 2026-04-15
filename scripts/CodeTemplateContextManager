@@ -1,0 +1,156 @@
+package bxm.builder.ui.templates;
+
+/*
+ *
+ */
+public class CodeTemplateContextManager {
+
+	/* context type */
+	/* default */
+	public static final String SERVICE_CONTEXTTYPE = "service_context";
+	public static final String BEAN_CONTEXTTYPE = "bean_context";
+	public static final String SERVICEBODY_CONTEXTTYPE = "servicebody_context";
+	public static final String SERVICECOMMENT_CONTEXTTYPE = "servicecomment_context";
+	public static final String BEANCOMMENT_CONTEXTTYPE = "beancomment_context";
+
+
+	private static final String CODETEMPLATES_PREFIX = "bxm.builder.ui.codetemplates.";
+	public static final String COMMENT_SUFFIX = "comment";
+
+	public static final String SERVICE_ID = CODETEMPLATES_PREFIX + "newservice";
+	public static final String BEAN_ID = CODETEMPLATES_PREFIX + "newbean";
+	public static final String SERVICEBODY_ID = CODETEMPLATES_PREFIX + "servicebody";
+	public static final String SERVICECOMMENT_ID= CODETEMPLATES_PREFIX + "service" + COMMENT_SUFFIX;
+	public static final String BEANCOMMENT_ID= CODETEMPLATES_PREFIX + "bean" + COMMENT_SUFFIX;
+
+	/**
+	 * HDS 코드 템플릿
+	 */
+	public static final String MAINSUB_SERVICE_COMMENT_CONTEXTTYPE= "hds_servicecomment_context";
+	public static final String MAIN_SERVICE_CONTEXTTYPE= "main_service_context";
+	public static final String SUB_SERVICE_CONTEXTTYPE= "sub_service_context";
+	public static final String TASKLET_BATCH_JOB_CONTEXTTYPE= "hi2_batch_tasklet_context";
+	public static final String CHUNKED_BATCH_JOB_CONTEXTTYPE= "hi2_batch_chunked_context";
+	public static final String TASKLET_BATCH_BEAN_CONTEXTTYPE= "batch_bean_tasklet_context";
+	public static final String CHUNKED_BATCH_BEAN_CONTEXTTYPE= "batch_bean_chunked_context";
+	public static final String CHUNKED_BATCH_BEAN_OPEN_CONTEXTTYPE= "batch_bean_chunked_open_context";
+	public static final String CHUNKED_BATCH_BEAN_READ_CONTEXTTYPE= "batch_bean_chunked_read_context";
+	public static final String CHUNKED_BATCH_BEAN_PROCESS_CONTEXTTYPE= "batch_bean_chunked_process_context";
+	public static final String CHUNKED_BATCH_BEAN_WRITE_CONTEXTTYPE= "batch_bean_chunked_write_context";
+	public static final String CHUNKED_BATCH_BEAN_UPDATE_CONTEXTTYPE= "batch_bean_chunked_update_context";
+	public static final String CHUNKED_BATCH_BEAN_CLOSE_CONTEXTTYPE= "batch_bean_chunked_close_context";
+	
+	public static final String SERVICE_COMMENT_ID= CODETEMPLATES_PREFIX + "hds_service" + COMMENT_SUFFIX;
+	public static final String MAIN_SERVICE_ID= CODETEMPLATES_PREFIX + "newmainservice";
+	public static final String SUB_SERVICE_ID= CODETEMPLATES_PREFIX + "newsubservice";
+	public static final String TASKLET_BATCH_JOB_ID= CODETEMPLATES_PREFIX + "hi2_batch_tasklet";
+	public static final String CHUNKED_BATCH_JOB_ID= CODETEMPLATES_PREFIX + "hi2_batch_chunked";
+	public static final String TASKLET_BATCH_BEAN_ID= CODETEMPLATES_PREFIX + "newbatchbean.tasklet";
+	public static final String CHUNKED_BATCH_BEAN_ID= CODETEMPLATES_PREFIX + "newbatchbean.chunked";
+	public static final String CHUNKED_BATCH_BEAN_OPEN_ID= CODETEMPLATES_PREFIX + "batchbeanchunked.open";
+	public static final String CHUNKED_BATCH_BEAN_READ_ID= CODETEMPLATES_PREFIX + "batchbeanchunked.read";
+	public static final String CHUNKED_BATCH_BEAN_PROCESS_ID= CODETEMPLATES_PREFIX + "batchbeanchunked.process";
+	public static final String CHUNKED_BATCH_BEAN_WRITE_ID= CODETEMPLATES_PREFIX + "batchbeanchunked.write";
+	public static final String CHUNKED_BATCH_BEAN_UPDATE_ID= CODETEMPLATES_PREFIX + "batchbeanchunked.update";
+	public static final String CHUNKED_BATCH_BEAN_CLOSE_ID= CODETEMPLATES_PREFIX + "batchbeanchunked.close";
+	
+	
+	private CodeTemplateContextManager()
+	{
+		/*singleton*/
+	}
+
+	private static CodeTemplateContextManager INSTANCE = null;
+
+	public static CodeTemplateContextManager instance()
+	{
+		if ( INSTANCE == null ) INSTANCE = new CodeTemplateContextManager();
+		return INSTANCE;
+	}
+
+	private String serviceContextId = null;
+	private String beanContextId = null;
+	private String serviceBodyContextId = null;
+	private String serviceCommentContextId = null;
+	private String beanCommentContextId = null;
+
+	private String serviceId = null;
+	private String beanId = null;
+	private String serviceBodyId = null;
+	private String serviceCommentId = null;
+	private String beanCommentId = null;
+
+	public synchronized String getServiceContextId() {
+
+		if ( serviceContextId == null ) return SERVICE_CONTEXTTYPE;
+		else return serviceContextId;
+	}
+	public synchronized void setServiceContextId(String serviceContextId) {
+		this.serviceContextId = serviceContextId;
+	}
+	public synchronized String getBeanContextId() {
+		if ( beanContextId == null ) return BEAN_CONTEXTTYPE;
+		else return beanContextId;
+	}
+	public synchronized void setBeanContextId(String beanContextId) {
+		this.beanContextId = beanContextId;
+	}
+	public synchronized String getServiceBodyContextId() {
+		if ( serviceBodyContextId == null ) return SERVICEBODY_CONTEXTTYPE;
+		else return serviceBodyContextId;
+	}
+	public synchronized void setServiceBodyContextId(String serviceBodyContextId) {
+		this.serviceBodyContextId = serviceBodyContextId;
+	}
+	public synchronized String getServiceCommentContextId() {
+		if ( serviceCommentContextId == null ) return SERVICECOMMENT_CONTEXTTYPE;
+		else return serviceCommentContextId;
+	}
+	public synchronized void setServiceCommentContextId(String serviceCommentContextId) {
+		this.serviceCommentContextId = serviceCommentContextId;
+	}
+
+	public synchronized String getBeanCommentContextId() {
+		if ( beanCommentContextId == null ) return BEANCOMMENT_CONTEXTTYPE;
+		else return beanCommentContextId;
+	}
+	public synchronized void setBeanCommentContextId(String beanCommentContextId) {
+		this.beanCommentContextId = beanCommentContextId;
+	}
+
+	public String getServiceId() {
+		if ( serviceId == null ) return SERVICE_ID;
+		else return serviceId;
+	}
+	public void setServiceId(String serviceId) {
+		this.serviceId = serviceId;
+	}
+	public String getBeanId() {
+		if ( beanId == null ) return BEAN_ID;
+		else return beanId;
+	}
+	public void setBeanId(String beanId) {
+		this.beanId = beanId;
+	}
+	public String getServiceBodyId() {
+		if ( serviceBodyId == null ) return SERVICEBODY_ID;
+		else return serviceBodyId;
+	}
+	public void setServiceBodyId(String serviceBodyId) {
+		this.serviceBodyId = serviceBodyId;
+	}
+	public String getServiceCommentId() {
+		if ( serviceCommentId == null ) return SERVICECOMMENT_ID;
+		return serviceCommentId;
+	}
+	public void setServiceCommentId(String serviceCommentId) {
+		this.serviceCommentId = serviceCommentId;
+	}
+	public String getBeanCommentId() {
+		if ( beanCommentId == null ) return BEANCOMMENT_ID;
+		return beanCommentId;
+	}
+	public void setBeanCommentId(String beanCommentId) {
+		this.beanCommentId = beanCommentId;
+	}
+}

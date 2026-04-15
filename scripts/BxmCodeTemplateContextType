@@ -1,0 +1,225 @@
+/**
+ *
+ */
+package bxm.builder.ui.templates;
+
+import java.util.ArrayList;
+import org.eclipse.jdt.internal.core.manipulation.CodeTemplateContextType;
+import org.eclipse.jdt.internal.corext.util.Messages;
+import org.eclipse.jdt.internal.ui.viewsupport.BasicElementLabels;
+import org.eclipse.jface.text.templates.ContextTypeRegistry;
+import org.eclipse.jface.text.templates.TemplateException;
+import org.eclipse.jface.text.templates.TemplateVariable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import bxm.builder.message.BuilderMessages;
+
+/**
+ * @file			bxm.builder.ui.templates.BxmCodeTemplateContextType.java
+ * @filetype		java source file
+ * @brief
+ * @author			ShinChangYoung
+ * @version			1.0
+ * @history
+ * 성		명			일		자				근  거  자  료					변  경  내  용
+ * ----------------		-------------------		-------------------		--------------------------
+ * ShinChangYoung		2012. 2. 6.			product 개발				신규 작성
+ *
+ */
+public class BxmCodeTemplateContextType extends CodeTemplateContextType {
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	/* resolver types */
+	public static final String SERVICENAME = "service_name";
+	public static final String BEANNAME = "bean_name";
+	public static final String SERVICE_BODY = "servicebody";
+	public static final String SERVICE_COMMENT = "servicecomment";
+	public static final String BEAN_COMMENT = "beancomment";
+	public static final String USER_NAME_COMMENT= "user_name";
+	public static final String SINCE_COMMENT= "date";
+
+	public static final String EXTENED_IMPORTS = "extened_imports"; // 2012.11.21 PARK.Jeongyeob
+
+	private boolean fIsComment;
+
+	public BxmCodeTemplateContextType(String contextName) {
+		super(contextName);
+		System.out.println(">> contextName : " + contextName);
+		fIsComment = false;
+
+		if (CodeTemplateContextManager.instance().getServiceContextId().equals(contextName)) {
+			System.out.println(">> getServiceContextId");
+			addResolver(new BxmReolver(TYPENAME,  BuilderMessages.CodeTemplateContextType_variable_description_typename));
+			addResolver(new BxmReolver(PACKAGE_DECLARATION,  BuilderMessages.CodeTemplateContextType_variable_description_packdeclaration));
+			addResolver(new BxmReolver(TYPE_DECLARATION,  BuilderMessages.CodeTemplateContextType_variable_description_typedeclaration));
+			addResolver(new BxmReolver(SERVICE_COMMENT,  BuilderMessages.CodeTemplateContextType_variable_description_servicecomment));
+			addResolver(new BxmReolver(FILE_COMMENT,  BuilderMessages.CodeTemplateContextType_variable_description_filecomment));
+			addResolver(new BxmReolver(SERVICENAME, BuilderMessages.CodeTemplateContextType_variable_description_service));
+			// 2012.11.21 [[
+			addResolver(new BxmReolver(EXTENED_IMPORTS, BuilderMessages.CodeTemplateContextType_variable_description_extendedimport));
+			// 2012.11.21 ]]
+			addCompilationUnitVariables();
+		} else if (CodeTemplateContextManager.instance().getServiceBodyContextId().equals(contextName)) {
+			System.out.println(">> getServiceBodyContextId");
+			addResolver(new CodeTemplateVariableResolver(TYPENAME,  BuilderMessages.CodeTemplateContextType_variable_description_typename));
+			addCompilationUnitVariables();
+		} else if (CodeTemplateContextManager.instance().getBeanContextId().equals(contextName)) {
+			System.out.println(">> getBeanContextId");
+			addResolver(new BxmReolver(TYPENAME,  BuilderMessages.CodeTemplateContextType_variable_description_typename));
+			addResolver(new BxmReolver(PACKAGE_DECLARATION,  BuilderMessages.CodeTemplateContextType_variable_description_packdeclaration));
+			addResolver(new BxmReolver(TYPE_DECLARATION,  BuilderMessages.CodeTemplateContextType_variable_description_typedeclaration));
+			addResolver(new BxmReolver(BEAN_COMMENT,  BuilderMessages.CodeTemplateContextType_variable_description_servicecomment));
+			addResolver(new BxmReolver(FILE_COMMENT,  BuilderMessages.CodeTemplateContextType_variable_description_filecomment));
+			// 2012.11.21 [[
+			addResolver(new BxmReolver(BEANNAME, BuilderMessages.CodeTemplateContextType_variable_description_bean));
+			addResolver(new BxmReolver(EXTENED_IMPORTS, BuilderMessages.CodeTemplateContextType_variable_description_extendedimport));
+			// 2012.11.21 ]]
+			addCompilationUnitVariables();
+		} else if (CodeTemplateContextManager.instance().getServiceCommentContextId().equals(contextName)) {
+			System.out.println(">> getServiceCommentContextId");
+			addResolver(new CodeTemplateVariableResolver(SERVICENAME,  BuilderMessages.CodeTemplateContextType_variable_description_servicename));
+			addResolver(new CodeTemplateVariableResolver(TYPENAME,  BuilderMessages.CodeTemplateContextType_variable_description_typename));
+			addResolver(new CodeTemplateVariableResolver(ENCLOSING_TYPE,  BuilderMessages.CodeTemplateContextType_variable_description_enclosingtype));
+			addResolver(new BxmReolver("user_name", "author name"));
+			addResolver(new BxmReolver("date", "since date(format: yyyyMMdd)"));
+			addResolver(new TagsVariableResolver());
+			addCompilationUnitVariables();
+			fIsComment= true;
+		} else if (CodeTemplateContextManager.instance().getBeanCommentContextId().equals(contextName)) {
+			System.out.println(">> getBeanCommentContextId");
+			addResolver(new CodeTemplateVariableResolver(BEANNAME,  BuilderMessages.CodeTemplateContextType_variable_description_servicename));
+			addResolver(new CodeTemplateVariableResolver(TYPENAME,  BuilderMessages.CodeTemplateContextType_variable_description_typename));
+			addResolver(new CodeTemplateVariableResolver(ENCLOSING_TYPE,  BuilderMessages.CodeTemplateContextType_variable_description_enclosingtype));
+			addResolver(new TagsVariableResolver());
+			addResolver(new BxmReolver("user_name", "author name"));
+			addResolver(new BxmReolver("date", "since date(format: yyyyMMdd)"));
+			addCompilationUnitVariables();
+			fIsComment= true;
+		} else if(CodeTemplateContextManager.MAIN_SERVICE_CONTEXTTYPE.equals(contextName)) {
+			addResolver(new CodeTemplateVariableResolver("package_declaration", BuilderMessages.CodeTemplateContextType_variable_description_packdeclaration));
+			addResolver(new CodeTemplateVariableResolver("import_declaration", BuilderMessages.CodeTemplateContextType_variable_description_extendedimport));
+			addResolver(new CodeTemplateVariableResolver("main_service_name", BuilderMessages.CodeTemplateContextType_variable_description_service));
+			addResolver(new CodeTemplateVariableResolver("logical_name", "resource logical name"));
+			addResolver(new CodeTemplateVariableResolver("description", "resource description"));
+			addResolver(new CodeTemplateVariableResolver("service_comment", "Main Service Class Comment"));
+			addResolver(new CodeTemplateVariableResolver("method_declaration", "Main Service method"));
+			addResolver(new CodeTemplateVariableResolver("field_declaration", "Main Service field"));
+			addResolver(new CodeTemplateVariableResolver("main_service_annotation_qname", "Main Service Annotation Fully Qualified Name"));
+			addResolver(new CodeTemplateVariableResolver("main_service_annotation_sname", "Main Service Annotation Short name"));
+		} else if(CodeTemplateContextManager.MAINSUB_SERVICE_COMMENT_CONTEXTTYPE.equals(contextName)) {
+			addResolver(new CodeTemplateVariableResolver("date", "Class generated date"));
+		} else if(CodeTemplateContextManager.SUB_SERVICE_CONTEXTTYPE.equals(contextName)) {
+			addResolver(new CodeTemplateVariableResolver("package_declaration", BuilderMessages.CodeTemplateContextType_variable_description_packdeclaration));
+			addResolver(new CodeTemplateVariableResolver("import_declaration", BuilderMessages.CodeTemplateContextType_variable_description_extendedimport));
+			addResolver(new CodeTemplateVariableResolver("sub_service_annotation_qname", "Sub Service Annotation Fully Qualified Name"));
+			addResolver(new CodeTemplateVariableResolver("sub_service_annotation", "Write sub service annotation if it is spring bean"));
+			addResolver(new CodeTemplateVariableResolver("sub_service_name", BuilderMessages.CodeTemplateContextType_variable_description_service));
+			addResolver(new CodeTemplateVariableResolver("logical_name", "resource logical name"));
+			addResolver(new CodeTemplateVariableResolver("description", "resource description"));
+			addResolver(new CodeTemplateVariableResolver("service_comment", "Main Service Class Comment"));
+			addResolver(new CodeTemplateVariableResolver("method_declaration", "Main Service method"));
+			addResolver(new CodeTemplateVariableResolver("field_declaration", "Main Service field"));
+		} else if(CodeTemplateContextManager.TASKLET_BATCH_JOB_CONTEXTTYPE.equals(contextName) ||
+				CodeTemplateContextManager.CHUNKED_BATCH_JOB_CONTEXTTYPE.equals(contextName)) {
+			addResolver(new CodeTemplateVariableResolver("encoding", "Write xml encoding"));
+			addResolver(new CodeTemplateVariableResolver("bean_package", "Write batch bean package"));
+			addResolver(new CodeTemplateVariableResolver("bean_name", "Write batch bean name"));
+			addResolver(new CodeTemplateVariableResolver("job_id", "write job id"));
+			addResolver(new CodeTemplateVariableResolver("datasource", "write datasource name"));
+		} else if(CodeTemplateContextManager.TASKLET_BATCH_BEAN_CONTEXTTYPE.equals(contextName)) {
+			addResolver(new CodeTemplateVariableResolver("package_declaration", "Write batch bean package"));
+			addResolver(new CodeTemplateVariableResolver("import_declaration", "Write batch bean additional import"));
+			addResolver(new CodeTemplateVariableResolver("bean_comment", "Write batch bean comment"));
+			addResolver(new CodeTemplateVariableResolver("batch_bean_name", "Write batch bean name"));
+			addResolver(new CodeTemplateVariableResolver("logical_name", "Write batch bean logical name"));
+			addResolver(new CodeTemplateVariableResolver("description", "Write batch bean description"));
+		} else if(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_CONTEXTTYPE.equals(contextName)) {
+			addResolver(new CodeTemplateVariableResolver("package_declaration", "Write batch bean package"));
+			addResolver(new CodeTemplateVariableResolver("import_declaration", "Write batch bean additional import"));
+			addResolver(new CodeTemplateVariableResolver("bean_comment", "Write batch bean comment"));
+			addResolver(new CodeTemplateVariableResolver("batch_bean_name", "Write batch bean name"));
+			addResolver(new CodeTemplateVariableResolver("logical_name", "Write batch bean logical name"));
+			addResolver(new CodeTemplateVariableResolver("description", "Write batch bean description"));
+			addResolver(new CodeTemplateVariableResolver("implements_statement", "Write batch bean super class"));
+			addResolver(new CodeTemplateVariableResolver("method_declaration", "Write method that batch bean should implement"));
+		} else if(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_READ_CONTEXTTYPE.equals(contextName)) {
+			addResolver(new CodeTemplateVariableResolver("reader_class_name", "Write batch bean reader class name"));
+		} else if(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_PROCESS_CONTEXTTYPE.equals(contextName)) {
+			addResolver(new CodeTemplateVariableResolver("reader_class_name", "Write batch bean reader class name"));
+			addResolver(new CodeTemplateVariableResolver("writer_class_name", "Write batch bean writer class name"));
+		} else if(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_WRITE_CONTEXTTYPE.equals(contextName)) {
+			addResolver(new CodeTemplateVariableResolver("writer_class_name", "Write batch bean writer class name"));
+		}
+	}
+
+
+	private void addCompilationUnitVariables() {
+		addResolver(new BxmReolver(FILENAME, BuilderMessages.CodeTemplateContextType_variable_description_filename));
+		addResolver(new BxmReolver(PACKAGENAME, BuilderMessages.CodeTemplateContextType_variable_description_packagename));
+		addResolver(new BxmReolver(PROJECTNAME, BuilderMessages.CodeTemplateContextType_variable_description_projectname));
+	}
+
+	@Override
+	protected void validateVariables(TemplateVariable[] variables) throws TemplateException {
+		logger.trace("BxmCodeTemplateContextType.validateVariables");
+		ArrayList<String> required=  new ArrayList<String>(5);
+		String contextName= getId();
+		if (CodeTemplateContextManager.instance().getServiceContextId().equals(contextName)) {
+			required.add(PACKAGE_DECLARATION);
+			required.add(TYPE_DECLARATION);
+			required.add(SERVICENAME);
+		}
+		else if (CodeTemplateContextManager.instance().getBeanContextId().equals(contextName)) {
+			required.add(PACKAGE_DECLARATION);
+			required.add(TYPE_DECLARATION);
+		}
+		for (int i= 0; i < variables.length; i++) {
+			String type= variables[i].getType();
+			
+			System.out.println("#################################################################################");
+			System.out.println("#################################################################################");
+			System.out.println("#################################################################################");
+			System.out.println(type);
+			if (getResolver(type) == null) {
+				String unknown= BasicElementLabels.getJavaElementName(type);
+				throw new TemplateException(Messages.format(BuilderMessages.CodeTemplateContextType_validate_unknownvariable, unknown));
+			}
+			required.remove(type);
+		}
+		if (!required.isEmpty()) {
+			String missing= BasicElementLabels.getJavaElementName(required.get(0));
+			throw new TemplateException(Messages.format(BuilderMessages.CodeTemplateContextType_validate_missingvariable, missing));
+		}
+		super.validateVariables(variables);
+	}
+
+	/*
+	 * 다른 플러긴에서 확장 가능하도록 수정
+	 */
+	public static void registerContextTypes(ContextTypeRegistry registry) {
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.instance().getServiceContextId()));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.instance().getServiceBodyContextId()));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.instance().getBeanContextId()));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.instance().getServiceCommentContextId()));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.instance().getBeanCommentContextId()));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.MAIN_SERVICE_CONTEXTTYPE));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.MAINSUB_SERVICE_COMMENT_CONTEXTTYPE));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.SUB_SERVICE_CONTEXTTYPE));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.TASKLET_BATCH_JOB_CONTEXTTYPE));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_JOB_CONTEXTTYPE));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.TASKLET_BATCH_BEAN_CONTEXTTYPE));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_CONTEXTTYPE));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_OPEN_CONTEXTTYPE));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_READ_CONTEXTTYPE));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_PROCESS_CONTEXTTYPE));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_WRITE_CONTEXTTYPE));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_UPDATE_CONTEXTTYPE));
+		registry.addContextType(new BxmCodeTemplateContextType(CodeTemplateContextManager.CHUNKED_BATCH_BEAN_CLOSE_CONTEXTTYPE));
+	}
+}
+
+
+
+
+
