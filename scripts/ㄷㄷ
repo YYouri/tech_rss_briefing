@@ -1,116 +1,30 @@
-OMM hi.framework.application.service.entity.IntegerVO
-<description="IntegerVO">
-{
-	int data<length=8 description="data" comment="0 ~ 7">;
-}
+<JEF> <ERROR> <20260416024109> <Batch framework initialize fail, exit.> 
+	<Cannot invoke "org.apache.logging.log4j.core.config.LoggerConfig.getAppenders()" because "loggerConfig2" is null> 
+	<java.lang.NullPointerException: Cannot invoke "org.apache.logging.log4j.core.config.LoggerConfig.getAppenders()" because "loggerConfig2" is null
+	at jef.foundation.logging.helper.E2ELoggerHelper.appendEvent(E2ELoggerHelper.java:41)
 
 
-import java.util.List;
-import java.util.Map;
-
-import jakarta.xml.bind.annotation.XmlRootElement;
-import jakarta.xml.bind.annotation.XmlType;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import bxm.omm.annotation.BxmOmm_Field;
-import bxm.omm.predict.FieldInfo;
-import bxm.omm.predict.Predictable;
-import jef.application.entity.BusinessVO;
-
-/**
- * int 데이터를 화면에 보낼 응답 문자열로 변환하고자 할 때 데이터를 저장하는 클래스이다.
- *
- * @author Framework Team
- *
- */
-@XmlType(propOrder={"data"}, name="HiIntegerVO")
-@XmlRootElement(name="IntegerVO")
-@SuppressWarnings("all")
-public class IntegerVO extends BusinessVO implements Predictable {
-
-	private static final long serialVersionUID = 1L;
-
-	@BxmOmm_Field(referenceType="reference", description="data", formatType="", format="", align="left", length=8, decimal=0, arrayReference="", fill="", comment="0 ~ 7", encrypt="", validationRule="")
-	private int data;
-
-	/**
-	 * 생성자
-	 *
-	 */
-	public IntegerVO() {
-	}
-
-	/**
-	 * 생성자
-	 *
-	 * @param data
-	 */
-	public IntegerVO(int data) {
-		this.data = data;
-	}
-
-	/**
-	 * int 데이터를 반환한다.
-	 *
-	 * @return int
-	 */
-	public int getData() {
-		return data;
-	}
-
-	/**
-	 * int 데이터를 설정한다.
-	 *
-	 * @param data 데이터
-	 */
-	public void setData(int data) {
-		this.data = data;
-	}
-
-	@Override
-	@JsonIgnore
-	public long predictMessageLength() {
-		return 0;
-	}
-
-	@Override
-	public IntegerVO clone(){
-		try{
-			IntegerVO object= (IntegerVO)super.clone();
-			object.data = this.data;
-			return object;
-		} 
-		catch(CloneNotSupportedException e){
-			throw new bxm.omm.exception.CloneFailedException();
+	public static void appendEvent(String fqnOfCategoryClass, String loggerName, int intLevel, Object message, Throwable throwable) {
+		Log4jLogEvent.Builder builder = Log4jLogEvent.newBuilder().setLoggerName(loggerName).setLoggerFqcn(fqnOfCategoryClass).setLevel(toLevel(intLevel));
+		
+		LogEvent event = null;
+		if( message instanceof TracingVO ) {
+			builder = builder.setMessage(new E2ETracingVOMessage(message));
+		} else {
+			builder = builder.setMessage(new SimpleMessage((String)message));
+		}
+		event = builder.setThrown(throwable).build();
+		
+		LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+		Map<String, LoggerConfig> loggers = ctx.getConfiguration().getLoggers();
+		LoggerConfig loggerConfig2 = loggers.get(loggerName);
+		if( loggerConfig2 == null ) {
+			loggerConfig2 = loggers.get(""); // root
+		}
+		Collection<Appender> values = loggerConfig2.getAppenders().values();
+		for (Appender appender : values) {
+//			appender.append(event);
+			appender.append(Log4jLogEvent.createMemento(event));
 		}
 	}
-}
-
-java.lang.IllegalStateException: getImportedNames archive:file:/D:/DEV/workspace/svn/jdk21-ex/EX/WebContent/WEB-INF/lib/jef-application-3.1.0.jar!/hi/framework/application/service/entity/IntegerVO.omm
-	at org.eclipse.xtext.builder.clustering.CopiedResourceDescription.getImportedNames(CopiedResourceDescription.java:76)
-	at org.eclipse.xtext.resource.impl.DefaultResourceDescriptionManager.getImportedNames(DefaultResourceDescriptionManager.java:114)
-	at org.eclipse.xtext.resource.impl.DefaultResourceDescriptionManager.isAffected(DefaultResourceDescriptionManager.java:141)
-	at org.eclipse.xtext.builder.clustering.ClusteringBuilderState.queueAffectedResources(ClusteringBuilderState.java:520)
-	at org.eclipse.xtext.builder.clustering.ClusteringBuilderState.doUpdate(ClusteringBuilderState.java:300)
-	at org.eclipse.xtext.builder.builderState.AbstractBuilderState.update(AbstractBuilderState.java:171)
-	at org.eclipse.xtext.builder.impl.XtextBuilder.doBuild(XtextBuilder.java:522)
-	at org.eclipse.xtext.builder.impl.XtextBuilder.addInfosFromTaskAndBuild(XtextBuilder.java:456)
-	at org.eclipse.xtext.builder.impl.XtextBuilder.fullBuild(XtextBuilder.java:563)
-	at org.eclipse.xtext.builder.impl.XtextBuilder.build(XtextBuilder.java:334)
-	at org.eclipse.core.internal.events.BuildManager$2.run(BuildManager.java:1077)
-	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
-	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:296)
-	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:352)
-	at org.eclipse.core.internal.events.BuildManager$1.run(BuildManager.java:441)
-	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
-	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:444)
-	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:555)
-	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:503)
-	at org.eclipse.core.internal.events.BuildManager.build(BuildManager.java:585)
-	at org.eclipse.core.internal.events.AutoBuildJob.doBuild(AutoBuildJob.java:207)
-	at org.eclipse.core.internal.events.AutoBuildJob.run(AutoBuildJob.java:300)
-	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
-
-!ENTRY org.apache.log4j 4 0 2026-04-16 09:34:32.222
-!MESSAGE org.eclipse.xtext.builder.clustering.CopiedResourceDescription  - java.lang.IllegalStateException: getImportedNames archive:file:/D:/DEV/workspace/svn/jdk21-ex/EX/WebContent/WEB-INF/lib/jef-application-3.1.0.jar!/hi/framework/application/service/entity/IntegerVO.omm
+	
