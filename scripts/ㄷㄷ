@@ -86,3 +86,31 @@ public class IntegerVO extends BusinessVO implements Predictable {
 		}
 	}
 }
+
+java.lang.IllegalStateException: getImportedNames archive:file:/D:/DEV/workspace/svn/jdk21-ex/EX/WebContent/WEB-INF/lib/jef-application-3.1.0.jar!/hi/framework/application/service/entity/IntegerVO.omm
+	at org.eclipse.xtext.builder.clustering.CopiedResourceDescription.getImportedNames(CopiedResourceDescription.java:76)
+	at org.eclipse.xtext.resource.impl.DefaultResourceDescriptionManager.getImportedNames(DefaultResourceDescriptionManager.java:114)
+	at org.eclipse.xtext.resource.impl.DefaultResourceDescriptionManager.isAffected(DefaultResourceDescriptionManager.java:141)
+	at org.eclipse.xtext.builder.clustering.ClusteringBuilderState.queueAffectedResources(ClusteringBuilderState.java:520)
+	at org.eclipse.xtext.builder.clustering.ClusteringBuilderState.doUpdate(ClusteringBuilderState.java:300)
+	at org.eclipse.xtext.builder.builderState.AbstractBuilderState.update(AbstractBuilderState.java:171)
+	at org.eclipse.xtext.builder.impl.XtextBuilder.doBuild(XtextBuilder.java:522)
+	at org.eclipse.xtext.builder.impl.XtextBuilder.addInfosFromTaskAndBuild(XtextBuilder.java:456)
+	at org.eclipse.xtext.builder.impl.XtextBuilder.fullBuild(XtextBuilder.java:563)
+	at org.eclipse.xtext.builder.impl.XtextBuilder.build(XtextBuilder.java:334)
+	at org.eclipse.core.internal.events.BuildManager$2.run(BuildManager.java:1077)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:296)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:352)
+	at org.eclipse.core.internal.events.BuildManager$1.run(BuildManager.java:441)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:444)
+	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:555)
+	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:503)
+	at org.eclipse.core.internal.events.BuildManager.build(BuildManager.java:585)
+	at org.eclipse.core.internal.events.AutoBuildJob.doBuild(AutoBuildJob.java:207)
+	at org.eclipse.core.internal.events.AutoBuildJob.run(AutoBuildJob.java:300)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+
+!ENTRY org.apache.log4j 4 0 2026-04-16 09:34:32.222
+!MESSAGE org.eclipse.xtext.builder.clustering.CopiedResourceDescription  - java.lang.IllegalStateException: getImportedNames archive:file:/D:/DEV/workspace/svn/jdk21-ex/EX/WebContent/WEB-INF/lib/jef-application-3.1.0.jar!/hi/framework/application/service/entity/IntegerVO.omm
