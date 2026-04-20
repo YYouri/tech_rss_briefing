@@ -1,353 +1,1258 @@
-package hi.bxm.assist.core.llm;
+package com.github.gradusnikov.eclipse.assistai.view;
 
-import hi.bxm.assist.core.model.ChatMessage;
-import hi.bxm.assist.core.model.CompletionRequest;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-/**
- * 내부 LLM 서버(OpenAI-compatible)와 통신하는 클라이언트.
- * JDK 8 표준 라이브러리(HttpURLConnection)만 사용 — 외부 의존성 없음.
- *
- * 지원 엔드포인트:
- *  - POST /v1/chat/completions       (non-stream / SSE stream)
- *  - POST /v1/completions            (FIM prompt — qwen-coder/deepseek-coder)
- *
- * 설정은 Eclipse Preferences > BXM Assist 에서 관리한다.
- */
-public class OpenAIClient {
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.e4.core.di.annotations.Creatable;
+import org.eclipse.e4.ui.di.Focus;
+import org.eclipse.e4.ui.di.UISynchronize;
+import org.eclipse.jface.fieldassist.ContentProposalAdapter;
+import org.eclipse.jface.fieldassist.IContentProposal;
+import org.eclipse.jface.fieldassist.IContentProposalProvider;
+import org.eclipse.jface.fieldassist.TextContentAdapter;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.ImageTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.PlatformUI;
 
-    private String baseUrl;
-    private String apiKey;
-    private String defaultModel;
-    private int connectTimeoutMs;
-    private int readTimeoutMs;
+import com.github.gradusnikov.eclipse.assistai.chat.Attachment;
+import com.github.gradusnikov.eclipse.assistai.chat.Attachment.UiVisitor;
+import com.github.gradusnikov.eclipse.assistai.models.ModelApiDescriptor;
+import com.github.gradusnikov.eclipse.assistai.prompt.MarkdownParser;
+import com.github.gradusnikov.eclipse.assistai.tools.AssistaiSharedFiles;
+import com.github.gradusnikov.eclipse.assistai.tools.AssistaiSharedFonts;
+import com.github.gradusnikov.eclipse.assistai.tools.AssistaiSharedImages;
+import com.github.gradusnikov.eclipse.assistai.view.dnd.DropManager;
 
-    public OpenAIClient(String baseUrl, String apiKey, String defaultModel) {
-        this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-        this.apiKey = apiKey;
-        this.defaultModel = defaultModel;
-        this.connectTimeoutMs = 5_000;
-        this.readTimeoutMs = 60_000;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+
+@Creatable
+public class ChatView
+{
+
+	private volatile boolean pendingRefresh=false;
+	private static final int REFRESH_INTERVAL_MS=100;
+	private String streamingMessageId=null;
+	
+    @Inject
+    private UISynchronize        uiSync;
+
+    @Inject
+    private ILog                 logger;
+
+    @Inject
+    private ChatViewPresenter     presenter;
+
+    @Inject
+    private DropManager          dropManager;
+
+    @Inject
+    private AssistaiSharedImages sharedImages;
+
+    @Inject
+    private AssistaiSharedFiles  sharedFiles;
+
+    @Inject
+    private AssistaiSharedFonts sharedFonts;
+
+    // Browser 대신 StyledText 사용
+    private StyledText           chatArea;
+
+    private Text                 inputArea;
+
+    private ScrolledComposite    scrolledComposite;
+
+    private Composite            imagesContainer;
+
+    private ToolItem             modelDropdownItem;
+
+    private ToolBar              actionToolBar;
+
+    private Menu                 modelMenu;
+
+    private Map<String, String>  autocompleteModel;
+
+    private boolean              autoScrollEnabled = true;
+
+    private int                  notificationIdCounter = 0;
+
+    // 알림 표시용 Label
+    private Label                notificationLabel;
+
+    // 채팅 메시지 목록 (Browser.execute 대신 Java로 관리)
+    private final List<ChatMessage> messages = new ArrayList<>();
+
+    public enum NotificationType
+    {
+        INFO, WARNING, ERROR
     }
 
-    // ── 동기 chat completion ──────────────────────────────────
-    public String complete(CompletionRequest request) throws IOException {
-        String model = request.getModel() != null ? request.getModel() : defaultModel;
-        String body = buildChatBody(model, request.getMessages(),
-                request.getTemperature(), request.getMaxTokens(), false, null);
-        String responseJson = post("v1/chat/completions", body);
-        return parseChoiceContent(responseJson);
-    }
-
-    public String complete(List<ChatMessage> messages) throws IOException {
-        String body = buildChatBody(defaultModel, messages, 0.2, 2048, false, null);
-        String responseJson = post("v1/chat/completions", body);
-        return parseChoiceContent(responseJson);
-    }
-
-    // ── 스트리밍 chat completion (SSE) ────────────────────────
     /**
-     * SSE 스트리밍. 도착하는 delta 마다 callback.onToken 호출.
-     * callback.isCancelled() 가 true 가 되면 즉시 연결 종료.
+     * 채팅 메시지를 Java에서 관리하기 위한 내부 클래스
      */
-    public void completeStream(List<ChatMessage> messages, double temperature,
-                               int maxTokens, StreamCallback callback) {
-        completeStream(defaultModel, messages, temperature, maxTokens, null, callback);
-    }
+    private static class ChatMessage
+    {
+        String  id;
+        String  role;
+        String  content;
+        boolean hidden;
 
-    public void completeStream(String model, List<ChatMessage> messages,
-                               double temperature, int maxTokens,
-                               String[] stopSequences, StreamCallback callback) {
-        if (model == null) model = defaultModel;
-        String body = buildChatBody(model, messages, temperature, maxTokens, true, stopSequences);
-        streamSSE("v1/chat/completions", body, callback, /*fim=*/false);
-    }
-
-    // ── FIM (Fill-In-Middle) /v1/completions ──────────────────
-    /**
-     * 코드 자동완성 전용. qwen-coder / deepseek-coder 가 prefix/suffix 토큰을
-     * prompt 안에 직접 받도록 PromptBuilder.forFimPrompt() 가 구성해둠.
-     * 응답 형식: {"choices":[{"text":"..."}]}
-     *
-     * 짧은 토큰만 받으면 되므로 동기 + 짧은 타임아웃 권장.
-     */
-    public String completeFim(String prompt, String model, double temperature,
-                              int maxTokens, String[] stopSequences) throws IOException {
-        if (model == null) model = defaultModel;
-        String body = buildFimBody(model, prompt, temperature, maxTokens, false, stopSequences);
-        String responseJson = post("v1/completions", body);
-        return parseChoiceText(responseJson);
-    }
-
-    public void completeFimStream(String prompt, String model, double temperature,
-                                  int maxTokens, String[] stopSequences,
-                                  StreamCallback callback) {
-        if (model == null) model = defaultModel;
-        String body = buildFimBody(model, prompt, temperature, maxTokens, true, stopSequences);
-        streamSSE("v1/completions", body, callback, /*fim=*/true);
-    }
-
-    // ── HTTP POST (non-stream) ────────────────────────────────
-    private String post(String path, String jsonBody) throws IOException {
-        HttpURLConnection conn = openConnection(path, jsonBody, false);
-        try {
-            int status = conn.getResponseCode();
-            if (status != 200) {
-                String errBody = readAll(conn.getErrorStream());
-                throw new IOException("LLM HTTP " + status + ": " + truncate(errBody, 300));
-            }
-            return readAll(conn.getInputStream());
-        } finally {
-            conn.disconnect();
+        ChatMessage( String id, String role )
+        {
+            this.id = id;
+            this.role = role;
+            this.content = "";
+            this.hidden = false;
         }
     }
 
-    // ── HTTP POST (SSE) ───────────────────────────────────────
-    private void streamSSE(String path, String jsonBody, StreamCallback cb, boolean fim) {
-        HttpURLConnection conn = null;
-        BufferedReader reader = null;
-        StringBuilder full = new StringBuilder();
-        try {
-            conn = openConnection(path, jsonBody, true);
-            int status = conn.getResponseCode();
-            if (status != 200) {
-                String errBody = readAll(conn.getErrorStream());
-                cb.onError(new IOException("LLM HTTP " + status + ": " + truncate(errBody, 300)));
+    public ChatView()
+    {
+        autocompleteModel = new LinkedHashMap<>();
+    }
+
+    public void setAutocompleteModel( Map<String, String> map )
+    {
+        autocompleteModel.clear();
+        autocompleteModel.putAll( map );
+    }
+
+    @Focus
+    public void setFocus()
+    {
+        inputArea.setFocus();
+        presenter.onViewVisible();
+    }
+
+    public void clearChatView()
+    {
+        uiSync.asyncExec( () -> {
+            messages.clear();
+            refreshChatArea();
+        } );
+    }
+
+    public void clearUserInput()
+    {
+        uiSync.asyncExec( () -> inputArea.setText( "" ) );
+    }
+
+    @PostConstruct
+    public void createControls( Composite parent )
+    {
+        SashForm sashForm = new SashForm( parent, SWT.VERTICAL );
+        sashForm.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true ) );
+
+        Composite chatContainer = new Composite( sashForm, SWT.NONE );
+        chatContainer.setLayout( new GridLayout( 1, false ) );
+
+        // 알림 레이블 (상단)
+        notificationLabel = new Label( chatContainer, SWT.WRAP );
+        notificationLabel.setLayoutData( new GridData( SWT.FILL, SWT.TOP, true, false ) );
+        notificationLabel.setVisible( false );
+
+        // StyledText 채팅 영역
+        chatArea = createChatView( chatContainer );
+        chatArea.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true ) );
+
+        // 채팅 영역 컨텍스트 메뉴 (코드복사 등 기존 BrowserFunction 대체)
+        initializeChatAreaMenu( chatArea );
+
+        Composite controls = new Composite( sashForm, SWT.NONE );
+        GridLayout controlsLayout = new GridLayout( 1, false );
+        controlsLayout.marginWidth = 5;
+        controlsLayout.marginHeight = 5;
+        controls.setLayout( controlsLayout );
+
+        // 첨부파일 패널
+        Composite attachmentsPanel = createAttachmentsPanel( controls );
+        attachmentsPanel.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, false ) );
+
+        // 입력 영역
+        Composite inputContainer = new Composite( controls, SWT.NONE );
+        GridLayout inputLayout = new GridLayout( 2, false );
+        inputLayout.marginWidth = 0;
+        inputLayout.marginHeight = 0;
+        inputLayout.horizontalSpacing = 5;
+        inputContainer.setLayout( inputLayout );
+        inputContainer.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true ) );
+
+        inputArea = createUserInput( inputContainer );
+        inputArea.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true ) );
+        setupAutocomplete( inputArea );
+
+        // 버튼 바
+        Composite buttonBar = new Composite( controls, SWT.NONE );
+        GridLayout buttonBarLayout = new GridLayout( 2, false );
+        buttonBarLayout.marginHeight = 0;
+        buttonBarLayout.marginWidth = 0;
+        buttonBar.setLayout( buttonBarLayout );
+        buttonBar.setLayoutData( new GridData( SWT.FILL, SWT.CENTER, true, false ) );
+
+        actionToolBar = new ToolBar( buttonBar, SWT.FLAT | SWT.RIGHT );
+        actionToolBar.setLayoutData( new GridData( SWT.RIGHT, SWT.CENTER, true, false ) );
+
+        modelDropdownItem = createModelSelectorComposite( actionToolBar );
+        createAttachmentToolItem( actionToolBar );
+        createReplayToolItem( actionToolBar );
+        createClearChatToolItem( actionToolBar );
+        createStopToolItem( actionToolBar );
+        createSendToolItem( actionToolBar );
+
+        sashForm.setWeights( new int[] { 70, 30 } );
+
+        dropManager.registerDropTarget( controls );
+
+        clearAttachments();
+    }
+
+    /**
+     * StyledText 채팅 영역 생성
+     */
+    private StyledText createChatView( Composite parent )
+    {
+        StyledText styledText = new StyledText( parent,
+                SWT.READ_ONLY | SWT.WRAP | SWT.V_SCROLL | SWT.BORDER );
+        styledText.setEditable( false );
+        styledText.setAlwaysShowScrollBars( false );
+
+        Display display = parent.getDisplay();
+        styledText.setBackground( display.getSystemColor( SWT.COLOR_WIDGET_BACKGROUND ) );
+        styledText.setForeground( display.getSystemColor( SWT.COLOR_WIDGET_FOREGROUND ) );
+
+        // 모노스페이스 폰트 적용
+        try
+        {
+            org.eclipse.swt.graphics.Font monoFont = new org.eclipse.swt.graphics.Font(
+                    display, new FontData( "Courier New", 10, SWT.NORMAL ) );
+            styledText.setFont( monoFont );
+            styledText.addDisposeListener( e -> monoFont.dispose() );
+        }
+        catch ( Exception e )
+        {
+            // 폰트 설정 실패 시 기본 폰트 사용
+        }
+
+        return styledText;
+    }
+
+    /**
+     * 기존 BrowserFunction들을 컨텍스트 메뉴로 대체
+     */
+    private void initializeChatAreaMenu( StyledText styledText )
+    {
+        Menu menu = new Menu( styledText );
+        styledText.setMenu( menu );
+
+        menu.addMenuListener( new MenuAdapter()
+        {
+            @Override
+            public void menuShown( MenuEvent e )
+            {
+                for ( MenuItem item : menu.getItems() )
+                {
+                    item.dispose();
+                }
+
+                boolean hasSelection = !styledText.getSelectionText().isEmpty();
+
+                // 코드 복사 (기존 CopyCodeFunction)
+                MenuItem copyItem = new MenuItem( menu, SWT.NONE );
+                copyItem.setText( "코드 복사" );
+                copyItem.setEnabled( hasSelection );
+                copyItem.addListener( SWT.Selection, ev -> {
+                    String selected = styledText.getSelectionText();
+                    if ( !selected.isEmpty() )
+                    {
+                        presenter.onCopyCode( selected );
+                    }
+                } );
+
+                // 패치 적용 (기존 ApplyPatchFunction)
+                MenuItem patchItem = new MenuItem( menu, SWT.NONE );
+                patchItem.setText( "패치 적용" );
+                patchItem.setEnabled( hasSelection );
+                patchItem.addListener( SWT.Selection, ev -> {
+                    String selected = styledText.getSelectionText();
+                    if ( !selected.isEmpty() )
+                    {
+                        presenter.onApplyPatch( selected );
+                    }
+                } );
+
+                // 코드 삽입 (기존 InsertCodeFunction)
+                MenuItem insertItem = new MenuItem( menu, SWT.NONE );
+                insertItem.setText( "코드 삽입" );
+                insertItem.setEnabled( hasSelection );
+                insertItem.addListener( SWT.Selection, ev -> {
+                    String selected = styledText.getSelectionText();
+                    if ( !selected.isEmpty() )
+                    {
+                        presenter.onInsertCode( selected );
+                    }
+                } );
+
+                // Diff 보기 (기존 DiffCodeFunction)
+                MenuItem diffItem = new MenuItem( menu, SWT.NONE );
+                diffItem.setText( "Diff 보기" );
+                diffItem.setEnabled( hasSelection );
+                diffItem.addListener( SWT.Selection, ev -> {
+                    String selected = styledText.getSelectionText();
+                    if ( !selected.isEmpty() )
+                    {
+                        presenter.onDiffCode( selected );
+                    }
+                } );
+
+                new MenuItem( menu, SWT.SEPARATOR );
+
+                // 전체 복사
+                MenuItem copyAllItem = new MenuItem( menu, SWT.NONE );
+                copyAllItem.setText( "전체 복사" );
+                copyAllItem.addListener( SWT.Selection, ev -> {
+                    Clipboard clipboard = new Clipboard( Display.getCurrent() );
+                    clipboard.setContents(
+                            new Object[] { styledText.getText() },
+                            new org.eclipse.swt.dnd.Transfer[] { TextTransfer.getInstance() } );
+                    clipboard.dispose();
+                } );
+            }
+        } );
+    }
+
+    private void scheduleChatArea() {
+    	if(!pendingRefresh) {
+    		pendingRefresh = true;
+    		Display.getCurrent().timerExec(REFRESH_INTERVAL_MS, () -> {
+    			if(chatArea == null ||chatArea.isDisposed()) {
+    				pendingRefresh = false;
+    				return;
+    			}
+    			pendingRefresh=false;
+    			refreshChatArea();
+    		});
+    	}
+	}
+    /**
+     * 채팅 영역을 messages 목록 기준으로 다시 그림
+     */
+    private void refreshChatArea()
+    {
+        if ( chatArea == null || chatArea.isDisposed() )
+        {
+            return;
+        }
+
+        // 스크롤 위치 저장
+        int topIndex = chatArea.getTopIndex();
+        boolean wasAtBottom = isScrolledToBottom();
+
+        StringBuilder sb = new StringBuilder();
+        List<int[]> boldRanges = new ArrayList<>();
+
+        for ( ChatMessage msg : messages )
+        {
+            if ( msg.hidden )
+            {
+                continue;
+            }
+
+            String header = "user".equals( msg.role )
+                    ? "▶ 나\n"
+                    : "▶ AI 어시스턴트\n";
+
+            int headerStart = sb.length();
+            sb.append( header );
+            boldRanges.add( new int[] { headerStart, header.length() } );
+
+            sb.append( msg.content.isEmpty() ? "(응답 대기 중...)" : msg.content );
+            sb.append( "\n" );
+            sb.append( "─".repeat( 60 ) );
+            sb.append( "\n\n" );
+        }
+
+        String newText = sb.toString();
+
+        // 텍스트가 실제로 변경된 경우만 갱신 (불필요한 redraw 방지)
+        if ( newText.equals( chatArea.getText() ) )
+        {
+            return;
+        }
+
+        chatArea.setRedraw( false ); // 렌더링 일시 중단
+        try
+        {
+            chatArea.setText( newText );
+
+            // 스타일 적용
+            List<StyleRange> styles = new ArrayList<>();
+            for ( int[] range : boldRanges )
+            {
+                StyleRange style = new StyleRange();
+                style.start = range[0];
+                style.length = range[1];
+                style.fontStyle = SWT.BOLD;
+                styles.add( style );
+            }
+            chatArea.setStyleRanges( styles.toArray( new StyleRange[0] ) );
+        }
+        finally
+        {
+            chatArea.setRedraw( true ); // 렌더링 재개 (한번에 그림)
+        }
+
+        // 스크롤 복원
+        if ( autoScrollEnabled || wasAtBottom )
+        {
+            chatArea.setTopIndex( chatArea.getLineCount() - 1 );
+        }
+        else
+        {
+            chatArea.setTopIndex( topIndex );
+        }
+    }
+
+    /**
+     * 스크롤이 맨 아래에 있는지 확인
+     */
+    private boolean isScrolledToBottom()
+    {
+        int lineCount = chatArea.getLineCount();
+        int visibleLines = chatArea.getClientArea().height / chatArea.getLineHeight();
+        int topIndex = chatArea.getTopIndex();
+        return ( topIndex + visibleLines ) >= lineCount - 2;
+    }
+
+    public void appendMessage( String messageId, String role )
+    {
+        uiSync.asyncExec( () -> {
+            boolean exists = messages.stream().anyMatch( m -> m.id.equals( messageId ) );
+            if ( !exists )
+            {
+                messages.add( new ChatMessage( messageId, role ) );
+                streamingMessageId = null; // 초기화
+                refreshChatArea();
+            }
+        } );
+    }
+    public void setMessageHtml( String messageId, String messageBody )
+    {
+        uiSync.asyncExec( () -> {
+            MarkdownParser parser = new MarkdownParser( messageBody );
+            String html = parser.parseToHtml();
+            String plainText = stripHtml( html );
+
+            messages.stream()
+                    .filter( m -> m.id.equals( messageId ) )
+                    .findFirst()
+                    .ifPresent( m -> {
+                        m.content = plainText;
+//                        refreshChatArea();
+                        streamingMessageId = messageId;
+                        scheduleChatArea();
+                    } );
+        } );
+    }
+
+	public void hideMessage( String messageId )
+    {
+        uiSync.asyncExec( () -> {
+            messages.stream()
+                    .filter( m -> m.id.equals( messageId ) )
+                    .findFirst()
+                    .ifPresent( m -> {
+                        m.hidden = true;
+                        refreshChatArea();
+                    } );
+        } );
+    }
+
+    public void removeMessage( String messageId )
+    {
+        uiSync.asyncExec( () -> {
+            messages.removeIf( m -> m.id.equals( messageId ) );
+            refreshChatArea();
+        } );
+    }
+
+    /**
+     * HTML 태그를 제거하고 일반 텍스트로 변환
+     */
+    private String stripHtml( String html )
+    {
+        if ( html == null )
+        {
+            return "";
+        }
+        // 코드 블록은 내용 보존
+        String result = html
+                .replaceAll( "<br\\s*/?>", "\n" )
+                .replaceAll( "<p[^>]*>", "" )
+                .replaceAll( "</p>", "\n" )
+                .replaceAll( "<li[^>]*>", "  • " )
+                .replaceAll( "</li>", "\n" )
+                .replaceAll( "<h[1-6][^>]*>", "\n" )
+                .replaceAll( "</h[1-6]>", "\n" )
+                .replaceAll( "<pre[^>]*>", "\n" )
+                .replaceAll( "</pre>", "\n" )
+                .replaceAll( "<code[^>]*>", "" )
+                .replaceAll( "</code>", "" )
+                .replaceAll( "<[^>]+>", "" )
+                .replace( "<", "<" )
+                .replace( ">", ">" )
+                .replace( "&", "&" )
+                .replace( " ", " " )
+                .replace( "'", "'" )
+                .replace( """, "\"" )
+                .replaceAll( "\n{3,}", "\n\n" ); // 연속 빈줄 정리
+        return result.trim();
+    }
+
+    /**
+     * 알림 표시 (기존 browser.execute("showNotification(...)") 대체)
+     */
+    public void showNotification( String message, Duration duration, NotificationType type )
+    {
+        uiSync.asyncExec( () -> {
+            if ( notificationLabel == null || notificationLabel.isDisposed() )
+            {
                 return;
             }
-            reader = new BufferedReader(new InputStreamReader(
-                    conn.getInputStream(), StandardCharsets.UTF_8));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (cb.isCancelled()) break;
-                if (line.isEmpty()) continue;
-                if (!line.startsWith("data:")) continue;
-                String payload = line.substring(5).trim();
-                if (payload.equals("[DONE]")) break;
-                String delta = fim ? extractFimDelta(payload) : extractChatDelta(payload);
-                if (delta != null && !delta.isEmpty()) {
-                    full.append(delta);
-                    cb.onToken(delta);
+
+            Display display = Display.getCurrent();
+            switch ( type )
+            {
+                case INFO:
+                    notificationLabel.setBackground( display.getSystemColor( SWT.COLOR_INFO_BACKGROUND ) );
+                    notificationLabel.setForeground( display.getSystemColor( SWT.COLOR_INFO_FOREGROUND ) );
+                    notificationLabel.setText( "[정보] " + message );
+                    break;
+                case WARNING:
+                    notificationLabel.setBackground( new Color( display, 210, 153, 34 ) );
+                    notificationLabel.setForeground( display.getSystemColor( SWT.COLOR_BLACK ) );
+                    notificationLabel.setText( "[경고] " + message );
+                    break;
+                case ERROR:
+                    notificationLabel.setBackground( display.getSystemColor( SWT.COLOR_RED ) );
+                    notificationLabel.setForeground( display.getSystemColor( SWT.COLOR_WHITE ) );
+                    notificationLabel.setText( "[오류] " + message );
+                    break;
+            }
+
+            notificationLabel.setVisible( true );
+            updateLayout( notificationLabel.getParent() );
+
+            if ( duration.toMillis() > 0 )
+            {
+                display.timerExec( (int) duration.toMillis(), () -> {
+                    if ( !notificationLabel.isDisposed() )
+                    {
+                        notificationLabel.setVisible( false );
+                        notificationLabel.setText( "" );
+                        updateLayout( notificationLabel.getParent() );
+                    }
+                } );
+            }
+        } );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 이하 기존 코드 (변경 없음)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public void setupAutocomplete( Text textField )
+    {
+        IContentProposalProvider proposalProvider = new IContentProposalProvider()
+        {
+            @Override
+            public IContentProposal[] getProposals( String contents, int position )
+            {
+                if ( contents.startsWith( "/" ) )
+                {
+                    String prefix = contents.substring( 1 );
+                    List<String> matchingCommands = autocompleteModel.keySet()
+                                                                     .stream()
+                                                                     .filter( s -> s.startsWith( prefix ) )
+                                                                     .collect( Collectors.toList() );
+                    return matchingCommands.stream()
+                            .map( cmd -> new CommandContentProposal( cmd ) )
+                            .toArray( IContentProposal[]::new );
+                }
+                return new IContentProposal[0];
+            }
+        };
+
+        ContentProposalAdapter adapter = new ContentProposalAdapter(
+                textField,
+                new TextContentAdapter(),
+                proposalProvider,
+                null,
+                null );
+
+        adapter.setProposalAcceptanceStyle( ContentProposalAdapter.PROPOSAL_REPLACE );
+        adapter.setPopupSize( new Point( 300, 200 ) );
+
+        textField.addKeyListener( new KeyAdapter()
+        {
+            @Override
+            public void keyPressed( KeyEvent e )
+            {
+                if ( e.keyCode == SWT.TAB && textField.getText().startsWith( "/" ) )
+                {
+                    adapter.openProposalPopup();
+                    e.doit = false;
                 }
             }
-            cb.onComplete(full.toString());
-        } catch (Exception e) {
-            if (!cb.isCancelled()) cb.onError(e);
-        } finally {
-            if (reader != null) try { reader.close(); } catch (IOException ignore) {}
-            if (conn != null) conn.disconnect();
+        } );
+
+        textField.addVerifyListener( new VerifyListener()
+        {
+            @Override
+            public void verifyText( VerifyEvent e )
+            {
+                if ( e.character == SWT.TAB && textField.getText().startsWith( "/" ) )
+                {
+                    e.doit = false;
+                }
+            }
+        } );
+    }
+
+    class CommandContentProposal implements IContentProposal
+    {
+        private String command;
+
+        public CommandContentProposal( String command )
+        {
+            this.command = command;
+        }
+
+        @Override
+        public String getContent()
+        {
+            return "/" + command;
+        }
+
+        @Override
+        public int getCursorPosition()
+        {
+            return getContent().length();
+        }
+
+        @Override
+        public String getLabel()
+        {
+            return "/" + command;
+        }
+
+        @Override
+        public String getDescription()
+        {
+            return autocompleteModel.get( command );
         }
     }
 
-    private HttpURLConnection openConnection(String path, String jsonBody, boolean stream)
-            throws IOException {
-        URL url = new URL(baseUrl + path);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        conn.setRequestProperty("Accept", stream ? "text/event-stream" : "application/json");
-        if (apiKey != null && !apiKey.isEmpty()) {
-            conn.setRequestProperty("Authorization", "Bearer " + apiKey);
-        }
-        conn.setConnectTimeout(connectTimeoutMs);
-        conn.setReadTimeout(stream ? 0 : readTimeoutMs);
-        conn.setDoOutput(true);
-        byte[] bytes = jsonBody.getBytes(StandardCharsets.UTF_8);
-        conn.setFixedLengthStreamingMode(bytes.length);
-        try (OutputStream os = conn.getOutputStream()) {
-            os.write(bytes);
-        }
-        return conn;
-    }
+    private Composite createAttachmentsPanel( Composite parent )
+    {
+        Composite attachmentsPanel = new Composite( parent, SWT.NONE );
+        attachmentsPanel.setLayout( new GridLayout( 1, false ) );
 
-    private String readAll(InputStream is) throws IOException {
-        if (is == null) return "";
-        try (BufferedReader r = new BufferedReader(
-                new InputStreamReader(is, StandardCharsets.UTF_8))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = r.readLine()) != null) sb.append(line).append('\n');
-            return sb.toString().trim();
-        }
-    }
+        scrolledComposite = new ScrolledComposite( attachmentsPanel, SWT.H_SCROLL | SWT.V_SCROLL );
+        GridData scrolledData = new GridData( SWT.FILL, SWT.FILL, true, false );
+        scrolledData.heightHint = 0;
+        scrolledComposite.setLayoutData( scrolledData );
+        scrolledComposite.setExpandHorizontal( true );
+        scrolledComposite.setExpandVertical( true );
 
-    // ── 요청 JSON 조립 ────────────────────────────────────────
-    private String buildChatBody(String model, List<ChatMessage> messages,
-                                 double temperature, int maxTokens,
-                                 boolean stream, String[] stopSequences) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append("\"model\":").append(jsonStr(model)).append(',');
-        sb.append("\"temperature\":").append(temperature).append(',');
-        sb.append("\"max_tokens\":").append(maxTokens).append(',');
-        if (stream) sb.append("\"stream\":true,");
-        appendStop(sb, stopSequences);
-        sb.append("\"messages\":[");
-        for (int i = 0; i < messages.size(); i++) {
-            ChatMessage m = messages.get(i);
-            sb.append("{\"role\":").append(jsonStr(m.getRoleString()))
-              .append(",\"content\":").append(jsonStr(m.getContent())).append('}');
-            if (i < messages.size() - 1) sb.append(',');
-        }
-        sb.append("]}");
-        return sb.toString();
-    }
+        imagesContainer = new Composite( scrolledComposite, SWT.NONE );
+        RowLayout rowLayout = new RowLayout( SWT.HORIZONTAL );
+        rowLayout.spacing = 8;
+        rowLayout.marginTop = 4;
+        rowLayout.marginBottom = 4;
+        rowLayout.marginLeft = 4;
+        rowLayout.marginRight = 4;
+        rowLayout.wrap = true;
+        imagesContainer.setLayout( rowLayout );
 
-    private String buildFimBody(String model, String prompt, double temperature,
-                                int maxTokens, boolean stream, String[] stopSequences) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append("\"model\":").append(jsonStr(model)).append(',');
-        sb.append("\"temperature\":").append(temperature).append(',');
-        sb.append("\"max_tokens\":").append(maxTokens).append(',');
-        if (stream) sb.append("\"stream\":true,");
-        appendStop(sb, stopSequences);
-        sb.append("\"prompt\":").append(jsonStr(prompt));
-        sb.append("}");
-        return sb.toString();
-    }
+        scrolledComposite.setContent( imagesContainer );
+        scrolledComposite.setMinSize( imagesContainer.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 
-    private void appendStop(StringBuilder sb, String[] stops) {
-        if (stops == null || stops.length == 0) return;
-        sb.append("\"stop\":[");
-        for (int i = 0; i < stops.length; i++) {
-            sb.append(jsonStr(stops[i]));
-            if (i < stops.length - 1) sb.append(',');
-        }
-        sb.append("],");
-    }
-
-    // ── 응답 파싱 ──────────────────────────────────────────────
-    /** chat /v1/chat/completions 동기 응답: {"choices":[{"message":{"content":"..."}}]} */
-    private String parseChoiceContent(String json) throws IOException {
-        String content = extractStringField(json, "\"content\"");
-        if (content == null) {
-            throw new IOException("Unexpected response format: " + truncate(json, 200));
-        }
-        return content.trim();
-    }
-
-    /** /v1/completions 동기 응답: {"choices":[{"text":"..."}]} */
-    private String parseChoiceText(String json) throws IOException {
-        String text = extractStringField(json, "\"text\"");
-        if (text == null) {
-            throw new IOException("Unexpected response format: " + truncate(json, 200));
-        }
-        return text;
-    }
-
-    /** chat SSE delta: {"choices":[{"delta":{"content":"..."}}]} */
-    private String extractChatDelta(String payload) {
-        return extractStringField(payload, "\"content\"");
-    }
-
-    /** completions SSE delta: {"choices":[{"text":"..."}]} */
-    private String extractFimDelta(String payload) {
-        return extractStringField(payload, "\"text\"");
-    }
-
-    /**
-     * 첫 번째로 등장하는 key 의 string 값을 추출.
-     * key 는 따옴표 포함 (예: "\"content\"")
-     */
-    private String extractStringField(String json, String key) {
-        int idx = json.indexOf(key);
-        if (idx < 0) return null;
-        int colon = json.indexOf(':', idx);
-        if (colon < 0) return null;
-        int start = json.indexOf('"', colon + 1);
-        if (start < 0) return null;
-        StringBuilder result = new StringBuilder();
-        boolean escape = false;
-        for (int i = start + 1; i < json.length(); i++) {
-            char c = json.charAt(i);
-            if (escape) {
-                switch (c) {
-                    case 'n': result.append('\n'); break;
-                    case 't': result.append('\t'); break;
-                    case 'r': result.append('\r'); break;
-                    case '"': result.append('"'); break;
-                    case '\\': result.append('\\'); break;
-                    case '/': result.append('/'); break;
-                    case 'b': result.append('\b'); break;
-                    case 'f': result.append('\f'); break;
-                    case 'u':
-                        if (i + 4 < json.length()) {
-                            try {
-                                int cp = Integer.parseInt(json.substring(i + 1, i + 5), 16);
-                                result.append((char) cp);
-                                i += 4;
-                            } catch (NumberFormatException nfe) {
-                                result.append('\\').append(c);
+        imagesContainer.addKeyListener( new KeyAdapter()
+        {
+            @Override
+            public void keyPressed( KeyEvent e )
+            {
+                if ( e.keyCode == SWT.DEL || e.keyCode == SWT.BS )
+                {
+                    java.util.List<Integer> selectedIndices = new java.util.ArrayList<>();
+                    for ( var child : imagesContainer.getChildren() )
+                    {
+                        if ( child instanceof Label )
+                        {
+                            Boolean selected = (Boolean) child.getData( "selected" );
+                            if ( selected != null && selected )
+                            {
+                                Integer index = (Integer) child.getData( "attachmentIndex" );
+                                if ( index != null )
+                                {
+                                    selectedIndices.add( index );
+                                }
                             }
                         }
-                        break;
-                    default: result.append('\\').append(c);
-                }
-                escape = false;
-            } else if (c == '\\') {
-                escape = true;
-            } else if (c == '"') {
-                break;
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
-    }
-
-    private String jsonStr(String s) {
-        if (s == null) return "null";
-        StringBuilder sb = new StringBuilder(s.length() + 2);
-        sb.append('"');
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            switch (c) {
-                case '"':  sb.append("\\\""); break;
-                case '\\': sb.append("\\\\"); break;
-                case '\n': sb.append("\\n");  break;
-                case '\r': sb.append("\\r");  break;
-                case '\t': sb.append("\\t");  break;
-                case '\b': sb.append("\\b");  break;
-                case '\f': sb.append("\\f");  break;
-                default:
-                    if (c < 0x20) {
-                        sb.append(String.format("\\u%04x", (int) c));
-                    } else {
-                        sb.append(c);
                     }
+                    selectedIndices.sort( java.util.Collections.reverseOrder() );
+                    for ( int index : selectedIndices )
+                    {
+                        presenter.onRemoveAttachment( index );
+                    }
+                }
+            }
+        } );
+
+        return attachmentsPanel;
+    }
+
+    private ToolItem createAttachmentToolItem( ToolBar toolbar )
+    {
+        ToolItem item = new ToolItem( toolbar, SWT.PUSH );
+        try
+        {
+            Image attachIcon = PlatformUI.getWorkbench().getSharedImages().getImage( ISharedImages.IMG_OBJ_ADD );
+            item.setImage( attachIcon );
+        }
+        catch ( Exception e )
+        {
+            logger.error( e.getMessage(), e );
+        }
+        item.setToolTipText( "Add image attachment" );
+        item.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                presenter.onAddAttachment();
+            }
+        } );
+        return item;
+    }
+
+    private ToolItem createSendToolItem( ToolBar toolbar )
+    {
+        ToolItem item = new ToolItem( toolbar, SWT.PUSH );
+        try
+        {
+            Image sendIcon = PlatformUI.getWorkbench().getSharedImages().getImage( ISharedImages.IMG_TOOL_FORWARD );
+            item.setImage( sendIcon );
+        }
+        catch ( Exception e )
+        {
+            logger.error( e.getMessage(), e );
+        }
+        item.setToolTipText( "Send message (Ctrl+Enter)" );
+        item.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                String text = inputArea.getText().trim();
+                if ( !text.isEmpty() )
+                {
+                    presenter.onSendUserMessage( text );
+                }
+            }
+        } );
+        return item;
+    }
+
+    private ToolItem createReplayToolItem( ToolBar toolbar )
+    {
+        ToolItem item = new ToolItem( toolbar, SWT.PUSH );
+        try
+        {
+            Image replayIcon = PlatformUI.getWorkbench().getSharedImages().getImage( ISharedImages.IMG_TOOL_REDO );
+            item.setImage( replayIcon );
+        }
+        catch ( Exception e )
+        {
+            logger.error( e.getMessage(), e );
+        }
+        item.setToolTipText( "Regenerate response" );
+        item.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                presenter.onReplayLastMessage();
+            }
+        } );
+        return item;
+    }
+
+    private ToolItem createClearChatToolItem( ToolBar toolbar )
+    {
+        ToolItem item = new ToolItem( toolbar, SWT.PUSH );
+        try
+        {
+            Image clearIcon = PlatformUI.getWorkbench().getSharedImages().getImage( ISharedImages.IMG_ETOOL_CLEAR );
+            item.setImage( clearIcon );
+        }
+        catch ( Exception e )
+        {
+            logger.error( e.getMessage(), e );
+        }
+        item.setToolTipText( "Clear conversation" );
+        item.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                presenter.onClear();
+            }
+        } );
+        return item;
+    }
+
+    private ToolItem createStopToolItem( ToolBar toolbar )
+    {
+        ToolItem item = new ToolItem( toolbar, SWT.PUSH );
+        Image stopIcon = PlatformUI.getWorkbench().getSharedImages().getImage( ISharedImages.IMG_ELCL_STOP );
+        item.setImage( stopIcon );
+        item.setToolTipText( "Stop generation" );
+        item.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                presenter.onStop();
+            }
+        } );
+        return item;
+    }
+
+    private ToolItem createModelSelectorComposite( ToolBar modelToolBar )
+    {
+        ToolItem modelDropdownItem = new ToolItem( modelToolBar, SWT.DROP_DOWN );
+        modelDropdownItem.setImage( sharedImages.getImage( "assistai-16" ) );
+        modelDropdownItem.setText( "Undefined" );
+        modelDropdownItem.setToolTipText( "Select AI Model" );
+        return modelDropdownItem;
+    }
+
+    private Text createUserInput( Composite parent )
+    {
+        Text inputArea = new Text( parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL );
+        inputArea.setMessage( "Type a message or question here... (Press Ctrl+Enter to send)" );
+        inputArea.addKeyListener( new KeyAdapter()
+        {
+            @Override
+            public void keyPressed( KeyEvent e )
+            {
+                if ( e.keyCode == SWT.CR && (e.stateMask & SWT.CTRL) != 0 )
+                {
+                    e.doit = false;
+                    String text = inputArea.getText().trim();
+                    if ( !text.isEmpty() )
+                    {
+                        presenter.onSendUserMessage( text );
+                    }
+                }
+            }
+        } );
+        createCustomMenu( inputArea );
+        return inputArea;
+    }
+
+    private void createCustomMenu( Text inputArea )
+    {
+        Menu menu = new Menu( inputArea );
+        inputArea.setMenu( menu );
+        menu.addMenuListener( new MenuAdapter()
+        {
+            @Override
+            public void menuShown( MenuEvent e )
+            {
+                MenuItem[] items = menu.getItems();
+                for ( MenuItem item : items )
+                {
+                    item.dispose();
+                }
+                addMenuItem( menu, "Cut", () -> inputArea.cut() );
+                addMenuItem( menu, "Copy", () -> inputArea.copy() );
+                MenuItem pasteItem = addMenuItem( menu, "Paste", () -> handlePasteOperation() );
+                Clipboard clipboard = new Clipboard( Display.getCurrent() );
+                boolean enablePaste = clipboard.getContents( TextTransfer.getInstance() ) != null
+                        || clipboard.getContents( ImageTransfer.getInstance() ) != null;
+                pasteItem.setEnabled( enablePaste );
+                clipboard.dispose();
+            }
+        } );
+    }
+
+    private MenuItem addMenuItem( Menu parent, String text, Runnable action )
+    {
+        MenuItem item = new MenuItem( parent, SWT.NONE );
+        item.setText( text );
+        item.addListener( SWT.Selection, e -> action.run() );
+        return item;
+    }
+
+    private void handlePasteOperation()
+    {
+        Clipboard clipboard = new Clipboard( Display.getCurrent() );
+        if ( clipboard.getContents( ImageTransfer.getInstance() ) != null )
+        {
+            ImageData imageData = (ImageData) clipboard.getContents( ImageTransfer.getInstance() );
+            presenter.onAttachmentAdded( imageData );
+        }
+        else
+        {
+            String textData = (String) clipboard.getContents( TextTransfer.getInstance() );
+            if ( textData != null )
+            {
+                inputArea.insert( textData );
             }
         }
-        sb.append('"');
-        return sb.toString();
     }
 
-    private String truncate(String s, int max) {
-        if (s == null) return "";
-        return s.length() <= max ? s : s.substring(0, max) + "...";
+    public void setAvailableModels( List<ModelApiDescriptor> availableModels, String selected )
+    {
+        uiSync.asyncExec( () -> {
+            availableModels.stream()
+                           .filter( model -> model.uid().equals( selected ) )
+                           .map( model -> new ModelApiDescriptorDecorator( model, selected ) )
+                           .findFirst()
+                           .ifPresent( model -> {
+                               uiSync.asyncExec( () -> {
+                                   modelDropdownItem.setText( model.getDisplayName() );
+                                   modelDropdownItem.setImage( model.getDisplayIcon() );
+                                   updateLayout( actionToolBar );
+                               } );
+                           } );
+        } );
+
+        if ( Objects.nonNull( modelMenu ) )
+        {
+            Menu oldMenu = modelMenu;
+            Stream.of( modelMenu.getListeners( SWT.Selection ) ).forEach( l -> oldMenu.removeListener( SWT.Selection, l ) );
+            oldMenu.dispose();
+        }
+
+        modelMenu = new Menu( actionToolBar.getShell(), SWT.POP_UP );
+
+        modelDropdownItem.addListener( SWT.Selection, event -> {
+            if ( event.detail == SWT.ARROW )
+            {
+                Rectangle rect = modelDropdownItem.getBounds();
+                Point pt = new Point( rect.x, rect.y + rect.height );
+                pt = actionToolBar.toDisplay( pt );
+
+                for ( MenuItem item : modelMenu.getItems() )
+                {
+                    item.dispose();
+                }
+
+                availableModels.stream()
+                               .map( model -> new ModelApiDescriptorDecorator( model, selected ) )
+                               .forEach( model -> createModelMenuItem( modelMenu, model ) );
+                modelMenu.setLocation( pt.x, pt.y );
+                modelMenu.setVisible( true );
+            }
+        } );
     }
 
-    // ── Setters ───────────────────────────────────────────────
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+    private void createModelMenuItem( final Menu modelMenu, ModelApiDescriptorDecorator model )
+    {
+        MenuItem menuItem = new MenuItem( modelMenu, SWT.CHECK );
+        menuItem.setText( model.getDisplayName() );
+        menuItem.setSelection( model.isSelected() );
+        menuItem.addSelectionListener( new SelectionAdapter()
+        {
+            @Override
+            public void widgetSelected( SelectionEvent e )
+            {
+                presenter.onChatModelSelected( model.getModelId() );
+            }
+        } );
     }
-    public void setApiKey(String apiKey) { this.apiKey = apiKey; }
-    public void setDefaultModel(String model) { this.defaultModel = model; }
-    public void setConnectTimeoutMs(int ms) { this.connectTimeoutMs = ms; }
-    public void setReadTimeoutMs(int ms) { this.readTimeoutMs = ms; }
-    public String getDefaultModel() { return defaultModel; }
-    public String getBaseUrl() { return baseUrl; }
+
+    public void updateLayout( Composite composite )
+    {
+        if ( composite != null )
+        {
+            composite.layout();
+            updateLayout( composite.getParent() );
+        }
+    }
+
+    public void setInputEnabled( boolean enabled )
+    {
+        uiSync.asyncExec( () -> {
+            inputArea.setEnabled( enabled );
+            if ( enabled )
+            {
+                Display.getCurrent().timerExec( 100, () -> {
+                    if ( !inputArea.isDisposed() )
+                    {
+                        inputArea.setFocus();
+                    }
+                } );
+            }
+        } );
+    }
+
+    public void clearAttachments()
+    {
+        setAttachments( Collections.emptyList() );
+    }
+
+    public void setAttachments( List<Attachment> attachments )
+    {
+        uiSync.asyncExec( () -> {
+            for ( var child : imagesContainer.getChildren() )
+            {
+                child.dispose();
+            }
+
+            imagesContainer.setLayout( new RowLayout( SWT.HORIZONTAL ) );
+            RowLayout rowLayout = (RowLayout) imagesContainer.getLayout();
+            rowLayout.spacing = 8;
+            rowLayout.marginTop = 4;
+            rowLayout.marginBottom = 4;
+            rowLayout.marginLeft = 4;
+            rowLayout.marginRight = 4;
+
+            if ( attachments.isEmpty() )
+            {
+                scrolledComposite.setVisible( false );
+                ( (GridData) scrolledComposite.getLayoutData() ).heightHint = 0;
+            }
+            else
+            {
+                AttachmentVisitor attachmentVisitor = new AttachmentVisitor();
+                for ( var attachment : attachments )
+                {
+                    attachment.accept( attachmentVisitor );
+                }
+                scrolledComposite.setVisible( true );
+
+                int thumbnailSize = 96;
+                int spacing = 8;
+                int margin = 8;
+                int maxHeight = (thumbnailSize + spacing) * 2 + margin;
+
+                Point size = imagesContainer.computeSize( SWT.DEFAULT, SWT.DEFAULT );
+                imagesContainer.setSize( size );
+                scrolledComposite.setMinSize( size );
+
+                ( (GridData) scrolledComposite.getLayoutData() ).heightHint = Math.min( size.y + margin, maxHeight );
+            }
+            updateLayout( imagesContainer );
+        } );
+    }
+
+    private class AttachmentVisitor implements UiVisitor
+    {
+        private static final int THUMBNAIL_SIZE = 96;
+        private static final int BORDER_WIDTH   = 2;
+
+        @Override
+        public void add( ImageData preview, String caption )
+        {
+            Display display = Display.getCurrent();
+            Image thumbnailImage = createThumbnailWithBorder( preview, display, false );
+            Image selectedThumbnailImage = createThumbnailWithBorder( preview, display, true );
+            final boolean[] isSelected = { false };
+
+            Label imageLabel = new Label( imagesContainer, SWT.NONE );
+            imageLabel.setImage( thumbnailImage );
+
+            int attachmentIndex = imagesContainer.getChildren().length - 1;
+            imageLabel.setData( "attachmentIndex", attachmentIndex );
+            imageLabel.setData( "selected", false );
+            imageLabel.setData( "normalImage", thumbnailImage );
+            imageLabel.setData( "selectedImage", selectedThumbnailImage );
+
+            if ( caption != null )
+            {
+                imageLabel.setToolTipText( caption );
+            }
+
+            imageLabel.addMouseListener( new MouseAdapter()
+            {
+                @Override
+                public void mouseUp( MouseEvent e )
+                {
+                    boolean ctrlPressed = (e.stateMask & SWT.CTRL) != 0;
+                    if ( !ctrlPressed )
+                    {
+                        for ( var child : imagesContainer.getChildren() )
+                        {
+                            if ( child instanceof Label && child != imageLabel )
+                            {
+                                Boolean wasSelected = (Boolean) child.getData( "selected" );
+                                if ( wasSelected != null && wasSelected )
+                                {
+                                    child.setData( "selected", false );
+                                    ( (Label) child ).setImage( (Image) child.getData( "normalImage" ) );
+                                }
+                            }
+                        }
+                    }
+                    isSelected[0] = !isSelected[0];
+                    imageLabel.setData( "selected", isSelected[0] );
+                    imageLabel.setImage( isSelected[0] ? selectedThumbnailImage : thumbnailImage );
+                    imagesContainer.setFocus();
+                }
+            } );
+
+            imageLabel.addDisposeListener( e -> {
+                if ( thumbnailImage != null && !thumbnailImage.isDisposed() )
+                {
+                    thumbnailImage.dispose();
+                }
+                if ( selectedThumbnailImage != null && !selectedThumbnailImage.isDisposed() )
+                {
+                    selectedThumbnailImage.dispose();
+                }
+            } );
+        }
+
+        private Image createThumbnailWithBorder( ImageData sourceData, Display display, boolean selected )
+        {
+            int borderWidth = selected ? 3 : BORDER_WIDTH;
+            Color borderColor = selected ? new Color( display, 0, 120, 215 ) : new Color( display, 128, 128, 128 );
+            Color bgColor = imagesContainer.getBackground();
+
+            Image result = new Image( display, THUMBNAIL_SIZE, THUMBNAIL_SIZE );
+            GC gc = new GC( result );
+
+            try
+            {
+                gc.setAntialias( SWT.ON );
+                gc.setInterpolation( SWT.HIGH );
+                gc.setAdvanced( true );
+                gc.setBackground( bgColor );
+                gc.fillRectangle( 0, 0, THUMBNAIL_SIZE, THUMBNAIL_SIZE );
+                gc.setBackground( borderColor );
+                gc.fillRectangle( 0, 0, THUMBNAIL_SIZE, THUMBNAIL_SIZE );
+
+                int innerSize = THUMBNAIL_SIZE - borderWidth * 2;
+
+                if ( sourceData != null )
+                {
+                    int srcWidth = sourceData.width;
+                    int srcHeight = sourceData.height;
+                    int cropSize = Math.min( srcWidth, srcHeight );
+                    int cropX = (srcWidth - cropSize) / 2;
+                    int cropY = (srcHeight - cropSize) / 2;
+
+                    Image sourceImage = new Image( display, sourceData );
+                    gc.drawImage( sourceImage,
+                            cropX, cropY, cropSize, cropSize,
+                            borderWidth, borderWidth, innerSize, innerSize );
+                    sourceImage.dispose();
+                }
+                else
+                {
+                    Color fillColor = new Color( display, 60, 60, 60 );
+                    gc.setBackground( fillColor );
+                    gc.fillRectangle( borderWidth, borderWidth, innerSize, innerSize );
+                    fillColor.dispose();
+                }
+            }
+            finally
+            {
+                gc.dispose();
+                borderColor.dispose();
+            }
+
+            return result;
+        }
+    }
+
+    private class ModelApiDescriptorDecorator
+    {
+        private final ModelApiDescriptor descriptor;
+        private final String             selectedUid;
+
+        public ModelApiDescriptorDecorator( ModelApiDescriptor descriptor, String selectedUid )
+        {
+            this.descriptor = descriptor;
+            this.selectedUid = selectedUid;
+        }
+
+        public String getDisplayName()
+        {
+            return StringUtils.abbreviate( descriptor.modelName(), 20 );
+        }
+
+        public Image getDisplayIcon()
+        {
+            return switch ( descriptor.apiUrl() )
+            {
+                case String s when s.contains( "anthropic" ) -> sharedImages.getImage( "claude-ai-icon-16" );
+                case String s when s.contains( "openai" ) -> sharedImages.getImage( "chatgpt-icon-16" );
+                case String s when s.contains( "grok" ) || s.contains( "x.ai" ) -> sharedImages.getImage( "grok-icon-16" );
+                case String s when s.contains( "google" ) -> sharedImages.getImage( "google-gemini-icon-16" );
+                case String s when s.contains( "deepseek" ) -> sharedImages.getImage( "deepseek-logo-icon-16" );
+                default -> sharedImages.getImage( "assistai-16" );
+            };
+        }
+
+        public String getModelId()
+        {
+            return descriptor.uid();
+        }
+
+        public boolean isSelected()
+        {
+            return descriptor.uid().equals( selectedUid );
+        }
+    }
 }
-
-
-
-
