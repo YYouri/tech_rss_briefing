@@ -1,122 +1,92 @@
-이클립스 플러그인에서 svn 커밋 이벤트를 활용한 기능 추가 
-bxm.builder
-plugin.xml (2 matches)
-256: point="bxm.team.scm.svn.commit">  
-258: class="bxm.builder.scm.svn.CommitActionFactory">  
-bxm.das.ui
-plugin.xml (3 matches)
-261: <extension point="bxm.team.scm.svn.commit">  
-262: <participant class="bxm.das.ui.svn.SVNCommitHooker">  
-bxm.ui
-plugin.xml (5 matches)
-4: <extension-point id="bxm.team.scm.svn.commit" name="Bxm Commit" schema="schema/bxm.team.scm.svn.commit.exsd"/>  
-25: <validator class="bxm.ui.resource.validator.SVNStatusCheckResourceValidator"/>  
-118: point="org.eclipse.team.svn.ui.commit">  
-120: class="bxm.team.scm.svn.BxmCommitFactory">     
-
-git에서도 같은 기능을 확장 시키기위해서 아래 처럼 플러그인에 추가를 했어 
-그런데 git 커밋 이벤트가 동작하지 않아
-
-bxm.builder
-plugin.xml (3 matches)
-262: point="bxm.team.scm.git.commit">  
-264: class="bxm.builder.scm.git.GitCommitActionFactory">  
-bxm.das.ui
-plugin.xml (3 matches)
-265: <extension point="bxm.team.scm.git.commit">  
-266: <participant class="bxm.das.ui.git.GitCommitHooker">  
-bxm.ui
-plugin.xml (3 matches)
-1: <extension point ="org.eclipse.ui.startup"><startup class="BxmGitRepositoryInit"/></extension>
-5: <extension-point id="bxm.team.scm.git.commit" name="Bxm Git Commit" schema="schema/bxm.team.scm.git.commit.exsd"/>  
-
-참고로 
 package bxm.team.scm.git;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
-import org.eclipse.egit.core.RepositoryUtil;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IExtensionRegistry;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
 
-public class BxmGitRepositoryInit {
-@overrice
-public void earlyStartup(){
-  Job job = new Job("BXM Git") {
-    protected IStatus run(IProgressMonitor monitor) {
-      new BxmGitRepositoryManager().start();
-      return Status.OK_STATUS;
-    }
-  }
-}
-}
-package bxm.team.scm.git;
+public class BxmGitRepositoryInitializer {
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.eclipse.egit.core.RepositoryUtil;
-import org.eclipse.jgit.lib.Repository;
-
-public class BxmGitRepositoryManager {
-
-    private static BxmGitRepositoryManager instance;
-    private final Set<Repository> registeredRepos = new HashSet<>();
-    private final BxmGitRepositoryInitializer initializer = new BxmGitRepositoryInitializer();
-
-    public BxmGitRepositoryManager() {}
-
-    public static BxmGitRepositoryManager getInstance() {
-        if (instance == null) {
-            instance = new BxmGitRepositoryManager();
-        }
-        return instance;
-    }
-
-    public void start() {
-//        RepositoryUtil repoUtil = ((Object) org.eclipse.egit.core.Activator
-//                .getDefault()).getRepositoryUtil();
-        RepositoryUtil repoUtil = RepositoryUtil.INSTANCE;
-        Set<String> repositories = repoUtil.getRepositories();
-        for (String string : repositories) {
-			register(string);
-		}
-
-//        repoUtil..addPropertyChangeListener(event -> {
-//            if (RepositoryUtil.REPOSITORIES_CHANGED.equals(event.getProperty())) {
-//                repoUtil.getRepositories().forEach(this::register);
-//            }
-//        });
-    }
-
-    // String(경로) → Repository 변환 후 등록
-    private void register(String repoDir) {
-        try {
-            java.io.File gitDir = new java.io.File(repoDir, ".git");
-            if (!gitDir.exists()) {
-                gitDir = new java.io.File(repoDir); // bare repo
+    public void init(Repository repo) {
+        repo.getListenerList().addRefsChangedListener(event -> {
+            try (Git git = new Git(repo)) {
+                RevCommit latest = git.log().setMaxCount(1).call().iterator().next();
+                List<String> files = getChangedFiles(git, repo, latest);
+                fireParticipants(files, repo.getWorkTree());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            Repository repo = new org.eclipse.jgit.storage.file.FileRepositoryBuilder()
-                    .setGitDir(gitDir)
-                    .readEnvironment()
-                    .build();
-            register(repo);
-        } catch (java.io.IOException e) {
-            // 로그 처리
-            org.eclipse.egit.core.Activator.logError("Failed to open repository: " + repoDir, e);
+        });
+        
+    }
+    private List<String> getChangedFiles(Git git, Repository repo, RevCommit commit) throws Exception {
+        List<String> result = new ArrayList<>();
+        if (commit.getParentCount() == 0) return result;
+
+        RevCommit parent = commit.getParent(0);
+        List<DiffEntry> diffs = git.diff()
+                .setOldTree(prepareTreeParser(repo, parent))
+                .setNewTree(prepareTreeParser(repo, commit))
+                .call();
+
+        for (DiffEntry diff : diffs) {
+            switch (diff.getChangeType()) {
+                case ADD:    result.add("A:" + diff.getNewPath()); break;
+                case MODIFY: result.add("M:" + diff.getNewPath()); break;
+                case DELETE: result.add("D:" + diff.getOldPath()); break;
+                default: break;
+            }
+        }
+        return result;
+    }
+
+    private void fireParticipants(List<String> files, File repoRoot) {
+        IExtensionRegistry registry = Platform.getExtensionRegistry();
+        IExtensionPoint ep = registry.getExtensionPoint("bxm.ui", "bxm.team.scm.git.commit");
+        if (ep == null) return;
+
+        // priority 순 정렬
+        List<IBxmGitCommitParticipant> participants = new ArrayList<>();
+        for (IExtension ext : ep.getExtensions()) {
+            for (IConfigurationElement el : ext.getConfigurationElements()) {
+                try {
+                    IBxmGitCommitParticipant p =
+                        (IBxmGitCommitParticipant) el.createExecutableExtension("class");
+                    participants.add(p);
+                } catch (CoreException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        participants.sort(Comparator.comparingInt(IBxmGitCommitParticipant::getPriority));
+
+        for (IBxmGitCommitParticipant p : participants) {
+            Object pre = p.performPreProcess();
+            p.performAfterCommitTasks(pre, files, repoRoot);
+            p.performPostProcess();
         }
     }
 
-
-    public void stop() {
-        registeredRepos.forEach(Repository::close);
-        registeredRepos.clear();
-    }
-
-    private void register(Repository repo) {
-        // 중복 등록 방지
-        if (registeredRepos.add(repo)) {
-            initializer.init(repo);
+    private org.eclipse.jgit.treewalk.AbstractTreeIterator prepareTreeParser(
+            Repository repo, RevCommit commit) throws Exception {
+        try (org.eclipse.jgit.revwalk.RevWalk walk = new org.eclipse.jgit.revwalk.RevWalk(repo)) {
+            org.eclipse.jgit.lib.ObjectReader reader = repo.newObjectReader();
+            org.eclipse.jgit.treewalk.CanonicalTreeParser parser =
+                    new org.eclipse.jgit.treewalk.CanonicalTreeParser();
+            parser.reset(reader, walk.parseTree(commit.getTree()));
+            return parser;
         }
     }
+    
 }
