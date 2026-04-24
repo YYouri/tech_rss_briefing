@@ -14,6 +14,8 @@ plugin.xml (5 matches)
 118: point="org.eclipse.team.svn.ui.commit">  
 120: class="bxm.team.scm.svn.BxmCommitFactory">     
 
+git에서도 같은 기능을 확장 시키기위해서 아래 처럼 플러그인에 추가를 했어 
+그런데 git 커밋 이벤트가 동작하지 않아
 
 bxm.builder
 plugin.xml (3 matches)
@@ -25,4 +27,96 @@ plugin.xml (3 matches)
 266: <participant class="bxm.das.ui.git.GitCommitHooker">  
 bxm.ui
 plugin.xml (3 matches)
+1: <extension point ="org.eclipse.ui.startup"><startup class="BxmGitRepositoryInit"/></extension>
 5: <extension-point id="bxm.team.scm.git.commit" name="Bxm Git Commit" schema="schema/bxm.team.scm.git.commit.exsd"/>  
+
+참고로 
+package bxm.team.scm.git;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.eclipse.egit.core.RepositoryUtil;
+import org.eclipse.jgit.lib.Repository;
+
+public class BxmGitRepositoryInit {
+@overrice
+public void earlyStartup(){
+  Job job = new Job("BXM Git") {
+    protected IStatus run(IProgressMonitor monitor) {
+      new BxmGitRepositoryManager().start();
+      return Status.OK_STATUS;
+    }
+  }
+}
+}
+package bxm.team.scm.git;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.eclipse.egit.core.RepositoryUtil;
+import org.eclipse.jgit.lib.Repository;
+
+public class BxmGitRepositoryManager {
+
+    private static BxmGitRepositoryManager instance;
+    private final Set<Repository> registeredRepos = new HashSet<>();
+    private final BxmGitRepositoryInitializer initializer = new BxmGitRepositoryInitializer();
+
+    public BxmGitRepositoryManager() {}
+
+    public static BxmGitRepositoryManager getInstance() {
+        if (instance == null) {
+            instance = new BxmGitRepositoryManager();
+        }
+        return instance;
+    }
+
+    public void start() {
+//        RepositoryUtil repoUtil = ((Object) org.eclipse.egit.core.Activator
+//                .getDefault()).getRepositoryUtil();
+        RepositoryUtil repoUtil = RepositoryUtil.INSTANCE;
+        Set<String> repositories = repoUtil.getRepositories();
+        for (String string : repositories) {
+			register(string);
+		}
+
+//        repoUtil..addPropertyChangeListener(event -> {
+//            if (RepositoryUtil.REPOSITORIES_CHANGED.equals(event.getProperty())) {
+//                repoUtil.getRepositories().forEach(this::register);
+//            }
+//        });
+    }
+
+    // String(경로) → Repository 변환 후 등록
+    private void register(String repoDir) {
+        try {
+            java.io.File gitDir = new java.io.File(repoDir, ".git");
+            if (!gitDir.exists()) {
+                gitDir = new java.io.File(repoDir); // bare repo
+            }
+            Repository repo = new org.eclipse.jgit.storage.file.FileRepositoryBuilder()
+                    .setGitDir(gitDir)
+                    .readEnvironment()
+                    .build();
+            register(repo);
+        } catch (java.io.IOException e) {
+            // 로그 처리
+            org.eclipse.egit.core.Activator.logError("Failed to open repository: " + repoDir, e);
+        }
+    }
+
+
+    public void stop() {
+        registeredRepos.forEach(Repository::close);
+        registeredRepos.clear();
+    }
+
+    private void register(Repository repo) {
+        // 중복 등록 방지
+        if (registeredRepos.add(repo)) {
+            initializer.init(repo);
+        }
+    }
+}
