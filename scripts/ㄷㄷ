@@ -1,3 +1,39 @@
+코드 전체를 보니 문제가 명확해졌어요. 기존 소스 기준으로 수정할게요.
+
+---
+
+## 발견된 문제
+
+### 1. `fireParticipants` — Extension Point 조회 방식 오류 (핵심)
+
+```java
+// ❌ 현재 - 두 개 인자 버전: "bxm.ui" 플러그인 안의 "bxm.team.scm.git.commit" 를 찾음
+// → 실제 full ID가 "bxm.ui.bxm.team.scm.git.commit" 이 되어버려서 null 반환
+IExtensionPoint ep = registry.getExtensionPoint("bxm.ui", "bxm.team.scm.git.commit");
+
+// ✅ 수정 - 단일 인자 버전: SVN이 point="bxm.team.scm.svn.commit" 으로 동작하는 것과 동일한 방식
+IExtensionPoint ep = registry.getExtensionPoint("bxm.team.scm.git.commit");
+```
+
+### 2. `prepareTreeParser` — ObjectReader 리소스 누수
+
+```java
+// ❌ 현재 - RevWalk만 닫히고 ObjectReader는 안 닫힘
+try (org.eclipse.jgit.revwalk.RevWalk walk = new org.eclipse.jgit.revwalk.RevWalk(repo)) {
+    org.eclipse.jgit.lib.ObjectReader reader = repo.newObjectReader(); // 누수!
+
+// ✅ 수정
+try (org.eclipse.jgit.revwalk.RevWalk walk = new org.eclipse.jgit.revwalk.RevWalk(repo);
+     org.eclipse.jgit.lib.ObjectReader reader = repo.newObjectReader()) {
+```
+
+---
+
+## 수정된 전체 코드
+
+### `BxmGitRepositoryInitializer.java`
+
+```java
 package bxm.team.scm.git;
 
 import java.io.File;
@@ -13,12 +49,17 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.AbstractTreeIterator;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 
 public class BxmGitRepositoryInitializer {
 
     public void init(Repository repo) {
+        // addRefsChangedListener — 기존 방식 유지
         repo.getListenerList().addRefsChangedListener(event -> {
             try (Git git = new Git(repo)) {
                 RevCommit latest = git.log().setMaxCount(1).call().iterator().next();
@@ -28,8 +69,8 @@ public class BxmGitRepositoryInitializer {
                 e.printStackTrace();
             }
         });
-        
     }
+
     private List<String> getChangedFiles(Git git, Repository repo, RevCommit commit) throws Exception {
         List<String> result = new ArrayList<>();
         if (commit.getParentCount() == 0) return result;
@@ -53,10 +94,14 @@ public class BxmGitRepositoryInitializer {
 
     private void fireParticipants(List<String> files, File repoRoot) {
         IExtensionRegistry registry = Platform.getExtensionRegistry();
-        IExtensionPoint ep = registry.getExtensionPoint("bxm.ui", "bxm.team.scm.git.commit");
-        if (ep == null) return;
 
-        // priority 순 정렬
+        // ✅ 단일 인자로 변경 — SVN과 동일한 방식
+        IExtensionPoint ep = registry.getExtensionPoint("bxm.team.scm.git.commit");
+        if (ep == null) {
+            System.err.println("[BXM] Extension point 'bxm.team.scm.git.commit' not found");
+            return;
+        }
+
         List<IBxmGitCommitParticipant> participants = new ArrayList<>();
         for (IExtension ext : ep.getExtensions()) {
             for (IConfigurationElement el : ext.getConfigurationElements()) {
@@ -69,8 +114,8 @@ public class BxmGitRepositoryInitializer {
                 }
             }
         }
-        participants.sort(Comparator.comparingInt(IBxmGitCommitParticipant::getPriority));
 
+        participants.sort(Comparator.comparingInt(IBxmGitCommitParticipant::getPriority));
         for (IBxmGitCommitParticipant p : participants) {
             Object pre = p.performPreProcess();
             p.performAfterCommitTasks(pre, files, repoRoot);
@@ -78,15 +123,59 @@ public class BxmGitRepositoryInitializer {
         }
     }
 
-    private org.eclipse.jgit.treewalk.AbstractTreeIterator prepareTreeParser(
-            Repository repo, RevCommit commit) throws Exception {
-        try (org.eclipse.jgit.revwalk.RevWalk walk = new org.eclipse.jgit.revwalk.RevWalk(repo)) {
-            org.eclipse.jgit.lib.ObjectReader reader = repo.newObjectReader();
-            org.eclipse.jgit.treewalk.CanonicalTreeParser parser =
-                    new org.eclipse.jgit.treewalk.CanonicalTreeParser();
+    private AbstractTreeIterator prepareTreeParser(Repository repo, RevCommit commit) throws Exception {
+        // ✅ ObjectReader도 try-with-resources로 닫기
+        try (RevWalk walk = new RevWalk(repo);
+             ObjectReader reader = repo.newObjectReader()) {
+            CanonicalTreeParser parser = new CanonicalTreeParser();
             parser.reset(reader, walk.parseTree(commit.getTree()));
             return parser;
         }
     }
-    
 }
+```
+
+### `BxmGitRepositoryManager.java` — `job.schedule()` 및 리스너 주석 해제
+
+```java
+public void start() {
+    RepositoryUtil repoUtil = RepositoryUtil.INSTANCE;
+
+    // 기존 저장소 등록
+    repoUtil.getRepositories().forEach(this::register);
+
+    // ✅ 주석 해제 — 신규 저장소도 감지
+    repoUtil.addPropertyChangeListener(event -> {
+        if (RepositoryUtil.REPOSITORIES_CHANGED.equals(event.getProperty())) {
+            repoUtil.getRepositories().forEach(this::register);
+        }
+    });
+}
+```
+
+### `BxmGitRepositoryInit.java` — `job.schedule()` 추가
+
+```java
+@Override
+public void earlyStartup() {
+    Job job = new Job("BXM Git") {
+        @Override
+        protected IStatus run(IProgressMonitor monitor) {
+            new BxmGitRepositoryManager().start();
+            return Status.OK_STATUS;
+        }
+    };
+    job.schedule(); // ✅ 누락되어 있었음
+}
+```
+
+---
+
+## 변경 요약
+
+| 위치 | 문제 | 수정 |
+|---|---|---|
+| `fireParticipants` | `getExtensionPoint("bxm.ui", ...)` → null 반환 | 단일 인자 `getExtensionPoint("bxm.team.scm.git.commit")` |
+| `prepareTreeParser` | `ObjectReader` 리소스 누수 | try-with-resources에 추가 |
+| `BxmGitRepositoryManager.start()` | 신규 저장소 감지 안 됨 | `PropertyChangeListener` 주석 해제 |
+| `BxmGitRepositoryInit.earlyStartup()` | Job이 실행 안 됨 | `job.schedule()` 추가 |
