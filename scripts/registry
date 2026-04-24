@@ -1,0 +1,285 @@
+현재 방식의 문제점부터 짚고 개선할게요.
+
+---
+
+## 현재 방식의 문제점
+
+```
+1. 저장소마다 스레드 1개 생성 → 저장소 10개면 스레드 10개
+2. COMMIT_EDITMSG가 커밋 1번에 여러 번 수정될 수 있음 → 중복 실행
+3. Eclipse 강제종료 시 WatchService 정리 보장 안 됨
+4. 스레드 예외 발생 시 재시작 로직 없음
+```
+
+---
+
+## 개선된 전체 코드
+
+### `BxmGitRepositoryInitializer.java`
+
+```java
+package bxm.team.scm.git;
+
+import java.io.File;
+import java.nio.file.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.eclipse.core.runtime.*;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+
+public class BxmGitRepositoryInitializer {
+
+    // ✅ 저장소마다 스레드 X → 단일 WatchService + 단일 스레드로 전체 관리
+    private WatchService watchService;
+    private final Map<WatchKey, Repository> keyToRepo = new ConcurrentHashMap<>();
+    private final AtomicBoolean running = new AtomicBoolean(false);
+
+    // ✅ 디바운싱용 — 짧은 시간 내 중복 실행 방지
+    private final ScheduledExecutorService debouncer =
+            Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "BXM-Git-Debouncer");
+                t.setDaemon(true);
+                return t;
+            });
+    private final Map<Repository, ScheduledFuture<?>> pendingCommits = new ConcurrentHashMap<>();
+
+    // ✅ 실제 커밋 처리용 스레드풀 — 부하 제한 (최대 2개)
+    private final ExecutorService commitExecutor =
+            Executors.newFixedThreadPool(2, r -> {
+                Thread t = new Thread(r, "BXM-Git-CommitWorker");
+                t.setDaemon(true);
+                return t;
+            });
+
+    public void start() {
+        if (running.getAndSet(true)) return; // 이미 실행 중이면 스킵
+
+        try {
+            watchService = FileSystems.getDefault().newWatchService();
+
+            // ✅ 단일 감시 스레드 — 모든 저장소를 하나의 스레드로 감시
+            Thread watchThread = new Thread(this::watchLoop, "BXM-Git-Watcher");
+            watchThread.setDaemon(true); // Eclipse 종료 시 자동 종료
+            watchThread.start();
+
+            // ✅ JVM 강제종료 대비 shutdown hook
+            Runtime.getRuntime().addShutdownHook(new Thread(this::dispose, "BXM-Git-Shutdown"));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void init(Repository repo) {
+        if (watchService == null) return;
+        File gitDir = repo.getDirectory();
+        if (gitDir == null || !gitDir.exists()) return;
+
+        // 이미 등록된 저장소면 스킵
+        boolean alreadyRegistered = keyToRepo.values().stream()
+                .anyMatch(r -> r.getDirectory().equals(gitDir));
+        if (alreadyRegistered) return;
+
+        try {
+            // ✅ 단일 WatchService에 키만 추가 — 스레드 추가 없음
+            WatchKey key = gitDir.toPath().register(
+                    watchService,
+                    StandardWatchEventKinds.ENTRY_MODIFY
+            );
+            keyToRepo.put(key, repo);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void watchLoop() {
+        while (running.get()) {
+            try {
+                // ✅ 1초 타임아웃 — running 플래그 주기적으로 확인
+                WatchKey key = watchService.poll(1, TimeUnit.SECONDS);
+                if (key == null) continue;
+
+                Repository repo = keyToRepo.get(key);
+                if (repo != null) {
+                    for (WatchEvent<?> event : key.pollEvents()) {
+                        Path changed = (Path) event.context();
+                        if ("COMMIT_EDITMSG".equals(changed.getFileName().toString())) {
+                            scheduleCommit(repo); // ✅ 디바운싱 처리
+                        }
+                    }
+                }
+
+                if (!key.reset()) {
+                    // 저장소 디렉토리가 삭제된 경우
+                    keyToRepo.remove(key);
+                }
+
+            } catch (ClosedWatchServiceException e) {
+                break; // dispose() 호출로 인한 정상 종료
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            } catch (Exception e) {
+                e.printStackTrace();
+                // ✅ 예외 발생해도 루프 유지 — 강제종료 아니면 계속 감시
+            }
+        }
+    }
+
+    // ✅ 디바운싱 — 500ms 내 중복 이벤트 무시
+    private void scheduleCommit(Repository repo) {
+        ScheduledFuture<?> existing = pendingCommits.get(repo);
+        if (existing != null) {
+            existing.cancel(false); // 기존 예약 취소
+        }
+
+        ScheduledFuture<?> future = debouncer.schedule(() -> {
+            pendingCommits.remove(repo);
+            commitExecutor.submit(() -> onCommit(repo));
+        }, 500, TimeUnit.MILLISECONDS);
+
+        pendingCommits.put(repo, future);
+    }
+
+    private void onCommit(Repository repo) {
+        try (Git git = new Git(repo)) {
+            RevCommit latest = git.log().setMaxCount(1).call().iterator().next();
+            List<String> files = getChangedFiles(git, repo, latest);
+            fireParticipants(files, repo.getWorkTree());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ✅ 플러그인 stop() + JVM 종료 양쪽에서 호출 가능
+    public void dispose() {
+        if (!running.getAndSet(false)) return; // 이미 종료됐으면 스킵
+
+        // 대기 중인 커밋 작업 취소
+        pendingCommits.values().forEach(f -> f.cancel(false));
+        pendingCommits.clear();
+
+        // WatchService 닫기 → watchLoop의 ClosedWatchServiceException으로 종료
+        try {
+            if (watchService != null) watchService.close();
+        } catch (Exception ignored) {}
+
+        // 스레드풀 정리 — 최대 5초 대기
+        shutdownExecutor(debouncer, "debouncer");
+        shutdownExecutor(commitExecutor, "commitExecutor");
+
+        keyToRepo.clear();
+    }
+
+    private void shutdownExecutor(ExecutorService executor, String name) {
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    // ---- 기존 메서드 유지 ----
+
+    private List<String> getChangedFiles(Git git, Repository repo, RevCommit commit) throws Exception {
+        List<String> result = new ArrayList<>();
+        if (commit.getParentCount() == 0) return result;
+
+        RevCommit parent = commit.getParent(0);
+        List<DiffEntry> diffs = git.diff()
+                .setOldTree(prepareTreeParser(repo, parent))
+                .setNewTree(prepareTreeParser(repo, commit))
+                .call();
+
+        for (DiffEntry diff : diffs) {
+            switch (diff.getChangeType()) {
+                case ADD:    result.add("A:" + diff.getNewPath()); break;
+                case MODIFY: result.add("M:" + diff.getNewPath()); break;
+                case DELETE: result.add("D:" + diff.getOldPath()); break;
+                default: break;
+            }
+        }
+        return result;
+    }
+
+    private void fireParticipants(List<String> files, File repoRoot) {
+        IExtensionRegistry registry = Platform.getExtensionRegistry();
+        IExtensionPoint ep = registry.getExtensionPoint("bxm.team.scm.git.commit");
+        if (ep == null) {
+            System.err.println("[BXM] Extension point 'bxm.team.scm.git.commit' not found");
+            return;
+        }
+
+        List<IBxmGitCommitParticipant> participants = new ArrayList<>();
+        for (IExtension ext : ep.getExtensions()) {
+            for (IConfigurationElement el : ext.getConfigurationElements()) {
+                try {
+                    IBxmGitCommitParticipant p =
+                        (IBxmGitCommitParticipant) el.createExecutableExtension("class");
+                    participants.add(p);
+                } catch (CoreException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        participants.sort(Comparator.comparingInt(IBxmGitCommitParticipant::getPriority));
+        for (IBxmGitCommitParticipant p : participants) {
+            Object pre = p.performPreProcess();
+            p.performAfterCommitTasks(pre, files, repoRoot);
+            p.performPostProcess();
+        }
+    }
+
+    private org.eclipse.jgit.treewalk.AbstractTreeIterator prepareTreeParser(
+            Repository repo, RevCommit commit) throws Exception {
+        try (RevWalk walk = new RevWalk(repo);
+             ObjectReader reader = repo.newObjectReader()) {
+            CanonicalTreeParser parser = new CanonicalTreeParser();
+            parser.reset(reader, walk.parseTree(commit.getTree()));
+            return parser;
+        }
+    }
+}
+```
+
+### `BxmGitRepositoryManager.java` — start/stop 연결
+
+```java
+public void start() {
+    initializer.start(); // ✅ WatchService 먼저 시작
+    RepositoryUtil repoUtil = RepositoryUtil.INSTANCE;
+    repoUtil.getRepositories().forEach(this::register);
+}
+
+public void stop() {
+    initializer.dispose(); // ✅ 리소스 정리
+    registeredRepos.forEach(Repository::close);
+    registeredRepos.clear();
+}
+```
+
+---
+
+## 개선 요약
+
+| 항목 | 기존 | 개선 |
+|---|---|---|
+| 스레드 수 | 저장소당 1개 | 전체 1개 (단일 감시 스레드) |
+| 중복 실행 | 발생 가능 | 디바운싱 500ms로 방지 |
+| 커밋 처리 부하 | 무제한 | 최대 2개 스레드로 제한 |
+| 강제종료 시 정리 | 보장 안 됨 | ShutdownHook + dispose() |
+| 예외 발생 시 | 스레드 죽음 | 루프 유지, 계속 감시 |
+| 플러그인 stop() | dispose 없음 | stop()에서 dispose() 호출 |
