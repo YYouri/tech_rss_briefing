@@ -1,718 +1,241 @@
-이클립스 플러그인에서 내부 중계 서버를 이용해서 LLM 서버에 연결하여 사용 하는 코드 어시스트 플러그인 일부 소스야 
-jdk8, elcipse 4.5.2 기준으로 개발을 해야하고 우린 사정상 스트리밍 방식은 어려워 
-아래 소스를 일관성있게 부탁하고
-여러 방식으로 채팅, completion 등 을 통해 aiclient로  http 를 호출하게 될텐데 
-호출과 함께 이클립스 상태바에 ai 응답 생성 중 이란 메시지가 보여줘서 개발자들이 헷갈리지 않도록 하면 좋겠어
-
-package hi.bxm.assist.ui.view;
-
-import hi.bxm.assist.core.model.ChatMessage;
-import hi.bxm.assist.ui.presenter.ChatPresenter;
-
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.part.ViewPart;
-
-/**
- * BXM AI Assist 채팅 뷰 (스트리밍 지원).
- *
- * 스트리밍 흐름:
- *  1. presenter.onUserMessage() 호출
- *  2. 사용자 메시지 append
- *  3. beginAssistantStream() 으로 빈 assistant 블록 + 헤더 그리기
- *  4. appendAssistantDelta(token) 토큰 단위 추가
- *  5. endAssistantStream(fullText) 으로 완료 처리 (최종 코드 하이라이팅)
- */
-public class ChatView extends ViewPart {
-
-    public static final String ID = "hi.bxm.assist.ui.ChatView";
-
-    private StyledText chatDisplay;
-    private StyledText inputText;
-    private Button sendButton;
-    private Button stopButton;
-    private ChatPresenter presenter;
-
-    private Color colorUser;
-    private Color colorAssistant;
-    private Color colorCode;
-    private Color colorError;
-
-    // 현재 스트리밍 중인 assistant 메시지의 본문 시작 오프셋
-    private int streamingBodyStart = -1;
-
-    @Override
-    public void createPartControl(Composite parent) {
-        Display display = parent.getDisplay();
-        colorUser      = new Color(display,  30, 100, 200);
-        colorAssistant = new Color(display,  40, 140,  70);
-        colorCode      = new Color(display,  90,  90,  90);
-        colorError     = new Color(display, 200,   0,   0);
-
-        parent.setLayout(new GridLayout(1, false));
-
-        Composite buttonRow = new Composite(parent, SWT.NONE);
-        buttonRow.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
-        rowLayout.marginTop = 2; rowLayout.marginBottom = 2; rowLayout.spacing = 4;
-        buttonRow.setLayout(rowLayout);
-
-        Button clearButton = new Button(buttonRow, SWT.PUSH);
-        clearButton.setText("대화 초기화");
-        Button copyButton = new Button(buttonRow, SWT.PUSH);
-        copyButton.setText("전체 복사");
-        stopButton = new Button(buttonRow, SWT.PUSH);
-        stopButton.setText("중지");
-        stopButton.setEnabled(false);
-
-        SashForm sash = new SashForm(parent, SWT.VERTICAL);
-        sash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        sash.setSashWidth(5);
-
-        chatDisplay = new StyledText(sash,
-                SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY | SWT.BORDER);
-        chatDisplay.setEditable(false);
-        chatDisplay.setMargins(6, 6, 6, 6);
-
-        Composite inputArea = new Composite(sash, SWT.NONE);
-        inputArea.setLayout(new GridLayout(2, false));
-
-        inputText = new StyledText(inputArea,
-                SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.BORDER);
-        inputText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        inputText.setMargins(4, 4, 4, 4);
-
-        sendButton = new Button(inputArea, SWT.PUSH);
-        sendButton.setText("전송");
-        sendButton.setLayoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, false, false));
-
-        sash.setWeights(new int[]{75, 25});
-
-        presenter = new ChatPresenter(this);
-
-        sendButton.addListener(SWT.Selection, e -> onSend());
-        inputText.addListener(SWT.KeyDown, e -> {
-            if (e.keyCode == SWT.CR && (e.stateMask & SWT.CTRL) != 0) onSend();
-        });
-        clearButton.addListener(SWT.Selection, e -> {
-            chatDisplay.setText("");
-            presenter.clearHistory();
-        });
-        copyButton.addListener(SWT.Selection, e -> {
-            String text = chatDisplay.getText();
-            if (!text.isEmpty()) {
-                Clipboard cb = new Clipboard(display);
-                cb.setContents(new Object[]{text}, new Transfer[]{TextTransfer.getInstance()});
-                cb.dispose();
-            }
-        });
-        stopButton.addListener(SWT.Selection, e -> presenter.cancelCurrent());
-    }
-
-    private void onSend() {
-        String msg = inputText.getText().trim();
-        if (msg.isEmpty()) return;
-        inputText.setText("");
-        setInputEnabled(false);
-        presenter.onUserMessage(msg);
-    }
-
-    // ── 비-스트리밍 (전체 메시지 한번에) ──────────────────────
-    public void appendMessage(ChatMessage.Role role, String text) {
-        Display.getDefault().asyncExec(() -> {
-            if (chatDisplay.isDisposed()) return;
-            writeHeader(role);
-            appendWithCodeHighlight(text + "\n");
-            scrollToEnd();
-        });
-    }
-
-    // ── 스트리밍 ────────────────────────────────────────────
-    public void beginAssistantStream() {
-        Display.getDefault().asyncExec(() -> {
-            if (chatDisplay.isDisposed()) return;
-            writeHeader(ChatMessage.Role.ASSISTANT);
-            streamingBodyStart = chatDisplay.getCharCount();
-            scrollToEnd();
-        });
-    }
-
-    public void appendAssistantDelta(String delta) {
-        if (delta == null || delta.isEmpty()) return;
-        Display.getDefault().asyncExec(() -> {
-            if (chatDisplay.isDisposed()) return;
-            chatDisplay.append(delta);
-            scrollToEnd();
-        });
-    }
-
-    public void endAssistantStream(String fullText) {
-        Display.getDefault().asyncExec(() -> {
-            if (chatDisplay.isDisposed()) return;
-            // 스트리밍 도중 plain 텍스트로 표시된 본문을 코드블록 하이라이트로 재처리
-            if (streamingBodyStart >= 0 && fullText != null) {
-                int currentEnd = chatDisplay.getCharCount();
-                chatDisplay.replaceTextRange(streamingBodyStart,
-                        currentEnd - streamingBodyStart, "");
-                appendWithCodeHighlight(fullText + "\n");
-                streamingBodyStart = -1;
-            } else {
-                chatDisplay.append("\n");
-            }
-            scrollToEnd();
-        });
-    }
-
-    private void writeHeader(ChatMessage.Role role) {
-        String prefix = (role == ChatMessage.Role.USER) ? "▶ 나\n" : "◆ AI\n";
-        Color prefixColor = (role == ChatMessage.Role.USER) ? colorUser : colorAssistant;
-        if (chatDisplay.getCharCount() > 0) chatDisplay.append("\n");
-        int start = chatDisplay.getCharCount();
-        chatDisplay.append(prefix);
-        StyleRange sr = new StyleRange();
-        sr.start = start; sr.length = prefix.length();
-        sr.foreground = prefixColor; sr.fontStyle = SWT.BOLD;
-        chatDisplay.setStyleRange(sr);
-    }
-
-    private void scrollToEnd() {
-        chatDisplay.setTopIndex(chatDisplay.getLineCount() - 1);
-    }
-
-    // ── 코드블록 파싱 (``` ... ```) ──────────────────────────
-    private void appendWithCodeHighlight(String text) {
-        int pos = 0;
-        while (pos < text.length()) {
-            int fenceStart = text.indexOf("```", pos);
-            if (fenceStart < 0) {
-                chatDisplay.append(text.substring(pos));
-                break;
-            }
-            if (fenceStart > pos) {
-                chatDisplay.append(text.substring(pos, fenceStart));
-            }
-            int fenceEnd = text.indexOf("```", fenceStart + 3);
-            if (fenceEnd < 0) {
-                chatDisplay.append(text.substring(fenceStart));
-                break;
-            }
-            String block = text.substring(fenceStart + 3, fenceEnd);
-            int nl = block.indexOf('\n');
-            if (nl >= 0) block = block.substring(nl + 1);
-            int codeStart = chatDisplay.getCharCount();
-            chatDisplay.append(block);
-            StyleRange csr = new StyleRange();
-            csr.start = codeStart; csr.length = block.length();
-            csr.foreground = colorCode; csr.fontStyle = SWT.ITALIC;
-            chatDisplay.setStyleRange(csr);
-            pos = fenceEnd + 3;
-        }
-    }
-
-    public void setInputEnabled(boolean enabled) {
-        Display.getDefault().asyncExec(() -> {
-            if (!sendButton.isDisposed()) sendButton.setEnabled(enabled);
-            if (!inputText.isDisposed())  inputText.setEnabled(enabled);
-            if (!stopButton.isDisposed()) stopButton.setEnabled(!enabled);
-        });
-    }
-
-    public void showError(String message) {
-        Display.getDefault().asyncExec(() -> {
-            if (chatDisplay.isDisposed()) return;
-            int start = chatDisplay.getCharCount();
-            String err = "[오류] " + message + "\n";
-            chatDisplay.append(err);
-            StyleRange sr = new StyleRange();
-            sr.start = start; sr.length = err.length();
-            sr.foreground = colorError;
-            chatDisplay.setStyleRange(sr);
-            scrollToEnd();
-        });
-    }
-
-    @Override
-    public void setFocus() {
-        if (inputText != null && !inputText.isDisposed()) inputText.setFocus();
-    }
-
-    @Override
-    public void dispose() {
-        if (presenter != null) presenter.cancelCurrent();
-        if (colorUser      != null) colorUser.dispose();
-        if (colorAssistant != null) colorAssistant.dispose();
-        if (colorCode      != null) colorCode.dispose();
-        if (colorError     != null) colorError.dispose();
-        super.dispose();
-    }
-}
-
-
-package hi.bxm.assist.ui.presenter;
-
-import hi.bxm.assist.Activator;
-import hi.bxm.assist.core.llm.OpenAIClient;
-import hi.bxm.assist.core.llm.PromptBuilder;
-import hi.bxm.assist.core.llm.StreamCallback;
-import hi.bxm.assist.core.model.ChatMessage;
-import hi.bxm.assist.core.model.ChatMessage.Role;
-import hi.bxm.assist.core.model.EditorContext;
-import hi.bxm.assist.core.util.AsyncRunner;
-import hi.bxm.assist.editor.context.ContextCollector;
-import hi.bxm.assist.ui.view.ChatView;
-
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-/**
- * MVP Presenter (스트리밍 지원).
- *
- * - cancelCurrent(): 사용자가 "중지" 버튼을 눌렀을 때 현재 스트림 폐기
- * - 활성 에디터 컨텍스트를 자동으로 수집해 시스템 메시지에 포함
- */
-public class ChatPresenter {
-
-    private final ChatView view;
-    private final PromptBuilder promptBuilder = new PromptBuilder();
-    private final List<ChatMessage> history = new ArrayList<ChatMessage>();
-    private AtomicBoolean currentCancel;
-
-    public ChatPresenter(ChatView view) {
-        this.view = view;
-    }
-
-    public void onUserMessage(final String userText) {
-        ChatMessage userMsg = new ChatMessage(Role.USER, userText);
-        view.appendMessage(Role.USER, userText);
-
-        // 활성 에디터 컨텍스트 (백그라운드에서 사용)
-        final EditorContext ctx = collectActiveEditorContext();
-        final List<ChatMessage> historySnapshot = new ArrayList<ChatMessage>(history);
-        history.add(userMsg);
-
-        view.beginAssistantStream();
-        final StringBuilder accum = new StringBuilder();
-        final AtomicBoolean cancel = new AtomicBoolean(false);
-        currentCancel = cancel;
-
-        // 매 호출마다 최신 client 취득 (Preferences 변경 즉시 반영)
-        final OpenAIClient llmClient = Activator.getDefault().getLlmClient();
-
-        AsyncRunner.run(new Runnable() {
-            @Override public void run() {
-                List<ChatMessage> payload = promptBuilder.forChat(historySnapshot, userText, ctx);
-                llmClient.completeStream(payload, 0.3, 2048, new StreamCallback() {
-                    @Override public void onToken(String delta) {
-                        accum.append(delta);
-                        view.appendAssistantDelta(delta);
-                    }
-                    @Override public void onComplete(String fullText) {
-                        history.add(new ChatMessage(Role.ASSISTANT,
-                                fullText == null || fullText.isEmpty() ? accum.toString() : fullText));
-                        view.endAssistantStream(
-                                fullText == null || fullText.isEmpty() ? accum.toString() : fullText);
-                        view.setInputEnabled(true);
-                    }
-                    @Override public void onError(Throwable t) {
-                        view.showError("LLM 호출 실패: " + t.getMessage());
-                        view.endAssistantStream(accum.toString());
-                        view.setInputEnabled(true);
-                    }
-                    @Override public boolean isCancelled() { return cancel.get(); }
-                });
-            }
-        });
-    }
-
-    public void cancelCurrent() {
-        if (currentCancel != null) currentCancel.set(true);
-    }
-
-    public void clearHistory() { history.clear(); }
-
-    private EditorContext collectActiveEditorContext() {
-        try {
-            IWorkbench wb = PlatformUI.getWorkbench();
-            if (wb == null) return null;
-            IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
-            if (win == null) return null;
-            IWorkbenchPage page = win.getActivePage();
-            if (page == null) return null;
-            IEditorPart editor = page.getActiveEditor();
-            if (editor == null) return null;
-            return ContextCollector.fromEditor(editor);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-}
-
-package hi.bxm.assist.core.llm;
-
-import hi.bxm.assist.core.model.ChatMessage;
-import hi.bxm.assist.core.model.CompletionRequest;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-/**
- * 내부 LLM 서버(OpenAI-compatible)와 통신하는 클라이언트.
- * JDK 8 표준 라이브러리(HttpURLConnection)만 사용 — 외부 의존성 없음.
- *
- * 지원 엔드포인트:
- *  - POST /v1/chat/completions       (non-stream / SSE stream)
- *  - POST /v1/completions            (FIM prompt — qwen-coder/deepseek-coder)
- *
- * 설정은 Eclipse Preferences > BXM Assist 에서 관리한다.
- */
-public class OpenAIClient {
-
-    private String baseUrl;
-    private String apiKey;
-    private String defaultModel;
-    private int connectTimeoutMs;
-    private int readTimeoutMs;
-
-    public OpenAIClient(String baseUrl, String apiKey, String defaultModel) {
-        this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-        this.apiKey = apiKey;
-        this.defaultModel = defaultModel;
-        this.connectTimeoutMs = 5_000;
-        this.readTimeoutMs = 60_000;
-    }
-
-    // ── 동기 chat completion ──────────────────────────────────
-    public String complete(CompletionRequest request) throws IOException {
-        String model = request.getModel() != null ? request.getModel() : defaultModel;
-        String body = buildChatBody(model, request.getMessages(),
-                request.getTemperature(), request.getMaxTokens(), false, null);
-        String responseJson = post("v1/chat/completions", body);
-        return parseChoiceContent(responseJson);
-    }
-
-    public String complete(List<ChatMessage> messages) throws IOException {
-        String body = buildChatBody(defaultModel, messages, 0.2, 2048, false, null);
-        String responseJson = post("v1/chat/completions", body);
-        return parseChoiceContent(responseJson);
-    }
-
-    // ── 스트리밍 chat completion (SSE) ────────────────────────
-    /**
-     * SSE 스트리밍. 도착하는 delta 마다 callback.onToken 호출.
-     * callback.isCancelled() 가 true 가 되면 즉시 연결 종료.
-     */
-    public void completeStream(List<ChatMessage> messages, double temperature,
-                               int maxTokens, StreamCallback callback) {
-        completeStream(defaultModel, messages, temperature, maxTokens, null, callback);
-    }
-
-    public void completeStream(String model, List<ChatMessage> messages,
-                               double temperature, int maxTokens,
-                               String[] stopSequences, StreamCallback callback) {
-        if (model == null) model = defaultModel;
-        String body = buildChatBody(model, messages, temperature, maxTokens, true, stopSequences);
-        streamSSE("v1/chat/completions", body, callback, /*fim=*/false);
-    }
-
-    // ── FIM (Fill-In-Middle) /v1/completions ──────────────────
-    /**
-     * 코드 자동완성 전용. qwen-coder / deepseek-coder 가 prefix/suffix 토큰을
-     * prompt 안에 직접 받도록 PromptBuilder.forFimPrompt() 가 구성해둠.
-     * 응답 형식: {"choices":[{"text":"..."}]}
-     *
-     * 짧은 토큰만 받으면 되므로 동기 + 짧은 타임아웃 권장.
-     */
-    public String completeFim(String prompt, String model, double temperature,
-                              int maxTokens, String[] stopSequences) throws IOException {
-        if (model == null) model = defaultModel;
-        String body = buildFimBody(model, prompt, temperature, maxTokens, false, stopSequences);
-        String responseJson = post("v1/completions", body);
-        return parseChoiceText(responseJson);
-    }
-
-    public void completeFimStream(String prompt, String model, double temperature,
-                                  int maxTokens, String[] stopSequences,
-                                  StreamCallback callback) {
-        if (model == null) model = defaultModel;
-        String body = buildFimBody(model, prompt, temperature, maxTokens, true, stopSequences);
-        streamSSE("v1/completions", body, callback, /*fim=*/true);
-    }
-
-    // ── HTTP POST (non-stream) ────────────────────────────────
-    private String post(String path, String jsonBody) throws IOException {
-        HttpURLConnection conn = openConnection(path, jsonBody, false);
-        try {
-            int status = conn.getResponseCode();
-            if (status != 200) {
-                String errBody = readAll(conn.getErrorStream());
-                throw new IOException("LLM HTTP " + status + ": " + truncate(errBody, 300));
-            }
-            return readAll(conn.getInputStream());
-        } finally {
-            conn.disconnect();
-        }
-    }
-
-    // ── HTTP POST (SSE) ───────────────────────────────────────
-    private void streamSSE(String path, String jsonBody, StreamCallback cb, boolean fim) {
-        HttpURLConnection conn = null;
-        BufferedReader reader = null;
-        StringBuilder full = new StringBuilder();
-        try {
-            conn = openConnection(path, jsonBody, true);
-            int status = conn.getResponseCode();
-            if (status != 200) {
-                String errBody = readAll(conn.getErrorStream());
-                cb.onError(new IOException("LLM HTTP " + status + ": " + truncate(errBody, 300)));
-                return;
-            }
-            reader = new BufferedReader(new InputStreamReader(
-                    conn.getInputStream(), StandardCharsets.UTF_8));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (cb.isCancelled()) break;
-                if (line.isEmpty()) continue;
-                if (!line.startsWith("data:")) continue;
-                String payload = line.substring(5).trim();
-                if (payload.equals("[DONE]")) break;
-                String delta = fim ? extractFimDelta(payload) : extractChatDelta(payload);
-                if (delta != null && !delta.isEmpty()) {
-                    full.append(delta);
-                    cb.onToken(delta);
-                }
-            }
-            cb.onComplete(full.toString());
-        } catch (Exception e) {
-            if (!cb.isCancelled()) cb.onError(e);
-        } finally {
-            if (reader != null) try { reader.close(); } catch (IOException ignore) {}
-            if (conn != null) conn.disconnect();
-        }
-    }
-
-    private HttpURLConnection openConnection(String path, String jsonBody, boolean stream)
-            throws IOException {
-        URL url = new URL(baseUrl + path);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        conn.setRequestProperty("Accept", stream ? "text/event-stream" : "application/json");
-        if (apiKey != null && !apiKey.isEmpty()) {
-            conn.setRequestProperty("Authorization", "Bearer " + apiKey);
-        }
-        conn.setConnectTimeout(connectTimeoutMs);
-        conn.setReadTimeout(stream ? 0 : readTimeoutMs);
-        conn.setDoOutput(true);
-        byte[] bytes = jsonBody.getBytes(StandardCharsets.UTF_8);
-        conn.setFixedLengthStreamingMode(bytes.length);
-        try (OutputStream os = conn.getOutputStream()) {
-            os.write(bytes);
-        }
-        return conn;
-    }
-
-    private String readAll(InputStream is) throws IOException {
-        if (is == null) return "";
-        try (BufferedReader r = new BufferedReader(
-                new InputStreamReader(is, StandardCharsets.UTF_8))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = r.readLine()) != null) sb.append(line).append('\n');
-            return sb.toString().trim();
-        }
-    }
-
-    // ── 요청 JSON 조립 ────────────────────────────────────────
-    private String buildChatBody(String model, List<ChatMessage> messages,
-                                 double temperature, int maxTokens,
-                                 boolean stream, String[] stopSequences) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append("\"model\":").append(jsonStr(model)).append(',');
-        sb.append("\"temperature\":").append(temperature).append(',');
-        sb.append("\"max_tokens\":").append(maxTokens).append(',');
-        if (stream) sb.append("\"stream\":true,");
-        appendStop(sb, stopSequences);
-        sb.append("\"messages\":[");
-        for (int i = 0; i < messages.size(); i++) {
-            ChatMessage m = messages.get(i);
-            sb.append("{\"role\":").append(jsonStr(m.getRoleString()))
-              .append(",\"content\":").append(jsonStr(m.getContent())).append('}');
-            if (i < messages.size() - 1) sb.append(',');
-        }
-        sb.append("]}");
-        return sb.toString();
-    }
-
-    private String buildFimBody(String model, String prompt, double temperature,
-                                int maxTokens, boolean stream, String[] stopSequences) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append("\"model\":").append(jsonStr(model)).append(',');
-        sb.append("\"temperature\":").append(temperature).append(',');
-        sb.append("\"max_tokens\":").append(maxTokens).append(',');
-        if (stream) sb.append("\"stream\":true,");
-        appendStop(sb, stopSequences);
-        sb.append("\"prompt\":").append(jsonStr(prompt));
-        sb.append("}");
-        return sb.toString();
-    }
-
-    private void appendStop(StringBuilder sb, String[] stops) {
-        if (stops == null || stops.length == 0) return;
-        sb.append("\"stop\":[");
-        for (int i = 0; i < stops.length; i++) {
-            sb.append(jsonStr(stops[i]));
-            if (i < stops.length - 1) sb.append(',');
-        }
-        sb.append("],");
-    }
-
-    // ── 응답 파싱 ──────────────────────────────────────────────
-    /** chat /v1/chat/completions 동기 응답: {"choices":[{"message":{"content":"..."}}]} */
-    private String parseChoiceContent(String json) throws IOException {
-        String content = extractStringField(json, "\"content\"");
-        if (content == null) {
-            throw new IOException("Unexpected response format: " + truncate(json, 200));
-        }
-        return content.trim();
-    }
-
-    /** /v1/completions 동기 응답: {"choices":[{"text":"..."}]} */
-    private String parseChoiceText(String json) throws IOException {
-        String text = extractStringField(json, "\"text\"");
-        if (text == null) {
-            throw new IOException("Unexpected response format: " + truncate(json, 200));
-        }
-        return text;
-    }
-
-    /** chat SSE delta: {"choices":[{"delta":{"content":"..."}}]} */
-    private String extractChatDelta(String payload) {
-        return extractStringField(payload, "\"content\"");
-    }
-
-    /** completions SSE delta: {"choices":[{"text":"..."}]} */
-    private String extractFimDelta(String payload) {
-        return extractStringField(payload, "\"text\"");
-    }
-
-    /**
-     * 첫 번째로 등장하는 key 의 string 값을 추출.
-     * key 는 따옴표 포함 (예: "\"content\"")
-     */
-    private String extractStringField(String json, String key) {
-        int idx = json.indexOf(key);
-        if (idx < 0) return null;
-        int colon = json.indexOf(':', idx);
-        if (colon < 0) return null;
-        int start = json.indexOf('"', colon + 1);
-        if (start < 0) return null;
-        StringBuilder result = new StringBuilder();
-        boolean escape = false;
-        for (int i = start + 1; i < json.length(); i++) {
-            char c = json.charAt(i);
-            if (escape) {
-                switch (c) {
-                    case 'n': result.append('\n'); break;
-                    case 't': result.append('\t'); break;
-                    case 'r': result.append('\r'); break;
-                    case '"': result.append('"'); break;
-                    case '\\': result.append('\\'); break;
-                    case '/': result.append('/'); break;
-                    case 'b': result.append('\b'); break;
-                    case 'f': result.append('\f'); break;
-                    case 'u':
-                        if (i + 4 < json.length()) {
-                            try {
-                                int cp = Integer.parseInt(json.substring(i + 1, i + 5), 16);
-                                result.append((char) cp);
-                                i += 4;
-                            } catch (NumberFormatException nfe) {
-                                result.append('\\').append(c);
-                            }
-                        }
-                        break;
-                    default: result.append('\\').append(c);
-                }
-                escape = false;
-            } else if (c == '\\') {
-                escape = true;
-            } else if (c == '"') {
-                break;
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
-    }
-
-    private String jsonStr(String s) {
-        if (s == null) return "null";
-        StringBuilder sb = new StringBuilder(s.length() + 2);
-        sb.append('"');
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            switch (c) {
-                case '"':  sb.append("\\\""); break;
-                case '\\': sb.append("\\\\"); break;
-                case '\n': sb.append("\\n");  break;
-                case '\r': sb.append("\\r");  break;
-                case '\t': sb.append("\\t");  break;
-                case '\b': sb.append("\\b");  break;
-                case '\f': sb.append("\\f");  break;
-                default:
-                    if (c < 0x20) {
-                        sb.append(String.format("\\u%04x", (int) c));
-                    } else {
-                        sb.append(c);
-                    }
-            }
-        }
-        sb.append('"');
-        return sb.toString();
-    }
-
-    private String truncate(String s, int max) {
-        if (s == null) return "";
-        return s.length() <= max ? s : s.substring(0, max) + "...";
-    }
-
-    // ── Setters ───────────────────────────────────────────────
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-    }
-    public void setApiKey(String apiKey) { this.apiKey = apiKey; }
-    public void setDefaultModel(String model) { this.defaultModel = model; }
-    public void setConnectTimeoutMs(int ms) { this.connectTimeoutMs = ms; }
-    public void setReadTimeoutMs(int ms) { this.readTimeoutMs = ms; }
-    public String getDefaultModel() { return defaultModel; }
-    public String getBaseUrl() { return baseUrl; }
-}
-
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+  <!-- ============================================================ -->
+  <!-- 1. Commands                                                   -->
+  <!-- ============================================================ -->
+  <extension point="org.eclipse.ui.commands">
+
+    <command id="com.aiassist.commands.smartAction"
+             name="AI Smart Action"
+             description="AI가 선택 코드를 분석하여 최적 액션 자동 수행"/>
+
+    <command id="com.aiassist.commands.explainCode"
+             name="AI 코드 설명"
+             description="선택한 코드를 AI로 설명"/>
+
+    <command id="com.aiassist.commands.analyzeError"
+             name="AI 에러 분석"
+             description="에러 메시지와 코드를 AI로 분석"/>
+
+    <command id="com.aiassist.commands.generateJavadoc"
+             name="AI JavaDoc 생성"
+             description="커서 위치 메서드의 JavaDoc을 AI로 생성"/>
+
+    <command id="com.aiassist.commands.openChat"
+             name="AI 채팅 열기"
+             description="AI와 자유 형식 채팅"/>
+
+    <command id="com.aiassist.commands.serverSettings"
+             name="AI 서버 설정"
+             description="내부 중계 서버 URL 설정"/>
+
+  </extension>
+
+  <!-- ============================================================ -->
+  <!-- 2. Key Bindings                                               -->
+  <!-- ============================================================ -->
+  <extension point="org.eclipse.ui.bindings">
+
+    <!-- Ctrl+Shift+A : Smart AI Action (Java 에디터 전용) -->
+    <key sequence="M1+M2+A"
+         commandId="com.aiassist.commands.smartAction"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         contextId="org.eclipse.jdt.ui.javaEditorScope"/>
+
+    <!-- Ctrl+Shift+E : 코드 설명 (Java 에디터 전용) -->
+    <key sequence="M1+M2+E"
+         commandId="com.aiassist.commands.explainCode"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         contextId="org.eclipse.jdt.ui.javaEditorScope"/>
+
+    <!-- Ctrl+Shift+J : JavaDoc 생성 (Java 에디터 전용) -->
+    <key sequence="M1+M2+J"
+         commandId="com.aiassist.commands.generateJavadoc"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         contextId="org.eclipse.jdt.ui.javaEditorScope"/>
+
+    <!-- Ctrl+Shift+C : 채팅 열기 (전역) -->
+    <key sequence="M1+M2+C"
+         commandId="com.aiassist.commands.openChat"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         contextId="org.eclipse.ui.contexts.window"/>
+
+  </extension>
+
+  <!-- ============================================================ -->
+  <!-- 3. Handlers                                                   -->
+  <!-- ============================================================ -->
+  <extension point="org.eclipse.ui.handlers">
+
+    <handler commandId="com.aiassist.commands.smartAction"
+             class="com.aiassist.handlers.SmartAiActionHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+
+    <handler commandId="com.aiassist.commands.explainCode"
+             class="com.aiassist.handlers.ExplainCodeHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+
+    <handler commandId="com.aiassist.commands.analyzeError"
+             class="com.aiassist.handlers.AnalyzeErrorHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+
+    <handler commandId="com.aiassist.commands.generateJavadoc"
+             class="com.aiassist.handlers.GenerateJavadocHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+
+    <handler commandId="com.aiassist.commands.openChat"
+             class="com.aiassist.handlers.OpenChatHandler"/>
+
+    <handler commandId="com.aiassist.commands.serverSettings"
+             class="com.aiassist.handlers.ServerSettingsHandler"/>
+
+  </extension>
+
+  <!-- ============================================================ -->
+  <!-- 4. Menus                                                      -->
+  <!-- ============================================================ -->
+  <extension point="org.eclipse.ui.menus">
+
+    <!-- 에디터 우클릭 컨텍스트 메뉴 -->
+    <menuContribution
+        locationURI="popup:org.eclipse.jdt.ui.CompilationUnitEditor.EditorContext?after=additions">
+      <menu id="com.aiassist.menu.context"
+            label="AI Assistant"
+            mnemonic="I">
+
+        <command commandId="com.aiassist.commands.smartAction"
+                 label="✨ Smart AI Action  (Ctrl+Shift+A)"
+                 style="push"/>
+        <separator name="sep1"/>
+        <command commandId="com.aiassist.commands.explainCode"
+                 label="코드 설명  (Ctrl+Shift+E)"
+                 style="push"/>
+        <command commandId="com.aiassist.commands.analyzeError"
+                 label="에러 분석"
+                 style="push"/>
+        <command commandId="com.aiassist.commands.generateJavadoc"
+                 label="JavaDoc 생성  (Ctrl+Shift+J)"
+                 style="push"/>
+        <separator name="sep2"/>
+        <command commandId="com.aiassist.commands.openChat"
+                 label="💬 AI 채팅  (Ctrl+Shift+C)"
+                 style="push"/>
+
+      </menu>
+    </menuContribution>
+
+    <!-- 메인 메뉴바 -->
+    <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+      <menu id="com.aiassist.menu.main"
+            label="AI Assistant"
+            mnemonic="I">
+
+        <command commandId="com.aiassist.commands.smartAction"
+                 label="✨ Smart AI Action  (Ctrl+Shift+A)"
+                 style="push"/>
+        <separator name="sep1"/>
+        <command commandId="com.aiassist.commands.explainCode"
+                 label="코드 설명"
+                 style="push"/>
+        <command commandId="com.aiassist.commands.analyzeError"
+                 label="에러 분석"
+                 style="push"/>
+        <command commandId="com.aiassist.commands.generateJavadoc"
+                 label="JavaDoc 생성"
+                 style="push"/>
+        <separator name="sep2"/>
+        <command commandId="com.aiassist.commands.openChat"
+                 label="💬 AI 채팅  (Ctrl+Shift+C)"
+                 style="push"/>
+        <separator name="sep3"/>
+        <command commandId="org.eclipse.ui.views.showView"
+                 label="AI 결과 창"
+                 style="push">
+          <parameter name="org.eclipse.ui.views.showView.viewId"
+                     value="com.aiassist.views.AiResultView"/>
+        </command>
+        <separator name="sep4"/>
+        <command commandId="com.aiassist.commands.serverSettings"
+                 label="⚙ 서버 설정"
+                 style="push"/>
+
+      </menu>
+    </menuContribution>
+
+  </extension>
+
+  <!-- ============================================================ -->
+  <!-- 5. Views                                                      -->
+  <!-- ============================================================ -->
+  <extension point="org.eclipse.ui.views">
+
+    <view id="com.aiassist.views.AiResultView"
+          name="AI Assistant"
+          class="com.aiassist.views.AiResultView"
+          category="org.eclipse.jdt"
+          restorable="true"/>
+
+    <view id="com.aiassist.chat.AiChatView"
+          name="AI Chat"
+          class="com.aiassist.chat.AiChatView"
+          category="org.eclipse.jdt"
+          restorable="true"/>
+
+  </extension>
+
+  <!-- ============================================================ -->
+  <!-- 6. Content Assist (Ctrl+Space → AI 코드 생성)               -->
+  <!-- ============================================================ -->
+  <extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+             id="com.aiassist.proposalComputer"
+             name="AI 코드 생성">
+    <javaCompletionProposalComputer
+        class="com.aiassist.assist.AiProposalComputer"
+        categoryId="com.aiassist.proposalCategory">
+      <partition type="__dftl_partition_content_type"/>
+      <partition type="__java_string"/>
+      <partition type="__java_singleline_comment"/>
+      <partition type="__java_multiline_comment"/>
+    </javaCompletionProposalComputer>
+  </extension>
+
+  <extension point="org.eclipse.jdt.ui.javaCompletionProposalCategory"
+             id="com.aiassist.proposalCategory">
+    <javaCompletionProposalCategory
+        id="com.aiassist.proposalCategory"
+        name="AI Assistant"
+        displayName="AI 코드 생성"/>
+  </extension>
+
+  <!-- ============================================================ -->
+  <!-- 7. Preference Page (Window → Preferences → AI Assistant)     -->
+  <!-- ============================================================ -->
+  <extension point="org.eclipse.ui.preferencePages">
+    <page id="com.aiassist.prefs.AiPreferencePage"
+          name="AI Assistant"
+          class="com.aiassist.prefs.AiPreferencePage"/>
+  </extension>
+
+</plugin>
