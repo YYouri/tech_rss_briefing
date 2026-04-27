@@ -1,0 +1,263 @@
+package com.aiassist.api;
+
+import com.aiassist.Activator;
+import com.aiassist.model.AiRequest;
+import com.aiassist.model.AiResponse;
+
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.UUID;
+
+/**
+ * 내부 중계 서버 REST 클라이언트.
+ * Java 11+ HttpClient 사용 (JDK 21 호환).
+ * Background Thread 전용.
+ */
+public class AiApiClient {
+
+    private static final int    MAX_ERROR_PREVIEW = 500;
+    private static final int    MAX_RETRY         = 1;
+    private static final String HEADER_REQUEST_ID = "X-AI-Request-Id";
+
+    private static volatile HttpClient httpClient;
+    private static final AiApiClient INSTANCE = new AiApiClient();
+    private AiApiClient() {}
+    public static AiApiClient getInstance() { return INSTANCE; }
+
+    // ── 공개 API ──────────────────────────────────────────────────
+
+    public AiResponse request(AiRequest req) throws IOException {
+        String json = buildJsonManually(req);
+        logInfo("요청 JSON(" + json.length() + "chars): "
+                + json.substring(0, Math.min(200, json.length())));
+
+        IOException lastEx = null;
+        for (int attempt = 0; attempt <= MAX_RETRY; attempt++) {
+            try {
+                return doRequest(json);
+            } catch (IOException e) {
+                lastEx = e;
+                logInfo("시도" + (attempt + 1) + " 실패: " + e.getMessage());
+                if (attempt < MAX_RETRY) {
+                    try { Thread.sleep(600); }
+                    catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("요청 중단됨", ie);
+                    }
+                }
+            }
+        }
+        throw lastEx;
+    }
+
+    // ── HTTP 요청 ────────────────────────────────────────────────
+
+    private AiResponse doRequest(String json) throws IOException {
+        String reqId  = UUID.randomUUID().toString().substring(0, 8);
+        String urlStr = Activator.getServerUrl().trim();
+
+        HttpRequest httpReq = HttpRequest.newBuilder()
+                .uri(URI.create(urlStr))
+                .timeout(Duration.ofMillis(Activator.getReadTimeout()))
+                .header("Content-Type", "application/json; charset=UTF-8")
+                .header("Accept",       "application/json")
+                .header("Connection",   "close")
+                .header(HEADER_REQUEST_ID, reqId)
+                .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> resp;
+        try {
+            resp = client().send(httpReq, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("요청 중단됨", e);
+        }
+
+        int code = resp.statusCode();
+        logInfo("HTTP " + code + " reqId=" + reqId);
+
+        if (code == 200) {
+            String body = resp.body();
+            logInfo("응답 " + body.length() + "chars");
+            return parseResponse(body);
+        }
+
+        throw new IOException(
+            "HTTP " + code + "\n" +
+            "  URL: " + urlStr + "\n" +
+            "  body: " + truncate(resp.body()) + "\n" +
+            "  힌트: Window > Preferences > AI Assistant 에서 서버 URL을 확인하세요.");
+    }
+
+    // ── HttpClient DCL ────────────────────────────────────────────
+
+    private static HttpClient client() {
+        if (httpClient == null) {
+            synchronized (AiApiClient.class) {
+                if (httpClient == null) {
+                    httpClient = HttpClient.newBuilder()
+                            .connectTimeout(Duration.ofMillis(Activator.getConnectTimeout()))
+                            .followRedirects(HttpClient.Redirect.NORMAL)
+                            .build();
+                }
+            }
+        }
+        return httpClient;
+    }
+
+    // ── JSON 직렬화 ──────────────────────────────────────────────
+
+    private String buildJsonManually(AiRequest req) {
+        StringBuilder sb = new StringBuilder("{");
+        boolean first = true;
+
+        if (req.getAction() != null)
+            first = field(sb, first, "action", req.getAction().name());
+        if (notEmpty(req.getSelectedCode()))
+            first = field(sb, first, "selectedCode", req.getSelectedCode());
+        if (notEmpty(req.getFullClassCode()))
+            first = field(sb, first, "fullClassCode", req.getFullClassCode());
+        if (notEmpty(req.getErrorMessage()))
+            first = field(sb, first, "errorMessage", req.getErrorMessage());
+        if (notEmpty(req.getCursorContext()))
+            first = field(sb, first, "cursorContext", req.getCursorContext());
+        if (notEmpty(req.getFileName()))
+            first = field(sb, first, "fileName", req.getFileName());
+        if (notEmpty(req.getClassName()))
+            first = field(sb, first, "className", req.getClassName());
+        if (notEmpty(req.getUserMessage()))
+            first = field(sb, first, "userMessage", req.getUserMessage());
+        if (notEmpty(req.getChatHistory()))
+            first = field(sb, first, "chatHistory", req.getChatHistory());
+        if (notEmpty(req.getLanguage()))
+            first = field(sb, first, "language", req.getLanguage());
+
+        if (req.getRelatedClasses() != null && req.getRelatedClasses().length > 0) {
+            if (!first) sb.append(",");
+            sb.append("\"relatedClasses\":[");
+            for (int i = 0; i < req.getRelatedClasses().length; i++) {
+                if (i > 0) sb.append(",");
+                sb.append('"').append(esc(req.getRelatedClasses()[i])).append('"');
+            }
+            sb.append("]");
+            first = false;
+        }
+
+        if (req.getImports() != null && req.getImports().length > 0) {
+            if (!first) sb.append(",");
+            sb.append("\"imports\":[");
+            for (int i = 0; i < req.getImports().length; i++) {
+                if (i > 0) sb.append(",");
+                sb.append('"').append(esc(req.getImports()[i])).append('"');
+            }
+            sb.append("]");
+        }
+
+        sb.append("}");
+        return sb.toString();
+    }
+
+    private boolean field(StringBuilder sb, boolean first, String key, String val) {
+        if (!first) sb.append(",");
+        sb.append('"').append(key).append("\":\"").append(esc(val)).append('"');
+        return false;
+    }
+
+    private String esc(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
+    private boolean notEmpty(String s) { return s != null && !s.isEmpty(); }
+
+    // ── JSON 역직렬화 ────────────────────────────────────────────
+
+    private AiResponse parseResponse(String json) throws IOException {
+        if (json == null || json.trim().isEmpty())
+            throw new IOException("서버 응답이 비어 있습니다.");
+
+        try {
+            AiResponse resp = new AiResponse();
+            resp.setStatus(extractStr(json, "status") != null
+                    ? extractStr(json, "status") : "error");
+            resp.setResult(extractStr(json, "result"));
+            resp.setMessage(extractStr(json, "message") != null
+                    ? extractStr(json, "message") : "");
+            return resp;
+        } catch (Exception e) {
+            throw new IOException("응답 파싱 실패. 원문: " + truncate(json));
+        }
+    }
+
+    private String extractStr(String json, String key) {
+        String search = "\"" + key + "\"";
+        int ki = json.indexOf(search);
+        if (ki < 0) return null;
+        int ci = json.indexOf(':', ki + search.length());
+        if (ci < 0) return null;
+        int vs = ci + 1;
+        while (vs < json.length() && json.charAt(vs) == ' ') vs++;
+        if (vs >= json.length()) return null;
+
+        if (json.charAt(vs) == '"') {
+            StringBuilder sb = new StringBuilder();
+            int i = vs + 1;
+            while (i < json.length()) {
+                char c = json.charAt(i);
+                if (c == '\\' && i + 1 < json.length()) {
+                    char n = json.charAt(i + 1);
+                    switch (n) {
+                        case '"':  sb.append('"');  i += 2; break;
+                        case '\\': sb.append('\\'); i += 2; break;
+                        case 'n':  sb.append('\n'); i += 2; break;
+                        case 'r':  sb.append('\r'); i += 2; break;
+                        case 't':  sb.append('\t'); i += 2; break;
+                        default:   sb.append(c);    i++;    break;
+                    }
+                } else if (c == '"') {
+                    break;
+                } else {
+                    sb.append(c); i++;
+                }
+            }
+            return sb.toString();
+        }
+        int ve = vs;
+        while (ve < json.length() && json.charAt(ve) != ',' && json.charAt(ve) != '}') ve++;
+        String raw = json.substring(vs, ve).trim();
+        return "null".equals(raw) ? null : raw;
+    }
+
+    // ── 유틸 ─────────────────────────────────────────────────────
+
+    private String truncate(String s) {
+        if (s == null) return "(null)";
+        return s.length() > MAX_ERROR_PREVIEW ? s.substring(0, MAX_ERROR_PREVIEW) + "..." : s;
+    }
+
+    // ── 로깅 ─────────────────────────────────────────────────────
+
+    private void logInfo(String msg) {
+        try {
+            Activator a = Activator.getDefault();
+            if (a == null) return;
+            ILog log = a.getLog();
+            if (log != null)
+                log.log(new Status(IStatus.INFO, Activator.PLUGIN_ID, "[AI] " + msg));
+        } catch (Exception ignore) {}
+    }
+}
