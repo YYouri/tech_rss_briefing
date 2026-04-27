@@ -1,263 +1,769 @@
-package com.aiassist.api;
+package com.chabicht.code_intelligence.apiclient;
 
-import com.aiassist.Activator;
-import com.aiassist.model.AiRequest;
-import com.aiassist.model.AiResponse;
-
-import org.eclipse.core.runtime.ILog;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
+import static com.chabicht.code_intelligence.model.ChatConversation.ChatOption.REASONING_EFFORT;
+import static com.chabicht.code_intelligence.model.ChatConversation.ChatOption.TOOLS_ENABLED;
+import static com.chabicht.code_intelligence.model.ChatConversation.ChatOption.TOOL_PROFILE;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.chabicht.code_intelligence.Activator;
+import com.chabicht.code_intelligence.apiclient.AiApiConnection.ApiType;
+import com.chabicht.code_intelligence.chat.ChatSettings.ReasoningEffort;
+import com.chabicht.code_intelligence.chat.tools.ToolDefinitions;
+import com.chabicht.code_intelligence.chat.tools.ToolProfile;
+import com.chabicht.code_intelligence.model.ChatConversation;
+import com.chabicht.code_intelligence.model.ChatConversation.ChatMessage;
+import com.chabicht.code_intelligence.model.ChatConversation.ChatOption;
+import com.chabicht.code_intelligence.model.ChatConversation.FunctionCall;
+import com.chabicht.code_intelligence.model.ChatConversation.FunctionCallBatch;
+import com.chabicht.code_intelligence.model.ChatConversation.FunctionCallBatch.FunctionCallItem;
+import com.chabicht.code_intelligence.model.ChatConversation.FunctionResult;
+import com.chabicht.code_intelligence.model.ChatConversation.MessageContext;
+import com.chabicht.code_intelligence.model.ChatConversation.Role;
+import com.chabicht.code_intelligence.model.CompletionPrompt;
+import com.chabicht.code_intelligence.model.CompletionResult;
+import com.chabicht.code_intelligence.model.PromptType;
+import com.chabicht.codeintelligence.preferences.PreferenceConstants;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 /**
- * 내부 중계 서버 REST 클라이언트.
- * Java 11+ HttpClient 사용 (JDK 21 호환).
- * Background Thread 전용.
+ * Implementation for OpenAI or compatible API using the chat completion
+ * endpoint.
  */
-public class AiApiClient {
+public class OpenAiApiClient extends AbstractApiClient implements IAiApiClient {
 
-    private static final int    MAX_ERROR_PREVIEW = 500;
-    private static final int    MAX_RETRY         = 1;
-    private static final String HEADER_REQUEST_ID = "X-AI-Request-Id";
+	private CompletableFuture<Void> asyncRequest;
 
-    private static volatile HttpClient httpClient;
-    private static final AiApiClient INSTANCE = new AiApiClient();
-    private AiApiClient() {}
-    public static AiApiClient getInstance() { return INSTANCE; }
+	public OpenAiApiClient(AiApiConnection apiConnection) {
+		super(apiConnection);
+	}
 
-    // ── 공개 API ──────────────────────────────────────────────────
+	@Override
+	public List<AiModel> getModels() {
+		String aiModel = System.getProperty("code_model", "");
+		if (StringUtils.isNotBlank(aiModel)) {
+	        return List.of(new AiModel(apiConnection, aiModel, aiModel));
+	    }
+		
+		JsonObject res = performGet(JsonObject.class, "models");
+		return res.get("data").getAsJsonArray().asList().stream().map(e -> {
+			JsonObject o = e.getAsJsonObject();
+			String id = o.get("id").getAsString();
+			return new AiModel(apiConnection, id, id);
+		}).collect(Collectors.toList());
+	}
 
-    public AiResponse request(AiRequest req) throws IOException {
-        String json = buildJsonManually(req);
-        logInfo("요청 JSON(" + json.length() + "chars): "
-                + json.substring(0, Math.min(200, json.length())));
+	public AiApiConnection getApiConnection() {
+		return apiConnection;
+	}
 
-        IOException lastEx = null;
-        for (int attempt = 0; attempt <= MAX_RETRY; attempt++) {
-            try {
-                return doRequest(json);
-            } catch (IOException e) {
-                lastEx = e;
-                logInfo("시도" + (attempt + 1) + " 실패: " + e.getMessage());
-                if (attempt < MAX_RETRY) {
-                    try { Thread.sleep(600); }
-                    catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        throw new IOException("요청 중단됨", ie);
-                    }
-                }
-            }
-        }
-        throw lastEx;
-    }
+	@SuppressWarnings("unchecked")
+	<T extends JsonElement> T performGet(Class<T> clazz, String relPath) {
+		int statusCode = -1;
+		String responseBody = "(nothing)";
+		try {
+			HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
+					.connectTimeout(Duration.ofSeconds(5)).followRedirects(Redirect.ALWAYS).build();
+			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().timeout(Duration.ofMinutes(10))
+					.uri(URI.create(apiConnection.getBaseUri() + "/").resolve(relPath)).GET();
+			if (StringUtils.isNotBlank(apiConnection.getApiKey())) {
+				requestBuilder = requestBuilder.header("Authorization", "Bearer " + apiConnection.getApiKey());
+			}
+			HttpRequest request = requestBuilder.build();
 
-    // ── HTTP 요청 ────────────────────────────────────────────────
+			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+			statusCode = response.statusCode();
+			responseBody = response.body();
+			return (T) JsonParser.parseString(responseBody);
+		} catch (JsonSyntaxException | IOException | InterruptedException e) {
+			Activator.logError(String.format("""
+					Error during API request:
+					URI: %s
+					Method: GET
+					Status code: %d
+					Response:
+					%s
+					""", apiConnection.getBaseUri() + relPath, statusCode, responseBody), e);
+			throw new RuntimeException(e);
+		}
+	}
 
-    private AiResponse doRequest(String json) throws IOException {
-        String reqId  = UUID.randomUUID().toString().substring(0, 8);
-        String urlStr = Activator.getServerUrl().trim();
+	@SuppressWarnings("unchecked")
+	<T extends JsonElement, U extends JsonElement> T performPost(Class<T> clazz, String relPath, U requestBody) {
+		int statusCode = -1;
+		String responseBody = "(nothing)";
+		String requestBodyString = "(nothing)";
+		try {
+			requestBodyString = gson.toJson(requestBody);
+			HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
+					.connectTimeout(Duration.ofSeconds(5)).followRedirects(Redirect.ALWAYS).build();
+			String assist_url = System.getProperty("code_url","http://dev-fms.hi-portal.co.kr/fms/api/llm/gpt/chat.do");
+	    	
+			HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().timeout(Duration.ofMinutes(10))
+					.uri(URI.create(assist_url))
+					.POST(HttpRequest.BodyPublishers.ofString(requestBodyString));
+			requestBuilder.header("Content-Type", "application/json");
+			if (StringUtils.isNotBlank(apiConnection.getApiKey())) {
+				requestBuilder = requestBuilder.header("Authorization", "Bearer " + apiConnection.getApiKey());
+			}
+			HttpRequest request = requestBuilder.build();
 
-        HttpRequest httpReq = HttpRequest.newBuilder()
-                .uri(URI.create(urlStr))
-                .timeout(Duration.ofMillis(Activator.getReadTimeout()))
-                .header("Content-Type", "application/json; charset=UTF-8")
-                .header("Accept",       "application/json")
-                .header("Connection",   "close")
-                .header(HEADER_REQUEST_ID, reqId)
-                .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
-                .build();
+			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+			statusCode = response.statusCode();
+			responseBody = response.body();
 
-        HttpResponse<String> resp;
-        try {
-            resp = client().send(httpReq, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("요청 중단됨", e);
-        }
+			if (statusCode < 200 || statusCode >= 300) {
+				throw new RuntimeException(
+						String.format("API request failed with code %s:\n%s", statusCode, responseBody));
+			}
+			return (T) JsonParser.parseString(responseBody);
+		} catch (JsonSyntaxException | IOException | InterruptedException e) {
+			Activator.logError(String.format("""
+					Error during API request:
+					URI: %s
+					Method: POST
+					Status code: %d
+					Request:
+					%s
+					Response:
+					%s
+					""", apiConnection.getBaseUri() + relPath, statusCode, requestBodyString, responseBody), e);
+			throw new RuntimeException(e);
+		}
+	}
 
-        int code = resp.statusCode();
-        logInfo("HTTP " + code + " reqId=" + reqId);
+	@Override
+	public CompletionResult performCompletion(String modelName, CompletionPrompt completionPrompt) {
+	    JsonObject req = createFromPresets(PromptType.INSTRUCT);
+	    req.addProperty("model", modelName);
+	    setPropertyIfNotPresent(req, "temperature", completionPrompt.getTemperature());
+	    if (!modelName.toLowerCase().contains("mistral")) {
+	        req.addProperty("max_completion_tokens", Activator.getDefault().getMaxCompletionTokens());
+	    }
 
-        if (code == 200) {
-            String body = resp.body();
-            logInfo("응답 " + body.length() + "chars");
-            return parseResponse(body);
-        }
+	    JsonArray messages = new JsonArray();
+	    JsonObject userMessage = new JsonObject();
+	    userMessage.addProperty("role", "user");
+	    userMessage.addProperty("content", completionPrompt.compile());
+	    messages.add(userMessage);
 
-        throw new IOException(
-            "HTTP " + code + "\n" +
-            "  URL: " + urlStr + "\n" +
-            "  body: " + truncate(resp.body()) + "\n" +
-            "  힌트: Window > Preferences > AI Assistant 에서 서버 URL을 확인하세요.");
-    }
+	    req.add("messages", messages);
 
-    // ── HttpClient DCL ────────────────────────────────────────────
+	    JsonObject res = performPost(JsonObject.class, "chat/completions", req);
+	    
+	    // null 체크 추가
+	    JsonElement contentElement = res.get("choices").getAsJsonArray().get(0)
+	            .getAsJsonObject().get("message")
+	            .getAsJsonObject().get("content");
+	    
+	    if (contentElement == null || contentElement.isJsonNull()) {
+	        return new CompletionResult("");
+	    }
+	    
+	    return new CompletionResult(contentElement.getAsString());
+	}
 
-    private static HttpClient client() {
-        if (httpClient == null) {
-            synchronized (AiApiClient.class) {
-                if (httpClient == null) {
-                    httpClient = HttpClient.newBuilder()
-                            .connectTimeout(Duration.ofMillis(Activator.getConnectTimeout()))
-                            .followRedirects(HttpClient.Redirect.NORMAL)
-                            .build();
-                }
-            }
-        }
-        return httpClient;
-    }
+//	public CompletionResult performCompletion(String modelName, CompletionPrompt completionPrompt) {
+//		JsonObject req = createFromPresets(PromptType.INSTRUCT);
+//		req.addProperty("model", modelName);
+//		setPropertyIfNotPresent(req, "temperature", completionPrompt.getTemperature());
+//		// Fix for MistralAI: they don't support max_completion_tokens
+//		if (!modelName.toLowerCase().contains("mistral")) {
+//			req.addProperty("max_completion_tokens", Activator.getDefault().getMaxCompletionTokens());
+//		}
+//
+//		JsonArray messages = new JsonArray();
+//		JsonObject userMessage = new JsonObject();
+//		userMessage.addProperty("role", "user");
+//		userMessage.addProperty("content", completionPrompt.compile());
+//		messages.add(userMessage);
+//
+//		req.add("messages", messages);
+//
+//		JsonObject res = performPost(JsonObject.class, "chat/completions", req);
+//		return new CompletionResult(res.get("choices").getAsJsonArray().get(0).getAsJsonObject().get("message")
+//				.getAsJsonObject().get("content").getAsString());
+//	}
 
-    // ── JSON 직렬화 ──────────────────────────────────────────────
+	/**
+	 * Sends a chat request in streaming mode using the current ChatConversation.
+	 * <p>
+	 * This method does the following:
+	 * <ol>
+	 * <li>Builds the JSON request from the conversation messages already present.
+	 * (It does not include a reply message yet.)</li>
+	 * <li>Adds a new (empty) assistant message to the conversation which will be
+	 * updated as the API response streams in.</li>
+	 * <li>Sends the request with "stream": true and processes the response
+	 * line-by-line.</li>
+	 * <li>As each new chunk arrives, it appends the new text to the assistant
+	 * message, notifies the conversation listeners, and calls the optional onChunk
+	 * callback.</li>
+	 * </ol>
+	 *
+	 * @param modelName the model to use (for example, "gpt-4")
+	 * @param chat      the ChatConversation object containing the conversation so
+	 *                  far
+	 * @param onChunk   a Consumer callback invoked with each new text chunk (may be
+	 *                  null)
+	 */
+	@Override
+	public void performChat(String modelName, ChatConversation chat, int maxResponseTokens) {
+		JsonArray messagesJson = buildMessagesJson(chat);
 
-    private String buildJsonManually(AiRequest req) {
-        StringBuilder sb = new StringBuilder("{");
-        boolean first = true;
+		// Create the JSON request object.
+		JsonObject req = createFromPresets(PromptType.CHAT);
+		req.addProperty("model", modelName);
+		// Fix for MistralAI: they don't support max_completion_tokens
+		if (!modelName.toLowerCase().contains("mistral")) {
+			req.addProperty("max_completion_tokens", maxResponseTokens);
+		}
+		req.addProperty("stream", true);
 
-        if (req.getAction() != null)
-            first = field(sb, first, "action", req.getAction().name());
-        if (notEmpty(req.getSelectedCode()))
-            first = field(sb, first, "selectedCode", req.getSelectedCode());
-        if (notEmpty(req.getFullClassCode()))
-            first = field(sb, first, "fullClassCode", req.getFullClassCode());
-        if (notEmpty(req.getErrorMessage()))
-            first = field(sb, first, "errorMessage", req.getErrorMessage());
-        if (notEmpty(req.getCursorContext()))
-            first = field(sb, first, "cursorContext", req.getCursorContext());
-        if (notEmpty(req.getFileName()))
-            first = field(sb, first, "fileName", req.getFileName());
-        if (notEmpty(req.getClassName()))
-            first = field(sb, first, "className", req.getClassName());
-        if (notEmpty(req.getUserMessage()))
-            first = field(sb, first, "userMessage", req.getUserMessage());
-        if (notEmpty(req.getChatHistory()))
-            first = field(sb, first, "chatHistory", req.getChatHistory());
-        if (notEmpty(req.getLanguage()))
-            first = field(sb, first, "language", req.getLanguage());
+		Map<ChatOption, Object> options = chat.getOptions();
+		applyReasoningEffort(req, options);
+		if (options.containsKey(TOOLS_ENABLED) && Boolean.TRUE.equals(options.get(TOOLS_ENABLED))) {
+			ToolProfile profile = (ToolProfile) options.getOrDefault(TOOL_PROFILE, ToolProfile.ALL);
+			if (apiConnection.isLegacyFormat()) {
+				patchMissingProperties(req, ToolDefinitions.getInstance().getToolDefinitionsOpenAiLegacy(profile));
+			} else {
+				JsonObject toolDefinitionsOpenAi = ToolDefinitions.getInstance().getToolDefinitionsOpenAi(profile);
+				// Hack for Fireworks.AI: they don't support the strict flag in function
+				// definitions.
+				if (apiConnection.getBaseUri().contains("fireworks.ai")) {
+					removeStrictFlag(toolDefinitionsOpenAi);
+				}
+				patchMissingProperties(req, toolDefinitionsOpenAi);
+			}
+		}
+		req.add("messages", messagesJson);
 
-        if (req.getRelatedClasses() != null && req.getRelatedClasses().length > 0) {
-            if (!first) sb.append(",");
-            sb.append("\"relatedClasses\":[");
-            for (int i = 0; i < req.getRelatedClasses().length; i++) {
-                if (i > 0) sb.append(",");
-                sb.append('"').append(esc(req.getRelatedClasses()[i])).append('"');
-            }
-            sb.append("]");
-            first = false;
-        }
+		// Add a new (empty) assistant message to the conversation.
+		// This is the message that will be updated as new text is streamed in.
+		ChatConversation.ChatMessage assistantMessage = new ChatConversation.ChatMessage(
+				ChatConversation.Role.ASSISTANT, "");
+		chat.addMessage(assistantMessage, true);
 
-        if (req.getImports() != null && req.getImports().length > 0) {
-            if (!first) sb.append(",");
-            sb.append("\"imports\":[");
-            for (int i = 0; i < req.getImports().length; i++) {
-                if (i > 0) sb.append(",");
-                sb.append('"').append(esc(req.getImports()[i])).append('"');
-            }
-            sb.append("]");
-        }
+		// Prepare the HTTP request.
+		String requestBody = gson.toJson(req);
+		HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
+				.connectTimeout(Duration.ofSeconds(5)).followRedirects(Redirect.ALWAYS).build();
+		String assist_url = System.getProperty("code_url","http://dev-fms.hi-portal.co.kr/fms/api/llm/gpt/chat.do");
+		HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().timeout(Duration.ofMinutes(10))
+				.uri(URI.create(assist_url))
+				.POST(HttpRequest.BodyPublishers.ofString(requestBody)).header("Content-Type", "application/json");
+		if (StringUtils.isNotBlank(apiConnection.getApiKey())) {
+			requestBuilder.header("Authorization", "Bearer " + apiConnection.getApiKey());
+		}
+		HttpRequest request = requestBuilder.build();
 
-        sb.append("}");
-        return sb.toString();
-    }
+		// Map to keep track of tool calls by their index
+		Map<Integer, ToolCallInfo> activeToolCalls = new TreeMap<>();
 
-    private boolean field(StringBuilder sb, boolean first, String key, String val) {
-        if (!first) sb.append(",");
-        sb.append('"').append(key).append("\":\"").append(esc(val)).append('"');
-        return false;
-    }
+		// Send the request asynchronously and process the streamed response
+		// line-by-line.
+		asyncRequest = client.sendAsync(request, HttpResponse.BodyHandlers.ofLines()).thenAccept(response -> {
+			try {
+				if (response.statusCode() >= 200 && response.statusCode() < 300) {
+					response.body().forEach(line -> {
+						// Each chunk from the API is prefixed with "data: ".
+						if (line != null && line.startsWith("data: ")) {
+							String data = line.substring("data: ".length()).trim();
+							if ("[DONE]".equals(data)) {
+								// End of stream.
+								return;
+							}
 
-    private String esc(String s) {
-        if (s == null) return "";
-        return s.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
-    }
+							try {
+								JsonObject jsonChunk = JsonParser.parseString(data).getAsJsonObject();
+								JsonArray choices = jsonChunk.getAsJsonArray("choices");
+								for (JsonElement choiceElement : choices) {
+									JsonObject choice = choiceElement.getAsJsonObject();
+									if (choice.has("delta")) {
+										JsonObject delta = choice.getAsJsonObject("delta");
+										String chunk = "";
+										// Special case for DeepSeek: reasoning is in another field than regular
+										// content.
+										if (delta.has("content") && !delta.get("content").isJsonNull()) {
+											chunk = delta.get("content").getAsString();
+											if (assistantMessage.getThinkingContent() != null && !assistantMessage.isThinkingComplete()) {
+												assistantMessage.setThinkingComplete(true);
+											}
+										} else if (delta.has("reasoning_content")
+												&& !delta.get("reasoning_content").isJsonNull()) {
+											String thinkingChunk = delta.get("reasoning_content").getAsString();
+											assistantMessage.setThinkingContent((assistantMessage.getThinkingContent() == null ? "" : assistantMessage.getThinkingContent()) + thinkingChunk);
+											chat.notifyMessageUpdated(assistantMessage);
+										} else {
+											chunk = "";
+										}
 
-    private boolean notEmpty(String s) { return s != null && !s.isEmpty(); }
+										// Check for tool_calls in the delta
+										if (delta.has("tool_calls") && !delta.get("tool_calls").isJsonNull()) {
+											// Process tool calls
+											handleToolCallDelta(delta.getAsJsonArray("tool_calls"), activeToolCalls,
+													assistantMessage, chat);
+										}
 
-    // ── JSON 역직렬화 ────────────────────────────────────────────
+										// Check for function_call in the delta (deprecated format)
+										if (delta.has("function_call") && !delta.get("function_call").isJsonNull()) {
+											// Process function call (deprecated format)
+											handleFunctionCallDelta(delta.getAsJsonObject("function_call"),
+													activeToolCalls, assistantMessage, chat);
+										}
 
-    private AiResponse parseResponse(String json) throws IOException {
-        if (json == null || json.trim().isEmpty())
-            throw new IOException("서버 응답이 비어 있습니다.");
+										if (StringUtils.isNotEmpty(chunk)) {
+											// Append the received chunk to the assistant message.
+											assistantMessage.setContent(assistantMessage.getContent() + chunk);
+											// Notify the conversation listeners that the assistant message was updated.
+											chat.notifyMessageUpdated(assistantMessage);
+										}
+									}
 
-        try {
-            AiResponse resp = new AiResponse();
-            resp.setStatus(extractStr(json, "status") != null
-                    ? extractStr(json, "status") : "error");
-            resp.setResult(extractStr(json, "result"));
-            resp.setMessage(extractStr(json, "message") != null
-                    ? extractStr(json, "message") : "");
-            return resp;
-        } catch (Exception e) {
-            throw new IOException("응답 파싱 실패. 원문: " + truncate(json));
-        }
-    }
+									// Check for finish_reason to detect completed tool calls or function calls
+									if (choice.has("finish_reason") && !choice.get("finish_reason").isJsonNull()) {
+										String finishReason = choice.get("finish_reason").getAsString();
+										if ("tool_calls".equals(finishReason) || "function_call".equals(finishReason)) {
+											// All tool calls or function calls are complete - finalize any pending
+											// calls
+											finalizeToolCalls(activeToolCalls, assistantMessage, chat);
+										}
+									}
+								}
+							} catch (JsonSyntaxException e) {
+								Activator.logError("Error parsing stream chunk: " + data, e);
+							}
+						}
+					});
+				} else {
+					Activator.logError("Streaming chat failed with status: " + response.statusCode() + "\n"
+							+ response.body().collect(Collectors.joining("\n")), null);
+				}
+			} finally {
+				// Check if any tool calls are still pending finalization
+				if (!activeToolCalls.isEmpty()) {
+					finalizeToolCalls(activeToolCalls, assistantMessage, chat);
+				}
 
-    private String extractStr(String json, String key) {
-        String search = "\"" + key + "\"";
-        int ki = json.indexOf(search);
-        if (ki < 0) return null;
-        int ci = json.indexOf(':', ki + search.length());
-        if (ci < 0) return null;
-        int vs = ci + 1;
-        while (vs < json.length() && json.charAt(vs) == ' ') vs++;
-        if (vs >= json.length()) return null;
+				if (assistantMessage.getThinkingContent() != null && !assistantMessage.isThinkingComplete()) {
+					assistantMessage.setThinkingComplete(true);
+				}
+				chat.notifyChatResponseFinished(assistantMessage);
+				asyncRequest = null;
+			}
+		}).exceptionally(e -> {
+			Activator.logError("Exception during streaming chat", e);
 
-        if (json.charAt(vs) == '"') {
-            StringBuilder sb = new StringBuilder();
-            int i = vs + 1;
-            while (i < json.length()) {
-                char c = json.charAt(i);
-                if (c == '\\' && i + 1 < json.length()) {
-                    char n = json.charAt(i + 1);
-                    switch (n) {
-                        case '"':  sb.append('"');  i += 2; break;
-                        case '\\': sb.append('\\'); i += 2; break;
-                        case 'n':  sb.append('\n'); i += 2; break;
-                        case 'r':  sb.append('\r'); i += 2; break;
-                        case 't':  sb.append('\t'); i += 2; break;
-                        default:   sb.append(c);    i++;    break;
-                    }
-                } else if (c == '"') {
-                    break;
-                } else {
-                    sb.append(c); i++;
-                }
-            }
-            return sb.toString();
-        }
-        int ve = vs;
-        while (ve < json.length() && json.charAt(ve) != ',' && json.charAt(ve) != '}') ve++;
-        String raw = json.substring(vs, ve).trim();
-        return "null".equals(raw) ? null : raw;
-    }
+			// Clean up any pending tool/function calls
+			if (!activeToolCalls.isEmpty()) {
+				finalizeToolCalls(activeToolCalls, assistantMessage, chat);
+			}
 
-    // ── 유틸 ─────────────────────────────────────────────────────
+			if (assistantMessage.getThinkingContent() != null && !assistantMessage.isThinkingComplete()) {
+				assistantMessage.setThinkingComplete(true);
+			}
+			chat.notifyChatResponseFinished(assistantMessage);
+			asyncRequest = null;
+			return null;
+		});
+	}
 
-    private String truncate(String s) {
-        if (s == null) return "(null)";
-        return s.length() > MAX_ERROR_PREVIEW ? s.substring(0, MAX_ERROR_PREVIEW) + "..." : s;
-    }
+	private void removeStrictFlag(JsonObject toolDefinitionsOpenAi) {
+		for (JsonElement el : toolDefinitionsOpenAi.get("tools").getAsJsonArray()) {
+			el.getAsJsonObject().get("function").getAsJsonObject().remove("strict");
+		}
+	}
 
-    // ── 로깅 ─────────────────────────────────────────────────────
+	private void applyReasoningEffort(JsonObject req, Map<ChatOption, Object> options) {
+		if (hasNonNullProperty(req, "reasoning_effort")) {
+			return;
+		}
 
-    private void logInfo(String msg) {
-        try {
-            Activator a = Activator.getDefault();
-            if (a == null) return;
-            ILog log = a.getLog();
-            if (log != null)
-                log.log(new Status(IStatus.INFO, Activator.PLUGIN_ID, "[AI] " + msg));
-        } catch (Exception ignore) {}
-    }
+		Object effortOption = options.get(REASONING_EFFORT);
+		if (effortOption instanceof ReasoningEffort reasoningEffort && reasoningEffort.getApiValue() != null) {
+			req.addProperty("reasoning_effort", reasoningEffort.getApiValue());
+		}
+	}
+
+	private JsonArray buildMessagesJson(ChatConversation chat) {
+		JsonArray messagesJson = new JsonArray();
+		List<ChatMessage> messagesToSend = new ArrayList<>(chat.getMessages());
+		for (ChatMessage msg : messagesToSend) {
+			if (Role.TOOL_SUMMARY.equals(msg.getRole())) {
+				continue;
+			}
+
+			JsonObject jsonMsg = new JsonObject();
+			jsonMsg.addProperty("role", msg.getRole().toString().toLowerCase());
+			jsonMsg.addProperty("content", compileMessageContent(msg));
+			appendAssistantToolCalls(jsonMsg, msg);
+			messagesJson.add(jsonMsg);
+			appendToolResultMessages(messagesJson, msg);
+		}
+
+		logDebugMessagesSummary(messagesJson);
+		return messagesJson;
+	}
+
+	private String compileMessageContent(ChatMessage message) {
+		StringBuilder contentBuilder = new StringBuilder(256);
+		if (!message.getContext().isEmpty()) {
+			contentBuilder.append("Context information:\n\n");
+			for (MessageContext ctx : message.getContext()) {
+				contentBuilder.append(ctx.compile(true));
+				contentBuilder.append("\n");
+			}
+		}
+		if (message.getContent() != null) {
+			contentBuilder.append(message.getContent());
+		}
+		return contentBuilder.toString();
+	}
+
+	private void appendAssistantToolCalls(JsonObject jsonMsg, ChatMessage message) {
+		appendBatchAssistantToolCalls(jsonMsg, message);
+	}
+
+	private boolean appendBatchAssistantToolCalls(JsonObject jsonMsg, ChatMessage message) {
+		if (message == null || !Role.ASSISTANT.equals(message.getRole()) || message.getFunctionCallBatch().isEmpty()) {
+			return false;
+		}
+
+		JsonArray toolCallsArray = new JsonArray();
+		for (FunctionCallItem item : message.getFunctionCallBatch().get().getItems()) {
+			if (item == null || item.getCall() == null) {
+				continue;
+			}
+			toolCallsArray.add(buildToolCallItem(item.getCall()));
+		}
+		if (toolCallsArray.isEmpty()) {
+			return false;
+		}
+
+		jsonMsg.add("tool_calls", toolCallsArray);
+		return true;
+	}
+
+	private JsonObject buildToolCallItem(FunctionCall functionCall) {
+		JsonObject toolCallItem = new JsonObject();
+		toolCallItem.addProperty("id", functionCall.getId());
+		toolCallItem.addProperty("type", "function");
+
+		JsonObject functionDetails = new JsonObject();
+		functionDetails.addProperty("name", functionCall.getFunctionName());
+		functionDetails.addProperty("arguments", functionCall.getArgsJson());
+		toolCallItem.add("function", functionDetails);
+		return toolCallItem;
+	}
+
+	private void appendToolResultMessages(JsonArray messagesJson, ChatMessage message) {
+		appendBatchToolResultMessages(messagesJson, message);
+	}
+
+	private boolean appendBatchToolResultMessages(JsonArray messagesJson, ChatMessage message) {
+		if (message == null || message.getFunctionCallBatch().isEmpty()) {
+			return false;
+		}
+
+		boolean appended = false;
+		FunctionCallBatch batch = message.getFunctionCallBatch().get();
+		for (FunctionCallItem item : batch.getItems()) {
+			if (item == null || item.getResult() == null) {
+				continue;
+			}
+			messagesJson.add(buildToolResultMessage(item.getResult()));
+			appended = true;
+		}
+		return appended;
+	}
+
+	private JsonObject buildToolResultMessage(FunctionResult functionResult) {
+		JsonObject toolMessage = new JsonObject();
+		toolMessage.addProperty("role", "tool");
+		toolMessage.addProperty("tool_call_id", functionResult.getId());
+		toolMessage.addProperty("content", functionResult.getResultJson());
+		return toolMessage;
+	}
+
+	private void logDebugMessagesSummary(JsonArray messagesJson) {
+		if (!isDebugToolBatchLoggingEnabled()) {
+			return;
+		}
+
+		int assistantToolCallCount = 0;
+		int toolResultMessageCount = 0;
+		for (JsonElement messageElement : messagesJson) {
+			if (!messageElement.isJsonObject()) {
+				continue;
+			}
+			JsonObject messageObject = messageElement.getAsJsonObject();
+			if (messageObject.has("tool_calls") && messageObject.get("tool_calls").isJsonArray()) {
+				assistantToolCallCount += messageObject.getAsJsonArray("tool_calls").size();
+			}
+			if (messageObject.has("role") && !messageObject.get("role").isJsonNull()
+					&& "tool".equals(messageObject.get("role").getAsString())) {
+				toolResultMessageCount++;
+			}
+		}
+
+		Activator.logInfo(String.format(
+				"openai chat request built: messages=%d, assistant_tool_calls=%d, tool_results=%d",
+				messagesJson.size(), assistantToolCallCount, toolResultMessageCount));
+	}
+
+	private boolean isDebugToolBatchLoggingEnabled() {
+		Activator activator = Activator.getDefault();
+		return activator != null
+				&& activator.getPreferenceStore().getBoolean(PreferenceConstants.DEBUG_LOG_PROMPTS);
+	}
+
+	@Override
+	public String caption(String modelName, String content) {
+		JsonObject req = createFromPresets(PromptType.INSTRUCT);
+		req.addProperty("model", modelName);
+		setPropertyIfNotPresent(req, "temperature", 1);
+
+		JsonArray messages = new JsonArray();
+		JsonObject userMessage = new JsonObject();
+		userMessage.addProperty("role", "user");
+		userMessage.addProperty("content", content);
+		messages.add(userMessage);
+
+		req.add("messages", messages);
+
+		JsonObject res = performPost(JsonObject.class, "chat/completions", req);
+		return res.get("choices").getAsJsonArray().get(0).getAsJsonObject().get("message").getAsJsonObject()
+				.get("content").getAsString();
+	}
+
+	@Override
+	public synchronized boolean isChatPending() {
+		return asyncRequest != null;
+	}
+
+	@Override
+	public synchronized void abortChat() {
+		if (asyncRequest != null) {
+			asyncRequest.cancel(true);
+			asyncRequest = null;
+		}
+	}
+
+	/**
+	 * Processes tool call deltas from the streaming API response.
+	 * 
+	 * @param toolCallDeltas   The tool call deltas from the current chunk
+	 * @param activeToolCalls  Map of active tool calls being tracked
+	 * @param assistantMessage The assistant message to update
+	 * @param chat             The chat conversation
+	 */
+	private void handleToolCallDelta(JsonArray toolCallDeltas, Map<Integer, ToolCallInfo> activeToolCalls,
+			ChatConversation.ChatMessage assistantMessage, ChatConversation chat) {
+		for (JsonElement toolCallElement : toolCallDeltas) {
+			JsonObject toolCallDelta = toolCallElement.getAsJsonObject();
+
+			try {
+				if (!toolCallDelta.has("index") || toolCallDelta.get("index").isJsonNull()) {
+					continue;
+				}
+
+				int index = toolCallDelta.get("index").getAsInt();
+				ToolCallInfo toolCallInfo = activeToolCalls.computeIfAbsent(index, ToolCallInfo::new);
+
+				if (toolCallDelta.has("id") && !toolCallDelta.get("id").isJsonNull()) {
+					toolCallInfo.setId(toolCallDelta.get("id").getAsString());
+				}
+
+				if (toolCallDelta.has("function") && toolCallDelta.get("function").isJsonObject()) {
+					JsonObject function = toolCallDelta.getAsJsonObject("function");
+					if (function.has("name") && !function.get("name").isJsonNull()) {
+						toolCallInfo.setName(function.get("name").getAsString());
+					}
+					if (function.has("arguments") && !function.get("arguments").isJsonNull()) {
+						String argumentChunk = function.get("arguments").getAsString();
+						toolCallInfo.appendArguments(argumentChunk);
+					}
+				}
+			} catch (Exception e) {
+				Activator.logError("Error processing tool call delta: " + toolCallDelta, e);
+				// We catch the exception but don't rethrow to allow processing to continue
+			}
+		}
+	}
+
+	/**
+	 * Finalizes any pending tool calls when streaming ends.
+	 * 
+	 * @param activeToolCalls  Map of active tool calls being tracked
+	 * @param assistantMessage The assistant message to update
+	 * @param chat             The chat conversation
+	 */
+	private void finalizeToolCalls(Map<Integer, ToolCallInfo> activeToolCalls,
+			ChatConversation.ChatMessage assistantMessage, ChatConversation chat) {
+		if (activeToolCalls == null || activeToolCalls.isEmpty()) {
+			return;
+		}
+
+		FunctionCallBatch batch = new FunctionCallBatch();
+		for (ToolCallInfo toolCall : activeToolCalls.values()) {
+			toolCall.markComplete();
+			FunctionCall functionCall = toolCall.toFunctionCall();
+			if (functionCall != null) {
+				batch.addCall(functionCall);
+			}
+		}
+
+		if (!batch.getItems().isEmpty()) {
+			assistantMessage.setFunctionCallBatch(batch);
+			logDebugBatchParsed(assistantMessage, batch);
+			chat.notifyFunctionCalled(assistantMessage);
+		}
+
+		activeToolCalls.clear();
+	}
+
+	/**
+	 * Processes function call deltas from the streaming API response (deprecated
+	 * format).
+	 * 
+	 * @param functionCallDelta The function call delta from the current chunk
+	 * @param activeToolCalls   Map of active tool calls being tracked
+	 * @param assistantMessage  The assistant message to update
+	 * @param chat              The chat conversation
+	 */
+	private void handleFunctionCallDelta(JsonObject functionCallDelta, Map<Integer, ToolCallInfo> activeToolCalls,
+			ChatConversation.ChatMessage assistantMessage, ChatConversation chat) {
+		try {
+			// For the deprecated function_call format, we always use index 0
+			// (there is only one function call in this format)
+			int index = 0;
+			ToolCallInfo toolCallInfo = activeToolCalls.computeIfAbsent(index, ToolCallInfo::new);
+
+			if (functionCallDelta.has("name") && !functionCallDelta.get("name").isJsonNull()) {
+				toolCallInfo.setName(functionCallDelta.get("name").getAsString());
+				if (StringUtils.isBlank(toolCallInfo.getId())) {
+					toolCallInfo.setId("call_func_" + System.currentTimeMillis());
+				}
+			}
+
+			if (functionCallDelta.has("arguments") && !functionCallDelta.get("arguments").isJsonNull()) {
+				String argumentChunk = functionCallDelta.get("arguments").getAsString();
+				toolCallInfo.appendArguments(argumentChunk);
+			}
+		} catch (Exception e) {
+			Activator.logError("Error processing function call delta: " + functionCallDelta, e);
+		}
+	}
+
+	private void logDebugBatchParsed(ChatMessage message, FunctionCallBatch batch) {
+		if (!isDebugToolBatchLoggingEnabled()) {
+			return;
+		}
+		String callIds = batch.getItems().stream().filter(item -> item != null && item.getCall() != null)
+				.map(item -> StringUtils.defaultIfBlank(item.getCall().getId(), "no-id"))
+				.collect(Collectors.joining(", "));
+		Activator.logInfo(String.format("openai multi-tool parsed: messageId=%s, batchId=%s, calls=%d, callIds=[%s]",
+				message != null ? message.getId() : null, batch.getBatchId(), batch.getItems().size(), callIds));
+	}
+
+	/**
+	 * Helper class to track and accumulate tool call information from streaming
+	 * responses.
+	 */
+	private static class ToolCallInfo {
+		private final int index; // The position of this tool call in the array
+		private String id; // The unique ID of the tool call
+		private String name; // The function name
+		private final StringBuilder argumentsJson = new StringBuilder(); // Accumulating JSON arguments
+		private boolean isComplete = false; // Whether the tool call is complete
+		private String errorMessage = null; // Any error message if the tool call failed
+
+		public ToolCallInfo(int index) {
+			this.index = index;
+		}
+
+		public void appendArguments(String argumentChunk) {
+			if (argumentChunk != null) {
+				argumentsJson.append(argumentChunk);
+			}
+		}
+
+		public boolean isComplete() {
+			return isComplete;
+		}
+
+		public void markComplete() {
+			isComplete = true;
+		}
+
+		public void markFailure(String message) {
+			this.errorMessage = message;
+			this.isComplete = true; // Mark as complete to avoid further processing
+		}
+
+		public FunctionCall toFunctionCall() {
+			if (StringUtils.isBlank(name)) {
+				return null;
+			}
+			String resolvedId = StringUtils.defaultIfBlank(id, "call_" + index);
+			String arguments = StringUtils.defaultIfBlank(argumentsJson.toString(), "{}");
+			return new FunctionCall(resolvedId, name, arguments);
+		}
+
+		// Getters
+		public int getIndex() {
+			return index;
+		}
+
+		public String getId() {
+			return id;
+		}
+
+		public void setId(String id) {
+			if (StringUtils.isNotBlank(id)) {
+				this.id = id;
+			}
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			if (StringUtils.isNotBlank(name)) {
+				this.name = name;
+			}
+		}
+
+		public String getArgumentsJson() {
+			return argumentsJson.toString();
+		}
+
+		public boolean hasFailed() {
+			return errorMessage != null;
+		}
+
+		public String getErrorMessage() {
+			return errorMessage;
+		}
+	}
 }
