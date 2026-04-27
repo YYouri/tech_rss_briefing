@@ -1,241 +1,370 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?eclipse version="3.4"?>
-<plugin>
+package com.aiassist.api;
 
-  <!-- ============================================================ -->
-  <!-- 1. Commands                                                   -->
-  <!-- ============================================================ -->
-  <extension point="org.eclipse.ui.commands">
+import com.aiassist.Activator;
+import com.aiassist.model.AiRequest;
+import com.aiassist.model.AiResponse;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-    <command id="com.aiassist.commands.smartAction"
-             name="AI Smart Action"
-             description="AI가 선택 코드를 분석하여 최적 액션 자동 수행"/>
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 
-    <command id="com.aiassist.commands.explainCode"
-             name="AI 코드 설명"
-             description="선택한 코드를 AI로 설명"/>
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
-    <command id="com.aiassist.commands.analyzeError"
-             name="AI 에러 분석"
-             description="에러 메시지와 코드를 AI로 분석"/>
+/**
+ * 내부 중계 서버 REST 클라이언트.
+ * Background Thread 전용.
+ *
+ * [404 원인 분석 및 수정]
+ *
+ * 원인1) setRequestProperty("Content-Length", ...) 직접 설정
+ *   - HttpURLConnection 내부 스트림 크기와 불일치 발생 가능
+ *   - 서버가 body를 읽지 못해 404/400 반환
+ *   수정: setFixedLengthStreamingMode(bodyLen) 사용
+ *         → JVM이 Content-Length를 정확하게 설정, chunked 방지
+ *
+ * 원인2) Jackson 직렬화 실패 시 빈 body 전송
+ *   - OSGi ClassLoader 문제로 Jackson이 실패해도 예외 없이 빈 결과 반환 가능
+ *   - 서버가 빈 body를 받으면 라우팅 실패 → 404
+ *   수정: 직렬화 결과 검증 + Jackson 실패 시 수동 JSON 폴백
+ *
+ * 원인3) 일부 구형 서버가 chunked Transfer-Encoding 미지원
+ *   수정: setFixedLengthStreamingMode + Connection:close
+ *
+ * [호환성]
+ * - Jackson 없이도 동작하는 수동 JSON 폴백 내장
+ * - Eclipse 4.5 ~ 4.33 호환
+ * - 표준 HttpURLConnection API만 사용
+ */
+public class AiApiClient {
 
-    <command id="com.aiassist.commands.generateJavadoc"
-             name="AI JavaDoc 생성"
-             description="커서 위치 메서드의 JavaDoc을 AI로 생성"/>
+    private static final int    MAX_ERROR_PREVIEW = 500;
+    private static final int    MAX_RETRY         = 1;
+    private static final String HEADER_REQUEST_ID = "X-AI-Request-Id";
 
-    <command id="com.aiassist.commands.openChat"
-             name="AI 채팅 열기"
-             description="AI와 자유 형식 채팅"/>
+    private static volatile ObjectMapper mapperInstance;
+    private static final AiApiClient INSTANCE = new AiApiClient();
+    private AiApiClient() {}
+    public static AiApiClient getInstance() { return INSTANCE; }
 
-    <command id="com.aiassist.commands.serverSettings"
-             name="AI 서버 설정"
-             description="내부 중계 서버 URL 설정"/>
+    // ── 공개 API ──────────────────────────────────────────────────
 
-  </extension>
+    public AiResponse request(AiRequest req) throws IOException {
+        byte[] body = serializeSafe(req);
+        logInfo("요청 body=" + body.length + "bytes, url=" + Activator.getServerUrl());
 
-  <!-- ============================================================ -->
-  <!-- 2. Key Bindings                                               -->
-  <!-- ============================================================ -->
-  <extension point="org.eclipse.ui.bindings">
+        IOException lastEx = null;
+        for (int attempt = 0; attempt <= MAX_RETRY; attempt++) {
+            try {
+                return doRequest(body);
+            } catch (IOException e) {
+                lastEx = e;
+                logInfo("시도" + (attempt+1) + " 실패: " + e.getMessage());
+                if (attempt < MAX_RETRY) {
+                    try { Thread.sleep(600); }
+                    catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("요청 중단됨", ie);
+                    }
+                }
+            }
+        }
+        throw lastEx;
+    }
 
-    <!-- Ctrl+Shift+A : Smart AI Action (Java 에디터 전용) -->
-    <key sequence="M1+M2+A"
-         commandId="com.aiassist.commands.smartAction"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         contextId="org.eclipse.jdt.ui.javaEditorScope"/>
+    // ── HTTP 요청 ────────────────────────────────────────────────
 
-    <!-- Ctrl+Shift+E : 코드 설명 (Java 에디터 전용) -->
-    <key sequence="M1+M2+E"
-         commandId="com.aiassist.commands.explainCode"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         contextId="org.eclipse.jdt.ui.javaEditorScope"/>
+    private AiResponse doRequest(byte[] body) throws IOException {
+        String reqId  = UUID.randomUUID().toString().substring(0, 8);
+        String urlStr = Activator.getServerUrl().trim();
 
-    <!-- Ctrl+Shift+J : JavaDoc 생성 (Java 에디터 전용) -->
-    <key sequence="M1+M2+J"
-         commandId="com.aiassist.commands.generateJavadoc"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         contextId="org.eclipse.jdt.ui.javaEditorScope"/>
+        HttpURLConnection conn = openConnection(urlStr, body.length, reqId);
+        try {
+            writeBody(conn, body);
 
-    <!-- Ctrl+Shift+C : 채팅 열기 (전역) -->
-    <key sequence="M1+M2+C"
-         commandId="com.aiassist.commands.openChat"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         contextId="org.eclipse.ui.contexts.window"/>
+            int code = conn.getResponseCode();
+            logInfo("HTTP " + code + " reqId=" + reqId);
 
-  </extension>
+            if (code == HttpURLConnection.HTTP_OK) {
+                String respBody = readFully(conn.getInputStream());
+                logInfo("응답 " + respBody.length() + "chars");
+                return deserialize(respBody);
+            }
 
-  <!-- ============================================================ -->
-  <!-- 3. Handlers                                                   -->
-  <!-- ============================================================ -->
-  <extension point="org.eclipse.ui.handlers">
+            String errBody    = readStreamSafe(conn.getErrorStream());
+            String serverMsg  = conn.getResponseMessage();
+            throw new IOException(
+                "HTTP " + code + " " + serverMsg + "\n" +
+                "  URL: " + urlStr + "\n" +
+                "  body: " + errBody + "\n" +
+                "  힌트: Window > Preferences > AI Assistant 에서 서버 URL을 확인하세요.");
 
-    <handler commandId="com.aiassist.commands.smartAction"
-             class="com.aiassist.handlers.SmartAiActionHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
+        } finally {
+            conn.disconnect();
+        }
+    }
 
-    <handler commandId="com.aiassist.commands.explainCode"
-             class="com.aiassist.handlers.ExplainCodeHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
+    /**
+     * [핵심 수정] Content-Length를 setRequestProperty로 설정하지 않고
+     * setFixedLengthStreamingMode(bodyLen)으로 제어.
+     *
+     * setFixedLengthStreamingMode()의 효과:
+     * - JVM이 정확한 Content-Length 헤더를 자동 설정
+     * - chunked encoding 없이 fixed-length 전송
+     * - 구형 서버와의 호환성 최대화
+     */
+    private HttpURLConnection openConnection(String urlStr, int bodyLen, String reqId)
+            throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
+        conn.setRequestMethod("POST");
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setUseCaches(false);
+        conn.setInstanceFollowRedirects(true);
 
-    <handler commandId="com.aiassist.commands.analyzeError"
-             class="com.aiassist.handlers.AnalyzeErrorHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
+        // [수정] Content-Length는 이 메서드로만 설정
+        conn.setFixedLengthStreamingMode(bodyLen);
 
-    <handler commandId="com.aiassist.commands.generateJavadoc"
-             class="com.aiassist.handlers.GenerateJavadocHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
+        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        conn.setRequestProperty("Accept",       "application/json");
+        conn.setRequestProperty("Connection",   "close");  // 구형 서버 호환
+        conn.setRequestProperty(HEADER_REQUEST_ID, reqId);
 
-    <handler commandId="com.aiassist.commands.openChat"
-             class="com.aiassist.handlers.OpenChatHandler"/>
+        conn.setConnectTimeout(Activator.getConnectTimeout());
+        conn.setReadTimeout(Activator.getReadTimeout());
+        return conn;
+    }
 
-    <handler commandId="com.aiassist.commands.serverSettings"
-             class="com.aiassist.handlers.ServerSettingsHandler"/>
+    private void writeBody(HttpURLConnection conn, byte[] body) throws IOException {
+        OutputStream os = conn.getOutputStream();
+        try {
+            os.write(body);
+            os.flush();
+        } finally {
+            os.close();
+        }
+    }
 
-  </extension>
+    // ── 직렬화 ───────────────────────────────────────────────────
 
-  <!-- ============================================================ -->
-  <!-- 4. Menus                                                      -->
-  <!-- ============================================================ -->
-  <extension point="org.eclipse.ui.menus">
+    /**
+     * 1단계: Jackson + OSGi ClassLoader 보정으로 직렬화
+     * 2단계: 실패 시 수동 JSON 폴백 (Jackson 없이도 동작)
+     */
+    private byte[] serializeSafe(AiRequest req) throws IOException {
+        // 1단계: Jackson 시도
+        try (AutoCloseable cl = Activator.withBundleClassLoader()) {
+            byte[] result = mapper().writeValueAsBytes(req);
+            if (result != null && result.length > 2) { // {} 이상이면 유효
+                return result;
+            }
+            logInfo("Jackson 결과가 너무 짧음(" + (result==null?0:result.length) + ") → 수동 폴백");
+        } catch (Exception e) {
+            logInfo("Jackson 직렬화 실패: " + e.getMessage() + " → 수동 폴백");
+        }
 
-    <!-- 에디터 우클릭 컨텍스트 메뉴 -->
-    <menuContribution
-        locationURI="popup:org.eclipse.jdt.ui.CompilationUnitEditor.EditorContext?after=additions">
-      <menu id="com.aiassist.menu.context"
-            label="AI Assistant"
-            mnemonic="I">
+        // 2단계: 수동 JSON 폴백
+        String json = buildJsonManually(req);
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        logInfo("수동 JSON 폴백(" + bytes.length + "bytes): " + json.substring(0, Math.min(100, json.length())));
+        return bytes;
+    }
 
-        <command commandId="com.aiassist.commands.smartAction"
-                 label="✨ Smart AI Action  (Ctrl+Shift+A)"
-                 style="push"/>
-        <separator name="sep1"/>
-        <command commandId="com.aiassist.commands.explainCode"
-                 label="코드 설명  (Ctrl+Shift+E)"
-                 style="push"/>
-        <command commandId="com.aiassist.commands.analyzeError"
-                 label="에러 분석"
-                 style="push"/>
-        <command commandId="com.aiassist.commands.generateJavadoc"
-                 label="JavaDoc 생성  (Ctrl+Shift+J)"
-                 style="push"/>
-        <separator name="sep2"/>
-        <command commandId="com.aiassist.commands.openChat"
-                 label="💬 AI 채팅  (Ctrl+Shift+C)"
-                 style="push"/>
+    private AiResponse deserialize(String json) throws IOException {
+        if (json == null || json.trim().isEmpty())
+            throw new IOException("서버 응답이 비어 있습니다.");
 
-      </menu>
-    </menuContribution>
+        // 1단계: Jackson 시도
+        try (AutoCloseable cl = Activator.withBundleClassLoader()) {
+            AiResponse r = mapper().readValue(json, AiResponse.class);
+            if (r != null) return r;
+        } catch (Exception e) {
+            logInfo("Jackson 역직렬화 실패: " + e.getMessage() + " → 수동 파싱");
+        }
 
-    <!-- 메인 메뉴바 -->
-    <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
-      <menu id="com.aiassist.menu.main"
-            label="AI Assistant"
-            mnemonic="I">
+        // 2단계: 수동 파싱 폴백
+        return parseJsonManually(json);
+    }
 
-        <command commandId="com.aiassist.commands.smartAction"
-                 label="✨ Smart AI Action  (Ctrl+Shift+A)"
-                 style="push"/>
-        <separator name="sep1"/>
-        <command commandId="com.aiassist.commands.explainCode"
-                 label="코드 설명"
-                 style="push"/>
-        <command commandId="com.aiassist.commands.analyzeError"
-                 label="에러 분석"
-                 style="push"/>
-        <command commandId="com.aiassist.commands.generateJavadoc"
-                 label="JavaDoc 생성"
-                 style="push"/>
-        <separator name="sep2"/>
-        <command commandId="com.aiassist.commands.openChat"
-                 label="💬 AI 채팅  (Ctrl+Shift+C)"
-                 style="push"/>
-        <separator name="sep3"/>
-        <command commandId="org.eclipse.ui.views.showView"
-                 label="AI 결과 창"
-                 style="push">
-          <parameter name="org.eclipse.ui.views.showView.viewId"
-                     value="com.aiassist.views.AiResultView"/>
-        </command>
-        <separator name="sep4"/>
-        <command commandId="com.aiassist.commands.serverSettings"
-                 label="⚙ 서버 설정"
-                 style="push"/>
+    // ── ObjectMapper DCL ─────────────────────────────────────────
 
-      </menu>
-    </menuContribution>
+    private static ObjectMapper mapper() {
+        if (mapperInstance == null) {
+            synchronized (AiApiClient.class) {
+                if (mapperInstance == null) {
+                    mapperInstance = new ObjectMapper()
+                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                }
+            }
+        }
+        return mapperInstance;
+    }
 
-  </extension>
+    // ── 수동 JSON 직렬화 (Jackson 폴백) ──────────────────────────
 
-  <!-- ============================================================ -->
-  <!-- 5. Views                                                      -->
-  <!-- ============================================================ -->
-  <extension point="org.eclipse.ui.views">
+    private String buildJsonManually(AiRequest req) {
+        StringBuilder sb = new StringBuilder("{");
+        boolean first = true;
 
-    <view id="com.aiassist.views.AiResultView"
-          name="AI Assistant"
-          class="com.aiassist.views.AiResultView"
-          category="org.eclipse.jdt"
-          restorable="true"/>
+        if (req.getAction() != null)
+            first = field(sb, first, "action", req.getAction().name());
+        if (notEmpty(req.getSelectedCode()))
+            first = field(sb, first, "selectedCode", req.getSelectedCode());
+        if (notEmpty(req.getFullClassCode()))
+            first = field(sb, first, "fullClassCode", req.getFullClassCode());
+        if (notEmpty(req.getErrorMessage()))
+            first = field(sb, first, "errorMessage", req.getErrorMessage());
+        if (notEmpty(req.getCursorContext()))
+            first = field(sb, first, "cursorContext", req.getCursorContext());
+        if (notEmpty(req.getFileName()))
+            first = field(sb, first, "fileName", req.getFileName());
+        if (notEmpty(req.getClassName()))
+            first = field(sb, first, "className", req.getClassName());
+        if (notEmpty(req.getUserMessage()))
+            first = field(sb, first, "userMessage", req.getUserMessage());
+        if (notEmpty(req.getChatHistory()))
+            first = field(sb, first, "chatHistory", req.getChatHistory());
+        if (req.getLanguage() != null)
+            first = field(sb, first, "language", req.getLanguage());
 
-    <view id="com.aiassist.chat.AiChatView"
-          name="AI Chat"
-          class="com.aiassist.chat.AiChatView"
-          category="org.eclipse.jdt"
-          restorable="true"/>
+        if (req.getRelatedClasses() != null && req.getRelatedClasses().length > 0) {
+            if (!first) sb.append(",");
+            sb.append("\"relatedClasses\":[");
+            for (int i = 0; i < req.getRelatedClasses().length; i++) {
+                if (i > 0) sb.append(",");
+                sb.append('"').append(esc(req.getRelatedClasses()[i])).append('"');
+            }
+            sb.append("]");
+            first = false;
+        }
 
-  </extension>
+        if (req.getImports() != null && req.getImports().length > 0) {
+            if (!first) sb.append(",");
+            sb.append("\"imports\":[");
+            for (int i = 0; i < req.getImports().length; i++) {
+                if (i > 0) sb.append(",");
+                sb.append('"').append(esc(req.getImports()[i])).append('"');
+            }
+            sb.append("]");
+        }
 
-  <!-- ============================================================ -->
-  <!-- 6. Content Assist (Ctrl+Space → AI 코드 생성)               -->
-  <!-- ============================================================ -->
-  <extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
-             id="com.aiassist.proposalComputer"
-             name="AI 코드 생성">
-    <javaCompletionProposalComputer
-        class="com.aiassist.assist.AiProposalComputer"
-        categoryId="com.aiassist.proposalCategory">
-      <partition type="__dftl_partition_content_type"/>
-      <partition type="__java_string"/>
-      <partition type="__java_singleline_comment"/>
-      <partition type="__java_multiline_comment"/>
-    </javaCompletionProposalComputer>
-  </extension>
+        sb.append("}");
+        return sb.toString();
+    }
 
-  <extension point="org.eclipse.jdt.ui.javaCompletionProposalCategory"
-             id="com.aiassist.proposalCategory">
-    <javaCompletionProposalCategory
-        id="com.aiassist.proposalCategory"
-        name="AI Assistant"
-        displayName="AI 코드 생성"/>
-  </extension>
+    private boolean field(StringBuilder sb, boolean first, String key, String val) {
+        if (!first) sb.append(",");
+        sb.append('"').append(key).append("\":\"").append(esc(val)).append('"');
+        return false;
+    }
 
-  <!-- ============================================================ -->
-  <!-- 7. Preference Page (Window → Preferences → AI Assistant)     -->
-  <!-- ============================================================ -->
-  <extension point="org.eclipse.ui.preferencePages">
-    <page id="com.aiassist.prefs.AiPreferencePage"
-          name="AI Assistant"
-          class="com.aiassist.prefs.AiPreferencePage"/>
-  </extension>
+    private String esc(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"")
+                .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+    }
 
-</plugin>
+    private boolean notEmpty(String s) { return s != null && !s.isEmpty(); }
+
+    // ── 수동 JSON 역직렬화 (Jackson 폴백) ────────────────────────
+
+    private AiResponse parseJsonManually(String json) throws IOException {
+        AiResponse resp = new AiResponse();
+        try {
+            String status  = extractStr(json, "status");
+            String result  = extractStr(json, "result");
+            String message = extractStr(json, "message");
+            resp.setStatus(status != null ? status : "error");
+            resp.setResult(result);
+            resp.setMessage(message != null ? message : "수동 파싱 완료");
+            return resp;
+        } catch (Exception e) {
+            throw new IOException("응답 파싱 완전 실패. 원문: " +
+                    json.substring(0, Math.min(json.length(), MAX_ERROR_PREVIEW)));
+        }
+    }
+
+    private String extractStr(String json, String key) {
+        String search = "\"" + key + "\"";
+        int ki = json.indexOf(search);
+        if (ki < 0) return null;
+        int ci = json.indexOf(':', ki + search.length());
+        if (ci < 0) return null;
+        int vs = ci + 1;
+        while (vs < json.length() && json.charAt(vs) == ' ') vs++;
+        if (vs >= json.length()) return null;
+
+        if (json.charAt(vs) == '"') {
+            StringBuilder sb = new StringBuilder();
+            int i = vs + 1;
+            while (i < json.length()) {
+                char c = json.charAt(i);
+                if (c == '\\' && i + 1 < json.length()) {
+                    char n = json.charAt(i + 1);
+                    switch (n) {
+                        case '"':  sb.append('"');  i += 2; break;
+                        case '\\': sb.append('\\'); i += 2; break;
+                        case 'n':  sb.append('\n'); i += 2; break;
+                        case 'r':  sb.append('\r'); i += 2; break;
+                        case 't':  sb.append('\t'); i += 2; break;
+                        default:   sb.append(c);    i++;    break;
+                    }
+                } else if (c == '"') {
+                    break;
+                } else {
+                    sb.append(c); i++;
+                }
+            }
+            return sb.toString();
+        }
+        int ve = vs;
+        while (ve < json.length() && json.charAt(ve) != ',' && json.charAt(ve) != '}') ve++;
+        String raw = json.substring(vs, ve).trim();
+        return "null".equals(raw) ? null : raw;
+    }
+
+    // ── 스트림 유틸 ──────────────────────────────────────────────
+
+    private String readFully(InputStream is) throws IOException {
+        try (BufferedReader r = new BufferedReader(
+                new InputStreamReader(is, StandardCharsets.UTF_8), 8192)) {
+            StringBuilder sb = new StringBuilder(4096);
+            char[] buf = new char[4096];
+            int n;
+            while ((n = r.read(buf)) != -1) sb.append(buf, 0, n);
+            return sb.toString().trim();
+        }
+    }
+
+    private String readStreamSafe(InputStream is) {
+        if (is == null) return "(no body)";
+        try {
+            String s = readFully(is);
+            return s.length() > MAX_ERROR_PREVIEW ? s.substring(0, MAX_ERROR_PREVIEW) + "..." : s;
+        } catch (Exception e) {
+            return "(읽기 실패)";
+        }
+    }
+
+    // ── 로깅 ─────────────────────────────────────────────────────
+
+    /** Eclipse Error Log (Window > Show View > Error Log) 에 기록 */
+    private void logInfo(String msg) {
+        try {
+            Activator a = Activator.getDefault();
+            if (a == null) return;
+            ILog log = a.getLog();
+            if (log != null)
+                log.log(new Status(IStatus.INFO, Activator.PLUGIN_ID, "[AI] " + msg));
+        } catch (Exception ignore) {}
+    }
+}
