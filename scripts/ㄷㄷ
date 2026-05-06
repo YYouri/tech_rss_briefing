@@ -1,222 +1,150 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?eclipse version="3.4"?>
-<plugin>
+package hi.bxm.assist.editor.context;
 
-  <!-- 1. 커맨드 -->
-  <extension point="org.eclipse.ui.commands">
-    <category id="hi.bxm.assist.category" name="BXM Assist"/>
-    <command id="hi.bxm.assist.openChat"
-             name="AI Assist 열기"
-             categoryId="hi.bxm.assist.category"/>
-    <command id="hi.bxm.assist.explainCode"
-             name="AI: 코드 설명"
-             categoryId="hi.bxm.assist.category"/>
-    <command id="hi.bxm.assist.fixError"
-             name="AI: 에러 수정 제안"
-             categoryId="hi.bxm.assist.category"/>
-    <command id="hi.bxm.assist.refactor"
-             name="AI: 리팩토링 제안"
-             categoryId="hi.bxm.assist.category"/>
-    <command id="hi.bxm.assist.triggerInline"
-             name="AI: 인라인 자동완성 트리거"
-             categoryId="hi.bxm.assist.category"/>
-    <!-- [신규] TODO 코드 생성 -->
-    <command id="hi.bxm.assist.generateTodo"
-             name="AI: TODO 코드 생성"
-             categoryId="hi.bxm.assist.category"/>
-  </extension>
+import hi.bxm.assist.core.model.EditorContext;
 
-  <!-- 2. 핸들러 -->
-  <extension point="org.eclipse.ui.handlers">
-    <handler commandId="hi.bxm.assist.openChat"
-             class="hi.bxm.assist.ui.handler.SendMessageHandler"/>
-    <handler commandId="hi.bxm.assist.explainCode"
-             class="hi.bxm.assist.editor.command.ExplainCodeHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
-    <handler commandId="hi.bxm.assist.fixError"
-             class="hi.bxm.assist.editor.command.FixErrorHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
-    <handler commandId="hi.bxm.assist.refactor"
-             class="hi.bxm.assist.editor.command.RefactorHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
-    <handler commandId="hi.bxm.assist.triggerInline"
-             class="hi.bxm.assist.editor.ghost.TriggerInlineHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
-    <!-- [신규] TODO 코드 생성 핸들러 -->
-    <handler commandId="hi.bxm.assist.generateTodo"
-             class="hi.bxm.assist.editor.command.TodoCommentHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
-  </extension>
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IImportDeclaration;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IPackageDeclaration;
+import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.Signature;
+import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.ITextEditor;
 
-  <!-- 3. View -->
-  <extension point="org.eclipse.ui.views">
-    <view id="hi.bxm.assist.ui.ChatView"
-          name="BXM Assist"
-          class="hi.bxm.assist.ui.view.ChatView"
- 		  icon="icons/assist_ai_16.png"
-          allowMultiple="false"/>
-  </extension>
+import java.util.ArrayList;
+import java.util.List;
 
-  <!-- 4. 메뉴 / 툴바 -->
-  <extension point="org.eclipse.ui.menus">
-    <menuContribution
-        locationURI="popup:org.eclipse.jdt.ui.source.menu?after=additions">
-      <menu id="hi.bxm.assist.editorMenu" icon="icons/assist_ai_16.png" label="BXM Assist">
-        <command commandId="hi.bxm.assist.explainCode"   label="코드 설명"/>
-        <command commandId="hi.bxm.assist.fixError"      label="에러 수정 제안"/>
-        <command commandId="hi.bxm.assist.refactor"      label="리팩토링 제안"/>
-        <command commandId="hi.bxm.assist.generateTodo"  label="TODO 코드 생성"/>
-        <command commandId="hi.bxm.assist.triggerInline" label="인라인 제안 트리거"/>
-      </menu>
-    </menuContribution>
-    <menuContribution
-        locationURI="popup:org.eclipse.ui.popup.any?after=additions">
-      <menu id="hi.bxm.assist.editorMenu2" icon="icons/assist_ai_16.png" label="BXM Assist">
-        <visibleWhen checkEnabled="false">
-          <with variable="activeEditorId">
-            <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-          </with>
-        </visibleWhen>
-        <command commandId="hi.bxm.assist.explainCode"   label="코드 설명"/>
-        <command commandId="hi.bxm.assist.fixError"      label="에러 수정 제안"/>
-        <command commandId="hi.bxm.assist.refactor"      label="리팩토링 제안"/>
-        <command commandId="hi.bxm.assist.generateTodo"  label="TODO 코드 생성"/>
-        <command commandId="hi.bxm.assist.triggerInline" label="인라인 제안 트리거"/>
-      </menu>
-    </menuContribution>
-    <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=help">
-      <menu id="hi.bxm.assist.mainMenu" icon="icons/assist_ai_16.png" label="BXM Assist">
-        <command commandId="hi.bxm.assist.openChat"      label="AI Assist 열기"/>
-        <separator name="sep1"/>
-        <command commandId="hi.bxm.assist.explainCode"   label="코드 설명"/>
-        <command commandId="hi.bxm.assist.fixError"      label="에러 수정 제안"/>
-        <command commandId="hi.bxm.assist.refactor"      label="리팩토링 제안"/>
-        <command commandId="hi.bxm.assist.generateTodo"  label="TODO 코드 생성"/>
-        <separator name="sep2"/>
-        <command commandId="hi.bxm.assist.triggerInline" label="인라인 제안 트리거"/>
-      </menu>
-    </menuContribution>
-  </extension>
+/**
+ * 활성 에디터 / 문서로부터 LLM 컨텍스트를 수집한다.
+ *
+ * 수집 항목:
+ *  - 파일명, 패키지명
+ *  - import 선언 (qualified name 만)
+ *  - 같은 컴파일 유닛 내 메서드 시그니처 (인접 심볼)
+ *  - 캐럿 오프셋, 선택 영역
+ *  - 전체 소스 (FIM 용)
+ *
+ * JDT 가 없거나 (.txt 등) 실패하면 부분 컨텍스트만 채움.
+ */
+public final class ContextCollector {
 
-  <!-- 5. 키 바인딩 -->
-  <extension point="org.eclipse.ui.bindings">
-    <key commandId="hi.bxm.assist.openChat"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         sequence="ALT+SHIFT+A"/>
-    <key commandId="hi.bxm.assist.explainCode"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         sequence="ALT+SHIFT+E"
-         contextId="org.eclipse.ui.textEditorScope"/>
-    <key commandId="hi.bxm.assist.fixError"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         sequence="ALT+SHIFT+F"
-         contextId="org.eclipse.ui.textEditorScope"/>
-    <key commandId="hi.bxm.assist.refactor"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         sequence="ALT+SHIFT+R"
-         contextId="org.eclipse.ui.textEditorScope"/>
-    <key commandId="hi.bxm.assist.triggerInline"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         sequence="CTRL+ALT+SPACE"
-         contextId="org.eclipse.ui.textEditorScope"/>
-    <!-- [신규] TODO 코드 생성 -->
-    <key commandId="hi.bxm.assist.generateTodo"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         sequence="ALT+SHIFT+T"
-         contextId="org.eclipse.ui.textEditorScope"/>
-  </extension>
+    private static final int MAX_IMPORTS = 50;
+    private static final int MAX_NEIGHBORS = 30;
 
-  <!-- 6. JDT 자동완성 (Ctrl+Space 팝업) -->
-  <!--
-    Eclipse 4.5.2 에서 동작하는 정확한 구조:
-    - proposalCategory 와 javaCompletionProposalComputer 를 같은 extension 에 선언
-    - partition 미지정: 모든 Java 파티션(__java_code, __java_string, default)에서 동작
-    - needsSortingAfterFiltering="false": 정렬 불필요 (AI 제안은 항상 맨 위로)
-    - requiresUIThread="false": 백그라운드 스레드에서 computeCompletionProposals() 호출 허용
-    - activate="true": 카테고리를 기본 활성 상태로 등록
-      (false 이면 Advanced 탭에서 수동 활성화 필요)
-  -->
-  <extension
-      id="hi.bxm.assist.aiCompletion"
-      point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
-    <proposalCategory
-        id="hi.bxm.assist.proposalCategory"
-        label="BXM Assist"
-        icon="icons/assist_ai_16.png"/>
-    <javaCompletionProposalComputer
-        class="hi.bxm.assist.editor.completion.AICompletionProcessor"
-        categoryId="hi.bxm.assist.proposalCategory"
-        needsSortingAfterFiltering="true"
-        requiresUIThread="false">
-    </javaCompletionProposalComputer>
-  </extension>
+    private ContextCollector() {}
 
+    public static EditorContext fromEditor(IEditorPart editor) {
+        EditorContext.Builder b = EditorContext.builder();
+        if (editor == null) return b.build();
 
-  <!-- 7. 시작 시 자동완성 주입 + Ghost Text 컨트롤러 install -->
-  <extension
-      id="hi.bxm.assist.startups"
-      point="org.eclipse.ui.startup">
-    <startup class="hi.bxm.assist.editor.ghost.InlineCompletionStartup"/>
-  </extension>
+        IEditorInput input = editor.getEditorInput();
+        if (input != null) b.fileName(input.getName());
 
-  <!-- 8. Java 호버 -->
-  <extension
-      id="hi.bxm.assist.aiHovers"
-      point="org.eclipse.jdt.ui.javaEditorTextHovers">
-    <hover id="hi.bxm.assist.aiHover"
-           class="hi.bxm.assist.editor.hover.AIHoverProvider"
-           label="AI Code Explanation"/>
-  </extension>
+        // 문서 / 캐럿
+        if (editor instanceof ITextEditor) {
+            ITextEditor te = (ITextEditor) editor;
+            IDocumentProvider dp = te.getDocumentProvider();
+            if (dp != null) {
+                IDocument doc = dp.getDocument(input);
+                if (doc != null) {
+                    b.fullSource(doc.get());
+                    Object sel = te.getSelectionProvider() != null
+                            ? te.getSelectionProvider().getSelection() : null;
+                    if (sel instanceof ITextSelection) {
+                        ITextSelection ts = (ITextSelection) sel;
+                        b.cursorOffset(ts.getOffset() + ts.getLength());
+                        if (ts.getLength() > 0) b.selection(ts.getText());
+                    }
+                }
+            }
+        }
 
-  <!-- 9. Quick Fix -->
-  <extension
-      id="hi.bxm.assist.aiMarkerResolution"
-      point="org.eclipse.ui.ide.markerResolution">
-    <markerResolutionGenerator
-        markerType="org.eclipse.jdt.core.problem"
-        class="hi.bxm.assist.editor.quickfix.AIMarkerResolutionGenerator"/>
-    <markerResolutionGenerator
-        markerType="org.eclipse.jdt.core.task"
-        class="hi.bxm.assist.editor.quickfix.AIMarkerResolutionGenerator"/>
-    <markerResolutionGenerator
-        markerType="org.eclipse.core.resources.problemmarker"
-        class="hi.bxm.assist.editor.quickfix.AIMarkerResolutionGenerator"/>
-  </extension>
+        // JDT 메타정보
+        try {
+            IJavaElement je = input != null ? JavaUI.getEditorInputJavaElement(input) : null;
+            if (je instanceof ICompilationUnit) {
+                collectFromCompilationUnit((ICompilationUnit) je, b);
+            }
+        } catch (Throwable t) {
+            // JDT 미존재/오픈 안된 파일이면 무시
+        }
+        return b.build();
+    }
 
-  <!-- 10. Preferences -->
-  <extension point="org.eclipse.ui.preferencePages">
-    <page id="hi.bxm.assist.preferences"
-          name="BXM AI Assist"
-          class="hi.bxm.assist.ui.prefs.AssistPreferencePage"/>
-  </extension>
-  <extension point="org.eclipse.core.runtime.preferences">
-    <initializer class="hi.bxm.assist.ui.prefs.PreferenceInitializer"/>
-  </extension>
+    private static void collectFromCompilationUnit(ICompilationUnit cu, EditorContext.Builder b)
+            throws JavaModelException {
+        IPackageDeclaration[] pkgs = cu.getPackageDeclarations();
+        if (pkgs != null && pkgs.length > 0) {
+            b.packageName(pkgs[0].getElementName());
+        }
+        IImportDeclaration[] imports = cu.getImports();
+        if (imports != null && imports.length > 0) {
+            List<String> list = new ArrayList<String>();
+            int limit = Math.min(imports.length, MAX_IMPORTS);
+            for (int i = 0; i < limit; i++) list.add(imports[i].getElementName());
+            b.imports(list);
+        }
+        IType[] types = cu.getTypes();
+        if (types != null) {
+            List<String> sigs = new ArrayList<String>();
+            for (IType t : types) {
+                collectMethodSigs(t, sigs);
+                if (sigs.size() >= MAX_NEIGHBORS) break;
+            }
+            b.neighborSignatures(sigs);
+        }
+    }
 
-</plugin>
-	
+    private static void collectMethodSigs(IType type, List<String> out) throws JavaModelException {
+        for (IMethod m : type.getMethods()) {
+            if (out.size() >= MAX_NEIGHBORS) return;
+            StringBuilder sb = new StringBuilder();
+            sb.append(Signature.toString(m.getReturnType())).append(' ');
+            sb.append(m.getElementName()).append('(');
+            String[] paramTypes = m.getParameterTypes();
+            String[] paramNames = m.getParameterNames();
+            for (int i = 0; i < paramTypes.length; i++) {
+                if (i > 0) sb.append(", ");
+                sb.append(Signature.toString(paramTypes[i]));
+                if (paramNames != null && i < paramNames.length) {
+                    sb.append(' ').append(paramNames[i]);
+                }
+            }
+            sb.append(')');
+            out.add(sb.toString());
+        }
+        for (IType inner : type.getTypes()) {
+            if (out.size() >= MAX_NEIGHBORS) return;
+            collectMethodSigs(inner, out);
+        }
+    }
+
+    /**
+     * 인라인 자동완성용 prefix/suffix 자르기.
+     * 큰 파일에서 LLM 컨텍스트 윈도우를 보호하기 위해 캐럿 주변 N 글자만 잘라낸다.
+     */
+    public static String[] sliceForFim(String fullSource, int cursorOffset,
+                                       int maxPrefix, int maxSuffix) {
+        if (fullSource == null) return new String[]{"", ""};
+        int len = fullSource.length();
+        if (cursorOffset < 0) cursorOffset = 0;
+        if (cursorOffset > len) cursorOffset = len;
+        int pStart = Math.max(0, cursorOffset - maxPrefix);
+        int sEnd = Math.min(len, cursorOffset + maxSuffix);
+        String prefix = fullSource.substring(pStart, cursorOffset);
+        String suffix = fullSource.substring(cursorOffset, sEnd);
+        return new String[]{prefix, suffix};
+    }
+
+    public static IJavaElement getJavaElement(IEditorInput input) {
+        try { return JavaUI.getEditorInputJavaElement(input); }
+        catch (Throwable t) { return null; }
+    }
+}
