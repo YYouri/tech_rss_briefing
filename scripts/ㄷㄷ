@@ -1,370 +1,628 @@
-package com.aiassist.api;
+package hi.bxm.assist.ui.view;
 
-import com.aiassist.Activator;
-import com.aiassist.model.AiRequest;
-import com.aiassist.model.AiResponse;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import hi.bxm.assist.core.model.ChatMessage.Role;
+import hi.bxm.assist.ui.presenter.ChatPresenter;
 
-import org.eclipse.core.runtime.ILog;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.ITextEditor;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
- * 내부 중계 서버 REST 클라이언트.
- * Background Thread 전용.
+ * BXM AI Assist 통합 채팅 뷰 (StyledText 기반).
  *
- * [404 원인 분석 및 수정]
+ * [설계 원칙]
+ * - 스트리밍 없음: appendMessage() 단일 메서드로 완성된 응답을 한번에 표시
+ * - StyledText 뷰: 코드블록(```...```) 하이라이팅, 헤더 색상 구분
+ * - 상태바: 뷰 하단 statusLabel + Eclipse 하단 상태바는 ChatPresenter/AiRequestGateway 담당
+ * - Copilot 기능: 에디터 선택 코드 붙여넣기 / 마지막 AI 응답 에디터 삽입
  *
- * 원인1) setRequestProperty("Content-Length", ...) 직접 설정
- *   - HttpURLConnection 내부 스트림 크기와 불일치 발생 가능
- *   - 서버가 body를 읽지 못해 404/400 반환
- *   수정: setFixedLengthStreamingMode(bodyLen) 사용
- *         → JVM이 Content-Length를 정확하게 설정, chunked 방지
- *
- * 원인2) Jackson 직렬화 실패 시 빈 body 전송
- *   - OSGi ClassLoader 문제로 Jackson이 실패해도 예외 없이 빈 결과 반환 가능
- *   - 서버가 빈 body를 받으면 라우팅 실패 → 404
- *   수정: 직렬화 결과 검증 + Jackson 실패 시 수동 JSON 폴백
- *
- * 원인3) 일부 구형 서버가 chunked Transfer-Encoding 미지원
- *   수정: setFixedLengthStreamingMode + Connection:close
- *
- * [호환성]
- * - Jackson 없이도 동작하는 수동 JSON 폴백 내장
- * - Eclipse 4.5 ~ 4.33 호환
- * - 표준 HttpURLConnection API만 사용
+ * [JDK 7 호환]
+ * - 람다, var 미사용. 익명 클래스(SelectionAdapter, KeyAdapter, ModifyListener, Runnable) 사용.
+ * - java.time 미사용 → SimpleDateFormat 사용.
  */
-public class AiApiClient {
+public class ChatView extends ViewPart {
 
-    private static final int    MAX_ERROR_PREVIEW = 500;
-    private static final int    MAX_RETRY         = 1;
-    private static final String HEADER_REQUEST_ID = "X-AI-Request-Id";
+    public static final String ID = "hi.bxm.assist.ui.ChatView";
 
-    private static volatile ObjectMapper mapperInstance;
-    private static final AiApiClient INSTANCE = new AiApiClient();
-    private AiApiClient() {}
-    public static AiApiClient getInstance() { return INSTANCE; }
+    private static final int MAX_INPUT_CHARS = 4000;
+    private static final int MAX_INPUT_WARN  = 3600;
+    private static final SimpleDateFormat TIME_FMT = new SimpleDateFormat("HH:mm:ss");
 
-    // ── 공개 API ──────────────────────────────────────────────────
+    // ── UI 컴포넌트 ───────────────────────────────────────────────
+    private StyledText chatDisplay;
+    private StyledText inputText;
+    private Button     sendButton;
+    private Button     cancelButton;
+    private Button     contextToggle;
+    private Label      statusLabel;
+    private Label      charCountLabel;
 
-    public AiResponse request(AiRequest req) throws IOException {
-        byte[] body = serializeSafe(req);
-        logInfo("요청 body=" + body.length + "bytes, url=" + Activator.getServerUrl());
+    // ── SWT 리소스 ────────────────────────────────────────────────
+    private Font  boldFont;
+    private Font  monoFont;
+    private Font  normalFont;
+    private Color colorUser;
+    private Color colorAssistant;
+    private Color colorResult;
+    private Color colorError;
+    private Color colorCode;
+    private Color colorUserHdrBg;
+    private Color colorAssistantHdrBg;
+    private Color colorResultHdrBg;
 
-        IOException lastEx = null;
-        for (int attempt = 0; attempt <= MAX_RETRY; attempt++) {
-            try {
-                return doRequest(body);
-            } catch (IOException e) {
-                lastEx = e;
-                logInfo("시도" + (attempt+1) + " 실패: " + e.getMessage());
-                if (attempt < MAX_RETRY) {
-                    try { Thread.sleep(600); }
-                    catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        throw new IOException("요청 중단됨", ie);
-                    }
+    // ── 상태 ──────────────────────────────────────────────────────
+    private ChatPresenter presenter;
+    private String        lastAiRawText = "";
+
+    @Override
+    public void createPartControl(Composite parent) {
+        Display d = parent.getDisplay();
+        initResources(d);
+
+        parent.setLayout(new GridLayout(1, false));
+        buildToolBar(parent);
+
+        SashForm sash = new SashForm(parent, SWT.VERTICAL);
+        sash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        sash.setSashWidth(4);
+        buildChatArea(sash);
+        buildInputPanel(sash);
+        sash.setWeights(new int[]{60,40});
+
+        buildStatusBar(parent);
+
+        presenter = new ChatPresenter(this);
+        setPartName("BXM AI Assist");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // UI 구성
+    // ═══════════════════════════════════════════════════════════════
+
+    private void buildToolBar(Composite parent) {
+        ToolBar bar = new ToolBar(parent, SWT.FLAT | SWT.RIGHT);
+        bar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        ToolItem clearItem = new ToolItem(bar, SWT.PUSH);
+        clearItem.setText("대화 초기화");
+        clearItem.setToolTipText("모든 대화 내용을 지웁니다");
+        clearItem.addSelectionListener(new SelectionAdapter() {
+            @Override public void widgetSelected(SelectionEvent e) {
+                if (chatReady()) chatDisplay.setText("");
+                lastAiRawText = "";
+                presenter.clearHistory();
+                setStatus("대화가 초기화되었습니다.");
+            }
+        });
+
+        new ToolItem(bar, SWT.SEPARATOR);
+
+        ToolItem copyItem = new ToolItem(bar, SWT.PUSH);
+        copyItem.setText("전체 복사");
+        copyItem.setToolTipText("전체 대화를 클립보드에 복사");
+        copyItem.addSelectionListener(new SelectionAdapter() {
+            @Override public void widgetSelected(SelectionEvent e) {
+                if (!chatReady()) return;
+                String text = chatDisplay.getText();
+                if (text.isEmpty()) return;
+                Clipboard cb = new Clipboard(chatDisplay.getDisplay());
+                cb.setContents(
+                    new Object[]{ text },
+                    new Transfer[]{ TextTransfer.getInstance() }
+                );
+                cb.dispose();
+                setStatus("전체 대화 복사됨");
+            }
+        });
+
+        new ToolItem(bar, SWT.SEPARATOR);
+
+        ToolItem pasteCode = new ToolItem(bar, SWT.PUSH);
+        pasteCode.setText("코드 붙여넣기");
+        pasteCode.setToolTipText("현재 에디터의 선택 코드를 입력창에 삽입");
+        pasteCode.addSelectionListener(new SelectionAdapter() {
+            @Override public void widgetSelected(SelectionEvent e) { pasteEditorCode(); }
+        });
+
+        new ToolItem(bar, SWT.SEPARATOR);
+
+        ToolItem insertCode = new ToolItem(bar, SWT.PUSH);
+        insertCode.setText("에디터에 삽입");
+        insertCode.setToolTipText("마지막 AI 응답의 코드 블록을 에디터 커서 위치에 삽입");
+        insertCode.addSelectionListener(new SelectionAdapter() {
+            @Override public void widgetSelected(SelectionEvent e) { insertLastResultIntoEditor(); }
+        });
+    }
+
+    private void buildChatArea(Composite parent) {
+        chatDisplay = new StyledText(parent,
+                SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY | SWT.BORDER);
+        chatDisplay.setEditable(false);
+        chatDisplay.setMargins(6, 4, 6, 4);
+        chatDisplay.setLineSpacing(2);
+        chatDisplay.setFont(normalFont);
+        chatDisplay.setBackground(chatDisplay.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+    }
+
+    private void buildInputPanel(Composite parent) {
+        Composite panel = new Composite(parent, SWT.NONE);
+        panel.setLayout(new GridLayout(1, false));
+
+        Label hint = new Label(panel, SWT.NONE);
+        hint.setText("메시지 입력  (Ctrl+Enter: 전송  /  Enter: 줄바꿈)");
+        hint.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+        inputText = new StyledText(panel, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.BORDER);
+        inputText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        inputText.setMargins(4, 4, 4, 4);
+
+        inputText.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if ((e.stateMask & SWT.CTRL) != 0
+                        && (e.keyCode == SWT.CR || e.keyCode == SWT.LF)) {
+                    e.doit = false;
+                    onSend();
                 }
             }
-        }
-        throw lastEx;
-    }
+        });
+        inputText.addModifyListener(new ModifyListener() {
+            @Override public void modifyText(ModifyEvent e) { updateCharCount(); }
+        });
 
-    // ── HTTP 요청 ────────────────────────────────────────────────
+        Composite btnRow = new Composite(panel, SWT.NONE);
+        btnRow.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        btnRow.setLayout(new GridLayout(4, false));
 
-    private AiResponse doRequest(byte[] body) throws IOException {
-        String reqId  = UUID.randomUUID().toString().substring(0, 8);
-        String urlStr = Activator.getServerUrl().trim();
+        contextToggle = new Button(btnRow, SWT.CHECK);
+        contextToggle.setText("에디터 코드 첨부");
+        contextToggle.setToolTipText("현재 Java 에디터의 코드를 컨텍스트로 자동 포함");
+        contextToggle.setSelection(true);
 
-        HttpURLConnection conn = openConnection(urlStr, body.length, reqId);
-        try {
-            writeBody(conn, body);
+        charCountLabel = new Label(btnRow, SWT.NONE);
+        charCountLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        charCountLabel.setText("0 / " + MAX_INPUT_CHARS);
 
-            int code = conn.getResponseCode();
-            logInfo("HTTP " + code + " reqId=" + reqId);
-
-            if (code == HttpURLConnection.HTTP_OK) {
-                String respBody = readFully(conn.getInputStream());
-                logInfo("응답 " + respBody.length() + "chars");
-                return deserialize(respBody);
+        cancelButton = new Button(btnRow, SWT.PUSH);
+        cancelButton.setText("취소");
+        cancelButton.setEnabled(false);
+        cancelButton.addSelectionListener(new SelectionAdapter() {
+            @Override public void widgetSelected(SelectionEvent e) {
+                presenter.cancelCurrent();
             }
+        });
 
-            String errBody    = readStreamSafe(conn.getErrorStream());
-            String serverMsg  = conn.getResponseMessage();
-            throw new IOException(
-                "HTTP " + code + " " + serverMsg + "\n" +
-                "  URL: " + urlStr + "\n" +
-                "  body: " + errBody + "\n" +
-                "  힌트: Window > Preferences > AI Assistant 에서 서버 URL을 확인하세요.");
-
-        } finally {
-            conn.disconnect();
-        }
+        sendButton = new Button(btnRow, SWT.PUSH);
+        sendButton.setText("전송");
+        sendButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+        sendButton.addSelectionListener(new SelectionAdapter() {
+            @Override public void widgetSelected(SelectionEvent e) { onSend(); }
+        });
     }
+
+    private void buildStatusBar(Composite parent) {
+        statusLabel = new Label(parent, SWT.NONE);
+        statusLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        statusLabel.setText("준비  |  Alt+Shift+A");
+    }
+
+    private void initResources(Display d) {
+        boldFont   = new Font(d, "SansSerif",  10, SWT.BOLD);
+        monoFont   = new Font(d, "Monospaced", 10, SWT.NORMAL);
+        normalFont = new Font(d, "SansSerif",  10, SWT.NORMAL);
+
+        colorUser             = new Color(d,  30, 100, 210);
+        colorAssistant        = new Color(d,  30, 140,  80);
+        colorResult           = new Color(d,  90,  60, 180);
+        colorError            = new Color(d, 200,  50,  50);
+        colorCode             = new Color(d, 240, 240, 240);
+        colorUserHdrBg        = new Color(d, 220, 235, 255);
+        colorAssistantHdrBg   = new Color(d, 220, 255, 230);
+        colorResultHdrBg      = new Color(d, 235, 225, 255);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 전송
+    // ═══════════════════════════════════════════════════════════════
+
+    private void onSend() {
+        if (inputText == null || inputText.isDisposed()) return;
+        String msg = inputText.getText().trim();
+        if (msg.isEmpty()) return;
+        if (msg.length() > MAX_INPUT_CHARS) {
+            setStatus("입력이 너무 깁니다 (최대 " + MAX_INPUT_CHARS + "자)");
+            return;
+        }
+        boolean attachCtx = contextToggle != null && contextToggle.getSelection();
+        inputText.setText("");
+        updateCharCount();
+        setInputEnabled(false);
+        presenter.onUserMessage(msg, attachCtx);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 메시지 표시 (Presenter → View 호출)
+    // ═══════════════════════════════════════════════════════════════
 
     /**
-     * [핵심 수정] Content-Length를 setRequestProperty로 설정하지 않고
-     * setFixedLengthStreamingMode(bodyLen)으로 제어.
-     *
-     * setFixedLengthStreamingMode()의 효과:
-     * - JVM이 정확한 Content-Length 헤더를 자동 설정
-     * - chunked encoding 없이 fixed-length 전송
-     * - 구형 서버와의 호환성 최대화
+     * 단일 완성 메시지 표시. 스트리밍 없이 한번에 출력합니다.
+     * UI Thread 보장을 위해 asyncExec 사용.
      */
-    private HttpURLConnection openConnection(String urlStr, int bodyLen, String reqId)
-            throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
-        conn.setRequestMethod("POST");
-        conn.setDoOutput(true);
-        conn.setDoInput(true);
-        conn.setUseCaches(false);
-        conn.setInstanceFollowRedirects(true);
-
-        // [수정] Content-Length는 이 메서드로만 설정
-        conn.setFixedLengthStreamingMode(bodyLen);
-
-        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        conn.setRequestProperty("Accept",       "application/json");
-        conn.setRequestProperty("Connection",   "close");  // 구형 서버 호환
-        conn.setRequestProperty(HEADER_REQUEST_ID, reqId);
-
-        conn.setConnectTimeout(Activator.getConnectTimeout());
-        conn.setReadTimeout(Activator.getReadTimeout());
-        return conn;
-    }
-
-    private void writeBody(HttpURLConnection conn, byte[] body) throws IOException {
-        OutputStream os = conn.getOutputStream();
-        try {
-            os.write(body);
-            os.flush();
-        } finally {
-            os.close();
-        }
-    }
-
-    // ── 직렬화 ───────────────────────────────────────────────────
-
-    /**
-     * 1단계: Jackson + OSGi ClassLoader 보정으로 직렬화
-     * 2단계: 실패 시 수동 JSON 폴백 (Jackson 없이도 동작)
-     */
-    private byte[] serializeSafe(AiRequest req) throws IOException {
-        // 1단계: Jackson 시도
-        try (AutoCloseable cl = Activator.withBundleClassLoader()) {
-            byte[] result = mapper().writeValueAsBytes(req);
-            if (result != null && result.length > 2) { // {} 이상이면 유효
-                return result;
-            }
-            logInfo("Jackson 결과가 너무 짧음(" + (result==null?0:result.length) + ") → 수동 폴백");
-        } catch (Exception e) {
-            logInfo("Jackson 직렬화 실패: " + e.getMessage() + " → 수동 폴백");
-        }
-
-        // 2단계: 수동 JSON 폴백
-        String json = buildJsonManually(req);
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-        logInfo("수동 JSON 폴백(" + bytes.length + "bytes): " + json.substring(0, Math.min(100, json.length())));
-        return bytes;
-    }
-
-    private AiResponse deserialize(String json) throws IOException {
-        if (json == null || json.trim().isEmpty())
-            throw new IOException("서버 응답이 비어 있습니다.");
-
-        // 1단계: Jackson 시도
-        try (AutoCloseable cl = Activator.withBundleClassLoader()) {
-            AiResponse r = mapper().readValue(json, AiResponse.class);
-            if (r != null) return r;
-        } catch (Exception e) {
-            logInfo("Jackson 역직렬화 실패: " + e.getMessage() + " → 수동 파싱");
-        }
-
-        // 2단계: 수동 파싱 폴백
-        return parseJsonManually(json);
-    }
-
-    // ── ObjectMapper DCL ─────────────────────────────────────────
-
-    private static ObjectMapper mapper() {
-        if (mapperInstance == null) {
-            synchronized (AiApiClient.class) {
-                if (mapperInstance == null) {
-                    mapperInstance = new ObjectMapper()
-                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                }
-            }
-        }
-        return mapperInstance;
-    }
-
-    // ── 수동 JSON 직렬화 (Jackson 폴백) ──────────────────────────
-
-    private String buildJsonManually(AiRequest req) {
-        StringBuilder sb = new StringBuilder("{");
-        boolean first = true;
-
-        if (req.getAction() != null)
-            first = field(sb, first, "action", req.getAction().name());
-        if (notEmpty(req.getSelectedCode()))
-            first = field(sb, first, "selectedCode", req.getSelectedCode());
-        if (notEmpty(req.getFullClassCode()))
-            first = field(sb, first, "fullClassCode", req.getFullClassCode());
-        if (notEmpty(req.getErrorMessage()))
-            first = field(sb, first, "errorMessage", req.getErrorMessage());
-        if (notEmpty(req.getCursorContext()))
-            first = field(sb, first, "cursorContext", req.getCursorContext());
-        if (notEmpty(req.getFileName()))
-            first = field(sb, first, "fileName", req.getFileName());
-        if (notEmpty(req.getClassName()))
-            first = field(sb, first, "className", req.getClassName());
-        if (notEmpty(req.getUserMessage()))
-            first = field(sb, first, "userMessage", req.getUserMessage());
-        if (notEmpty(req.getChatHistory()))
-            first = field(sb, first, "chatHistory", req.getChatHistory());
-        if (req.getLanguage() != null)
-            first = field(sb, first, "language", req.getLanguage());
-
-        if (req.getRelatedClasses() != null && req.getRelatedClasses().length > 0) {
-            if (!first) sb.append(",");
-            sb.append("\"relatedClasses\":[");
-            for (int i = 0; i < req.getRelatedClasses().length; i++) {
-                if (i > 0) sb.append(",");
-                sb.append('"').append(esc(req.getRelatedClasses()[i])).append('"');
-            }
-            sb.append("]");
-            first = false;
-        }
-
-        if (req.getImports() != null && req.getImports().length > 0) {
-            if (!first) sb.append(",");
-            sb.append("\"imports\":[");
-            for (int i = 0; i < req.getImports().length; i++) {
-                if (i > 0) sb.append(",");
-                sb.append('"').append(esc(req.getImports()[i])).append('"');
-            }
-            sb.append("]");
-        }
-
-        sb.append("}");
-        return sb.toString();
-    }
-
-    private boolean field(StringBuilder sb, boolean first, String key, String val) {
-        if (!first) sb.append(",");
-        sb.append('"').append(key).append("\":\"").append(esc(val)).append('"');
-        return false;
-    }
-
-    private String esc(String s) {
-        if (s == null) return "";
-        return s.replace("\\", "\\\\").replace("\"", "\\\"")
-                .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
-    }
-
-    private boolean notEmpty(String s) { return s != null && !s.isEmpty(); }
-
-    // ── 수동 JSON 역직렬화 (Jackson 폴백) ────────────────────────
-
-    private AiResponse parseJsonManually(String json) throws IOException {
-        AiResponse resp = new AiResponse();
-        try {
-            String status  = extractStr(json, "status");
-            String result  = extractStr(json, "result");
-            String message = extractStr(json, "message");
-            resp.setStatus(status != null ? status : "error");
-            resp.setResult(result);
-            resp.setMessage(message != null ? message : "수동 파싱 완료");
-            return resp;
-        } catch (Exception e) {
-            throw new IOException("응답 파싱 완전 실패. 원문: " +
-                    json.substring(0, Math.min(json.length(), MAX_ERROR_PREVIEW)));
-        }
-    }
-
-    private String extractStr(String json, String key) {
-        String search = "\"" + key + "\"";
-        int ki = json.indexOf(search);
-        if (ki < 0) return null;
-        int ci = json.indexOf(':', ki + search.length());
-        if (ci < 0) return null;
-        int vs = ci + 1;
-        while (vs < json.length() && json.charAt(vs) == ' ') vs++;
-        if (vs >= json.length()) return null;
-
-        if (json.charAt(vs) == '"') {
-            StringBuilder sb = new StringBuilder();
-            int i = vs + 1;
-            while (i < json.length()) {
-                char c = json.charAt(i);
-                if (c == '\\' && i + 1 < json.length()) {
-                    char n = json.charAt(i + 1);
-                    switch (n) {
-                        case '"':  sb.append('"');  i += 2; break;
-                        case '\\': sb.append('\\'); i += 2; break;
-                        case 'n':  sb.append('\n'); i += 2; break;
-                        case 'r':  sb.append('\r'); i += 2; break;
-                        case 't':  sb.append('\t'); i += 2; break;
-                        default:   sb.append(c);    i++;    break;
-                    }
-                } else if (c == '"') {
-                    break;
+    public void appendMessage(final Role role, final String text) {
+        Display.getDefault().asyncExec(new Runnable() {
+            @Override public void run() {
+                if (!chatReady()) return;
+                if (role == Role.USER) {
+                    writeUserMsg(text);
+                } else if (role == Role.ASSISTANT) {
+                    lastAiRawText = (text != null) ? text : "";
+                    writeAssistantMsg(text, colorAssistant, colorAssistantHdrBg, "[AI]");
                 } else {
-                    sb.append(c); i++;
+                    writeErrorMsg(text);
                 }
             }
-            return sb.toString();
-        }
-        int ve = vs;
-        while (ve < json.length() && json.charAt(ve) != ',' && json.charAt(ve) != '}') ve++;
-        String raw = json.substring(vs, ve).trim();
-        return "null".equals(raw) ? null : raw;
+        });
     }
 
-    // ── 스트림 유틸 ──────────────────────────────────────────────
+    /**
+     * 핸들러(코드 설명 / 에러 분석 / 리팩토링 / TODO 등) 결과를 대화 흐름에 추가.
+     * 보라색 헤더로 채팅 응답과 시각적으로 구분됩니다.
+     */
+    public void appendResultMsg(final String title, final String text) {
+        Display.getDefault().asyncExec(new Runnable() {
+            @Override public void run() {
+                if (!chatReady()) return;
+                lastAiRawText = (text != null) ? text : "";
+                writeAssistantMsg(lastAiRawText, colorResult, colorResultHdrBg,
+                        "[" + title + "]");
+            }
+        });
+    }
 
-    private String readFully(InputStream is) throws IOException {
-        try (BufferedReader r = new BufferedReader(
-                new InputStreamReader(is, StandardCharsets.UTF_8), 8192)) {
-            StringBuilder sb = new StringBuilder(4096);
-            char[] buf = new char[4096];
-            int n;
-            while ((n = r.read(buf)) != -1) sb.append(buf, 0, n);
-            return sb.toString().trim();
+    public void showError(final String message) {
+        Display.getDefault().asyncExec(new Runnable() {
+            @Override public void run() {
+                if (!chatReady()) return;
+                writeErrorMsg(message);
+            }
+        });
+    }
+
+    // ── 실제 출력 (UI Thread 전용) ────────────────────────────────
+
+    private void writeUserMsg(String text) {
+        String time   = TIME_FMT.format(new Date());
+        String header = "[나]  " + time + "\n";
+
+        int hStart = chatDisplay.getCharCount();
+        chatDisplay.append(header);
+        safeStyle(hStart, header.length(), colorUser, boldFont, colorUserHdrBg);
+
+        int bStart = chatDisplay.getCharCount();
+        String body = (text != null) ? text : "";
+        chatDisplay.append(body + "\n\n");
+        safeStyle(bStart, body.length(), colorUser, null, null);
+        scrollToEnd();
+    }
+
+    private void writeAssistantMsg(String text, Color hdrColor, Color hdrBg, String label) {
+        String time   = TIME_FMT.format(new Date());
+        String header = label + "  " + time + "\n";
+
+        int hStart = chatDisplay.getCharCount();
+        chatDisplay.append(header);
+        safeStyle(hStart, header.length(), hdrColor, boldFont, hdrBg);
+
+        appendWithCodeHighlight((text != null) ? text : "", hdrColor);
+        chatDisplay.append("\n\n");
+        scrollToEnd();
+    }
+
+    private void writeErrorMsg(String text) {
+        String time    = TIME_FMT.format(new Date());
+        String content = "[오류]  " + time + "\n"
+                + ((text != null) ? text : "") + "\n\n";
+        int start = chatDisplay.getCharCount();
+        chatDisplay.append(content);
+        safeStyle(start, content.length(), colorError, null, null);
+        scrollToEnd();
+    }
+
+    /**
+     * 코드블록(```...```) 파싱 후 강조 출력.
+     * while-loop 방식: 홀수 개 ``` 에도 안전하게 처리합니다.
+     */
+    private void appendWithCodeHighlight(String text, Color defaultColor) {
+        if (!chatReady() || text == null || text.isEmpty()) return;
+
+        int pos = 0;
+        while (pos < text.length()) {
+            int fenceStart = text.indexOf("```", pos);
+
+            if (fenceStart < 0) {
+                int start = chatDisplay.getCharCount();
+                String part = text.substring(pos);
+                chatDisplay.append(part);
+                if (part.length() > 0)
+                    safeStyle(start, part.length(), defaultColor, null, null);
+                break;
+            }
+
+            if (fenceStart > pos) {
+                int start = chatDisplay.getCharCount();
+                String part = text.substring(pos, fenceStart);
+                chatDisplay.append(part);
+                if (part.length() > 0)
+                    safeStyle(start, part.length(), defaultColor, null, null);
+            }
+
+            int fenceEnd = text.indexOf("```", fenceStart + 3);
+            if (fenceEnd < 0) {
+                // 닫는 ``` 없음 → 나머지를 일반 텍스트로 출력
+                int start = chatDisplay.getCharCount();
+                String part = text.substring(fenceStart);
+                chatDisplay.append(part);
+                if (part.length() > 0)
+                    safeStyle(start, part.length(), defaultColor, null, null);
+                break;
+            }
+
+            // 언어명 첫 줄 제거 (```java, ```xml 등)
+            String block = text.substring(fenceStart + 3, fenceEnd);
+            int nl = block.indexOf('\n');
+            if (nl >= 0 && nl <= 20) block = block.substring(nl + 1);
+
+            int codeStart = chatDisplay.getCharCount();
+            chatDisplay.append(block);
+            if (block.length() > 0)
+                safeStyle(codeStart, block.length(), null, monoFont, colorCode);
+
+            pos = fenceEnd + 3;
         }
     }
 
-    private String readStreamSafe(InputStream is) {
-        if (is == null) return "(no body)";
+    private void safeStyle(int start, int length, Color fg, Font font, Color bg) {
+        if (!chatReady() || length <= 0) return;
         try {
-            String s = readFully(is);
-            return s.length() > MAX_ERROR_PREVIEW ? s.substring(0, MAX_ERROR_PREVIEW) + "..." : s;
-        } catch (Exception e) {
-            return "(읽기 실패)";
-        }
-    }
-
-    // ── 로깅 ─────────────────────────────────────────────────────
-
-    /** Eclipse Error Log (Window > Show View > Error Log) 에 기록 */
-    private void logInfo(String msg) {
-        try {
-            Activator a = Activator.getDefault();
-            if (a == null) return;
-            ILog log = a.getLog();
-            if (log != null)
-                log.log(new Status(IStatus.INFO, Activator.PLUGIN_ID, "[AI] " + msg));
+            StyleRange sr = new StyleRange();
+            sr.start  = start;
+            sr.length = length;
+            if (fg   != null) sr.foreground = fg;
+            if (font != null) sr.font       = font;
+            if (bg   != null) sr.background = bg;
+            chatDisplay.setStyleRange(sr);
         } catch (Exception ignore) {}
+    }
+
+    private void scrollToEnd() {
+        if (chatReady()) chatDisplay.setTopIndex(chatDisplay.getLineCount() - 1);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Copilot 기능
+    // ═══════════════════════════════════════════════════════════════
+
+    /** 에디터 선택 코드를 입력창 커서 위치에 ```java 블록으로 삽입 */
+    private void pasteEditorCode() {
+        try {
+            if (!PlatformUI.isWorkbenchRunning()) return;
+            IWorkbenchWindow window =
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            if (window == null) return;
+            IEditorPart editor = window.getActivePage().getActiveEditor();
+            if (!(editor instanceof ITextEditor)) {
+                setStatus("Java 에디터를 활성화한 후 다시 시도하세요.");
+                return;
+            }
+            ITextEditor te = (ITextEditor) editor;
+            org.eclipse.jface.viewers.ISelection sel =
+                    te.getSelectionProvider().getSelection();
+            if (!(sel instanceof ITextSelection)) return;
+            String selectedCode = ((ITextSelection) sel).getText();
+            if (selectedCode == null || selectedCode.trim().isEmpty()) {
+                setStatus("에디터에서 코드를 선택한 후 다시 시도하세요.");
+                return;
+            }
+            String snippet = "```java\n" + selectedCode + "\n```\n";
+            if (inputText == null || inputText.isDisposed()) return;
+            int offset = inputText.getCaretOffset();
+            try {
+                inputText.replaceTextRange(offset, 0, snippet);
+                inputText.setCaretOffset(offset + snippet.length());
+            } catch (Exception ex) {
+                inputText.append(snippet);
+            }
+            updateCharCount();
+            inputText.setFocus();
+        } catch (Exception e) {
+            setStatus("코드 붙여넣기 실패: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 마지막 AI 응답의 첫 번째 코드 블록을 에디터 커서/선택 위치에 삽입.
+     * 코드 블록이 없으면 전체 응답 텍스트를 삽입합니다.
+     */
+    private void insertLastResultIntoEditor() {
+        if (lastAiRawText == null || lastAiRawText.trim().isEmpty()) {
+            setStatus("삽입할 AI 응답이 없습니다.");
+            return;
+        }
+        try {
+            if (!PlatformUI.isWorkbenchRunning()) return;
+            IWorkbenchWindow window =
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            if (window == null) { setStatus("워크벤치 창이 없습니다."); return; }
+            IWorkbenchPage page = window.getActivePage();
+            if (page == null) { setStatus("활성 페이지가 없습니다."); return; }
+            IEditorPart editor = page.getActiveEditor();
+            if (!(editor instanceof ITextEditor)) {
+                setStatus("텍스트 에디터가 활성화되어 있지 않습니다.");
+                return;
+            }
+            ITextEditor te = (ITextEditor) editor;
+            IDocumentProvider provider =
+                    te.getDocumentProvider();
+            if (provider == null) return;
+            org.eclipse.jface.text.IDocument doc =
+                    provider.getDocument(te.getEditorInput());
+            if (doc == null) return;
+
+            int replaceOffset = 0, replaceLength = 0;
+            org.eclipse.jface.viewers.ISelectionProvider selProvider =
+                    te.getSelectionProvider();
+            if (selProvider != null) {
+                org.eclipse.jface.viewers.ISelection sel =
+                        selProvider.getSelection();
+                if (sel instanceof ITextSelection) {
+                    ITextSelection ts = (ITextSelection) sel;
+                    replaceOffset = ts.getOffset();
+                    replaceLength = ts.getLength();
+                }
+            }
+            String insertText = extractFirstCodeBlock(lastAiRawText);
+            doc.replace(replaceOffset, replaceLength, insertText);
+            setStatus("에디터에 삽입 완료 (" + insertText.length() + " chars)");
+
+        } catch (BadLocationException e) {
+            setStatus("삽입 실패: 오프셋 범위 오류");
+        } catch (Exception e) {
+            setStatus("삽입 실패: " + e.getMessage());
+        }
+    }
+
+    /** 첫 번째 ```...``` 코드 블록 추출. 없으면 전체 텍스트 반환. */
+    private String extractFirstCodeBlock(String text) {
+        int s = text.indexOf("```");
+        if (s < 0) return text;
+        int e = text.indexOf("```", s + 3);
+        if (e < 0) return text;
+        String code = text.substring(s + 3, e);
+        int nl = code.indexOf('\n');
+        if (nl >= 0 && nl <= 20) code = code.substring(nl + 1);
+        return code.trim();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // UI 상태 제어 (Presenter/핸들러에서 호출)
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * 전송/취소/입력 가능 여부를 일괄 제어.
+     * 모든 스레드에서 안전하게 호출 가능 (asyncExec 사용).
+     */
+    public void setInputEnabled(final boolean enabled) {
+        Display.getDefault().asyncExec(new Runnable() {
+            @Override public void run() {
+                setCtrlEnabled(sendButton,     enabled);
+                setCtrlEnabled(cancelButton,  !enabled);
+                setCtrlEnabled(contextToggle,  enabled);
+                if (inputText != null && !inputText.isDisposed())
+                    inputText.setEditable(enabled);
+                setStatus(enabled ? "준비" : "AI 응답 대기 중...");
+            }
+        });
+    }
+
+    /** contextToggle 선택 여부 반환 (UI Thread에서만 호출) */
+    public boolean isContextAttachEnabled() {
+        return contextToggle != null && !contextToggle.isDisposed()
+                && contextToggle.getSelection();
+    }
+
+    /**
+     * 뷰 하단 statusLabel 에 메시지 표시.
+     * 모든 스레드에서 안전하게 호출 가능.
+     */
+    public void setStatus(final String msg) {
+        Runnable r = new Runnable() {
+            @Override public void run() {
+                if (statusLabel != null && !statusLabel.isDisposed())
+                    statusLabel.setText((msg != null) ? msg : "");
+            }
+        };
+        Display d = Display.getDefault();
+        if (d != null && !d.isDisposed()) {
+            if (d.getThread() == Thread.currentThread()) r.run();
+            else d.asyncExec(r);
+        }
+    }
+
+    private void setCtrlEnabled(org.eclipse.swt.widgets.Control c, boolean enabled) {
+        if (c != null && !c.isDisposed()) c.setEnabled(enabled);
+    }
+
+    private void updateCharCount() {
+        if (charCountLabel == null || charCountLabel.isDisposed()) return;
+        int len = (inputText != null && !inputText.isDisposed())
+                ? inputText.getText().length() : 0;
+        charCountLabel.setText(len + " / " + MAX_INPUT_CHARS);
+        charCountLabel.setForeground(len > MAX_INPUT_WARN ? colorError : null);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 리소스 해제
+    // ═══════════════════════════════════════════════════════════════
+
+    @Override
+    public void dispose() {
+        if (presenter != null) presenter.cancelCurrent();
+        freeRes(boldFont);
+        freeRes(monoFont);
+        freeRes(normalFont);
+        freeRes(colorUser);
+        freeRes(colorAssistant);
+        freeRes(colorResult);
+        freeRes(colorError);
+        freeRes(colorCode);
+        freeRes(colorUserHdrBg);
+        freeRes(colorAssistantHdrBg);
+        freeRes(colorResultHdrBg);
+        super.dispose();
+    }
+
+    private void freeRes(org.eclipse.swt.graphics.Resource r) {
+        if (r != null && !r.isDisposed()) r.dispose();
+    }
+
+    @Override
+    public void setFocus() {
+        if (inputText != null && !inputText.isDisposed()) inputText.setFocus();
+    }
+
+    private boolean chatReady() {
+        return chatDisplay != null && !chatDisplay.isDisposed();
     }
 }
