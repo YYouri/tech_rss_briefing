@@ -1,364 +1,222 @@
-package hi.bxm.assist.editor.completion;
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+  <!-- 1. 커맨드 -->
+  <extension point="org.eclipse.ui.commands">
+    <category id="hi.bxm.assist.category" name="BXM Assist"/>
+    <command id="hi.bxm.assist.openChat"
+             name="AI Assist 열기"
+             categoryId="hi.bxm.assist.category"/>
+    <command id="hi.bxm.assist.explainCode"
+             name="AI: 코드 설명"
+             categoryId="hi.bxm.assist.category"/>
+    <command id="hi.bxm.assist.fixError"
+             name="AI: 에러 수정 제안"
+             categoryId="hi.bxm.assist.category"/>
+    <command id="hi.bxm.assist.refactor"
+             name="AI: 리팩토링 제안"
+             categoryId="hi.bxm.assist.category"/>
+    <command id="hi.bxm.assist.triggerInline"
+             name="AI: 인라인 자동완성 트리거"
+             categoryId="hi.bxm.assist.category"/>
+    <!-- [신규] TODO 코드 생성 -->
+    <command id="hi.bxm.assist.generateTodo"
+             name="AI: TODO 코드 생성"
+             categoryId="hi.bxm.assist.category"/>
+  </extension>
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.ui.text.java.ContentAssistInvocationContext;
-import org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer;
-import org.eclipse.jdt.ui.text.java.JavaContentAssistInvocationContext;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.jface.text.contentassist.ICompletionProposalExtension;
-import org.eclipse.jface.text.contentassist.ICompletionProposalExtension4;
-import org.eclipse.jface.text.contentassist.IContextInformation;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
+  <!-- 2. 핸들러 -->
+  <extension point="org.eclipse.ui.handlers">
+    <handler commandId="hi.bxm.assist.openChat"
+             class="hi.bxm.assist.ui.handler.SendMessageHandler"/>
+    <handler commandId="hi.bxm.assist.explainCode"
+             class="hi.bxm.assist.editor.command.ExplainCodeHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+    <handler commandId="hi.bxm.assist.fixError"
+             class="hi.bxm.assist.editor.command.FixErrorHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+    <handler commandId="hi.bxm.assist.refactor"
+             class="hi.bxm.assist.editor.command.RefactorHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+    <handler commandId="hi.bxm.assist.triggerInline"
+             class="hi.bxm.assist.editor.ghost.TriggerInlineHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+    <!-- [신규] TODO 코드 생성 핸들러 -->
+    <handler commandId="hi.bxm.assist.generateTodo"
+             class="hi.bxm.assist.editor.command.TodoCommentHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+  </extension>
 
-import hi.bxm.assist.Activator;
-import hi.bxm.assist.core.llm.OpenAIClient;
-import hi.bxm.assist.core.llm.PromptBuilder;
-import hi.bxm.assist.core.model.ChatMessage;
-import hi.bxm.assist.core.model.ChatMessage.Role;
-import hi.bxm.assist.core.util.AsyncRunner;
-import hi.bxm.assist.ui.view.ChatView;
+  <!-- 3. View -->
+  <extension point="org.eclipse.ui.views">
+    <view id="hi.bxm.assist.ui.ChatView"
+          name="BXM Assist"
+          class="hi.bxm.assist.ui.view.ChatView"
+ 		  icon="icons/assist_ai_16.png"
+          allowMultiple="false"/>
+  </extension>
 
-/**
- * AI 코드 자동완성 프로세서 (Ctrl+Space JDT 팝업 연동).
- *
- * [동작 흐름]
- *   1. Ctrl+Space -> JDT 팝업에 "AI 제안 -> ChatView에서 확인" 항목 즉시 표시
- *   2. 사용자가 항목 선택 -> ChatView 오픈
- *   3. 백그라운드(AsyncRunner)에서 LLM 동기 호출(complete)
- *   4. 응답 완료 후 appendMessage(Role.ASSISTANT, result) 한번에 출력
- *
- * [비스트리밍 방식]
- *   ChatView 가 비스트리밍으로 통일되었으므로
- *   completeStream 대신 complete(동기)를 백그라운드 스레드에서 사용.
- *   UI 스레드는 절대 블로킹하지 않음.
- *
- * [JDT 기본 자동완성 보호]
- *   CompletionStartup 리플렉션 주입 제거로
- *   JDT 기본 제안(메서드명, 변수 등)과 AI 제안이 팝업에 공존.
- */
-public class AICompletionProcessor implements IJavaCompletionProposalComputer {
+  <!-- 4. 메뉴 / 툴바 -->
+  <extension point="org.eclipse.ui.menus">
+    <menuContribution
+        locationURI="popup:org.eclipse.jdt.ui.source.menu?after=additions">
+      <menu id="hi.bxm.assist.editorMenu" icon="icons/assist_ai_16.png" label="BXM Assist">
+        <command commandId="hi.bxm.assist.explainCode"   label="코드 설명"/>
+        <command commandId="hi.bxm.assist.fixError"      label="에러 수정 제안"/>
+        <command commandId="hi.bxm.assist.refactor"      label="리팩토링 제안"/>
+        <command commandId="hi.bxm.assist.generateTodo"  label="TODO 코드 생성"/>
+        <command commandId="hi.bxm.assist.triggerInline" label="인라인 제안 트리거"/>
+      </menu>
+    </menuContribution>
+    <menuContribution
+        locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+      <menu id="hi.bxm.assist.editorMenu2" icon="icons/assist_ai_16.png" label="BXM Assist">
+        <visibleWhen checkEnabled="false">
+          <with variable="activeEditorId">
+            <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+          </with>
+        </visibleWhen>
+        <command commandId="hi.bxm.assist.explainCode"   label="코드 설명"/>
+        <command commandId="hi.bxm.assist.fixError"      label="에러 수정 제안"/>
+        <command commandId="hi.bxm.assist.refactor"      label="리팩토링 제안"/>
+        <command commandId="hi.bxm.assist.generateTodo"  label="TODO 코드 생성"/>
+        <command commandId="hi.bxm.assist.triggerInline" label="인라인 제안 트리거"/>
+      </menu>
+    </menuContribution>
+    <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=help">
+      <menu id="hi.bxm.assist.mainMenu" icon="icons/assist_ai_16.png" label="BXM Assist">
+        <command commandId="hi.bxm.assist.openChat"      label="AI Assist 열기"/>
+        <separator name="sep1"/>
+        <command commandId="hi.bxm.assist.explainCode"   label="코드 설명"/>
+        <command commandId="hi.bxm.assist.fixError"      label="에러 수정 제안"/>
+        <command commandId="hi.bxm.assist.refactor"      label="리팩토링 제안"/>
+        <command commandId="hi.bxm.assist.generateTodo"  label="TODO 코드 생성"/>
+        <separator name="sep2"/>
+        <command commandId="hi.bxm.assist.triggerInline" label="인라인 제안 트리거"/>
+      </menu>
+    </menuContribution>
+  </extension>
 
-    private static final int MAX_PREFIX_CHARS = 800;
+  <!-- 5. 키 바인딩 -->
+  <extension point="org.eclipse.ui.bindings">
+    <key commandId="hi.bxm.assist.openChat"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         sequence="ALT+SHIFT+A"/>
+    <key commandId="hi.bxm.assist.explainCode"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         sequence="ALT+SHIFT+E"
+         contextId="org.eclipse.ui.textEditorScope"/>
+    <key commandId="hi.bxm.assist.fixError"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         sequence="ALT+SHIFT+F"
+         contextId="org.eclipse.ui.textEditorScope"/>
+    <key commandId="hi.bxm.assist.refactor"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         sequence="ALT+SHIFT+R"
+         contextId="org.eclipse.ui.textEditorScope"/>
+    <key commandId="hi.bxm.assist.triggerInline"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         sequence="CTRL+ALT+SPACE"
+         contextId="org.eclipse.ui.textEditorScope"/>
+    <!-- [신규] TODO 코드 생성 -->
+    <key commandId="hi.bxm.assist.generateTodo"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         sequence="ALT+SHIFT+T"
+         contextId="org.eclipse.ui.textEditorScope"/>
+  </extension>
 
-    private PromptBuilder promptBuilder;
-    private String        errorMessage;
+  <!-- 6. JDT 자동완성 (Ctrl+Space 팝업) -->
+  <!--
+    Eclipse 4.5.2 에서 동작하는 정확한 구조:
+    - proposalCategory 와 javaCompletionProposalComputer 를 같은 extension 에 선언
+    - partition 미지정: 모든 Java 파티션(__java_code, __java_string, default)에서 동작
+    - needsSortingAfterFiltering="false": 정렬 불필요 (AI 제안은 항상 맨 위로)
+    - requiresUIThread="false": 백그라운드 스레드에서 computeCompletionProposals() 호출 허용
+    - activate="true": 카테고리를 기본 활성 상태로 등록
+      (false 이면 Advanced 탭에서 수동 활성화 필요)
+  -->
+  <extension
+      id="hi.bxm.assist.aiCompletion"
+      point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
+    <proposalCategory
+        id="hi.bxm.assist.proposalCategory"
+        label="BXM Assist"
+        icon="icons/assist_ai_16.png"/>
+    <javaCompletionProposalComputer
+        class="hi.bxm.assist.editor.completion.AICompletionProcessor"
+        categoryId="hi.bxm.assist.proposalCategory"
+        needsSortingAfterFiltering="true"
+        requiresUIThread="false">
+    </javaCompletionProposalComputer>
+  </extension>
 
-	private static Image aiIcon = null;
 
-    @Override
-    public void sessionStarted() {
-        errorMessage  = null;
-        loadIcon();
-        promptBuilder = new PromptBuilder();
-        System.out.println("sessionStarted");
-    }
-    private void loadIcon()
-    {
-        try
-        {
-            ImageDescriptor descriptor =  ImageDescriptor.createFromFile(getClass(), "/icons/assist_ai_16.png");
-            this.aiIcon = descriptor.createImage();
-        }
-        catch ( Exception e )
-        {
-        	System.err.println(e.getMessage());
-        }
-    }
+  <!-- 7. 시작 시 자동완성 주입 + Ghost Text 컨트롤러 install -->
+  <extension
+      id="hi.bxm.assist.startups"
+      point="org.eclipse.ui.startup">
+    <startup class="hi.bxm.assist.editor.ghost.InlineCompletionStartup"/>
+  </extension>
 
-    @Override
-    public void sessionEnded() {
-        promptBuilder = null;
-        this.aiIcon.dispose();
-        System.out.println("sessionEnded");
-    }
+  <!-- 8. Java 호버 -->
+  <extension
+      id="hi.bxm.assist.aiHovers"
+      point="org.eclipse.jdt.ui.javaEditorTextHovers">
+    <hover id="hi.bxm.assist.aiHover"
+           class="hi.bxm.assist.editor.hover.AIHoverProvider"
+           label="AI Code Explanation"/>
+  </extension>
 
-    /**
-     * JDT 가 Ctrl+Space 시 UI 스레드에서 호출.
-     * LLM 호출 절대 금지 - 컨텍스트 캡처 후 즉시 안내 proposal 반환.
-     */
-    @Override
-    public List<ICompletionProposal> computeCompletionProposals(
-            ContentAssistInvocationContext context,
-            IProgressMonitor monitor) {
+  <!-- 9. Quick Fix -->
+  <extension
+      id="hi.bxm.assist.aiMarkerResolution"
+      point="org.eclipse.ui.ide.markerResolution">
+    <markerResolutionGenerator
+        markerType="org.eclipse.jdt.core.problem"
+        class="hi.bxm.assist.editor.quickfix.AIMarkerResolutionGenerator"/>
+    <markerResolutionGenerator
+        markerType="org.eclipse.jdt.core.task"
+        class="hi.bxm.assist.editor.quickfix.AIMarkerResolutionGenerator"/>
+    <markerResolutionGenerator
+        markerType="org.eclipse.core.resources.problemmarker"
+        class="hi.bxm.assist.editor.quickfix.AIMarkerResolutionGenerator"/>
+  </extension>
 
-        if (promptBuilder == null) return Collections.emptyList();
-        if (!(context instanceof JavaContentAssistInvocationContext))
-            return Collections.emptyList();
+  <!-- 10. Preferences -->
+  <extension point="org.eclipse.ui.preferencePages">
+    <page id="hi.bxm.assist.preferences"
+          name="BXM AI Assist"
+          class="hi.bxm.assist.ui.prefs.AssistPreferencePage"/>
+  </extension>
+  <extension point="org.eclipse.core.runtime.preferences">
+    <initializer class="hi.bxm.assist.ui.prefs.PreferenceInitializer"/>
+  </extension>
 
-        JavaContentAssistInvocationContext javaCtx =
-                (JavaContentAssistInvocationContext) context;
-
-        try {
-        	System.out.println("computeCompletionProposals");
-            IDocument doc   = javaCtx.getDocument();
-            int offset      = javaCtx.getInvocationOffset();
-            int prefixStart = Math.max(0, offset - MAX_PREFIX_CHARS);
-            String prefix   = doc.get(prefixStart, offset - prefixStart);
-            int line        = doc.getLineOfOffset(offset) + 1;
-
-            String fileName = "Unknown.java";
-            if (javaCtx.getCompilationUnit() != null)
-                fileName = javaCtx.getCompilationUnit().getElementName();
-
-            List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
-            proposals.add(
-                new AIChatViewProposal(prefix, fileName, line, offset, promptBuilder));
-            return proposals;
-
-        } catch (Exception e) {
-            errorMessage = e.getMessage();
-            return Collections.emptyList();
-        }
-    }
-
-    @Override
-    public List<IContextInformation> computeContextInformation(
-            ContentAssistInvocationContext context, IProgressMonitor monitor) {
-    	System.out.println("computeContextInformation");
-        return Collections.emptyList();
-    }
-
-    @Override
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 내부 클래스: JDT 팝업 항목
-    // 선택 시 ChatView 오픈 + 비스트리밍 LLM 호출 + 한번에 출력
-    // ─────────────────────────────────────────────────────────────
-
-    private static class AIChatViewProposal implements ICompletionProposal, ICompletionProposalExtension , ICompletionProposalExtension4 {
-
-        private static final String DISPLAY_STRING =
-                "[BXM AI] AI 제안 확인 (ChatView)  [BXM AI Assist]";
-
-        private static final String ADDITIONAL_INFO =
-                "선택하면 ChatView 에서 AI 코드 제안을 확인합니다.\n"
-                + "에디터에는 아무것도 삽입되지 않습니다.\n\n"
-                + "응답이 오면 '에디터에 삽입' 버튼으로 코드를 삽입할 수 있습니다.";
-
-        private final String        prefix;
-        private final String        fileName;
-        private final int           line;
-        private final int           invocationOffset;
-        private final PromptBuilder promptBuilder;
-
-        AIChatViewProposal(String prefix, String fileName, int line,
-                           int invocationOffset, PromptBuilder promptBuilder) {
-            this.prefix           = prefix;
-            this.fileName         = fileName;
-            this.line             = line;
-            this.invocationOffset = invocationOffset;
-            this.promptBuilder    = promptBuilder;
-        }
-
-        /** 사용자가 JDT 팝업에서 이 항목을 선택하면 호출됩니다. */
-        @Override
-        public void apply(IDocument document) {
-//            Display.getDefault().asyncExec(new Runnable() {
-//                @Override public void run() { openAndRequest(); }
-//            });
-        }
-
-        private void openAndRequest() {
-            final ChatView view = openChatView();
-            if (view == null) return;
-
-            // ── 사용자 메시지 표시 (기존 유지) ──────────────────────
-            String preview = trimPrefix(prefix);
-            String userMsg =
-                "[Ctrl+Space 코드 완성 요청]\n"
-                + "파일: " + fileName + " (" + line + "번째 줄)\n"
-                + "커서 앞 코드:\n```java\n" + preview + "\n```";
-            view.appendMessage(Role.USER, userMsg);
-            view.setInputEnabled(false);
-            view.setStatus("AI 응답 대기 중...");
-
-            // ── [변경] 단순 완성 → 컨텍스트 분석 + 구현 제안 ────────
-            final List<ChatMessage> msgs = buildHelpfulMessages(prefix, fileName, line);
-
-            AsyncRunner.run(new Runnable() {
-                @Override public void run() {
-                    Activator plugin = Activator.getDefault();
-                    if (plugin == null) {
-                        safeError(view, "Activator 초기화 오류");
-                        return;
-                    }
-                    OpenAIClient client = plugin.getLlmClient();
-                    if (client == null) {
-                        safeError(view, "LLM 클라이언트 설정 오류.\n환경설정 > BXM AI Assist 에서 서버 URL 확인");
-                        return;
-                    }
-                    final String result;
-                    try {
-                        String raw = client.complete(msgs);
-                        result = (raw != null && !raw.trim().isEmpty())
-                            ? raw.trim() : "(응답 없음)";
-                    } catch (Exception ex) {
-                        safeError(view, "AI 요청 실패: " + ex.getMessage());
-                        return;
-                    }
-                    Display.getDefault().asyncExec(new Runnable() {
-                        @Override public void run() {
-                            if (view.isDisposed()) return;
-                            view.appendMessage(Role.ASSISTANT, result);
-                            view.setInputEnabled(true);
-                            view.setStatus("");
-                        }
-                    });
-                }
-            });
-        }
-
-        private void safeError(final ChatView view, final String msg) {
-            Display.getDefault().asyncExec(new Runnable() {
-                @Override public void run() {
-                    if (view.isDisposed()) return;
-                    view.showError(msg);
-                    view.setInputEnabled(true);
-                }
-            });
-        }
-
-        private ChatView openChatView() {
-            try {
-                IWorkbenchWindow window =
-                        PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-                if (window == null) return null;
-                IWorkbenchPage page = window.getActivePage();
-                if (page == null) return null;
-                return (ChatView) page.showView(ChatView.ID);
-            } catch (PartInitException e) {
-                return null;
-            }
-        }
-
-        /** 미리보기용: 마지막 10줄만 표시. 실제 LLM 에는 전체 prefix 전달. */
-        private String trimPrefix(String prefix) {
-            String[] lines = prefix.split("\n");
-            if (lines.length <= 10) return prefix;
-            StringBuilder sb = new StringBuilder("...\n");
-            for (int i = lines.length - 10; i < lines.length; i++) {
-                sb.append(lines[i]);
-                if (i < lines.length - 1) sb.append('\n');
-            }
-            return sb.toString();
-        }
-
-        @Override
-        public Point getSelection(IDocument document) {
-            return new Point(invocationOffset, 0);
-        }
-
-        @Override
-        public String getAdditionalProposalInfo() { return ADDITIONAL_INFO; }
-
-        @Override
-        public String getDisplayString() { return DISPLAY_STRING; }
-
-        @Override
-        public Image getImage() { return aiIcon; }
-
-        @Override
-        public IContextInformation getContextInformation() { return null; }
-
-        /**
-		 * 사용자가 직접 선택(Enter/더블클릭)했을 때 JDT 가 호출하는 진입점.
-		 * apply(IDocument) 대신 이 메서드가 실제 선택 시 호출됩니다.
-		 */
-		@Override
-		public void apply(IDocument document, char trigger, int offset) {
-			Display.getDefault().asyncExec(new Runnable() {
-				@Override public void run() { openAndRequest(); }
-			});
-		}
-		@Override
-		public int getContextInformationPosition() {
-			return invocationOffset;
-		}
-
-		@Override
-		public char[] getTriggerCharacters() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public boolean isValidFor(IDocument arg0, int arg1) {
-			// TODO Auto-generated method stub
-			return true;
-		}
-
-		@Override
-		public boolean isAutoInsertable() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-    }
-
-    /**
-     * 단순 코드 완성이 아닌, 개발자에게 실질적으로 도움이 되는
-     * "컨텍스트 분석 + 구현 제안 + 설명" 형태의 프롬프트를 조립한다.
-     *
-     * 응답 형태 (LLM에게 요청):
-     *  1. 현재 코드 의도 분석 (1~2줄)
-     *  2. 구현 제안 코드 (```java 블록)
-     *  3. 핵심 설명 또는 주의사항
-     */
-    private static List<ChatMessage> buildHelpfulMessages(String prefix,
-                                                   String fileName,
-                                                   int line) {
-        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
-
-        // 시스템 프롬프트: 역할 + 응답 형식 지시
-        String system =
-        	    "당신은 Java 시니어 개발자입니다.\n"
-        	    + "\n"
-        	    + "## 출력 기준 (단 하나의 규칙)\n"
-        	    + "제안하는 코드는 반드시 'javac 로 컴파일 가능한 완전한 Java 소스'여야 한다.\n"
-        	    + "즉, 지금 당장 Java 파일에 붙여넣고 실행했을 때 문법 오류가 없어야 한다.\n"
-        	    + "\n"
-        	    + "이 기준을 통과하지 못하는 코드 예:\n"
-        	    + "- IDE 에서만 동작하는 단축어 (컴파일러가 모름)\n"
-        	    + "- 생략된 문법 요소 (중괄호, 세미콜론 누락 등)\n"
-        	    + "- 선언 없이 사용된 변수나 클래스\n"
-        	    + "\n"
-        	    + "## 응답 형식\n"
-        	    + "### 1. 코드 분석\n"
-        	    + "<현재 코드 의도 1~3줄>\n\n"
-        	    + "### 2. 구현 제안\n"
-        	    + "```java\n"
-        	    + "<javac 통과 가능한 완전한 Java 코드>\n"
-        	    + "```\n\n"
-        	    + "### 3. 설명 및 주의사항\n"
-        	    + "<핵심 설명>\n\n"
-        	    + "기존 코드 반복 금지. 불필요한 인사말 없이 바로 출력.";
-        msgs.add(new ChatMessage(ChatMessage.Role.SYSTEM, system));
-
-        // 사용자 메시지: 파일 정보 + 현재까지 작성한 코드
-        String user =
-            "파일: " + fileName + "\n"
-            + "커서 위치: " + line + "번째 줄\n\n"
-            + "## 작성 중인 코드\n"
-            + "```java\n"
-            + prefix + "\n"
-            + "```\n\n"
-            + "커서 위치 이후에 작성하면 좋을 코드를 제안해 주세요.";
-
-        msgs.add(new ChatMessage(ChatMessage.Role.USER, user));
-        return msgs;
-    }
-}
+</plugin>
+	
