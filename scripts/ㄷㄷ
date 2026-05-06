@@ -1,628 +1,174 @@
-package hi.bxm.assist.ui.view;
+package hi.bxm.assist.ui.presenter;
 
+import hi.bxm.assist.core.gateway.AiRequestGateway;
+import hi.bxm.assist.core.llm.CancelToken;
+import hi.bxm.assist.core.llm.PromptBuilder;
+import hi.bxm.assist.core.model.ChatMessage;
 import hi.bxm.assist.core.model.ChatMessage.Role;
-import hi.bxm.assist.ui.presenter.ChatPresenter;
+import hi.bxm.assist.core.model.EditorContext;
+import hi.bxm.assist.editor.context.ContextCollector;
+import hi.bxm.assist.ui.view.ChatView;
 
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.texteditor.IDocumentProvider;
-import org.eclipse.ui.texteditor.ITextEditor;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * BXM AI Assist 통합 채팅 뷰 (StyledText 기반).
+ * BXM AI Assist Chat Presenter (MVP).
  *
- * [설계 원칙]
- * - 스트리밍 없음: appendMessage() 단일 메서드로 완성된 응답을 한번에 표시
- * - StyledText 뷰: 코드블록(```...```) 하이라이팅, 헤더 색상 구분
- * - 상태바: 뷰 하단 statusLabel + Eclipse 하단 상태바는 ChatPresenter/AiRequestGateway 담당
- * - Copilot 기능: 에디터 선택 코드 붙여넣기 / 마지막 AI 응답 에디터 삽입
+ * [변경사항]
+ * - OpenAIClient 직접 취득 제거 → AiRequestGateway.submitChat() 경유
+ * - cancelCurrent() 에서 AiRequestGateway.getInstance().reset() 호출
+ * - CancelToken 을 AiRequestGateway 에 전달하는 방식으로 변경
+ * - AsyncRunner 직접 사용 제거 (Gateway 가 내부적으로 처리)
  *
- * [JDK 7 호환]
- * - 람다, var 미사용. 익명 클래스(SelectionAdapter, KeyAdapter, ModifyListener, Runnable) 사용.
- * - java.time 미사용 → SimpleDateFormat 사용.
+ * [유지된 로직]
+ * - history 관리 (buildHistorySummary, trimHistory)
+ * - EditorContext 수집 (UI Thread에서 수집 후 Gateway 에 전달)
+ * - friendlyError 메시지 변환은 Gateway 담당으로 이전
+ *
+ * [상태바]
+ * - Eclipse 하단 상태바: AiRequestGateway 가 "● AI 요청 중..." / "✓ AI 완료" 처리
+ * - 뷰 내부 statusLabel: ChatView.setInputEnabled() 가 "준비" / "AI 응답 대기 중..." 처리
+ *
+ * [JDK 7 호환] 람다 미사용, 익명 클래스 사용.
  */
-public class ChatView extends ViewPart {
+public class ChatPresenter {
 
-    public static final String ID = "hi.bxm.assist.ui.ChatView";
+    private static final int MAX_HISTORY       = 10;
+    private static final int MAX_HISTORY_CHARS = 3000;
 
-    private static final int MAX_INPUT_CHARS = 4000;
-    private static final int MAX_INPUT_WARN  = 3600;
-    private static final SimpleDateFormat TIME_FMT = new SimpleDateFormat("HH:mm:ss");
+    private final ChatView          view;
+    private final PromptBuilder     promptBuilder = new PromptBuilder();
+    private final List<ChatMessage> history       = new ArrayList<ChatMessage>();
 
-    // ── UI 컴포넌트 ───────────────────────────────────────────────
-    private StyledText chatDisplay;
-    private StyledText inputText;
-    private Button     sendButton;
-    private Button     cancelButton;
-    private Button     contextToggle;
-    private Label      statusLabel;
-    private Label      charCountLabel;
+    /** 현재 진행 중인 요청의 취소 토큰 */
+    private CancelToken currentToken = null;
 
-    // ── SWT 리소스 ────────────────────────────────────────────────
-    private Font  boldFont;
-    private Font  monoFont;
-    private Font  normalFont;
-    private Color colorUser;
-    private Color colorAssistant;
-    private Color colorResult;
-    private Color colorError;
-    private Color colorCode;
-    private Color colorUserHdrBg;
-    private Color colorAssistantHdrBg;
-    private Color colorResultHdrBg;
-
-    // ── 상태 ──────────────────────────────────────────────────────
-    private ChatPresenter presenter;
-    private String        lastAiRawText = "";
-
-    @Override
-    public void createPartControl(Composite parent) {
-        Display d = parent.getDisplay();
-        initResources(d);
-
-        parent.setLayout(new GridLayout(1, false));
-        buildToolBar(parent);
-
-        SashForm sash = new SashForm(parent, SWT.VERTICAL);
-        sash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        sash.setSashWidth(4);
-        buildChatArea(sash);
-        buildInputPanel(sash);
-        sash.setWeights(new int[]{60,40});
-
-        buildStatusBar(parent);
-
-        presenter = new ChatPresenter(this);
-        setPartName("BXM AI Assist");
+    public ChatPresenter(ChatView view) {
+        this.view = view;
     }
-
-    // ═══════════════════════════════════════════════════════════════
-    // UI 구성
-    // ═══════════════════════════════════════════════════════════════
-
-    private void buildToolBar(Composite parent) {
-        ToolBar bar = new ToolBar(parent, SWT.FLAT | SWT.RIGHT);
-        bar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-        ToolItem clearItem = new ToolItem(bar, SWT.PUSH);
-        clearItem.setText("대화 초기화");
-        clearItem.setToolTipText("모든 대화 내용을 지웁니다");
-        clearItem.addSelectionListener(new SelectionAdapter() {
-            @Override public void widgetSelected(SelectionEvent e) {
-                if (chatReady()) chatDisplay.setText("");
-                lastAiRawText = "";
-                presenter.clearHistory();
-                setStatus("대화가 초기화되었습니다.");
-            }
-        });
-
-        new ToolItem(bar, SWT.SEPARATOR);
-
-        ToolItem copyItem = new ToolItem(bar, SWT.PUSH);
-        copyItem.setText("전체 복사");
-        copyItem.setToolTipText("전체 대화를 클립보드에 복사");
-        copyItem.addSelectionListener(new SelectionAdapter() {
-            @Override public void widgetSelected(SelectionEvent e) {
-                if (!chatReady()) return;
-                String text = chatDisplay.getText();
-                if (text.isEmpty()) return;
-                Clipboard cb = new Clipboard(chatDisplay.getDisplay());
-                cb.setContents(
-                    new Object[]{ text },
-                    new Transfer[]{ TextTransfer.getInstance() }
-                );
-                cb.dispose();
-                setStatus("전체 대화 복사됨");
-            }
-        });
-
-        new ToolItem(bar, SWT.SEPARATOR);
-
-        ToolItem pasteCode = new ToolItem(bar, SWT.PUSH);
-        pasteCode.setText("코드 붙여넣기");
-        pasteCode.setToolTipText("현재 에디터의 선택 코드를 입력창에 삽입");
-        pasteCode.addSelectionListener(new SelectionAdapter() {
-            @Override public void widgetSelected(SelectionEvent e) { pasteEditorCode(); }
-        });
-
-        new ToolItem(bar, SWT.SEPARATOR);
-
-        ToolItem insertCode = new ToolItem(bar, SWT.PUSH);
-        insertCode.setText("에디터에 삽입");
-        insertCode.setToolTipText("마지막 AI 응답의 코드 블록을 에디터 커서 위치에 삽입");
-        insertCode.addSelectionListener(new SelectionAdapter() {
-            @Override public void widgetSelected(SelectionEvent e) { insertLastResultIntoEditor(); }
-        });
-    }
-
-    private void buildChatArea(Composite parent) {
-        chatDisplay = new StyledText(parent,
-                SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY | SWT.BORDER);
-        chatDisplay.setEditable(false);
-        chatDisplay.setMargins(6, 4, 6, 4);
-        chatDisplay.setLineSpacing(2);
-        chatDisplay.setFont(normalFont);
-        chatDisplay.setBackground(chatDisplay.getDisplay().getSystemColor(SWT.COLOR_WHITE));
-    }
-
-    private void buildInputPanel(Composite parent) {
-        Composite panel = new Composite(parent, SWT.NONE);
-        panel.setLayout(new GridLayout(1, false));
-
-        Label hint = new Label(panel, SWT.NONE);
-        hint.setText("메시지 입력  (Ctrl+Enter: 전송  /  Enter: 줄바꿈)");
-        hint.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-        inputText = new StyledText(panel, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.BORDER);
-        inputText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        inputText.setMargins(4, 4, 4, 4);
-
-        inputText.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if ((e.stateMask & SWT.CTRL) != 0
-                        && (e.keyCode == SWT.CR || e.keyCode == SWT.LF)) {
-                    e.doit = false;
-                    onSend();
-                }
-            }
-        });
-        inputText.addModifyListener(new ModifyListener() {
-            @Override public void modifyText(ModifyEvent e) { updateCharCount(); }
-        });
-
-        Composite btnRow = new Composite(panel, SWT.NONE);
-        btnRow.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        btnRow.setLayout(new GridLayout(4, false));
-
-        contextToggle = new Button(btnRow, SWT.CHECK);
-        contextToggle.setText("에디터 코드 첨부");
-        contextToggle.setToolTipText("현재 Java 에디터의 코드를 컨텍스트로 자동 포함");
-        contextToggle.setSelection(true);
-
-        charCountLabel = new Label(btnRow, SWT.NONE);
-        charCountLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        charCountLabel.setText("0 / " + MAX_INPUT_CHARS);
-
-        cancelButton = new Button(btnRow, SWT.PUSH);
-        cancelButton.setText("취소");
-        cancelButton.setEnabled(false);
-        cancelButton.addSelectionListener(new SelectionAdapter() {
-            @Override public void widgetSelected(SelectionEvent e) {
-                presenter.cancelCurrent();
-            }
-        });
-
-        sendButton = new Button(btnRow, SWT.PUSH);
-        sendButton.setText("전송");
-        sendButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
-        sendButton.addSelectionListener(new SelectionAdapter() {
-            @Override public void widgetSelected(SelectionEvent e) { onSend(); }
-        });
-    }
-
-    private void buildStatusBar(Composite parent) {
-        statusLabel = new Label(parent, SWT.NONE);
-        statusLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        statusLabel.setText("준비  |  Alt+Shift+A");
-    }
-
-    private void initResources(Display d) {
-        boldFont   = new Font(d, "SansSerif",  10, SWT.BOLD);
-        monoFont   = new Font(d, "Monospaced", 10, SWT.NORMAL);
-        normalFont = new Font(d, "SansSerif",  10, SWT.NORMAL);
-
-        colorUser             = new Color(d,  30, 100, 210);
-        colorAssistant        = new Color(d,  30, 140,  80);
-        colorResult           = new Color(d,  90,  60, 180);
-        colorError            = new Color(d, 200,  50,  50);
-        colorCode             = new Color(d, 240, 240, 240);
-        colorUserHdrBg        = new Color(d, 220, 235, 255);
-        colorAssistantHdrBg   = new Color(d, 220, 255, 230);
-        colorResultHdrBg      = new Color(d, 235, 225, 255);
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 전송
-    // ═══════════════════════════════════════════════════════════════
-
-    private void onSend() {
-        if (inputText == null || inputText.isDisposed()) return;
-        String msg = inputText.getText().trim();
-        if (msg.isEmpty()) return;
-        if (msg.length() > MAX_INPUT_CHARS) {
-            setStatus("입력이 너무 깁니다 (최대 " + MAX_INPUT_CHARS + "자)");
-            return;
-        }
-        boolean attachCtx = contextToggle != null && contextToggle.getSelection();
-        inputText.setText("");
-        updateCharCount();
-        setInputEnabled(false);
-        presenter.onUserMessage(msg, attachCtx);
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 메시지 표시 (Presenter → View 호출)
-    // ═══════════════════════════════════════════════════════════════
 
     /**
-     * 단일 완성 메시지 표시. 스트리밍 없이 한번에 출력합니다.
-     * UI Thread 보장을 위해 asyncExec 사용.
+     * 사용자 메시지 전송.
+     * UI Thread 에서 호출됩니다 (ChatView.onSend()).
+     *
+     * @param userText  사용자 입력 텍스트
+     * @param attachCtx true 이면 활성 에디터 컨텍스트를 프롬프트에 포함
      */
-    public void appendMessage(final Role role, final String text) {
+    public void onUserMessage(final String userText, final boolean attachCtx) {
+        // 이전 요청이 있으면 취소
+        if (currentToken != null) {
+            currentToken.cancel();
+        }
+        currentToken = new CancelToken();
+        final CancelToken token = currentToken;
+
+        // 사용자 메시지 히스토리 추가 + 화면 표시
+        history.add(new ChatMessage(Role.USER, userText));
         Display.getDefault().asyncExec(new Runnable() {
             @Override public void run() {
-                if (!chatReady()) return;
-                if (role == Role.USER) {
-                    writeUserMsg(text);
-                } else if (role == Role.ASSISTANT) {
-                    lastAiRawText = (text != null) ? text : "";
-                    writeAssistantMsg(text, colorAssistant, colorAssistantHdrBg, "[AI]");
-                } else {
-                    writeErrorMsg(text);
-                }
+            	view.appendMessage(Role.USER, userText);
+            	view.setInputEnabled(false);
             }
         });
+        
+        
+        // UI Thread 에서 에디터 컨텍스트 수집
+        final EditorContext ctx = attachCtx ? collectActiveEditorContext() : null;
+
+        // 히스토리 스냅샷 (백그라운드 스레드 접근 방지)
+        final List<ChatMessage> historySnapshot = new ArrayList<ChatMessage>(history);
+
+        // 프롬프트 조립
+        final List<ChatMessage> msgs =
+                promptBuilder.forChat(historySnapshot, userText, ctx);
+
+        // Gateway 경유 비동기 요청
+        AiRequestGateway.getInstance().submitChat(
+                msgs, 0.7, 1024, token,
+                new AiRequestGateway.ChatCallback() {
+                    @Override
+                    public void onSuccess(final String result) {
+                        if (token.isCancelled()) return;
+                        final String text = (result != null) ? result : "";
+                        history.add(new ChatMessage(Role.ASSISTANT, text));
+                        trimHistory();
+
+                        Display.getDefault().asyncExec(new Runnable() {
+                            @Override public void run() {
+                                view.appendMessage(Role.ASSISTANT, text);
+                                view.setInputEnabled(true);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(final String errorMessage) {
+                        if (token.isCancelled()) return;
+                        Display.getDefault().asyncExec(new Runnable() {
+                            @Override public void run() {
+                                view.showError(errorMessage);
+                                view.setInputEnabled(true);
+                            }
+                        });
+                    }
+                });
     }
 
     /**
-     * 핸들러(코드 설명 / 에러 분석 / 리팩토링 / TODO 등) 결과를 대화 흐름에 추가.
-     * 보라색 헤더로 채팅 응답과 시각적으로 구분됩니다.
+     * 현재 진행 중인 요청 취소.
+     * AiRequestGateway.reset() 을 호출해 상태바도 함께 정리합니다.
      */
-    public void appendResultMsg(final String title, final String text) {
-        Display.getDefault().asyncExec(new Runnable() {
-            @Override public void run() {
-                if (!chatReady()) return;
-                lastAiRawText = (text != null) ? text : "";
-                writeAssistantMsg(lastAiRawText, colorResult, colorResultHdrBg,
-                        "[" + title + "]");
-            }
-        });
-    }
-
-    public void showError(final String message) {
-        Display.getDefault().asyncExec(new Runnable() {
-            @Override public void run() {
-                if (!chatReady()) return;
-                writeErrorMsg(message);
-            }
-        });
-    }
-
-    // ── 실제 출력 (UI Thread 전용) ────────────────────────────────
-
-    private void writeUserMsg(String text) {
-        String time   = TIME_FMT.format(new Date());
-        String header = "[나]  " + time + "\n";
-
-        int hStart = chatDisplay.getCharCount();
-        chatDisplay.append(header);
-        safeStyle(hStart, header.length(), colorUser, boldFont, colorUserHdrBg);
-
-        int bStart = chatDisplay.getCharCount();
-        String body = (text != null) ? text : "";
-        chatDisplay.append(body + "\n\n");
-        safeStyle(bStart, body.length(), colorUser, null, null);
-        scrollToEnd();
-    }
-
-    private void writeAssistantMsg(String text, Color hdrColor, Color hdrBg, String label) {
-        String time   = TIME_FMT.format(new Date());
-        String header = label + "  " + time + "\n";
-
-        int hStart = chatDisplay.getCharCount();
-        chatDisplay.append(header);
-        safeStyle(hStart, header.length(), hdrColor, boldFont, hdrBg);
-
-        appendWithCodeHighlight((text != null) ? text : "", hdrColor);
-        chatDisplay.append("\n\n");
-        scrollToEnd();
-    }
-
-    private void writeErrorMsg(String text) {
-        String time    = TIME_FMT.format(new Date());
-        String content = "[오류]  " + time + "\n"
-                + ((text != null) ? text : "") + "\n\n";
-        int start = chatDisplay.getCharCount();
-        chatDisplay.append(content);
-        safeStyle(start, content.length(), colorError, null, null);
-        scrollToEnd();
-    }
-
-    /**
-     * 코드블록(```...```) 파싱 후 강조 출력.
-     * while-loop 방식: 홀수 개 ``` 에도 안전하게 처리합니다.
-     */
-    private void appendWithCodeHighlight(String text, Color defaultColor) {
-        if (!chatReady() || text == null || text.isEmpty()) return;
-
-        int pos = 0;
-        while (pos < text.length()) {
-            int fenceStart = text.indexOf("```", pos);
-
-            if (fenceStart < 0) {
-                int start = chatDisplay.getCharCount();
-                String part = text.substring(pos);
-                chatDisplay.append(part);
-                if (part.length() > 0)
-                    safeStyle(start, part.length(), defaultColor, null, null);
-                break;
-            }
-
-            if (fenceStart > pos) {
-                int start = chatDisplay.getCharCount();
-                String part = text.substring(pos, fenceStart);
-                chatDisplay.append(part);
-                if (part.length() > 0)
-                    safeStyle(start, part.length(), defaultColor, null, null);
-            }
-
-            int fenceEnd = text.indexOf("```", fenceStart + 3);
-            if (fenceEnd < 0) {
-                // 닫는 ``` 없음 → 나머지를 일반 텍스트로 출력
-                int start = chatDisplay.getCharCount();
-                String part = text.substring(fenceStart);
-                chatDisplay.append(part);
-                if (part.length() > 0)
-                    safeStyle(start, part.length(), defaultColor, null, null);
-                break;
-            }
-
-            // 언어명 첫 줄 제거 (```java, ```xml 등)
-            String block = text.substring(fenceStart + 3, fenceEnd);
-            int nl = block.indexOf('\n');
-            if (nl >= 0 && nl <= 20) block = block.substring(nl + 1);
-
-            int codeStart = chatDisplay.getCharCount();
-            chatDisplay.append(block);
-            if (block.length() > 0)
-                safeStyle(codeStart, block.length(), null, monoFont, colorCode);
-
-            pos = fenceEnd + 3;
+    public void cancelCurrent() {
+        if (currentToken != null) {
+            currentToken.cancel();
+            currentToken = null;
         }
+        AiRequestGateway.getInstance().reset();
+        view.setInputEnabled(true);
+        view.setStatus("요청이 취소되었습니다.");
     }
 
-    private void safeStyle(int start, int length, Color fg, Font font, Color bg) {
-        if (!chatReady() || length <= 0) return;
-        try {
-            StyleRange sr = new StyleRange();
-            sr.start  = start;
-            sr.length = length;
-            if (fg   != null) sr.foreground = fg;
-            if (font != null) sr.font       = font;
-            if (bg   != null) sr.background = bg;
-            chatDisplay.setStyleRange(sr);
-        } catch (Exception ignore) {}
-    }
-
-    private void scrollToEnd() {
-        if (chatReady()) chatDisplay.setTopIndex(chatDisplay.getLineCount() - 1);
+    /** 대화 히스토리 전체 삭제 */
+    public void clearHistory() {
+        history.clear();
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // Copilot 기능
+    // 내부 구현
     // ═══════════════════════════════════════════════════════════════
 
-    /** 에디터 선택 코드를 입력창 커서 위치에 ```java 블록으로 삽입 */
-    private void pasteEditorCode() {
-        try {
-            if (!PlatformUI.isWorkbenchRunning()) return;
-            IWorkbenchWindow window =
-                    PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-            if (window == null) return;
-            IEditorPart editor = window.getActivePage().getActiveEditor();
-            if (!(editor instanceof ITextEditor)) {
-                setStatus("Java 에디터를 활성화한 후 다시 시도하세요.");
-                return;
-            }
-            ITextEditor te = (ITextEditor) editor;
-            org.eclipse.jface.viewers.ISelection sel =
-                    te.getSelectionProvider().getSelection();
-            if (!(sel instanceof ITextSelection)) return;
-            String selectedCode = ((ITextSelection) sel).getText();
-            if (selectedCode == null || selectedCode.trim().isEmpty()) {
-                setStatus("에디터에서 코드를 선택한 후 다시 시도하세요.");
-                return;
-            }
-            String snippet = "```java\n" + selectedCode + "\n```\n";
-            if (inputText == null || inputText.isDisposed()) return;
-            int offset = inputText.getCaretOffset();
-            try {
-                inputText.replaceTextRange(offset, 0, snippet);
-                inputText.setCaretOffset(offset + snippet.length());
-            } catch (Exception ex) {
-                inputText.append(snippet);
-            }
-            updateCharCount();
-            inputText.setFocus();
-        } catch (Exception e) {
-            setStatus("코드 붙여넣기 실패: " + e.getMessage());
+    /** 히스토리 크기 제한 (MAX_HISTORY * 2 초과 시 오래된 것부터 제거) */
+    private void trimHistory() {
+        while (history.size() > MAX_HISTORY * 2) {
+            history.remove(0);
         }
     }
 
     /**
-     * 마지막 AI 응답의 첫 번째 코드 블록을 에디터 커서/선택 위치에 삽입.
-     * 코드 블록이 없으면 전체 응답 텍스트를 삽입합니다.
+     * 현재 활성 에디터에서 EditorContext 수집.
+     * UI Thread 에서만 호출해야 합니다.
      */
-    private void insertLastResultIntoEditor() {
-        if (lastAiRawText == null || lastAiRawText.trim().isEmpty()) {
-            setStatus("삽입할 AI 응답이 없습니다.");
-            return;
-        }
+    private EditorContext collectActiveEditorContext() {
         try {
-            if (!PlatformUI.isWorkbenchRunning()) return;
-            IWorkbenchWindow window =
-                    PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-            if (window == null) { setStatus("워크벤치 창이 없습니다."); return; }
-            IWorkbenchPage page = window.getActivePage();
-            if (page == null) { setStatus("활성 페이지가 없습니다."); return; }
+            IWorkbench wb = PlatformUI.getWorkbench();
+            if (wb == null) return null;
+            IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+            if (win == null) return null;
+            IWorkbenchPage page = win.getActivePage();
+            if (page == null) return null;
             IEditorPart editor = page.getActiveEditor();
-            if (!(editor instanceof ITextEditor)) {
-                setStatus("텍스트 에디터가 활성화되어 있지 않습니다.");
-                return;
-            }
-            ITextEditor te = (ITextEditor) editor;
-            IDocumentProvider provider =
-                    te.getDocumentProvider();
-            if (provider == null) return;
-            org.eclipse.jface.text.IDocument doc =
-                    provider.getDocument(te.getEditorInput());
-            if (doc == null) return;
-
-            int replaceOffset = 0, replaceLength = 0;
-            org.eclipse.jface.viewers.ISelectionProvider selProvider =
-                    te.getSelectionProvider();
-            if (selProvider != null) {
-                org.eclipse.jface.viewers.ISelection sel =
-                        selProvider.getSelection();
-                if (sel instanceof ITextSelection) {
-                    ITextSelection ts = (ITextSelection) sel;
-                    replaceOffset = ts.getOffset();
-                    replaceLength = ts.getLength();
-                }
-            }
-            String insertText = extractFirstCodeBlock(lastAiRawText);
-            doc.replace(replaceOffset, replaceLength, insertText);
-            setStatus("에디터에 삽입 완료 (" + insertText.length() + " chars)");
-
-        } catch (BadLocationException e) {
-            setStatus("삽입 실패: 오프셋 범위 오류");
+            if (editor == null) return null;
+            return ContextCollector.fromEditor(editor);
         } catch (Exception e) {
-            setStatus("삽입 실패: " + e.getMessage());
+            return null;
         }
-    }
-
-    /** 첫 번째 ```...``` 코드 블록 추출. 없으면 전체 텍스트 반환. */
-    private String extractFirstCodeBlock(String text) {
-        int s = text.indexOf("```");
-        if (s < 0) return text;
-        int e = text.indexOf("```", s + 3);
-        if (e < 0) return text;
-        String code = text.substring(s + 3, e);
-        int nl = code.indexOf('\n');
-        if (nl >= 0 && nl <= 20) code = code.substring(nl + 1);
-        return code.trim();
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // UI 상태 제어 (Presenter/핸들러에서 호출)
-    // ═══════════════════════════════════════════════════════════════
-
-    /**
-     * 전송/취소/입력 가능 여부를 일괄 제어.
-     * 모든 스레드에서 안전하게 호출 가능 (asyncExec 사용).
-     */
-    public void setInputEnabled(final boolean enabled) {
-        Display.getDefault().asyncExec(new Runnable() {
-            @Override public void run() {
-                setCtrlEnabled(sendButton,     enabled);
-                setCtrlEnabled(cancelButton,  !enabled);
-                setCtrlEnabled(contextToggle,  enabled);
-                if (inputText != null && !inputText.isDisposed())
-                    inputText.setEditable(enabled);
-                setStatus(enabled ? "준비" : "AI 응답 대기 중...");
-            }
-        });
-    }
-
-    /** contextToggle 선택 여부 반환 (UI Thread에서만 호출) */
-    public boolean isContextAttachEnabled() {
-        return contextToggle != null && !contextToggle.isDisposed()
-                && contextToggle.getSelection();
-    }
-
-    /**
-     * 뷰 하단 statusLabel 에 메시지 표시.
-     * 모든 스레드에서 안전하게 호출 가능.
-     */
-    public void setStatus(final String msg) {
-        Runnable r = new Runnable() {
-            @Override public void run() {
-                if (statusLabel != null && !statusLabel.isDisposed())
-                    statusLabel.setText((msg != null) ? msg : "");
-            }
-        };
-        Display d = Display.getDefault();
-        if (d != null && !d.isDisposed()) {
-            if (d.getThread() == Thread.currentThread()) r.run();
-            else d.asyncExec(r);
-        }
-    }
-
-    private void setCtrlEnabled(org.eclipse.swt.widgets.Control c, boolean enabled) {
-        if (c != null && !c.isDisposed()) c.setEnabled(enabled);
-    }
-
-    private void updateCharCount() {
-        if (charCountLabel == null || charCountLabel.isDisposed()) return;
-        int len = (inputText != null && !inputText.isDisposed())
-                ? inputText.getText().length() : 0;
-        charCountLabel.setText(len + " / " + MAX_INPUT_CHARS);
-        charCountLabel.setForeground(len > MAX_INPUT_WARN ? colorError : null);
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 리소스 해제
-    // ═══════════════════════════════════════════════════════════════
-
-    @Override
-    public void dispose() {
-        if (presenter != null) presenter.cancelCurrent();
-        freeRes(boldFont);
-        freeRes(monoFont);
-        freeRes(normalFont);
-        freeRes(colorUser);
-        freeRes(colorAssistant);
-        freeRes(colorResult);
-        freeRes(colorError);
-        freeRes(colorCode);
-        freeRes(colorUserHdrBg);
-        freeRes(colorAssistantHdrBg);
-        freeRes(colorResultHdrBg);
-        super.dispose();
-    }
-
-    private void freeRes(org.eclipse.swt.graphics.Resource r) {
-        if (r != null && !r.isDisposed()) r.dispose();
-    }
-
-    @Override
-    public void setFocus() {
-        if (inputText != null && !inputText.isDisposed()) inputText.setFocus();
-    }
-
-    private boolean chatReady() {
-        return chatDisplay != null && !chatDisplay.isDisposed();
     }
 }
