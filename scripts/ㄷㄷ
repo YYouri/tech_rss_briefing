@@ -1,174 +1,230 @@
-package hi.bxm.assist.ui.presenter;
+package hi.bxm.assist.core.llm;
 
-import hi.bxm.assist.core.gateway.AiRequestGateway;
-import hi.bxm.assist.core.llm.CancelToken;
-import hi.bxm.assist.core.llm.PromptBuilder;
 import hi.bxm.assist.core.model.ChatMessage;
 import hi.bxm.assist.core.model.ChatMessage.Role;
+import hi.bxm.assist.core.model.CompletionRequest;
 import hi.bxm.assist.core.model.EditorContext;
-import hi.bxm.assist.editor.context.ContextCollector;
-import hi.bxm.assist.ui.view.ChatView;
-
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * BXM AI Assist Chat Presenter (MVP).
+ * 기능별 프롬프트 조립.
  *
- * [변경사항]
- * - OpenAIClient 직접 취득 제거 → AiRequestGateway.submitChat() 경유
- * - cancelCurrent() 에서 AiRequestGateway.getInstance().reset() 호출
- * - CancelToken 을 AiRequestGateway 에 전달하는 방식으로 변경
- * - AsyncRunner 직접 사용 제거 (Gateway 가 내부적으로 처리)
+ * - 채팅/설명/리팩토링/주석/에러분석 → /v1/chat/completions (messages)
+ * - 인라인 자동완성(Ghost Text)     → /v1/completions (FIM prompt)
  *
- * [유지된 로직]
- * - history 관리 (buildHistorySummary, trimHistory)
- * - EditorContext 수집 (UI Thread에서 수집 후 Gateway 에 전달)
- * - friendlyError 메시지 변환은 Gateway 담당으로 이전
+ * FIM 토큰은 모델별로 다르다:
+ *   qwen-coder    : <|fim_prefix|> ... <|fim_suffix|> ... <|fim_middle|>
+ *   deepseek-coder: <｜fim▁begin｜> ... <｜fim▁hole｜> ... <｜fim▁end｜>
+ *   starcoder     : <fim_prefix> ... <fim_suffix> ... <fim_middle>
  *
- * [상태바]
- * - Eclipse 하단 상태바: AiRequestGateway 가 "● AI 요청 중..." / "✓ AI 완료" 처리
- * - 뷰 내부 statusLabel: ChatView.setInputEnabled() 가 "준비" / "AI 응답 대기 중..." 처리
- *
- * [JDK 7 호환] 람다 미사용, 익명 클래스 사용.
+ * 모델명에 'qwen' / 'deepseek' / 'starcoder' 가 포함되어 있으면 자동 선택,
+ * 매칭 실패시 qwen 포맷으로 폴백.
  */
-public class ChatPresenter {
+public class PromptBuilder {
 
-    private static final int MAX_HISTORY       = 10;
-    private static final int MAX_HISTORY_CHARS = 3000;
+    private static final String SYSTEM_BASE =
+            "You are an expert Java/Spring developer assistant integrated into Eclipse IDE. and you use jdk8 version in java/spring . "
+          + "You understand the user's project context (imports, package, neighboring code). "
+          + "Respond concisely. When the user writes Korean, reply in Korean. "
+          + "Strictly avoid using special symbols or LaTeX-style arrows like '$\rightarrow$'. "
+          + "Instead of symbols, use plain text like 'click', 'select', or 'go to' (e.g., 'Build Path > Configure Build Path'). "
+          + "Wrap code blocks with triple backticks and the language name. "
+          + "Prefer minimal, focused diffs over large rewrites.";
 
-    private final ChatView          view;
-    private final PromptBuilder     promptBuilder = new PromptBuilder();
-    private final List<ChatMessage> history       = new ArrayList<ChatMessage>();
+        private static final String SYSTEM_INLINE =
+            "You are a code completion engine. Output ONLY the code that should be inserted at the cursor. "
+          + "No explanation, no markdown fences, no prose, no leading whitespace duplication. "
+          + "Stop at the end of the logical unit (statement / block / method).";
 
-    /** 현재 진행 중인 요청의 취소 토큰 */
-    private CancelToken currentToken = null;
 
-    public ChatPresenter(ChatView view) {
-        this.view = view;
+    // ── 인라인 자동완성 (FIM) ────────────────────────────────
+    /**
+     * Fill-In-Middle 프롬프트.
+     * @param prefix 커서 앞 코드 (전체 파일에서)
+     * @param suffix 커서 뒤 코드
+     * @param model  모델명 (FIM 토큰 선택용)
+     */
+    public String forFimPrompt(String prefix, String suffix, String model) {
+        String m = model == null ? "" : model.toLowerCase();
+        if (m.contains("deepseek")) {
+            return "<\uff5cfim\u2581begin\uff5c>" + prefix
+                 + "<\uff5cfim\u2581hole\uff5c>" + suffix
+                 + "<\uff5cfim\u2581end\uff5c>";
+        }
+        if (m.contains("starcoder") || m.contains("santacoder")) {
+            return "<fim_prefix>" + prefix + "<fim_suffix>" + suffix + "<fim_middle>";
+        }
+        // qwen-coder 및 기본
+        return "<|fim_prefix|>" + prefix + "<|fim_suffix|>" + suffix + "<|fim_middle|>";
     }
 
     /**
-     * 사용자 메시지 전송.
-     * UI Thread 에서 호출됩니다 (ChatView.onSend()).
-     *
-     * @param userText  사용자 입력 텍스트
-     * @param attachCtx true 이면 활성 에디터 컨텍스트를 프롬프트에 포함
+     * FIM 미지원 모델용 chat 기반 인라인 완성 프롬프트.
      */
-    public void onUserMessage(final String userText, final boolean attachCtx) {
-        // 이전 요청이 있으면 취소
-        if (currentToken != null) {
-            currentToken.cancel();
-        }
-        currentToken = new CancelToken();
-        final CancelToken token = currentToken;
-
-        // 사용자 메시지 히스토리 추가 + 화면 표시
-        history.add(new ChatMessage(Role.USER, userText));
-        Display.getDefault().asyncExec(new Runnable() {
-            @Override public void run() {
-            	view.appendMessage(Role.USER, userText);
-            	view.setInputEnabled(false);
+    public List<ChatMessage> forInlineCompletionChat(String prefix, String suffix,
+                                                     EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM_INLINE));
+        StringBuilder user = new StringBuilder();
+        if (ctx != null) {
+            if (ctx.getFileName() != null) {
+                user.append("// File: ").append(ctx.getFileName()).append('\n');
             }
-        });
-        
-        
-        // UI Thread 에서 에디터 컨텍스트 수집
-        final EditorContext ctx = attachCtx ? collectActiveEditorContext() : null;
-
-        // 히스토리 스냅샷 (백그라운드 스레드 접근 방지)
-        final List<ChatMessage> historySnapshot = new ArrayList<ChatMessage>(history);
-
-        // 프롬프트 조립
-        final List<ChatMessage> msgs =
-                promptBuilder.forChat(historySnapshot, userText, ctx);
-
-        // Gateway 경유 비동기 요청
-        AiRequestGateway.getInstance().submitChat(
-                msgs, 0.7, 1024, token,
-                new AiRequestGateway.ChatCallback() {
-                    @Override
-                    public void onSuccess(final String result) {
-                        if (token.isCancelled()) return;
-                        final String text = (result != null) ? result : "";
-                        history.add(new ChatMessage(Role.ASSISTANT, text));
-                        trimHistory();
-
-                        Display.getDefault().asyncExec(new Runnable() {
-                            @Override public void run() {
-                                view.appendMessage(Role.ASSISTANT, text);
-                                view.setInputEnabled(true);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onFailure(final String errorMessage) {
-                        if (token.isCancelled()) return;
-                        Display.getDefault().asyncExec(new Runnable() {
-                            @Override public void run() {
-                                view.showError(errorMessage);
-                                view.setInputEnabled(true);
-                            }
-                        });
-                    }
-                });
-    }
-
-    /**
-     * 현재 진행 중인 요청 취소.
-     * AiRequestGateway.reset() 을 호출해 상태바도 함께 정리합니다.
-     */
-    public void cancelCurrent() {
-        if (currentToken != null) {
-            currentToken.cancel();
-            currentToken = null;
+            if (ctx.getPackageName() != null && !ctx.getPackageName().isEmpty()) {
+                user.append("// Package: ").append(ctx.getPackageName()).append('\n');
+            }
+            if (ctx.getImports() != null && !ctx.getImports().isEmpty()) {
+                user.append("// Imports:\n");
+                for (String imp : ctx.getImports()) {
+                    user.append("//   ").append(imp).append('\n');
+                }
+            }
+            if (ctx.getNeighborSignatures() != null && !ctx.getNeighborSignatures().isEmpty()) {
+                user.append("// Nearby symbols:\n");
+                for (String sig : ctx.getNeighborSignatures()) {
+                    user.append("//   ").append(sig).append('\n');
+                }
+            }
         }
-        AiRequestGateway.getInstance().reset();
-        view.setInputEnabled(true);
-        view.setStatus("요청이 취소되었습니다.");
+        user.append("// Complete the code at <CURSOR>. Output only the insertion text.\n");
+        user.append(prefix).append("<CURSOR>").append(suffix);
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
     }
 
-    /** 대화 히스토리 전체 삭제 */
-    public void clearHistory() {
-        history.clear();
+    // ── 코드 자동완성 (legacy chat) ──────────────────────────
+    public List<ChatMessage> forCompletion(String prefix, String fileName, int line) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM_INLINE));
+        msgs.add(new ChatMessage(Role.USER,
+            String.format("// File: %s (line %d)\n%s", fileName, line, prefix)));
+        return msgs;
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 내부 구현
-    // ═══════════════════════════════════════════════════════════════
+    // ── 코드 설명 ────────────────────────────────────────────
+    public List<ChatMessage> forExplain(String code, String fileName) {
+        return forExplain(code, fileName, null);
+    }
 
-    /** 히스토리 크기 제한 (MAX_HISTORY * 2 초과 시 오래된 것부터 제거) */
-    private void trimHistory() {
-        while (history.size() > MAX_HISTORY * 2) {
-            history.remove(0);
+    public List<ChatMessage> forExplain(String code, String fileName, EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM_BASE));
+        StringBuilder user = new StringBuilder();
+        user.append("아래 Java 코드를 단계별로 설명해줘. 파일: ").append(fileName).append("\n\n");
+        appendCtx(user, ctx);
+        user.append("```java\n").append(code).append("\n```");
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
+    }
+
+    // ── 주석 생성 ────────────────────────────────────────────
+    public List<ChatMessage> forComment(String code, String fileName) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM,
+            SYSTEM_BASE + "\nAdd Javadoc and inline comments. Return the full commented code only, no prose."));
+        msgs.add(new ChatMessage(Role.USER,
+            String.format("아래 Java 코드에 Javadoc 과 inline 주석을 추가해줘. 파일: %s\n\n```java\n%s\n```",
+                fileName, code)));
+        return msgs;
+    }
+
+    // ── 에러 분석/해결 ───────────────────────────────────────
+    public List<ChatMessage> forFixError(String code, String errorMessage, String fileName) {
+        return forFixError(code, errorMessage, fileName, null);
+    }
+
+    public List<ChatMessage> forFixError(String code, String errorMessage,
+                                         String fileName, EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM,
+            SYSTEM_BASE + "\nDiagnose the error and propose a concrete fix. "
+          + "Return: (1) 원인 분석, (2) 수정된 전체 코드 블록, (3) 1줄 요약."));
+        StringBuilder user = new StringBuilder();
+        user.append("아래 Java 코드에서 에러가 발생했어. 원인과 수정 방안을 알려줘.\n\n")
+            .append("파일: ").append(fileName).append("\n\n");
+        appendCtx(user, ctx);
+        user.append("에러 메시지:\n```\n").append(errorMessage).append("\n```\n\n")
+            .append("코드:\n```java\n").append(code).append("\n```");
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
+    }
+
+    // ── 리팩토링 제안 ────────────────────────────────────────
+    public List<ChatMessage> forRefactor(String code, String fileName) {
+        return forRefactor(code, fileName, null);
+    }
+
+    public List<ChatMessage> forRefactor(String code, String fileName, EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM,
+            SYSTEM_BASE + "\nReturn: (1) 적용할 리팩토링 패턴 이름, (2) 개선된 전체 코드 블록 (java fence), (3) 효과 설명."));
+        StringBuilder user = new StringBuilder();
+        user.append("아래 Java 코드의 리팩토링 안을 제안해줘. 파일: ").append(fileName).append("\n\n");
+        appendCtx(user, ctx);
+        user.append("```java\n").append(code).append("\n```");
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
+    }
+
+    // ── 자유 채팅 ────────────────────────────────────────────
+    public List<ChatMessage> forChat(List<ChatMessage> history, String userMessage) {
+        return forChat(history, userMessage, null);
+    }
+
+    public List<ChatMessage> forChat(List<ChatMessage> history, String userMessage,
+                                     EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        StringBuilder sys = new StringBuilder(SYSTEM_BASE);
+        if (ctx != null && ctx.getFileName() != null) {
+            sys.append("\n\nCurrent editor context:\n");
+            sys.append("- File: ").append(ctx.getFileName()).append('\n');
+            if (ctx.getPackageName() != null) sys.append("- Package: ").append(ctx.getPackageName()).append('\n');
+            if (ctx.getSelection() != null && !ctx.getSelection().isEmpty()) {
+                sys.append("- User has selected:\n```java\n").append(ctx.getSelection()).append("\n```\n");
+            }
         }
+        msgs.add(new ChatMessage(Role.SYSTEM, sys.toString()));
+        if (history != null) msgs.addAll(history);
+        msgs.add(new ChatMessage(Role.USER, userMessage));
+        return msgs;
     }
 
-    /**
-     * 현재 활성 에디터에서 EditorContext 수집.
-     * UI Thread 에서만 호출해야 합니다.
-     */
-    private EditorContext collectActiveEditorContext() {
-        try {
-            IWorkbench wb = PlatformUI.getWorkbench();
-            if (wb == null) return null;
-            IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
-            if (win == null) return null;
-            IWorkbenchPage page = win.getActivePage();
-            if (page == null) return null;
-            IEditorPart editor = page.getActiveEditor();
-            if (editor == null) return null;
-            return ContextCollector.fromEditor(editor);
-        } catch (Exception e) {
-            return null;
+    private void appendCtx(StringBuilder user, EditorContext ctx) {
+        if (ctx == null) return;
+        if (ctx.getPackageName() != null && !ctx.getPackageName().isEmpty()) {
+            user.append("패키지: ").append(ctx.getPackageName()).append('\n');
+        }
+        if (ctx.getImports() != null && !ctx.getImports().isEmpty()) {
+            user.append("Imports: ");
+            for (int i = 0; i < ctx.getImports().size(); i++) {
+                if (i > 0) user.append(", ");
+                user.append(ctx.getImports().get(i));
+            }
+            user.append("\n");
+        }
+        user.append('\n');
+    }
+
+    /** CompletionRequest 의 RequestType 에 따른 자동 분기 */
+    public List<ChatMessage> build(CompletionRequest req) {
+        if (req.getRequestType() == null) {
+            throw new IllegalArgumentException("RequestType must not be null");
+        }
+        switch (req.getRequestType()) {
+            case COMPLETION:
+                return forCompletion(req.getSelectedCode(), req.getFileName(), req.getCursorLine());
+            case EXPLAIN:
+                return forExplain(req.getSelectedCode(), req.getFileName());
+            case COMMENT:
+                return forComment(req.getSelectedCode(), req.getFileName());
+            case FIX_ERROR:
+                return forFixError(req.getSelectedCode(), req.getErrorMessage(), req.getFileName());
+            case REFACTOR:
+                return forRefactor(req.getSelectedCode(), req.getFileName());
+            default:
+                throw new IllegalArgumentException("Unsupported RequestType: " + req.getRequestType());
         }
     }
 }
