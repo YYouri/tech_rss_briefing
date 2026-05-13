@@ -1,508 +1,300 @@
-asis :: spring 3.2.18 + jdk 8 기반의 어플리케이션
-batchuser@cppi-batchap01[/Appl/Batch/core_lib/table_cache_patch_thread]$ ls -al *.jar
--rw-rw-r--   1 batchuser batch      62983 30 13:14 activation-1.1.jar
--rw-rw-r--   1 batchuser batch       4467 30 13:14 aopalliance-1.0.jar
--rw-rw-r--   1 batchuser batch     119683 30 13:14 aspectjrt-1.7.4.jar
--rw-rw-r--   1 batchuser batch    1850391 30 13:14 aspectjweaver-1.7.4.jar
--rw-rw-r--   1 batchuser batch     140953 30 13:14 axiom-api-1.2.5.jar
--rw-rw-r--   1 batchuser batch     116719 30 13:14 axiom-impl-1.2.5.jar
--rw-rw-r--   1 batchuser batch     162720 30 13:14 axis2-adb-1.3.jar
--rw-rw-r--   1 batchuser batch    1096111 30 13:14 axis2-kernel-1.3.jar
--rw-rw-r--   1 batchuser batch     533339 30 13:14 bcel-5.2.jar
--rw-rw-r--   1 batchuser batch    2318161 30 13:14 bcprov-jdk15on-1.48.jar
--rw-rw-r--   1 batchuser batch       9719 30 13:14 bioauth-util-1.0.jar
--rw-rw-r--   1 batchuser batch     507396 30 13:14 bson-5.0.0.jar
--rw-rw-r--   1 batchuser batch       9802 30 13:14 builder-api.jar
--rw-rw-r--   1 batchuser batch    2311623 30 13:14 builder.jar
--rw-rw-r--   1 batchuser batch     563892 30 13:14 bxm-batch-3.1.0.jar
--rw-rw-r--   1 batchuser batch     121531 30 13:14 bxm-batch-daemon-3.1.0.jar
--rw-rw-r--   1 batchuser batch     179638 30 13:14 bxm-batch-extension-3.1.0.jar
--rw-rw-r--   1 batchuser batch     183180 30 13:14 bxm-builder-tester-3.0.0.jar
--rw-rw-r--   1 batchuser batch     222456 30 13:14 bxm-centercut-dao-3.1.0.jar
--rw-rw-r--   1 batchuser batch     219354 30 13:14 bxm-centercut-dbio-3.1.0.jar
--rw-rw-r--   1 batchuser batch     403873 30 13:14 bxm-common-3.1.0.jar
--rw-rw-r--   1 batchuser batch    1032270 30 13:14 bxm-container-3.1.0.jar
--rw-rw-r--   1 batchuser batch     422612 30 13:14 bxm-context-3.1.0.jar
--rw-rw-r--   1 batchuser batch     131332 30 13:14 bxm-das-3.1.0.jar
--rw-rw-r--   1 batchuser batch     220312 30 13:14 bxm-default-extension-3.1.0.jar
--rw-rw-r--   1 batchuser batch     130079 30 13:14 bxm-omm-common-3.1.0.jar
--rw-rw-r--   1 batchuser batch     144413 30 13:14 bxm-omm-marshaller-3.1.0.jar
--rw-rw-r--   1 batchuser batch      30698 30 13:14 bxm-omm-meta-3.0.0.jar
--rw-rw-r--   1 batchuser batch      76835 30 13:14 bxm-service-endpoint-3.1.0.jar
--rw-rw-r--   1 batchuser batch      76533 30 13:14 bxm-sql-gsp-parser-3.1.0.jar
--rw-rw-r--   1 batchuser batch     610790 30 13:14 c3p0-0.9.1.2.jar
--rw-rw-r--   1 batchuser batch      49789 30 13:14 cache-api-1.0.0.jar
--rw-rw-r--   1 batchuser batch     912143 30 13:14 caffeine-2.9.3.jar
--rw-rw-r--   1 batchuser batch     222143 30 13:14 checker-qual-3.19.0.jar
--rw-rw-r--   1 batchuser batch     192452 30 13:14 cis-bpm-1.0.jar
--rw-rw-r--   1 batchuser batch       5109 30 13:14 com.ibm.websphere.uow-6.0.2.17.jar
--rw-rw-r--   1 batchuser batch     233859 30 13:14 commons-beanutils-1.9.2.jar
--rw-rw-r--   1 batchuser batch     344339 30 13:14 commons-codec-1.13.jar
--rw-rw-r--   1 batchuser batch     588337 30 13:14 commons-collections-3.2.2.jar
--rw-rw-r--   1 batchuser batch     615064 30 13:14 commons-compress-1.19.jar
--rw-rw-r--   1 batchuser batch     160519 30 13:14 commons-dbcp-1.4.jar
--rw-rw-r--   1 batchuser batch      77857 30 13:14 commons-dbutils-1.6.jar
--rw-rw-r--   1 batchuser batch     148783 30 13:14 commons-digester-2.0.jar
--rw-rw-r--   1 batchuser batch      54423 30 13:14 commons-exec-1.3.jar
--rw-rw-r--   1 batchuser batch      69245 30 13:14 commons-fileupload-1.3.1.jar
--rw-rw-r--   1 batchuser batch     305001 30 13:14 commons-httpclient-3.1.jar
--rw-rw-r--   1 batchuser batch     208700 30 13:14 commons-io-2.5.jar
--rw-rw-r--   1 batchuser batch     284220 30 13:14 commons-lang-2.6.jar
--rw-rw-r--   1 batchuser batch      61829 30 13:14 commons-logging-1.2.jar
--rw-rw-r--   1 batchuser batch     338488 30 13:14 commons-math-1.2.jar
--rw-rw-r--   1 batchuser batch     307410 30 13:14 commons-net-3.6.jar
--rw-rw-r--   1 batchuser batch     111119 30 13:14 commons-pool-1.6.jar
--rw-rw-r--   1 batchuser batch     186077 30 13:14 commons-validator-1.6.jar
--rw-rw-r--   1 batchuser batch     362717 30 13:14 commons-vfs-1.0.jar
--rw-rw-r--   1 batchuser batch     479816 30 13:14 configuration-wizard.jar
--rw-rw-r--   1 batchuser batch      58148 30 13:14 cp_solution_connector-1.0.jar
--rw-rw-r--   1 batchuser batch      15558 30 13:14 crypto-seed-1.0.0.jar
--rw-rw-r--   1 batchuser batch    1643391 30 13:14 cts-1.4.0.jar
--rw-rw-r--   1 batchuser batch       2662 30 13:14 custom-ruleif-api.jar
--rw-rw-r--   1 batchuser batch      27310 30 13:14 custom-ruleif.jar
--rw-rw-r--   1 batchuser batch     187736 30 13:14 custom-udf.jar
--rw-rw-r--   1 batchuser batch     109661 30 13:14 dbio_foundation-1.0.jar
--rw-rw-r--   1 batchuser batch     313898 30 13:14 dom4j-1.6.1.jar
--rw-rw-r--   1 batchuser batch      45978 30 13:14 edms_clientv-1.0.jar
--rw-rw-r--   1 batchuser batch     666526 30 13:14 ehcache-core-2.3.1.jar
--rw-rw-r--   1 batchuser batch       9836 30 13:14 ENCRYPT_EXTERNAL_API_SEED-1.0.jar
--rw-rw-r--   1 batchuser batch     168986 30 13:14 ers-common.jar
--rw-rw-r--   1 batchuser batch    1000566 30 13:14 ers-data-core.jar
--rw-rw-r--   1 batchuser batch     238219 30 13:14 ers-data-master.jar
--rw-rw-r--   1 batchuser batch       9707 30 13:14 ers-data-plugin-api.jar
--rw-rw-r--   1 batchuser batch     105598 30 13:14 ers-formmanager.jar
--rw-rw-r--   1 batchuser batch      26400 30 13:14 ers-invoker.jar
--rw-rw-r--   1 batchuser batch      86487 30 13:14 ezmorph-1.0.6.jar
--rw-rw-r--   1 batchuser batch      94643 30 13:14 fasoo-jni-3.9.0u.jar
--rw-rw-r--   1 batchuser batch     118904 30 13:14 fcwpkg_jni-1.9.0.jar
--rw-rw-r--   1 batchuser batch     241622 30 13:14 gson-2.8.5.jar
--rw-rw-r--   1 batchuser batch    2615378 30 13:14 gsp-1.6.3.7.jar
--rw-rw-r--   1 batchuser batch      59243 30 13:14 hdmf-eai-batch-1.0.jar
--rw-rw-r--   1 batchuser batch     634452 30 13:14 hi-security-1.6.jar
--rw-rw-r--   1 batchuser batch      40663 30 13:14 hin_seed-1.0.jar
--rw-rw-r--   1 batchuser batch      70462 30 13:14 hiportal-udf.jar
--rw-rw-r--   1 batchuser batch     592008 30 13:14 httpclient-4.3.6.jar
--rw-rw-r--   1 batchuser batch     282793 30 13:14 httpcore-4.3.3.jar
--rw-rw-r--   1 batchuser batch      37272 30 13:14 httpmime-4.3.6.jar
--rw-rw-r--   1 batchuser batch    13298912 30 13:14 icu4j-68.1.jar
--rw-rw-r--   1 batchuser batch    13905934 30 13:14 ignite-core-8.8.15_lockmonitor.jar
--rw-rw-r--   1 batchuser batch    13921041 30 13:14 ignite-core-8.8.15.jar
--rw-rw-r--   1 batchuser batch      26935 30 13:14 ignite-log4j-8.7.23.jar
--rw-rw-r--   1 batchuser batch      18851 30 13:14 ignite-shmem-8.7.3.jar
--rw-rw-r--   1 batchuser batch       7575 30 13:14 impwdutil-1.0.jar
--rw-rw-r--   1 batchuser batch     477384 30 13:14 INIBase-v1.0.4.jar
--rw-rw-r--   1 batchuser batch     748144 30 13:14 INICrypto_signed-3.1.7.jar
--rw-rw-r--   1 batchuser batch      48112 30 13:14 INISAFEFile-1.0.7.jar
--rw-rw-r--   1 batchuser batch     133278 30 13:14 INISAFEWeb-6.3.1.jar
--rw-rw-r--   1 batchuser batch       7387 30 13:14 inno-initializer.jar
--rw-rw-r--   1 batchuser batch      61613 30 13:14 innorules-api.jar
--rw-rw-r--   1 batchuser batch      22317 30 13:14 innorules-core.jar
--rw-rw-r--   1 batchuser batch      92100 30 13:14 innorules-extra.jar
--rw-rw-r--   1 batchuser batch    1254467 30 13:14 innorulesj.jar
--rw-rw-r--   1 batchuser batch     542293 30 13:14 innoutils.jar
--rw-rw-r--   1 batchuser batch     355139 30 13:14 j2ssh-core-0.2.9.jar
--rw-rw-r--   1 batchuser batch      39815 30 13:14 jackson-annotations-2.5.0.jar
--rw-rw-r--   1 batchuser batch     229685 30 13:14 jackson-core-2.5.0.jar
--rw-rw-r--   1 batchuser batch     228552 30 13:14 jackson-core-asl-1.9.7.jar
--rw-rw-r--   1 batchuser batch    1136338 30 13:14 jackson-databind-2.5.0.jar
--rw-rw-r--   1 batchuser batch     780301 30 13:14 jackson-mapper-asl-1.9.7.jar
--rw-rw-r--   1 batchuser batch     258160 30 13:14 jai_codec-1.1.3.jar
--rw-rw-r--   1 batchuser batch    1900631 30 13:14 jai_core-1.1.3.jar
--rw-rw-r--   1 batchuser batch      65261 30 13:14 jakarta-oro-2.0.8.jar
--rw-rw-r--   1 batchuser batch      28576 30 13:14 jakarta-regexp-1.4.jar
--rw-rw-r--   1 batchuser batch      97260 30 13:14 jCertPathValidator-v1.2.2.jar
--rw-rw-r--   1 batchuser batch      17308 30 13:14 jcl-over-slf4j-1.6.4.jar
--rw-rw-r--   1 batchuser batch     564731 30 13:14 jconn3-1.0.jar
--rw-rw-r--   1 batchuser batch     602957 30 13:14 jconn4-1.0.jar
--rw-rw-r--   1 batchuser batch    1285817 30 13:19 jef-application-3.1.0.jar
--rw-rw-r--   1 batchuser batch     639049 46 08:09 jef-batch-3.1.0.jar
--rw-rw-r--   1 batchuser batch     363849 30 13:14 jef-foundation-3.1.0.jar
--rw-rw-r--   1 batchuser batch      32702 30 13:40 jef-ignite-3.1.0.jar
--rw-rw-r--   1 batchuser batch      26917 30 13:14 jef-logging-3.1.0.jar
--rw-rw-r--   1 batchuser batch      63525 30 13:14 jef-ne2e-3.1.0.jar
--rw-rw-r--   1 batchuser batch      67758 30 13:14 jettison-1.1.jar
--rw-rw-r--   1 batchuser batch      26257 30 13:14 jms-1.1.jar
--rw-rw-r--   1 batchuser batch     254408 30 13:14 jsch-0.1.50.jar
--rw-rw-r--   1 batchuser batch      37875 30 13:14 json-20080701.jar
--rw-rw-r--   1 batchuser batch      23737 30 13:14 json-simple-1.1.1.jar
--rw-rw-r--   1 batchuser batch      99476 30 13:14 JsonConverter-1.1.0.jar
--rw-rw-r--   1 batchuser batch      46047 30 13:14 jsr173-1.0.jar
--rw-rw-r--   1 batchuser batch     639734 30 13:14 jsr173-ri-1.0.jar
--rw-rw-r--   1 batchuser batch      13749 30 13:14 jsr94-1.1.jar
--rw-rw-r--   1 batchuser batch      15071 30 13:14 jta-1.1.jar
--rw-rw-r--   1 batchuser batch      12132 30 13:14 jtar-1.0.4.jar
--rw-rw-r--   1 batchuser batch     314932 30 13:14 junit-4.12.jar
--rw-rw-r--   1 batchuser batch      37827 30 13:14 ldapfilt-1.0.jar
--rw-rw-r--   1 batchuser batch     262749 30 13:14 ldapjdk-1.0.jar
--rw-rw-r--   1 batchuser batch      86285 30 13:14 ldapsp-1.0.jar
--rw-rw-r--   1 batchuser batch     489103 30 13:14 log4j-1.2.17.jar
--rw-rw-r--   1 batchuser batch     388864 30 13:14 mail-1.4.jar
--rw-rw-r--   1 batchuser batch    25577970 30 13:14 medibloc-cfreq-1.0.4.jar
--rw-rw-r--   1 batchuser batch    33375644 30 13:14 medibloc-cfreq-1.04.jar
--rw-rw-r--   1 batchuser batch     315582 30 13:14 mina-core-1.1.7.jar
--rw-rw-r--   1 batchuser batch    1670650 30 13:14 mongodb-driver-core-4.11.2.jar
--rw-rw-r--   1 batchuser batch     151808 30 13:14 mongodb-driver-sync-4.11.2.jar
--rw-rw-r--   1 batchuser batch     302282 30 13:14 msbase-1.0.jar
--rw-rw-r--   1 batchuser batch    1456205 30 13:14 mssql-jdbc-12.6.4.jre8.jar
--rw-rw-r--   1 batchuser batch      69477 30 13:14 mssqlserver-1.0.jar
--rw-rw-r--   1 batchuser batch      67235 30 13:14 msutil-1.0.jar
--rw-rw-r--   1 batchuser batch     699823 30 13:14 mybatis-3.2.2.jar
--rw-rw-r--   1 batchuser batch      51062 30 13:14 mybatis-spring-1.2.3.jar
--rw-rw-r--   1 batchuser batch      37043 30 13:14 mybatis-velocity-1.0.jar
--rw-rw-r--   1 batchuser batch     540852 30 13:14 mysql-connector-java-5.0.8.jar
--rw-rw-r--   1 batchuser batch    4062498 30 13:14 netty-all-4.1.39.Final.jar
--rw-rw-r--   1 batchuser batch    4036573 30 13:14 ojdbc8.jar
--rw-rw-r--   1 batchuser batch     136987 30 13:14 oscache-2.4.1.jar
--rw-rw-r--   1 batchuser batch    6250148 30 13:14 pharos-loader-1.0.jar
--rw-rw-r--   1 batchuser batch    1950905 30 13:14 poi-3.10-FINAL.jar
--rw-rw-r--   1 batchuser batch     312839 30 13:14 poi-examples-3.10-FINAL.jar
--rw-rw-r--   1 batchuser batch      30530 30 13:14 poi-excelant-3.10-FINAL.jar
--rw-rw-r--   1 batchuser batch    1031421 30 13:14 poi-ooxml-3.10-FINAL.jar
--rw-rw-r--   1 batchuser batch    4946671 30 13:14 poi-ooxml-schemas-3.10-FINAL.jar
--rw-rw-r--   1 batchuser batch    1240093 30 13:14 poi-scratchpad-3.10-FINAL.jar
--rw-rw-r--   1 batchuser batch     644836 30 13:14 postgresql-9.4.1208.jre6.jar
--rw-rw-r--   1 batchuser batch     528728 30 13:14 quartz-2.0.0.jar
--rw-rw-r--   1 batchuser batch       8948 30 13:14 r2wflib-1.0.jar
--rw-rw-r--   1 batchuser batch      84091 30 13:14 resolver-1.2.jar
--rw-rw-r--   1 batchuser batch      18817 30 13:14 saaj-api-1.3.jar
--rw-rw-r--   1 batchuser batch     283769 30 13:14 saaj-impl-1.0.jar
--rw-rw-r--   1 batchuser batch       7053 30 13:14 SciClient-1.0.0.jar
--rw-rw-r--   1 batchuser batch     195693 30 13:14 scsl-1.0.jar
--rw-rw-r--   1 batchuser batch     183226 30 13:14 SDB_API_15221_hiportal-1.0.jar
--rw-rw-r--   1 batchuser batch      14783 30 13:14 SDBAPI_JAVA_DPfile-1.0.jar
--rw-rw-r--   1 batchuser batch      20325 30 13:14 searchengine-classes-1.0.jar
--rw-rw-r--   1 batchuser batch      35609 30 13:14 searchengine-queryapi420-1.0.jar
--rw-rw-r--   1 batchuser batch     278286 30 13:14 serializer-2.7.1.jar
--rw-rw-r--   1 batchuser batch     105112 30 13:14 servlet-api-2.5.jar
--rw-rw-r--   1 batchuser batch    1070638 30 13:14 signgate-1.0.jar
--rw-rw-r--   1 batchuser batch    3319167 30 13:14 SignKorea-java-sign_verify-4.5.13.1.jar
--rw-rw-r--   1 batchuser batch      25962 30 13:14 slf4j-api-1.6.4.jar
--rw-rw-r--   1 batchuser batch      20348 30 13:14 smart-push-send-lib-1.0.jar
--rw-rw-r--   1 batchuser batch      14380 30 13:14 smartUpload-1.0.jar
--rw-rw-r--   1 batchuser batch     339104 30 13:14 spring-aop-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch      51441 30 13:14 spring-aspects-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch     459527 30 13:14 spring-batch-core-2.1.8.RELEASE.jar
--rw-rw-r--   1 batchuser batch     356967 30 13:14 spring-batch-infrastructure-2.1.8.RELEASE.jar
--rw-rw-r--   1 batchuser batch     614434 30 13:14 spring-beans-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch     868229 30 13:14 spring-context-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch     128847 30 13:14 spring-context-support-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch     885560 30 13:14 spring-core-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch     196256 30 13:14 spring-expression-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch       7226 30 13:14 spring-instrument-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch     406121 30 13:14 spring-jdbc-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch     206282 30 13:14 spring-jms-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch      17381 30 13:14 spring-js-2.3.2.RELEASE.jar
--rw-rw-r--   1 batchuser batch    4412472 30 13:14 spring-js-resources-2.3.2.RELEASE.jar
--rw-rw-r--   1 batchuser batch     385036 30 13:14 spring-orm-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch      76512 30 13:14 spring-oxm-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch      80884 30 13:14 spring-retry-1.0.3.RELEASE.jar
--rw-rw-r--   1 batchuser batch     242557 30 13:14 spring-tx-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch     631353 30 13:14 spring-web-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch     645109 30 13:14 spring-webmvc-3.2.18.RELEASE.jar
--rw-rw-r--   1 batchuser batch     501814 30 13:14 spring-ws-core-2.1.4.RELEASE.jar
--rw-rw-r--   1 batchuser batch      99867 30 13:14 spring-ws-security-2.1.4.RELEASE.jar
--rw-rw-r--   1 batchuser batch      76977 30 13:14 spring-ws-support-2.1.4.RELEASE.jar
--rw-rw-r--   1 batchuser batch      63211 30 13:14 spring-xml-2.1.4.RELEASE.jar
--rw-rw-r--   1 batchuser batch     400440 30 13:14 sso-external-debug-1.0.jar
--rw-rw-r--   1 batchuser batch      19364 30 13:14 sso-manager-1.2.2.jar
--rw-rw-r--   1 batchuser batch     366608 30 13:14 sso-nls-debug-1.0.jar
--rw-rw-r--   1 batchuser batch      26514 30 13:14 stax-api-1.0.1.jar
--rw-rw-r--   1 batchuser batch     128561 30 13:14 stax-utils-20070216.jar
--rw-rw-r--   1 batchuser batch      88311 30 13:14 tcp-connector.jar
--rw-rw-r--   1 batchuser batch    1190159 30 13:14 tibero5-jdbc-14.jar
--rw-rw-r--   1 batchuser batch      35898 30 13:14 tiles-api-2.2.2.jar
--rw-rw-r--   1 batchuser batch     161001 30 13:14 tiles-core-2.2.2.jar
--rw-rw-r--   1 batchuser batch      59739 30 13:14 tiles-servlet-2.2.2.jar
--rw-rw-r--   1 batchuser batch     248180 30 13:14 trilead-ssh2-1.0.0-build222.jar
--rw-rw-r--   1 batchuser batch    2523218 30 13:14 trove-3.0.3.jar
--rw-rw-r--   1 batchuser batch      21225 30 13:14 tslib-1.0.jar
--rw-rw-r--   1 batchuser batch      49008 30 13:14 udf-collection.jar
--rw-rw-r--   1 batchuser batch     449505 30 13:14 velocity-1.7.jar
--rw-rw-r--   1 batchuser batch     520969 30 13:14 wstx-asl-3.2.7.jar
--rw-rw-r--   1 batchuser batch       6502 30 13:14 xbean_xpath-2.6.0.jar
--rw-rw-r--   1 batchuser batch    2730866 30 13:14 xbean-2.6.0.jar
--rw-rw-r--   1 batchuser batch     202903 30 13:14 xecure7-v101.jar
--rw-rw-r--   1 batchuser batch    1229125 30 13:14 xercesImpl-2.9.1.jar
--rw-rw-r--   1 batchuser batch     194354 30 13:14 xml-apis-1.3.04.jar
--rw-rw-r--   1 batchuser batch    2730866 30 13:14 xmlbeans-2.6.0.jar
--rw-rw-r--   1 batchuser batch       2508 30 13:14 xmlbeans-qname-1.0.jar
--rw-rw-r--   1 batchuser batch     440069 30 13:14 xmlpublic-2.6.0.jar
--rw-rw-r--   1 batchuser batch       7188 30 13:14 xmlpull-1.1.3.1.jar
--rw-rw-r--   1 batchuser batch     162818 30 13:14 xmlschema-core-2.0.3.jar
--rw-rw-r--   1 batchuser batch      24956 30 13:14 xpp3_min-1.1.4c.jar
--rw-rw-r--   1 batchuser batch     621071 30 13:14 xstream-1.4.11.1.jar
--rw-rw-r--   1 batchuser batch     344662 30 13:14 yguard-2.2.0.jar
-tobe :: spring 6.2.8 + jdk 21 기반의 어플리케이션
-batchuser@cdsi-martweb01[/Appl/T/Batch/JDK21_TEST/Batch/core_lib/spring6]$ ls -al *.jar
--rw-rw-r-- 1 batchuser batch   173763  3월 27 17:15 HdrHistogram-2.1.12.jar
--rw-rw-r-- 1 batchuser batch    99476  3월 27 17:16 JsonConverter-1.1.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch    29779  3월 27 17:15 LatencyUtils-2.0.3.jar
--rw-rw-r-- 1 batchuser batch    14783  3월 27 17:15 SDBAPI_JAVA_DPfile-1.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch   183226  3월 27 17:15 SDB_API_15221_hiportal-1.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch    25843  3월 27 17:15 SparseBitSet-1.3.jar
--rw-rw-r-- 1 batchuser batch    27370  3월 27 17:16 angus-activation-2.0.1.jar
--rw-rw-r-- 1 batchuser batch   489912  3월 27 17:16 angus-mail-1.0.0.jar
--rw-rw-r-- 1 batchuser batch   123598  3월 27 17:16 asm-9.6.jar
--rw-rw-r-- 1 batchuser batch    72194  3월 27 17:16 asm-commons-9.6.jar
--rw-rw-r-- 1 batchuser batch    51935  3월 27 17:16 asm-tree-9.6.jar
--rw-rw-r-- 1 batchuser batch   126610  3월 27 17:16 aspectjrt-1.9.22.jar
--rw-rw-r-- 1 batchuser batch  2177100  3월 27 17:16 aspectjweaver-1.9.22.1.jar
--rw-rw-r-- 1 batchuser batch   307517  3월 27 17:15 axiom-api-1.4.0.jar
--rw-rw-r-- 1 batchuser batch   546023  3월 27 17:15 axiom-impl-1.4.0.jar
--rw-rw-r-- 1 batchuser batch   162720  3월 27 17:15 axis2-adb-1.3.jar
--rw-rw-r-- 1 batchuser batch  1096111  3월 27 17:15 axis2-kernel-1.3.jar
--rw-rw-r-- 1 batchuser batch   533339  3월 27 17:15 bcel-5.2.jar
--rw-rw-r-- 1 batchuser batch  2318161  3월 27 17:15 bcprov-jdk15on-1.48.jar
--rw-rw-r-- 1 batchuser batch   507423  3월 27 17:16 bson-5.1.0.jar
--rw-rw-r-- 1 batchuser batch    11795  3월 27 17:16 bson-record-codec-5.1.0.jar
--rw-rw-r-- 1 batchuser batch  2330381  3월 27 17:15 builder-7.0.jar
--rw-rw-r-- 1 batchuser batch    10364  3월 27 17:15 builder-api-7.0.jar
--rw-rw-r-- 1 batchuser batch   573252  4월 16 14:52 bxm-batch-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   124161  4월 16 14:52 bxm-batch-daemon-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   165890  4월 16 14:52 bxm-batch-extension-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   225210  4월 16 14:52 bxm-centercut-dao-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   221854  4월 16 14:52 bxm-centercut-dbio-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   415691  4월 16 14:52 bxm-common-3.1.0.jar
--rw-rw-r-- 1 batchuser batch  1057193  4월 16 14:52 bxm-container-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   449358  4월 16 14:52 bxm-context-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   135127  4월 16 14:52 bxm-das-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   223231  4월 16 14:52 bxm-default-extension-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   132449  4월 16 14:52 bxm-omm-common-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   148256  4월 16 14:52 bxm-omm-marshaller-3.1.0.jar
--rw-rw-r-- 1 batchuser batch    78711  4월 16 14:52 bxm-service-endpoint-3.1.0.jar
--rw-rw-r-- 1 batchuser batch    78209  4월 16 14:52 bxm-sql-gsp-parser-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   501445  3월 27 17:16 c3p0-0.9.5.5.jar
--rw-rw-r-- 1 batchuser batch    51281  3월 27 17:16 cache-api-1.1.1.jar
--rw-rw-r-- 1 batchuser batch   912143  3월 27 17:15 caffeine-2.9.3.jar
--rw-rw-r-- 1 batchuser batch   222143  3월 27 17:15 checker-qual-3.19.0.jar
--rw-rw-r-- 1 batchuser batch   214381  3월 27 17:15 checker-qual-3.5.0.jar
--rw-rw-r-- 1 batchuser batch   175412  3월 27 17:16 cis-bpm-20.0.jar
--rw-rw-r-- 1 batchuser batch     5109  3월 27 17:15 com.ibm.websphere.uow-6.0.2.17.jar
--rw-rw-r-- 1 batchuser batch   246918  3월 27 17:16 commons-beanutils-1.9.4.jar
--rw-rw-r-- 1 batchuser batch   372608  3월 27 17:16 commons-codec-1.17.0.jar
--rw-rw-r-- 1 batchuser batch   588337  3월 27 17:15 commons-collections-3.2.2.jar
--rw-rw-r-- 1 batchuser batch   751914  3월 27 17:15 commons-collections4-4.4.jar
--rw-rw-r-- 1 batchuser batch  1083634  3월 27 17:16 commons-compress-1.26.2.jar
--rw-rw-r-- 1 batchuser batch   218071  3월 27 17:16 commons-dbcp2-2.12.0.jar
--rw-rw-r-- 1 batchuser batch    88138  3월 27 17:16 commons-dbutils-1.8.1.jar
--rw-rw-r-- 1 batchuser batch   196768  3월 27 17:15 commons-digester-2.1.jar
--rw-rw-r-- 1 batchuser batch    65863  3월 27 17:16 commons-exec-1.4.0.jar
--rw-rw-r-- 1 batchuser batch    63881  3월 27 17:16 commons-fileupload2-core-2.0.0-M1.jar
--rw-rw-r-- 1 batchuser batch    13171  3월 27 17:16 commons-fileupload2-jakarta-2.0.0-M1.jar
--rw-rw-r-- 1 batchuser batch   508826  3월 27 17:16 commons-io-2.16.1.jar
--rw-rw-r-- 1 batchuser batch   261809  3월 27 17:15 commons-lang-2.4.jar
--rw-rw-r-- 1 batchuser batch   657952  3월 27 17:16 commons-lang3-3.14.0.jar
--rw-rw-r-- 1 batchuser batch   338488  3월 27 17:16 commons-math-1.2.jar
--rw-rw-r-- 1 batchuser batch  2213560  3월 27 17:15 commons-math3-3.6.1.jar
--rw-rw-r-- 1 batchuser batch   325395  3월 27 17:16 commons-net-3.11.1.jar
--rw-rw-r-- 1 batchuser batch   150048  3월 27 17:16 commons-pool2-2.12.0.jar
--rw-rw-r-- 1 batchuser batch   201424  3월 27 17:16 commons-validator-1.9.0.jar
--rw-rw-r-- 1 batchuser batch   529136  3월 27 17:16 commons-vfs2-2.9.0.jar
--rw-rw-r-- 1 batchuser batch   479816  3월 27 17:15 configuration-wizard-7.0.jar
--rw-rw-r-- 1 batchuser batch   117159  3월 27 17:15 curvesapi-1.08.jar
--rw-rw-r-- 1 batchuser batch    27310  3월 27 17:15 custom-ruleif-7.0.jar
--rw-rw-r-- 1 batchuser batch     2662  3월 27 17:15 custom-ruleif-api-7.0.jar
--rw-rw-r-- 1 batchuser batch   187736  3월 27 17:15 custom-udf-7.0.jar
--rw-rw-r-- 1 batchuser batch   114124  3월 27 17:15 dbio-foundation.jar
--rw-rw-r-- 1 batchuser batch   324655  3월 27 17:16 dom4j-2.1.4.jar
--rw-rw-r-- 1 batchuser batch   107128  3월 27 17:15 edms_clientv-1.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch  1814014  3월 27 17:16 ehcache-3.10.8.jar
--rw-rw-r-- 1 batchuser batch    15992  3월 27 17:15 error_prone_annotations-2.10.0.jar
--rw-rw-r-- 1 batchuser batch    13879  3월 27 17:15 error_prone_annotations-2.3.4.jar
--rw-rw-r-- 1 batchuser batch     4617  3월 27 17:15 failureaccess-1.0.1.jar
--rw-rw-r-- 1 batchuser batch    94643  3월 27 17:15 fasoo-jni-3.9.0u.jar
--rw-rw-r-- 1 batchuser batch   118904  3월 27 17:15 fcwpkg_jni-1.9.0.jar
--rw-rw-r-- 1 batchuser batch  1877365  3월 27 17:15 freemarker-2.3.33.jar
--rw-rw-r-- 1 batchuser batch  2615378  3월 27 17:15 gsp-1.6.3.7.jar
--rw-rw-r-- 1 batchuser batch  2862361  3월 27 17:15 guava-30.1-jre.jar
--rw-rw-r-- 1 batchuser batch  2614933  3월 20 15:19 h2-2.2.224.jar
--rw-rw-r-- 1 batchuser batch  5496159  3월 27 17:16 hadoop-hdfs-client-3.3.1.jar
--rw-rw-r-- 1 batchuser batch    59483  3월 27 17:16 hdmf-eai-batch-1.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch    27188  3월 27 17:15 hi-security-1.7.jar
--rw-rw-r-- 1 batchuser batch    40663  3월 27 17:15 hin_seed-1.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch    73455  3월 27 17:15 hiportal-udf-7.0.jar
--rw-rw-r-- 1 batchuser batch   861741  3월 27 17:16 httpclient5-5.3.1.jar
--rw-rw-r-- 1 batchuser batch   855019  3월 27 17:16 httpcore5-5.2.5.jar
--rw-rw-r-- 1 batchuser batch   237145  3월 27 17:16 httpcore5-h2-5.2.4.jar
--rw-rw-r-- 1 batchuser batch 13298912  3월 20 15:19 icu4j-68.1.jar
--rw-rw-r-- 1 batchuser batch 13905934  3월 20 15:19 ignite-core-8.8.15_lockmonitor.jar
--rw-rw-r-- 1 batchuser batch 14169310  5월  8 10:21 ignite-core-8.9.31.jar
--rw-rw-r-- 1 batchuser batch    26935  3월 20 15:19 ignite-log4j-8.7.23.jar
--rw-rw-r-- 1 batchuser batch    18851  5월  8 10:21 ignite-shmem-8.7.3.jar
--rw-rw-r-- 1 batchuser batch     7387  3월 23 14:23 inno-initializer-7.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch    61613  3월 23 14:23 innorules-api-7.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch    22666  3월 23 14:23 innorules-core-7.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch    93110  3월 23 14:23 innorules-extra-7.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch  1254434  3월 23 14:23 innorulesj-7.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch   546978  3월 23 14:23 innoutils-7.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch    26147  3월 27 17:15 istack-commons-runtime-4.1.1.jar
--rw-rw-r-- 1 batchuser batch     8781  3월 27 17:15 j2objc-annotations-1.3.jar
--rw-rw-r-- 1 batchuser batch   355139  3월 27 17:15 j2ssh-core-0.2.9.jar
--rw-rw-r-- 1 batchuser batch    78492  3월 27 17:16 jackson-annotations-2.17.2.jar
--rw-rw-r-- 1 batchuser batch   581927  3월 27 17:16 jackson-core-2.17.2.jar
--rw-rw-r-- 1 batchuser batch  1649454  3월 27 17:16 jackson-databind-2.17.2.jar
--rw-rw-r-- 1 batchuser batch   132264  3월 27 17:16 jackson-datatype-jsr310-2.17.2.jar
--rw-rw-r-- 1 batchuser batch    10338  3월 27 17:16 jackson-module-parameter-names-2.17.2.jar
--rw-rw-r-- 1 batchuser batch   628053  3월 27 17:15 jai-imageio-core-1.4.0.jar
--rw-rw-r-- 1 batchuser batch    28576  3월 27 17:15 jakarta-regexp-1.4.jar
--rw-rw-r-- 1 batchuser batch    66514  3월 27 17:16 jakarta.activation-api-2.1.3.jar
--rw-rw-r-- 1 batchuser batch    26141  3월 27 17:16 jakarta.annotation-api-2.1.1.jar
--rw-rw-r-- 1 batchuser batch    58964  3월 27 17:16 jakarta.jms-api-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   235808  3월 27 17:16 jakarta.mail-api-2.1.0.jar
--rw-rw-r-- 1 batchuser batch   347613  3월 27 17:16 jakarta.servlet-api-6.0.0.jar
--rw-rw-r-- 1 batchuser batch    71370  3월 27 17:16 jakarta.servlet.jsp-api-3.1.1.jar
--rw-rw-r-- 1 batchuser batch    28607  3월 27 17:16 jakarta.transaction-api-2.0.1.jar
--rw-rw-r-- 1 batchuser batch    93298  3월 27 17:16 jakarta.validation-api-3.0.2.jar
--rw-rw-r-- 1 batchuser batch   131033  3월 27 17:16 jakarta.xml.bind-api-4.0.2.jar
--rw-rw-r-- 1 batchuser batch    38036  3월 27 17:16 jakarta.xml.soap-api-3.0.1.jar
--rw-rw-r-- 1 batchuser batch   142255  3월 27 17:15 jasypt-1.9.3.jar
--rw-rw-r-- 1 batchuser batch   272220  3월 27 17:15 java-support-7.5.2.jar
--rw-rw-r-- 1 batchuser batch   138596  3월 27 17:16 jaxb-core-4.0.2.jar
--rw-rw-r-- 1 batchuser batch   908151  3월 27 17:16 jaxb-runtime-4.0.2.jar
--rw-rw-r-- 1 batchuser batch    18429  3월 27 17:16 jcl-over-slf4j-2.0.13.jar
--rw-rw-r-- 1 batchuser batch  1321777  4월 16 14:52 jef-application-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   672095  4월 16 14:52 jef-batch-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   377926  4월 16 14:52 jef-foundation-3.1.0.jar
--rw-rw-r-- 1 batchuser batch    25074  4월 16 14:52 jef-ignite-3.1.0.jar
--rw-rw-r-- 1 batchuser batch    31168  4월 16 14:52 jef-logging-3.1.0.jar
--rw-rw-r-- 1 batchuser batch    64559  3월 27 17:16 jef-ne2e-3.1.0.jar
--rw-rw-r-- 1 batchuser batch   539626  3월 27 17:16 jeromq-0.6.0.jar
--rw-rw-r-- 1 batchuser batch    19910  3월 27 17:15 jnacl-1.0.0.jar
--rw-rw-r-- 1 batchuser batch   644419  3월 27 17:15 joda-time-2.10.10.jar
--rw-rw-r-- 1 batchuser batch   544782  3월 27 17:15 jsch-0.2.17.jar
--rw-rw-r-- 1 batchuser batch    37875  3월 27 17:15 json-20080701.jar
--rw-rw-r-- 1 batchuser batch   976567  3월 27 17:16 jsqlparser-4.9.jar
--rw-rw-r-- 1 batchuser batch    19936  3월 27 17:15 jsr305-3.0.2.jar
--rw-rw-r-- 1 batchuser batch    13749  3월 27 17:15 jsr94-1.1.jar
--rw-rw-r-- 1 batchuser batch  8144350  3월 27 17:16 kafka-clients-3.7.1.jar
--rw-rw-r-- 1 batchuser batch     2199  3월 27 17:15 listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
--rw-rw-r-- 1 batchuser batch   356224  3월 24 10:41 log4j-1.2-api-2.23.1.jar
--rw-rw-r-- 1 batchuser batch   342535  3월 27 17:16 log4j-api-2.23.1.jar
--rw-rw-r-- 1 batchuser batch  1901886  3월 27 17:16 log4j-core-2.23.1.jar
--rw-rw-r-- 1 batchuser batch    12986  3월 27 17:16 log4j-jcl-2.23.1.jar
--rw-rw-r-- 1 batchuser batch    31325  3월 27 17:16 log4j-jul-2.23.1.jar
--rw-rw-r-- 1 batchuser batch    27293  3월 27 17:16 log4j-slf4j2-impl-2.23.1.jar
--rw-rw-r-- 1 batchuser batch   682804  3월 27 17:15 lz4-java-1.8.0.jar
--rw-rw-r-- 1 batchuser batch   630956  3월 27 17:16 mchange-commons-java-0.2.19.jar
--rw-rw-r-- 1 batchuser batch   120465  3월 27 17:15 metrics-core-3.1.5.jar
--rw-rw-r-- 1 batchuser batch    47877  3월 27 17:15 micrometer-commons-1.14.8.jar
--rw-rw-r-- 1 batchuser batch   883598  3월 27 17:16 micrometer-core-1.12.6.jar
--rw-rw-r-- 1 batchuser batch    75025  3월 27 17:16 micrometer-observation-1.14.8.jar
--rw-rw-r-- 1 batchuser batch  1704383  3월 27 17:16 mongodb-driver-core-5.1.0.jar
--rw-rw-r-- 1 batchuser batch   153555  3월 27 17:16 mongodb-driver-sync-5.1.0.jar
--rw-rw-r-- 1 batchuser batch    29680  3월 27 17:15 mxparser-1.2.2.jar
--rw-rw-r-- 1 batchuser batch  1818073  3월 27 17:16 mybatis-3.5.16.jar
--rw-rw-r-- 1 batchuser batch    76334  3월 27 17:16 mybatis-spring-3.0.3.jar
--rw-rw-r-- 1 batchuser batch     4545  3월 27 17:16 netty-all-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch   336397  3월 27 17:15 netty-buffer-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch   352122  3월 27 17:15 netty-codec-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    67106  3월 27 17:15 netty-codec-dns-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    37788  3월 27 17:15 netty-codec-haproxy-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch   667603  3월 27 17:15 netty-codec-http-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch   490301  3월 27 17:15 netty-codec-http2-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    44735  3월 27 17:15 netty-codec-memcache-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch   114075  3월 27 17:15 netty-codec-mqtt-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    46014  3월 27 17:15 netty-codec-redis-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    21343  3월 27 17:15 netty-codec-smtp-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch   121027  3월 27 17:15 netty-codec-socks-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    34634  3월 27 17:15 netty-codec-stomp-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    19820  3월 27 17:15 netty-codec-xml-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch   694402  3월 27 17:15 netty-common-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch   570352  3월 27 17:15 netty-handler-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    25648  3월 27 17:15 netty-handler-proxy-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    26832  3월 27 17:15 netty-handler-ssl-ocsp-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    37840  3월 27 17:15 netty-resolver-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch   181199  3월 27 17:15 netty-resolver-dns-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch     9142  3월 27 17:15 netty-resolver-dns-classes-macos-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    19652  3월 27 17:15 netty-resolver-dns-native-macos-4.1.111.Final-osx-aarch_64.jar
--rw-rw-r-- 1 batchuser batch    19435  3월 27 17:15 netty-resolver-dns-native-macos-4.1.111.Final-osx-x86_64.jar
--rw-rw-r-- 1 batchuser batch   517953  3월 27 17:15 netty-transport-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch   147378  3월 27 17:15 netty-transport-classes-epoll-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch   108540  3월 27 17:15 netty-transport-classes-kqueue-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    41363  3월 27 17:15 netty-transport-native-epoll-4.1.111.Final-linux-aarch_64.jar
--rw-rw-r-- 1 batchuser batch    35797  3월 27 17:15 netty-transport-native-epoll-4.1.111.Final-linux-riscv64.jar
--rw-rw-r-- 1 batchuser batch    39782  3월 27 17:15 netty-transport-native-epoll-4.1.111.Final-linux-x86_64.jar
--rw-rw-r-- 1 batchuser batch    25670  3월 27 17:15 netty-transport-native-kqueue-4.1.111.Final-osx-aarch_64.jar
--rw-rw-r-- 1 batchuser batch    25080  3월 27 17:15 netty-transport-native-kqueue-4.1.111.Final-osx-x86_64.jar
--rw-rw-r-- 1 batchuser batch    44093  3월 27 17:15 netty-transport-native-unix-common-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    18241  3월 27 17:15 netty-transport-rxtx-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    50811  3월 27 17:15 netty-transport-sctp-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch    32191  3월 27 17:15 netty-transport-udt-4.1.111.Final.jar
--rw-rw-r-- 1 batchuser batch  4036573  3월 20 15:19 ojdbc8.jar
--rw-rw-r-- 1 batchuser batch   331034  3월 27 17:15 okhttp-2.7.5.jar
--rw-rw-r-- 1 batchuser batch    65928  3월 27 17:15 okio-1.6.0.jar
--rw-rw-r-- 1 batchuser batch   181548  3월 27 17:15 opensaml-core-3.4.6.jar
--rw-rw-r-- 1 batchuser batch    56161  3월 27 17:15 opensaml-messaging-api-3.4.6.jar
--rw-rw-r-- 1 batchuser batch    30992  3월 27 17:15 opensaml-profile-api-3.4.6.jar
--rw-rw-r-- 1 batchuser batch   407421  3월 27 17:15 opensaml-saml-api-3.4.6.jar
--rw-rw-r-- 1 batchuser batch  1164963  3월 27 17:15 opensaml-saml-impl-3.4.6.jar
--rw-rw-r-- 1 batchuser batch    66947  3월 27 17:15 opensaml-security-api-3.4.6.jar
--rw-rw-r-- 1 batchuser batch   111854  3월 27 17:15 opensaml-security-impl-3.4.6.jar
--rw-rw-r-- 1 batchuser batch   169900  3월 27 17:15 opensaml-soap-api-3.4.6.jar
--rw-rw-r-- 1 batchuser batch   400665  3월 27 17:15 opensaml-soap-impl-3.4.6.jar
--rw-rw-r-- 1 batchuser batch    23834  3월 27 17:15 opensaml-storage-api-3.4.6.jar
--rw-rw-r-- 1 batchuser batch    45751  3월 27 17:15 opensaml-xacml-api-3.4.6.jar
--rw-rw-r-- 1 batchuser batch   199623  3월 27 17:15 opensaml-xacml-impl-3.4.6.jar
--rw-rw-r-- 1 batchuser batch     8336  3월 27 17:15 opensaml-xacml-saml-api-3.4.6.jar
--rw-rw-r-- 1 batchuser batch    25884  3월 27 17:15 opensaml-xacml-saml-impl-3.4.6.jar
--rw-rw-r-- 1 batchuser batch   209478  3월 27 17:15 opensaml-xmlsec-api-3.4.6.jar
--rw-rw-r-- 1 batchuser batch   295572  3월 27 17:15 opensaml-xmlsec-impl-3.4.6.jar
--rw-rw-r-- 1 batchuser batch  6250148  3월 27 17:15 pharos-loader-1.0.jar
--rw-rw-r-- 1 batchuser batch  2976945  3월 27 17:16 poi-5.2.5.jar
--rw-rw-r-- 1 batchuser batch  2027116  3월 27 17:16 poi-ooxml-5.2.5.jar
--rw-rw-r-- 1 batchuser batch  5946257  3월 27 17:16 poi-ooxml-lite-5.2.5.jar
--rw-rw-r-- 1 batchuser batch   613247  3월 27 17:16 quartz-2.5.0.jar
--rw-rw-r-- 1 batchuser batch   462149  3월 27 17:16 saaj-impl-3.0.3.jar
--rw-rw-r-- 1 batchuser batch   195693  3월 27 17:15 scsl-1.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch    69435  3월 27 17:16 slf4j-api-2.0.16.jar
--rw-rw-r-- 1 batchuser batch  2299797  3월 27 17:15 snappy-java-1.1.10.5.jar
--rw-rw-r-- 1 batchuser batch   419868  3월 27 17:16 spring-aop-6.2.8.jar
--rw-rw-r-- 1 batchuser batch    49862  3월 27 17:16 spring-aspects-6.2.8.jar
--rw-rw-r-- 1 batchuser batch   681207  3월 27 17:16 spring-batch-core-5.1.2.jar
--rw-rw-r-- 1 batchuser batch   538161  3월 27 17:16 spring-batch-infrastructure-5.1.2.jar
--rw-rw-r-- 1 batchuser batch   886727  3월 27 17:16 spring-beans-6.2.8.jar
--rw-rw-r-- 1 batchuser batch  1357894  3월 27 17:16 spring-context-6.2.8.jar
--rw-rw-r-- 1 batchuser batch   175200  3월 27 17:16 spring-context-support-6.2.8.jar
--rw-rw-r-- 1 batchuser batch  1963010  3월 27 17:16 spring-core-6.2.8.jar
--rw-rw-r-- 1 batchuser batch   317829  3월 27 17:16 spring-expression-6.2.8.jar
--rw-rw-r-- 1 batchuser batch     7523  3월 27 17:15 spring-instrument-6.2.8.jar
--rw-rw-r-- 1 batchuser batch    24540  3월 27 17:16 spring-jcl-6.2.8.jar
--rw-rw-r-- 1 batchuser batch   472298  3월 27 17:16 spring-jdbc-6.2.8.jar
--rw-rw-r-- 1 batchuser batch   272727  3월 27 17:16 spring-jms-6.2.8.jar
--rw-rw-r-- 1 batchuser batch    17381  3월 27 17:15 spring-js-2.3.2.RELEASE.jar
--rw-rw-r-- 1 batchuser batch  4412472  3월 27 17:15 spring-js-resources-2.3.2.RELEASE.jar
--rw-rw-r-- 1 batchuser batch   618617  3월 27 17:16 spring-messaging-6.2.8.jar
--rw-rw-r-- 1 batchuser batch   234902  3월 27 17:16 spring-orm-6.2.8.jar
--rw-rw-r-- 1 batchuser batch    60042  3월 27 17:16 spring-oxm-6.2.8.jar
--rw-rw-r-- 1 batchuser batch   156091  3월 27 17:16 spring-retry-2.0.9.jar
--rw-rw-r-- 1 batchuser batch   507708  3월 27 17:16 spring-security-core-6.0.8.jar
--rw-rw-r-- 1 batchuser batch    84198  3월 27 17:15 spring-security-crypto-6.0.8.jar
--rw-rw-r-- 1 batchuser batch   285386  3월 27 17:16 spring-tx-6.2.8.jar
--rw-rw-r-- 1 batchuser batch  2089868  3월 27 17:16 spring-web-6.2.8.jar
--rw-rw-r-- 1 batchuser batch  1089792  3월 27 17:16 spring-webmvc-6.2.8.jar
--rw-rw-r-- 1 batchuser batch   472301  3월 27 17:16 spring-ws-core-4.0.10.jar
--rw-rw-r-- 1 batchuser batch    51156  3월 27 17:16 spring-ws-security-4.0.10.jar
--rw-rw-r-- 1 batchuser batch    79229  3월 27 17:16 spring-ws-support-4.0.10.jar
--rw-rw-r-- 1 batchuser batch    73496  3월 27 17:16 spring-xml-4.0.10.jar
--rw-rw-r-- 1 batchuser batch   403906  3월 27 17:15 sso-external-debug-1.0-jakarta.jar
--rw-rw-r-- 1 batchuser batch    19417  3월 27 17:15 sso-manager-1.2.2.-jakarta.jar
--rw-rw-r-- 1 batchuser batch    38872  3월 27 17:16 stax-ex-2.1.0.jar
--rw-rw-r-- 1 batchuser batch   195909  3월 27 17:15 stax2-api-4.2.1.jar
--rw-rw-r-- 1 batchuser batch    88311  3월 27 17:15 tcp-connector-7.0.jar
--rw-rw-r-- 1 batchuser batch   248180  3월 27 17:15 trilead-ssh2-1.0.0-build222.jar
--rw-rw-r-- 1 batchuser batch  2523218  3월 27 17:15 trove-3.0.3.jar
--rw-rw-r-- 1 batchuser batch    21225  3월 27 17:15 tslib-1.0.jar
--rw-rw-r-- 1 batchuser batch    73267  3월 27 17:15 txw2-4.0.2.jar
--rw-rw-r-- 1 batchuser batch    49008  3월 27 17:15 udf-collection-7.0.jar
--rw-rw-r-- 1 batchuser batch   449505  3월 27 17:15 velocity-1.7.jar
--rw-rw-r-- 1 batchuser batch  1586395  3월 27 17:16 woodstox-core-6.5.1.jar
--rw-rw-r-- 1 batchuser batch   277631  3월 27 17:15 wss4j-ws-security-common-2.4.3.jar
--rw-rw-r-- 1 batchuser batch   335565  3월 27 17:16 wss4j-ws-security-dom-2.4.3.jar
--rw-rw-r-- 1 batchuser batch   136766  3월 27 17:15 xbean-spring-4.25.jar
--rw-rw-r-- 1 batchuser batch   203685  3월 27 17:15 xecure7-v101-jakarta.jar
--rw-rw-r-- 1 batchuser batch  2198521  3월 27 17:16 xmlbeans-5.2.0.jar
--rw-rw-r-- 1 batchuser batch  2202876  3월 27 17:15 xmlbeans-5.2.1.jar
--rw-rw-r-- 1 batchuser batch     7188  3월 27 17:15 xmlpull-1.1.3.1.jar
--rw-rw-r-- 1 batchuser batch  1141178  3월 27 17:16 xmlsec-3.0.3.jar
--rw-rw-r-- 1 batchuser batch   644649  3월 27 17:16 xstream-1.4.20.jar
--rw-rw-r-- 1 batchuser batch  6650280  3월 27 17:15 zstd-jni-1.5.6-3.jar
+package jef.application.resource.imdg.nearcache;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
+import jef.application.resource.imdg.ImdgCache;
+import jef.application.resource.imdg.ImdgClient;
+import jef.foundation.logging.ConsoleLogger;
+
+/**
+ * 단일 프로세스에서 한번만 생성되며, 각각의 스레드는
+ * ThreadLocal 으로 별도의 Caffeine 캐시를 만든다.
+ */
+public class BatchJefNearCache<K, V> implements ImdgCache<K, V>{
+
+    private static final Logger logger = LoggerFactory.getLogger(BatchJefNearCache.class);
+
+    private final ImdgClient imdgClient;
+    private final ImdgCache<K, V> internalCache;
+
+    private final Map<Long, Cache<K, V>> cacheMap = new ConcurrentHashMap<>();
+    private final ReentrantReadWriteLock mainLock = new ReentrantReadWriteLock();
+    private ThreadLocal<Cache<K, V>> threadLocalCache = null;
+
+	private JefNearCacheConfiguration config;
+
+    public BatchJefNearCache(ImdgCache<K, V> internalCache,
+                             ImdgClient imdgClient,
+                             JefNearCacheConfiguration config) {
+        this.internalCache = internalCache;
+        this.imdgClient = imdgClient;
+		this.config = config;
+        
+        this.threadLocalCache = new ThreadLocal<Cache<K, V>>() {
+        	
+            @Override
+            protected Cache<K, V> initialValue() {
+            	// 현재 스레드 ID와 캐시를 맵에 등록
+            	long threadId = Thread.currentThread().getId();
+                Cache<K, V> cache = getInitialCache(threadId);
+                cacheMap.put(threadId, cache);
+				return cache;
+            }
+
+        };
+
+        ConsoleLogger.info("[IMDG] BatchJefNearCache({"+internalCache.getName()+"}) created.");
+    }
+    
+    private Cache<K, V> getInitialCache(long threadId) {
+    	Cache<K, V> cache = Caffeine.newBuilder()
+    			.maximumSize(config.getMaxCapacity())
+    			.recordStats()
+    			.build();
+    	
+    	ConsoleLogger.info("[IMDG]BatchJefNearCacheByThreadId(" + threadId + ") created. "
+    			+ "[maxCapacity: "+ config.getMaxCapacity() + "][recordStat: " + config.isRecordStat() + "]");
+    	return cache;
+    }
+
+    private Cache<K, V> getCacheForCurrentThread() {
+        long threadId = Thread.currentThread().getId();
+        Cache<K, V> cache = cacheMap.get(threadId);
+
+        if (cache == null) {
+        	cache = getInitialCache(threadId);
+            cacheMap.put(threadId, cache);
+        }
+        return cache;
+    }
+
+    @Override
+    public V get(K key) {
+    	V value = null;
+    	Cache<K, V> cache = getCacheForCurrentThread();
+    	try {
+    		value = cache.getIfPresent(key);
+
+    		if (logger.isDebugEnabled()) {
+    			logger.debug("NearCache GET : threadid={"+Thread.currentThread().getId()+"} key={"+key+"} → {"+(value != null ? value:"")+"}" );
+    		}
+
+    	} catch (Exception e) {
+    		logger.error("NearCache GET ERROR. : threadid={"+Thread.currentThread().getId()+"} key={"+key+"} error::"+e.getMessage());
+    	}
+    	
+    	if (value == null && imdgClient.isActive() && !internalCache.isClosed()) {
+    		try {
+    			value = internalCache.get(key);
+    			
+    			if (value != null && cache != null ) {
+    				cache.put(key, value);
+
+    				if (logger.isDebugEnabled())
+    					logger.debug("NearCache PUT (after miss): key={"+key+"} → {"+(value != null ? value:"")+"}" );
+    			} 
+    		} catch (Exception e) {
+    			logger.error("InternalCache GET ERROR. : threadid={"+Thread.currentThread().getId()+"} key={"+key+"} , error::"+e.getMessage());
+    		}
+    	}
+
+    	return value;
+    }
+
+    @Override
+    public void put(K key, V value) {
+        Cache<K, V> cache = getCacheForCurrentThread();
+
+        if (imdgClient.isActive() && !internalCache.isClosed()) {
+            try {
+                internalCache.put(key, value);
+                if (logger.isDebugEnabled())
+                    logger.debug("InternalCache PUT: key={} → {}", key, value);
+                
+            } catch (Exception e) {
+            	logger.error("InternalCache PUT ERROR. : threadid={"+Thread.currentThread().getId()+"} key={"+key+"} , error::"+e.getMessage());
+            }
+        }
+
+        try {
+        	if(cache != null)
+        		cache.put(key, value);
+        	
+            if (logger.isDebugEnabled())
+            	logger.debug("NearCache PUT : threadid={"+Thread.currentThread().getId()+"} key={"+key+"} → {"+(value != null ? value:"")+"}" );
+            
+        } catch (Exception e) {
+        	logger.error("NearCache PUT ERROR. : threadid={"+Thread.currentThread().getId()+"} key={"+key+"} , error::"+e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean remove(K key) {
+        Cache<K, V> cache = getCacheForCurrentThread();
+        cache.invalidate(key);   
+
+        try {
+            boolean removed = internalCache.remove(key);
+            if (logger.isDebugEnabled())
+                logger.debug("InternalCache remove(key={}) → {}", key, removed);
+            return removed;
+        } catch (Exception e) {
+            logger.error("InternalCache.remove. "+ e.getMessage(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean remove(K key, V value) {
+        Cache<K, V> cache = getCacheForCurrentThread();
+        cache.invalidate(key);
+
+        try {
+            boolean removed = internalCache.remove(key, value);
+            if (logger.isDebugEnabled())
+                logger.debug("InternalCache remove(key={}, value={}) ", key, value);
+            return removed;
+        } catch (Exception e) {
+        	logger.error("InternalCache.remove. "+ e.getMessage(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean removeAll() {
+        cleanupThreadMapAll();  // Near Cache 모두 정리
+
+        try {
+            boolean removed = internalCache.removeAll();
+            if (logger.isDebugEnabled())
+                logger.debug("InternalCache.removeAll() → {}", removed);
+            return removed;
+        } catch (Exception e) {
+        	logger.error("InternalCache.removeAll. "+ e.getMessage(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public void putAsync(K key, V value) {
+        put(key, value);
+    }
+
+    @Override
+    public void putAsyncExt(K key, V value) throws Exception {
+    	  put(key, value);
+    }
+
+    @Override
+    public V getExt(K key) throws Exception {
+        return get(key);
+    }
+
+    @Override
+    public void putExt(K key, V value) throws Exception {
+        put(key, value);
+    }
+
+    @Override
+    public String getName() {
+        return "BatchJefNearCache(" + internalCache.getName() + ")";
+    }
+
+    @Override
+    public boolean isNearCache() { return true; }
+
+    @Override
+    public boolean clearNearCache() {
+        cleanupThreadMapAll();
+        return true;
+    }
+
+    @Override
+    public void close() {
+        cleanupThreadMapAll();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return cacheMap.isEmpty();
+    }
+
+    public void clearNearRuleCache(String stepName, long threadId) {
+//    	CacheStats stats = getStats( stepName, threadId);
+//    	if (stats == null)
+//    		logger.info("RuleCacheClearEvent → stepId:{"+stepName+"}, threadId:{"+threadId+"}, stat:{null..}");
+//    	else
+//    		logger.info("RuleCacheClearEvent → stepId:{"+stepName+"}, threadId:{"+threadId+"}, stat:{"+stats.toString()+"}");
+//    	cleanupThread(threadId);
+    }
+	
+    public CacheStats getStats(String stepName, long threadId) {
+    	Cache<K, V> cache = cacheMap.get(threadId);
+    	if (cache == null) return null;
+
+    	if (logger.isInfoEnabled())
+    		logger.info("close.getStats → stepId:{"+stepName+"}, threadId:{"+threadId+"}, cache:{"+cache.toString()+"}");
+    	com.github.benmanes.caffeine.cache.stats.CacheStats stats = cache.stats();
+    	if (stats != null)
+    		logger.info("close.getStats → hitCount:{"+stats.hitCount()+"}, missCount:{"+stats.missCount()+"}, estimatedSize:{"+cache.estimatedSize()+"}");
+
+    	return new CacheStats(stats.hitCount(),
+    			stats.missCount(),
+    			cache.estimatedSize());
+
+    }
+    
+    public void cleanupThread(long threadId) {
+        mainLock.writeLock().lock();
+        try {
+            cacheMap.remove(threadId);
+        } finally {
+            mainLock.writeLock().unlock();
+        }
+    }
+    
+    public void cleanupThreadMapAll() {
+        mainLock.writeLock().lock();
+        try {
+            cacheMap.clear();
+            threadLocalCache.remove();   // 남은 ThreadLocal 가 있으면 정리
+        } finally {
+            mainLock.writeLock().unlock();
+        }
+    }
+
+	public static class CacheStats {
+		private final long hitCount;
+		private final long missCount;
+		private final long estimatedSize;
+		
+		public CacheStats(long h, long m, long s) {
+			this.hitCount = h;
+			this.missCount = m;
+			this.estimatedSize = s;
+		}
+		
+		public long getHitCount() { return hitCount; }
+		public long getMissCount() { return missCount; }
+		public long getEstimatedSize() { return estimatedSize; }
+		
+		public double getHitRate() {
+			long total = hitCount + missCount;
+			return total > 0 ? (double) hitCount / total : 0.0;
+		}
+		
+		@Override
+		public String toString() {
+			return String.format("CacheStats{hit=%d, miss=%d, hitRate=%.2f, size=%d}",
+					hitCount, missCount, getHitRate(), estimatedSize);
+		}
+	}
+}
