@@ -1,150 +1,48 @@
-package hi.bxm.assist.editor.quickfix;
-
-import hi.bxm.assist.Activator;
-import hi.bxm.assist.core.model.ChatMessage.Role;
-import hi.bxm.assist.core.service.ErrorAnalysisService;
-import hi.bxm.assist.core.util.AsyncRunner;
-import hi.bxm.assist.ui.view.ChatView;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IMarkerResolution;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-
-/**
- * Java 문제(IMarker) 한 건에 대해 LLM 에 분석/수정 요청.
- * 결과는 ChatView 에 스트리밍으로 표시.
- */
-class AIFixResolution implements IMarkerResolution {
-
-    private final IMarker marker;
-    private final boolean explainOnly;
-
-    AIFixResolution(IMarker marker, boolean explainOnly) {
-        this.marker = marker;
-        this.explainOnly = explainOnly;
+   public List<ChatMessage> forFixError(String code,
+                                         String errorMessage,
+                                         String fileName,
+                                         EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        String system = SYSTEM_BASE
+            + "\n\n답변 형식:\n"
+            + "### 원인\n<에러 원인 설명>\n\n"
+            + "### 수정 코드\n```java\n<수정된 전체 코드>\n```\n\n"
+            + "### 요약\n<한 줄 요약>";
+        msgs.add(new ChatMessage(Role.SYSTEM, system));
+        StringBuilder user = new StringBuilder();
+        user.append("아래 Java 코드에서 에러가 발생했어.\n\n")
+            .append("파일: ").append(safe(fileName)).append("\n\n");
+        appendCtx(user, ctx);
+        // 에러 메시지도 sanitize — 스택트레이스의 제어문자 제거
+        user.append("에러 메시지:\n```\n")
+            .append(sanitize(errorMessage, 1000))
+            .append("\n```\n\n")
+            .append("코드:\n```java\n")
+            .append(sanitize(code))
+            .append("\n```");
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
     }
-
-    @Override
-    public String getLabel() {
-        return explainOnly
-                ? "BXM AI: 이 에러 설명만 보기"
-                : "BXM AI: 이 에러 분석 + 수정안 받기";
-    }
-
-    @Override
-    public void run(final IMarker marker) {
-        AsyncRunner.run(new Runnable() {
-            @Override public void run() { doFix(); }
-        });
-    }
-
-    private void doFix() {
-        try {
-            final String message = marker.getAttribute(IMarker.MESSAGE, "");
-            final int line = marker.getAttribute(IMarker.LINE_NUMBER, -1);
-            final IResource res = marker.getResource();
-            final String fileName = res != null ? res.getName() : "Unknown";
-            final String snippet = readSnippet(res, line);
-
-            ErrorAnalysisService svc =
-                    new ErrorAnalysisService(Activator.getDefault().getLlmClient());
-            String prompt = explainOnly
-                    ? "이 에러가 왜 발생하는지 설명만 해줘 (수정안 X)."
-                    : "원인과 함께 수정된 전체 코드 블록을 ```java 펜스로 보여줘.";
-            final String result = svc.analyze(snippet,
-                    "Line " + line + ": " + message + "\n\n[추가 지시] " + prompt, fileName);
-
-            Display.getDefault().asyncExec(new Runnable() {
-                @Override public void run() {
-                    try {
-                        IWorkbench wb = PlatformUI.getWorkbench();
-                        IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
-                        if (win == null) return;
-                        IWorkbenchPage page = win.getActivePage();
-                        if (page == null) return;
-                        ChatView v = (ChatView) page.showView(ChatView.ID);
-                        v.appendMessage(Role.USER,
-                                "[Quick Fix] " + fileName + ":" + line + " — " + message);
-                        v.appendMessage(Role.ASSISTANT, result);
-                        // 마커가 가리키는 파일을 활성 에디터로 열어 컨텍스트 제공
-                        if (res instanceof IFile) {
-                            IDE.openEditor(page, (IFile) res, true);
-                        }
-                    } catch (Exception ex) { ex.printStackTrace(); }
-                }
-            });
-        } catch (final Exception e) {
-            Display.getDefault().asyncExec(new Runnable() {
-                @Override public void run() {
-                    org.eclipse.jface.dialogs.MessageDialog.openError(
-                        Display.getDefault().getActiveShell(),
-                        "BXM Assist", "분석 실패: " + e.getMessage());
-                }
-            });
+   private void appendCtx(StringBuilder user, EditorContext ctx) {
+        if (ctx == null) return;
+        if (ctx.getPackageName() != null && !ctx.getPackageName().isEmpty()) {
+            user.append("패키지: ").append(ctx.getPackageName()).append('\n');
         }
-    }
-
-    /** 마커 라인 주변 ±10줄 스니펫 추출 */
-    private String readSnippet(IResource res, int line) {
-        if (!(res instanceof IFile) || line <= 0) return "";
-        IFile f = (IFile) res;
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(f.getContents(), StandardCharsets.UTF_8))) {
-            int from = Math.max(1, line - 10);
-            int to = line + 10;
-            StringBuilder sb = new StringBuilder();
-            String l; int n = 0;
-            while ((l = br.readLine()) != null) {
-                n++;
-                if (n >= from && n <= to) {
-                    sb.append(String.format("%4d: %s%n", n, l));
-                }
-                if (n > to) break;
+        if (ctx.getImports() != null && !ctx.getImports().isEmpty()) {
+            user.append("Import 목록: ");
+            for (int i = 0; i < ctx.getImports().size(); i++) {
+                if (i > 0) user.append(", ");
+                user.append(ctx.getImports().get(i));
             }
-            return sb.toString();
-        } catch (Exception e) {
-            return "";
+            user.append("\n");
         }
-    }
-}
-
-package hi.bxm.assist.editor.quickfix;
-
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.ui.IMarkerResolution;
-import org.eclipse.ui.IMarkerResolutionGenerator;
-
-/**
- * 모든 Java 문제 마커에 'AI로 수정' Quick Fix 를 추가한다.
- * plugin.xml 의 markerResolution extension 으로 등록.
- */
-public class AIMarkerResolutionGenerator implements IMarkerResolutionGenerator {
-
-    @Override
-    public IMarkerResolution[] getResolutions(IMarker marker) {
-        try {
-            int sev = marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
-            if (sev != IMarker.SEVERITY_ERROR && sev != IMarker.SEVERITY_WARNING) {
-                return new IMarkerResolution[0];
+        List<String> api = ctx.getFrameworkApi();
+        if (api != null && !api.isEmpty()) {
+        	user.append("// 사용 가능한 프레임워크 API:\n");
+            for (int i = 0; i < api.size(); i++) {
+                if (i > 0) user.append(", ");
+                user.append(api.get(i));
             }
-            return new IMarkerResolution[]{
-                new AIFixResolution(marker, /*explainOnly=*/false),
-                new AIFixResolution(marker, /*explainOnly=*/true)
-            };
-        } catch (Exception e) {
-            return new IMarkerResolution[0];
         }
+        user.append('\n');
     }
-}
