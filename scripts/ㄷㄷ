@@ -1,468 +1,150 @@
-package bxm.team.scm.git;
+package hi.bxm.assist.editor.quickfix;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import hi.bxm.assist.Activator;
+import hi.bxm.assist.core.model.ChatMessage.Role;
+import hi.bxm.assist.core.service.ErrorAnalysisService;
+import hi.bxm.assist.core.util.AsyncRunner;
+import hi.bxm.assist.ui.view.ChatView;
 
-import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.egit.core.RepositoryUtil;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryCache;
-import org.eclipse.jgit.util.FS;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.IMarkerResolution;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
 
-public class BxmGitRepositoryManager {
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
-    private static BxmGitRepositoryManager instance;
-    private final Set<Repository> registeredRepos = new HashSet<>();
-    private final BxmGitRepositoryInitializer initializer = new BxmGitRepositoryInitializer();
-    private IResourceChangeListener resourceListener;
-    
-	public BxmGitRepositoryManager() {}
+/**
+ * Java 문제(IMarker) 한 건에 대해 LLM 에 분석/수정 요청.
+ * 결과는 ChatView 에 스트리밍으로 표시.
+ */
+class AIFixResolution implements IMarkerResolution {
 
-	public static BxmGitRepositoryManager getInstance() {
-		if (instance == null) {
-			instance = new BxmGitRepositoryManager();
-		}
-		return instance;
-	}
+    private final IMarker marker;
+    private final boolean explainOnly;
 
-	   public void start() {
-	        initializer.start();
+    AIFixResolution(IMarker marker, boolean explainOnly) {
+        this.marker = marker;
+        this.explainOnly = explainOnly;
+    }
 
-	        // ✅ 1. EGit 등록 저장소
-	        registerFromEGit();
+    @Override
+    public String getLabel() {
+        return explainOnly
+                ? "BXM AI: 이 에러 설명만 보기"
+                : "BXM AI: 이 에러 분석 + 수정안 받기";
+    }
 
-	        // ✅ 2. 워크스페이스 직접 스캔 (import된 프로젝트 대응)
-	        registerFromWorkspace();
+    @Override
+    public void run(final IMarker marker) {
+        AsyncRunner.run(new Runnable() {
+            @Override public void run() { doFix(); }
+        });
+    }
 
-	        // ✅ 3. 이후 import/open 프로젝트 감지
-	        startResourceListener();
-	    }
+    private void doFix() {
+        try {
+            final String message = marker.getAttribute(IMarker.MESSAGE, "");
+            final int line = marker.getAttribute(IMarker.LINE_NUMBER, -1);
+            final IResource res = marker.getResource();
+            final String fileName = res != null ? res.getName() : "Unknown";
+            final String snippet = readSnippet(res, line);
 
+            ErrorAnalysisService svc =
+                    new ErrorAnalysisService(Activator.getDefault().getLlmClient());
+            String prompt = explainOnly
+                    ? "이 에러가 왜 발생하는지 설명만 해줘 (수정안 X)."
+                    : "원인과 함께 수정된 전체 코드 블록을 ```java 펜스로 보여줘.";
+            final String result = svc.analyze(snippet,
+                    "Line " + line + ": " + message + "\n\n[추가 지시] " + prompt, fileName);
 
-	    private void registerFromEGit() {
-	    	initializer.start();
-	        try {
-	            RepositoryUtil repoUtil = RepositoryUtil.INSTANCE;
-	            for (String repoDir : repoUtil.getRepositories()) {
-	                register(repoDir);
-	            }
-	        } catch (Exception e) {
-	            org.eclipse.egit.core.Activator.logError("EGit 저장소 등록 실패", e);
-	        }
-	    }
+            Display.getDefault().asyncExec(new Runnable() {
+                @Override public void run() {
+                    try {
+                        IWorkbench wb = PlatformUI.getWorkbench();
+                        IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+                        if (win == null) return;
+                        IWorkbenchPage page = win.getActivePage();
+                        if (page == null) return;
+                        ChatView v = (ChatView) page.showView(ChatView.ID);
+                        v.appendMessage(Role.USER,
+                                "[Quick Fix] " + fileName + ":" + line + " — " + message);
+                        v.appendMessage(Role.ASSISTANT, result);
+                        // 마커가 가리키는 파일을 활성 에디터로 열어 컨텍스트 제공
+                        if (res instanceof IFile) {
+                            IDE.openEditor(page, (IFile) res, true);
+                        }
+                    } catch (Exception ex) { ex.printStackTrace(); }
+                }
+            });
+        } catch (final Exception e) {
+            Display.getDefault().asyncExec(new Runnable() {
+                @Override public void run() {
+                    org.eclipse.jface.dialogs.MessageDialog.openError(
+                        Display.getDefault().getActiveShell(),
+                        "BXM Assist", "분석 실패: " + e.getMessage());
+                }
+            });
+        }
+    }
 
-	    private void registerFromWorkspace() {
-	        try {
-	            IProject[] projects = ResourcesPlugin.getWorkspace()
-	                    .getRoot().getProjects();
-	            for (IProject project : projects) {
-	                if (!project.isOpen()) continue;
-	                File projectDir = project.getLocation().toFile();
-	                File gitDir = findGitDir(projectDir);
-	                if (gitDir != null) {
-	                    register(gitDir.getAbsolutePath());
-	                }
-	            }
-	        } catch (Exception e) {
-	            org.eclipse.egit.core.Activator.logError("워크스페이스 스캔 실패", e);
-	        }
-	    }
-
-	    private void startResourceListener() {
-	        resourceListener = new IResourceChangeListener() {
-	            @Override
-	            public void resourceChanged(IResourceChangeEvent event) {
-	                if (event.getType() != IResourceChangeEvent.POST_CHANGE) return;
-	                try {
-	                    event.getDelta().accept(new IResourceDeltaVisitor() {
-	                        @Override
-	                        public boolean visit(IResourceDelta delta) {
-	                            IResource resource = delta.getResource();
-	                            // 프로젝트 open/import 시만 처리
-	                            if (resource.getType() == IResource.PROJECT
-	                                    && (delta.getFlags() & IResourceDelta.OPEN) != 0) {
-	                                IProject project = (IProject) resource;
-	                                if (project.isOpen()) {
-	                                    File dir = project.getLocation().toFile();
-	                                    File gitDir = findGitDir(dir);
-	                                    if (gitDir != null) {
-	                                        register(gitDir.getAbsolutePath());
-	                                    }
-	                                }
-	                            }
-	                            return true;
-	                        }
-	                    });
-	                } catch (Exception e) {
-	                    org.eclipse.egit.core.Activator.logError("프로젝트 감지 실패", e);
-	                }
-	            }
-	        };
-	        ResourcesPlugin.getWorkspace().addResourceChangeListener(
-	                resourceListener, IResourceChangeEvent.POST_CHANGE);
-	    }
-
-	    // ✅ .git 경로 이중 계산 수정
-	    private void register(String repoDir) {
-	        try {
-	            File gitDir = new File(repoDir);
-
-	            // EGit은 .git 경로를 저장함 → 이미 .git이면 그대로 사용
-	            if (!gitDir.getName().equals(".git")) {
-	                File sub = new File(gitDir, ".git");
-	                if (sub.exists() && sub.isDirectory()) {
-	                    gitDir = sub;
-	                }
-	            }
-
-	            if (!gitDir.exists()) return;
-
-	            Repository repo = RepositoryCache.open(
-	                    RepositoryCache.FileKey.lenient(gitDir, FS.DETECTED), true);
-
-	            if (repo != null) {
-	                register(repo);
-	            }
-	        } catch (IOException e) {
-	            org.eclipse.egit.core.Activator.logError("저장소 등록 실패: " + repoDir, e);
-	        }
-	    }
-
-	    // ✅ 프로젝트 폴더에서 상위로 .git 탐색 (워크스페이스 루트 이상 탐색 안 함)
-	    private File findGitDir(File dir) {
-	        File workspaceRoot = ResourcesPlugin.getWorkspace()
-	                .getRoot().getLocation().toFile();
-	        File current = dir;
-	        while (current != null) {
-	            File gitDir = new File(current, ".git");
-	            if (gitDir.exists() && gitDir.isDirectory()) {
-	                return gitDir;
-	            }
-	            if (current.equals(workspaceRoot)) break;
-	            current = current.getParentFile();
-	        }
-	        return null;
-	    }
-
-	    private void register(Repository repo) {
-	        if (registeredRepos.add(repo)) {
-	            initializer.init(repo);
-	        }
-	    }
-
-	    public void stop() {
-	        if (resourceListener != null) {
-	            ResourcesPlugin.getWorkspace()
-	                    .removeResourceChangeListener(resourceListener);
-	            resourceListener = null;
-	        }
-	        initializer.dispose();
-	        for (Repository repo : registeredRepos) {
-	            repo.close();
-	        }
-	        registeredRepos.clear();
-	    }
+    /** 마커 라인 주변 ±10줄 스니펫 추출 */
+    private String readSnippet(IResource res, int line) {
+        if (!(res instanceof IFile) || line <= 0) return "";
+        IFile f = (IFile) res;
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(f.getContents(), StandardCharsets.UTF_8))) {
+            int from = Math.max(1, line - 10);
+            int to = line + 10;
+            StringBuilder sb = new StringBuilder();
+            String l; int n = 0;
+            while ((l = br.readLine()) != null) {
+                n++;
+                if (n >= from && n <= to) {
+                    sb.append(String.format("%4d: %s%n", n, l));
+                }
+                if (n > to) break;
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return "";
+        }
+    }
 }
 
+package hi.bxm.assist.editor.quickfix;
 
-package bxm.team.scm.git;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.ui.IMarkerResolution;
+import org.eclipse.ui.IMarkerResolutionGenerator;
 
-import java.io.File;
-import java.nio.file.ClosedWatchServiceException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+/**
+ * 모든 Java 문제 마커에 'AI로 수정' Quick Fix 를 추가한다.
+ * plugin.xml 의 markerResolution extension 으로 등록.
+ */
+public class AIMarkerResolutionGenerator implements IMarkerResolutionGenerator {
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExtension;
-import org.eclipse.core.runtime.IExtensionPoint;
-import org.eclipse.core.runtime.IExtensionRegistry;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.lib.ObjectReader;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.treewalk.AbstractTreeIterator;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-
-public class BxmGitRepositoryInitializer {
-
-    private WatchService watchService;
-    private final Map<WatchKey, Repository> keyToRepo = new ConcurrentHashMap<WatchKey, Repository>();
-    private final AtomicBoolean running = new AtomicBoolean(false);
-
-    // ✅ JDK 7 — 람다 → ThreadFactory 익명 클래스
-    private final ScheduledExecutorService debouncer =
-            Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
-                @Override
-                public Thread newThread(Runnable r) {
-                    Thread t = new Thread(r, "BXM-Git-Debouncer");
-                    t.setDaemon(true);
-                    return t;
-                }
-            });
-
-    private final ExecutorService commitExecutor =
-            Executors.newFixedThreadPool(2, new ThreadFactory() {
-                @Override
-                public Thread newThread(Runnable r) {
-                    Thread t = new Thread(r, "BXM-Git-CommitWorker");
-                    t.setDaemon(true);
-                    return t;
-                }
-            });
-
-    private final Map<Repository, ScheduledFuture<?>> pendingCommits =
-            new ConcurrentHashMap<Repository, ScheduledFuture<?>>();
-
-    public void start() {
-        if (running.getAndSet(true)) return;
-
+    @Override
+    public IMarkerResolution[] getResolutions(IMarker marker) {
         try {
-            watchService = FileSystems.getDefault().newWatchService();
-
-            Thread watchThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    watchLoop();
-                }
-            }, "BXM-Git-Watcher");
-            watchThread.setDaemon(true);
-            watchThread.start();
-
-            // ✅ JVM 강제종료 대비 ShutdownHook
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    dispose();
-                }
-            }, "BXM-Git-Shutdown"));
-
+            int sev = marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
+            if (sev != IMarker.SEVERITY_ERROR && sev != IMarker.SEVERITY_WARNING) {
+                return new IMarkerResolution[0];
+            }
+            return new IMarkerResolution[]{
+                new AIFixResolution(marker, /*explainOnly=*/false),
+                new AIFixResolution(marker, /*explainOnly=*/true)
+            };
         } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void init(Repository repo) {
-        if (watchService == null) return;
-        File gitDir = repo.getDirectory();
-        if (gitDir == null || !gitDir.exists()) return;
-
-        // ✅ JDK 7 — 스트림 → for문
-        boolean alreadyRegistered = false;
-        for (Repository r : keyToRepo.values()) {
-            if (r.getDirectory().equals(gitDir)) {
-                alreadyRegistered = true;
-                break;
-            }
-        }
-        if (alreadyRegistered) return;
-
-        try {
-            WatchKey key = gitDir.toPath().register(
-                    watchService,
-                    StandardWatchEventKinds.ENTRY_MODIFY
-            );
-            keyToRepo.put(key, repo);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void watchLoop() {
-        while (running.get()) {
-            try {
-                WatchKey key = watchService.poll(1, TimeUnit.SECONDS);
-                if (key == null) continue;
-
-                Repository repo = keyToRepo.get(key);
-                if (repo != null) {
-                    for (WatchEvent<?> event : key.pollEvents()) {
-                        Path changed = (Path) event.context();
-                        if ("COMMIT_EDITMSG".equals(changed.getFileName().toString())) {
-                            scheduleCommit(repo);
-                        }
-                    }
-                }
-
-                if (!key.reset()) {
-                    keyToRepo.remove(key);
-                }
-
-            } catch (ClosedWatchServiceException e) {
-                break;
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    // ✅ JDK 7 — 람다 → 익명 Runnable
-    private void scheduleCommit(final Repository repo) {
-        ScheduledFuture<?> existing = pendingCommits.get(repo);
-        if (existing != null) {
-            existing.cancel(false);
-        }
-
-        ScheduledFuture<?> future = debouncer.schedule(new Runnable() {
-            @Override
-            public void run() {
-                pendingCommits.remove(repo);
-                commitExecutor.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        onCommit(repo);
-                    }
-                });
-            }
-        }, 500, TimeUnit.MILLISECONDS);
-
-        pendingCommits.put(repo, future);
-    }
-
-    private void onCommit(Repository repo) {
-        Git git = new Git(repo);
-        try {
-            RevCommit latest = git.log().setMaxCount(1).call().iterator().next();
-            List<String> files = getChangedFiles(git, repo, latest);
-            fireParticipants(files, repo.getWorkTree());
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            // ✅ JDK 7 — try-with-resources 대신 finally
-            git.close();
-        }
-    }
-
-    public void dispose() {
-        if (!running.getAndSet(false)) return;
-
-        // 대기 중인 커밋 취소
-        for (ScheduledFuture<?> f : pendingCommits.values()) {
-            f.cancel(false);
-        }
-        pendingCommits.clear();
-
-        try {
-            if (watchService != null) watchService.close();
-        } catch (Exception ignored) {}
-
-        shutdownExecutor(debouncer, "debouncer");
-        shutdownExecutor(commitExecutor, "commitExecutor");
-
-        keyToRepo.clear();
-    }
-
-    private void shutdownExecutor(ExecutorService executor, String name) {
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    private List<String> getChangedFiles(Git git, Repository repo, RevCommit commit) throws Exception {
-        List<String> result = new ArrayList<String>();
-        if (commit.getParentCount() == 0) return result;
-
-        RevCommit parent = commit.getParent(0);
-        List<DiffEntry> diffs = git.diff()
-                .setOldTree(prepareTreeParser(repo, parent))
-                .setNewTree(prepareTreeParser(repo, commit))
-                .call();
-
-        for (DiffEntry diff : diffs) {
-            switch (diff.getChangeType()) {
-                case ADD:    result.add("A:" + diff.getNewPath()); break;
-                case MODIFY: result.add("M:" + diff.getNewPath()); break;
-                case DELETE: result.add("D:" + diff.getOldPath()); break;
-                default: break;
-            }
-        }
-        return result;
-    }
-
-    private void fireParticipants(List<String> files, File repoRoot) {
-        IExtensionRegistry registry = Platform.getExtensionRegistry();
-        IExtensionPoint ep = registry.getExtensionPoint("bxm.team.scm.git.commit");
-        if (ep == null) {
-            System.err.println("[BXM] Extension point 'bxm.team.scm.git.commit' not found");
-            return;
-        }
-
-        List<IBxmGitCommitParticipant> participants = new ArrayList<IBxmGitCommitParticipant>();
-        for (IExtension ext : ep.getExtensions()) {
-            for (IConfigurationElement el : ext.getConfigurationElements()) {
-                try {
-                    IBxmGitCommitParticipant p =
-                        (IBxmGitCommitParticipant) el.createExecutableExtension("class");
-                    participants.add(p);
-                } catch (CoreException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        // ✅ JDK 7 — Comparator 익명 클래스
-        Collections.sort(participants, new Comparator<IBxmGitCommitParticipant>() {
-            @Override
-            public int compare(IBxmGitCommitParticipant a, IBxmGitCommitParticipant b) {
-                return Integer.compare(a.getPriority(), b.getPriority());
-            }
-        });
-
-        for (IBxmGitCommitParticipant p : participants) {
-            Object pre = p.performPreProcess();
-            p.performAfterCommitTasks(pre, files, repoRoot);
-            p.performPostProcess();
-        }
-    }
-
-    private AbstractTreeIterator prepareTreeParser(Repository repo, RevCommit commit) throws Exception {
-        RevWalk walk = new RevWalk(repo);
-        ObjectReader reader = repo.newObjectReader();
-        try {
-            CanonicalTreeParser parser = new CanonicalTreeParser();
-            parser.reset(reader, walk.parseTree(commit.getTree()));
-            return parser;
-        } finally {
-            // ✅ JDK 7 — 다중 try-with-resources 대신 finally
-            reader.close();
-            walk.close();
+            return new IMarkerResolution[0];
         }
     }
 }
