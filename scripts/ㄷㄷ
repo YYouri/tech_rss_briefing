@@ -1,48 +1,232 @@
-   public List<ChatMessage> forFixError(String code,
-                                         String errorMessage,
-                                         String fileName,
-                                         EditorContext ctx) {
-        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
-        String system = SYSTEM_BASE
-            + "\n\n답변 형식:\n"
-            + "### 원인\n<에러 원인 설명>\n\n"
-            + "### 수정 코드\n```java\n<수정된 전체 코드>\n```\n\n"
-            + "### 요약\n<한 줄 요약>";
-        msgs.add(new ChatMessage(Role.SYSTEM, system));
-        StringBuilder user = new StringBuilder();
-        user.append("아래 Java 코드에서 에러가 발생했어.\n\n")
-            .append("파일: ").append(safe(fileName)).append("\n\n");
-        appendCtx(user, ctx);
-        // 에러 메시지도 sanitize — 스택트레이스의 제어문자 제거
-        user.append("에러 메시지:\n```\n")
-            .append(sanitize(errorMessage, 1000))
-            .append("\n```\n\n")
-            .append("코드:\n```java\n")
-            .append(sanitize(code))
-            .append("\n```");
-        msgs.add(new ChatMessage(Role.USER, user.toString()));
-        return msgs;
-    }
-   private void appendCtx(StringBuilder user, EditorContext ctx) {
-        if (ctx == null) return;
-        if (ctx.getPackageName() != null && !ctx.getPackageName().isEmpty()) {
-            user.append("패키지: ").append(ctx.getPackageName()).append('\n');
-        }
-        if (ctx.getImports() != null && !ctx.getImports().isEmpty()) {
-            user.append("Import 목록: ");
-            for (int i = 0; i < ctx.getImports().size(); i++) {
-                if (i > 0) user.append(", ");
-                user.append(ctx.getImports().get(i));
-            }
-            user.append("\n");
-        }
-        List<String> api = ctx.getFrameworkApi();
-        if (api != null && !api.isEmpty()) {
-        	user.append("// 사용 가능한 프레임워크 API:\n");
-            for (int i = 0; i < api.size(); i++) {
-                if (i > 0) user.append(", ");
-                user.append(api.get(i));
-            }
-        }
-        user.append('\n');
-    }
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+  <!-- 1. 커맨드 -->
+  <extension point="org.eclipse.ui.commands">
+    <category id="hi.bxm.assist.category" name="BXM Assist"/>
+    <command id="hi.bxm.assist.openChat"
+             name="AI Assist 열기"
+             categoryId="hi.bxm.assist.category"/>
+    <command id="hi.bxm.assist.explainCode"
+             name="AI: 코드 설명"
+             categoryId="hi.bxm.assist.category"/>
+    <command id="hi.bxm.assist.fixError"
+             name="AI: 에러 수정 제안"
+             categoryId="hi.bxm.assist.category"/>
+    <command id="hi.bxm.assist.refactor"
+             name="AI: 리팩토링 제안"
+             categoryId="hi.bxm.assist.category"/>
+    <command id="hi.bxm.assist.triggerInline"
+             name="AI: 인라인 자동완성 트리거"
+             categoryId="hi.bxm.assist.category"/>
+    <command id="hi.bxm.assist.generateTodo"
+             name="AI: TODO 코드 생성"
+             categoryId="hi.bxm.assist.category"/>
+  </extension>
+
+  <!-- 2. 핸들러 -->
+  <extension point="org.eclipse.ui.handlers">
+    <handler commandId="hi.bxm.assist.openChat"
+             class="hi.bxm.assist.ui.handler.SendMessageHandler"/>
+    <handler commandId="hi.bxm.assist.explainCode"
+             class="hi.bxm.assist.editor.command.ExplainCodeHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+    <handler commandId="hi.bxm.assist.fixError"
+             class="hi.bxm.assist.editor.command.FixErrorHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+    <handler commandId="hi.bxm.assist.refactor"
+             class="hi.bxm.assist.editor.command.RefactorHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+    <handler commandId="hi.bxm.assist.triggerInline"
+             class="hi.bxm.assist.editor.ghost.TriggerInlineHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+    <handler commandId="hi.bxm.assist.generateTodo"
+             class="hi.bxm.assist.editor.command.TodoCommentHandler">
+      <activeWhen>
+        <with variable="activeEditorId">
+          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+        </with>
+      </activeWhen>
+    </handler>
+  </extension>
+
+  <!-- 3. View -->
+  <extension point="org.eclipse.ui.views">
+    <view id="hi.bxm.assist.ui.ChatView"
+          name="BXM Assist"
+          class="hi.bxm.assist.ui.view.ChatView"
+          icon="icons/assist_ai_16.png"
+          allowMultiple="false"/>
+  </extension>
+
+  <!-- 4. 메뉴 / 툴바 -->
+  <extension point="org.eclipse.ui.menus">
+    <menuContribution
+        locationURI="popup:org.eclipse.jdt.ui.source.menu?after=additions">
+      <menu id="hi.bxm.assist.editorMenu" icon="icons/assist_ai_16.png" label="BXM Assist">
+        <command commandId="hi.bxm.assist.explainCode"   label="코드 설명"/>
+        <command commandId="hi.bxm.assist.fixError"      label="에러 수정 제안"/>
+        <command commandId="hi.bxm.assist.refactor"      label="리팩토링 제안"/>
+        <command commandId="hi.bxm.assist.generateTodo"  label="TODO 코드 생성"/>
+        <command commandId="hi.bxm.assist.triggerInline" label="인라인 제안 트리거"/>
+      </menu>
+    </menuContribution>
+    <menuContribution
+        locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+      <menu id="hi.bxm.assist.editorMenu2" icon="icons/assist_ai_16.png" label="BXM Assist">
+        <visibleWhen checkEnabled="false">
+          <with variable="activeEditorId">
+            <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+          </with>
+        </visibleWhen>
+        <command commandId="hi.bxm.assist.explainCode"   label="코드 설명"/>
+        <command commandId="hi.bxm.assist.fixError"      label="에러 수정 제안"/>
+        <command commandId="hi.bxm.assist.refactor"      label="리팩토링 제안"/>
+        <command commandId="hi.bxm.assist.generateTodo"  label="TODO 코드 생성"/>
+        <command commandId="hi.bxm.assist.triggerInline" label="인라인 제안 트리거"/>
+      </menu>
+    </menuContribution>
+    <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=help">
+      <menu id="hi.bxm.assist.mainMenu" icon="icons/assist_ai_16.png" label="BXM Assist">
+        <command commandId="hi.bxm.assist.openChat"      label="AI Assist 열기"/>
+        <separator name="sep1"/>
+        <command commandId="hi.bxm.assist.explainCode"   label="코드 설명"/>
+        <command commandId="hi.bxm.assist.fixError"      label="에러 수정 제안"/>
+        <command commandId="hi.bxm.assist.refactor"      label="리팩토링 제안"/>
+        <command commandId="hi.bxm.assist.generateTodo"  label="TODO 코드 생성"/>
+        <separator name="sep2"/>
+        <command commandId="hi.bxm.assist.triggerInline" label="인라인 제안 트리거"/>
+      </menu>
+    </menuContribution>
+  </extension>
+
+  <!-- 5. 키 바인딩 -->
+  <extension point="org.eclipse.ui.bindings">
+    <key commandId="hi.bxm.assist.openChat"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         sequence="ALT+SHIFT+A"/>
+    <key commandId="hi.bxm.assist.explainCode"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         sequence="ALT+SHIFT+E"
+         contextId="org.eclipse.ui.textEditorScope"/>
+    <key commandId="hi.bxm.assist.fixError"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         sequence="ALT+SHIFT+F"
+         contextId="org.eclipse.ui.textEditorScope"/>
+    <key commandId="hi.bxm.assist.refactor"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         sequence="ALT+SHIFT+R"
+         contextId="org.eclipse.ui.textEditorScope"/>
+    <key commandId="hi.bxm.assist.triggerInline"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         sequence="CTRL+ALT+SPACE"
+         contextId="org.eclipse.ui.textEditorScope"/>
+    <key commandId="hi.bxm.assist.generateTodo"
+         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+         sequence="ALT+SHIFT+T"
+         contextId="org.eclipse.ui.textEditorScope"/>
+  </extension>
+
+  <!--
+    6. JDT 자동완성 (Ctrl+Space 팝업)
+
+    ★ 핵심 수정: proposalCategory 와 javaCompletionProposalComputer 를
+      반드시 별도 <extension> 블록으로 분리해야 합니다.
+
+    같은 블록에 두면 Mars(4.5.2) 에서 categoryId 참조가 실패하고,
+    JDT 가 AI 프로세서를 기본(Default) 카테고리에 편입시킵니다.
+    그러면 기본 카테고리 팝업 전체를 AI 프로세서가 대체해서
+    JDT 기본 제안(메서드명, 변수 등)이 사라집니다.
+  -->
+
+  <!-- 6-1. AI 제안 카테고리 단독 등록 -->
+  <extension
+      id="hi.bxm.assist.aiProposalCategory"
+      point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
+    <proposalCategory
+        id="hi.bxm.assist.proposalCategory"
+        label="BXM Assist"
+        icon="icons/assist_ai_16.png"/>
+  </extension>
+
+  <!-- 6-2. AI 프로세서 등록 (카테고리와 반드시 별도 extension 블록) -->
+  <extension
+      id="hi.bxm.assist.aiProposalComputer"
+      point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
+    <javaCompletionProposalComputer
+        class="hi.bxm.assist.editor.completion.AICompletionProcessor"
+        categoryId="hi.bxm.assist.proposalCategory"
+        needsSortingAfterFiltering="false"
+        requiresUIThread="false">
+      <!--
+        partition 미지정: __java_code / __java_string / __java_singleline_comment
+        모든 Java 파티션에서 AI 제안이 나옵니다.
+        특정 영역에서만 제한하려면 아래처럼 추가:
+        <partition type="__java_code"/>
+      -->
+    </javaCompletionProposalComputer>
+  </extension>
+
+  <!-- 7. Startup - Ghost Text 컨트롤러 install -->
+  <extension
+      id="hi.bxm.assist.startups"
+      point="org.eclipse.ui.startup">
+    <startup class="hi.bxm.assist.editor.ghost.InlineCompletionStartup"/>
+  </extension>
+
+  <!-- 8. Java 호버 -->
+  <extension
+      id="hi.bxm.assist.aiHovers"
+      point="org.eclipse.jdt.ui.javaEditorTextHovers">
+    <hover id="hi.bxm.assist.aiHover"
+           class="hi.bxm.assist.editor.hover.AIHoverProvider"
+           label="AI Code Explanation"/>
+  </extension>
+
+  <!-- 9. Quick Fix -->
+  <extension
+      id="hi.bxm.assist.aiMarkerResolution"
+      point="org.eclipse.ui.ide.markerResolution">
+    <markerResolutionGenerator
+        markerType="org.eclipse.jdt.core.problem"
+        class="hi.bxm.assist.editor.quickfix.AIMarkerResolutionGenerator"/>
+    <markerResolutionGenerator
+        markerType="org.eclipse.jdt.core.task"
+        class="hi.bxm.assist.editor.quickfix.AIMarkerResolutionGenerator"/>
+    <markerResolutionGenerator
+        markerType="org.eclipse.core.resources.problemmarker"
+        class="hi.bxm.assist.editor.quickfix.AIMarkerResolutionGenerator"/>
+  </extension>
+
+  <!-- 10. Preferences -->
+  <extension point="org.eclipse.ui.preferencePages">
+    <page id="hi.bxm.assist.preferences"
+          name="BXM Assist"
+          class="hi.bxm.assist.ui.prefs.AssistPreferencePage"/>
+  </extension>
+  <extension point="org.eclipse.core.runtime.preferences">
+    <initializer class="hi.bxm.assist.ui.prefs.PreferenceInitializer"/>
+  </extension>
+
+</plugin>
