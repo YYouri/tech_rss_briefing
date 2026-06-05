@@ -1,232 +1,345 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?eclipse version="3.4"?>
-<plugin>
+package jef.application.resource.imdg.nearcache;
 
-  <!-- 1. 커맨드 -->
-  <extension point="org.eclipse.ui.commands">
-    <category id="hi.bxm.assist.category" name="BXM Assist"/>
-    <command id="hi.bxm.assist.openChat"
-             name="AI Assist 열기"
-             categoryId="hi.bxm.assist.category"/>
-    <command id="hi.bxm.assist.explainCode"
-             name="AI: 코드 설명"
-             categoryId="hi.bxm.assist.category"/>
-    <command id="hi.bxm.assist.fixError"
-             name="AI: 에러 수정 제안"
-             categoryId="hi.bxm.assist.category"/>
-    <command id="hi.bxm.assist.refactor"
-             name="AI: 리팩토링 제안"
-             categoryId="hi.bxm.assist.category"/>
-    <command id="hi.bxm.assist.triggerInline"
-             name="AI: 인라인 자동완성 트리거"
-             categoryId="hi.bxm.assist.category"/>
-    <command id="hi.bxm.assist.generateTodo"
-             name="AI: TODO 코드 생성"
-             categoryId="hi.bxm.assist.category"/>
-  </extension>
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-  <!-- 2. 핸들러 -->
-  <extension point="org.eclipse.ui.handlers">
-    <handler commandId="hi.bxm.assist.openChat"
-             class="hi.bxm.assist.ui.handler.SendMessageHandler"/>
-    <handler commandId="hi.bxm.assist.explainCode"
-             class="hi.bxm.assist.editor.command.ExplainCodeHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
-    <handler commandId="hi.bxm.assist.fixError"
-             class="hi.bxm.assist.editor.command.FixErrorHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
-    <handler commandId="hi.bxm.assist.refactor"
-             class="hi.bxm.assist.editor.command.RefactorHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
-    <handler commandId="hi.bxm.assist.triggerInline"
-             class="hi.bxm.assist.editor.ghost.TriggerInlineHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
-    <handler commandId="hi.bxm.assist.generateTodo"
-             class="hi.bxm.assist.editor.command.TodoCommentHandler">
-      <activeWhen>
-        <with variable="activeEditorId">
-          <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-        </with>
-      </activeWhen>
-    </handler>
-  </extension>
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-  <!-- 3. View -->
-  <extension point="org.eclipse.ui.views">
-    <view id="hi.bxm.assist.ui.ChatView"
-          name="BXM Assist"
-          class="hi.bxm.assist.ui.view.ChatView"
-          icon="icons/assist_ai_16.png"
-          allowMultiple="false"/>
-  </extension>
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
-  <!-- 4. 메뉴 / 툴바 -->
-  <extension point="org.eclipse.ui.menus">
-    <menuContribution
-        locationURI="popup:org.eclipse.jdt.ui.source.menu?after=additions">
-      <menu id="hi.bxm.assist.editorMenu" icon="icons/assist_ai_16.png" label="BXM Assist">
-        <command commandId="hi.bxm.assist.explainCode"   label="코드 설명"/>
-        <command commandId="hi.bxm.assist.fixError"      label="에러 수정 제안"/>
-        <command commandId="hi.bxm.assist.refactor"      label="리팩토링 제안"/>
-        <command commandId="hi.bxm.assist.generateTodo"  label="TODO 코드 생성"/>
-        <command commandId="hi.bxm.assist.triggerInline" label="인라인 제안 트리거"/>
-      </menu>
-    </menuContribution>
-    <menuContribution
-        locationURI="popup:org.eclipse.ui.popup.any?after=additions">
-      <menu id="hi.bxm.assist.editorMenu2" icon="icons/assist_ai_16.png" label="BXM Assist">
-        <visibleWhen checkEnabled="false">
-          <with variable="activeEditorId">
-            <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
-          </with>
-        </visibleWhen>
-        <command commandId="hi.bxm.assist.explainCode"   label="코드 설명"/>
-        <command commandId="hi.bxm.assist.fixError"      label="에러 수정 제안"/>
-        <command commandId="hi.bxm.assist.refactor"      label="리팩토링 제안"/>
-        <command commandId="hi.bxm.assist.generateTodo"  label="TODO 코드 생성"/>
-        <command commandId="hi.bxm.assist.triggerInline" label="인라인 제안 트리거"/>
-      </menu>
-    </menuContribution>
-    <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=help">
-      <menu id="hi.bxm.assist.mainMenu" icon="icons/assist_ai_16.png" label="BXM Assist">
-        <command commandId="hi.bxm.assist.openChat"      label="AI Assist 열기"/>
-        <separator name="sep1"/>
-        <command commandId="hi.bxm.assist.explainCode"   label="코드 설명"/>
-        <command commandId="hi.bxm.assist.fixError"      label="에러 수정 제안"/>
-        <command commandId="hi.bxm.assist.refactor"      label="리팩토링 제안"/>
-        <command commandId="hi.bxm.assist.generateTodo"  label="TODO 코드 생성"/>
-        <separator name="sep2"/>
-        <command commandId="hi.bxm.assist.triggerInline" label="인라인 제안 트리거"/>
-      </menu>
-    </menuContribution>
-  </extension>
+import jef.application.resource.imdg.ImdgCache;
+import jef.application.resource.imdg.ImdgClient;
+public class BatchJefNearCache<K, V> implements ImdgCache<K, V>{
 
-  <!-- 5. 키 바인딩 -->
-  <extension point="org.eclipse.ui.bindings">
-    <key commandId="hi.bxm.assist.openChat"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         sequence="ALT+SHIFT+A"/>
-    <key commandId="hi.bxm.assist.explainCode"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         sequence="ALT+SHIFT+E"
-         contextId="org.eclipse.ui.textEditorScope"/>
-    <key commandId="hi.bxm.assist.fixError"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         sequence="ALT+SHIFT+F"
-         contextId="org.eclipse.ui.textEditorScope"/>
-    <key commandId="hi.bxm.assist.refactor"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         sequence="ALT+SHIFT+R"
-         contextId="org.eclipse.ui.textEditorScope"/>
-    <key commandId="hi.bxm.assist.triggerInline"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         sequence="CTRL+ALT+SPACE"
-         contextId="org.eclipse.ui.textEditorScope"/>
-    <key commandId="hi.bxm.assist.generateTodo"
-         schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-         sequence="ALT+SHIFT+T"
-         contextId="org.eclipse.ui.textEditorScope"/>
-  </extension>
+    private static final Logger logger = LoggerFactory.getLogger(BatchJefNearCache.class);
 
-  <!--
-    6. JDT 자동완성 (Ctrl+Space 팝업)
+    private final ImdgClient imdgClient;
+    private final ImdgCache<K, V> internalCache;
+    private volatile boolean enabledStat = false;
+    private Thread statPrintThread = null;
+    
+//    private final Map<Long, Cache<K, V>> cacheMap = new ConcurrentHashMap<>();
+    private final Map<Thread, Cache<K, V>> cacheMap = Collections.synchronizedMap(new WeakHashMap<>());
+    private final ReentrantReadWriteLock mainLock = new ReentrantReadWriteLock();
+    private ThreadLocal<Cache<K, V>> threadLocalCache = null;
 
-    ★ 핵심 수정: proposalCategory 와 javaCompletionProposalComputer 를
-      반드시 별도 <extension> 블록으로 분리해야 합니다.
+	private JefNearCacheConfiguration config;
 
-    같은 블록에 두면 Mars(4.5.2) 에서 categoryId 참조가 실패하고,
-    JDT 가 AI 프로세서를 기본(Default) 카테고리에 편입시킵니다.
-    그러면 기본 카테고리 팝업 전체를 AI 프로세서가 대체해서
-    JDT 기본 제안(메서드명, 변수 등)이 사라집니다.
-  -->
+    public BatchJefNearCache(ImdgCache<K, V> internalCache,
+                             ImdgClient imdgClient,
+                             JefNearCacheConfiguration config) {
+        this.internalCache = internalCache;
+        this.imdgClient = imdgClient;
+		this.config = config;
+        
+        this.threadLocalCache = new ThreadLocal<Cache<K, V>>() {
+        	
+            @Override
+            protected Cache<K, V> initialValue() {
+            	// 현재 스레드 ID와 캐시를 맵에 등록
+            	Thread currentThread = Thread.currentThread();
+                Cache<K, V> cache = getInitialCache(currentThread);
+                cacheMap.put(currentThread, cache);
+				return cache;
+            }
 
-  <!-- 6-1. AI 제안 카테고리 단독 등록 -->
-  <extension
-      id="hi.bxm.assist.aiProposalCategory"
-      point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
-    <proposalCategory
-        id="hi.bxm.assist.proposalCategory"
-        label="BXM Assist"
-        icon="icons/assist_ai_16.png"/>
-  </extension>
+        };
 
-  <!-- 6-2. AI 프로세서 등록 (카테고리와 반드시 별도 extension 블록) -->
-  <extension
-      id="hi.bxm.assist.aiProposalComputer"
-      point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
-    <javaCompletionProposalComputer
-        class="hi.bxm.assist.editor.completion.AICompletionProcessor"
-        categoryId="hi.bxm.assist.proposalCategory"
-        needsSortingAfterFiltering="false"
-        requiresUIThread="false">
-      <!--
-        partition 미지정: __java_code / __java_string / __java_singleline_comment
-        모든 Java 파티션에서 AI 제안이 나옵니다.
-        특정 영역에서만 제한하려면 아래처럼 추가:
-        <partition type="__java_code"/>
-      -->
-    </javaCompletionProposalComputer>
-  </extension>
+        // 통계 기록 설정이 true인 경우 모니터링 쓰레드 시작
+        if (config.isRecordStat()) {
+            startStatThread();
+        }
 
-  <!-- 7. Startup - Ghost Text 컨트롤러 install -->
-  <extension
-      id="hi.bxm.assist.startups"
-      point="org.eclipse.ui.startup">
-    <startup class="hi.bxm.assist.editor.ghost.InlineCompletionStartup"/>
-  </extension>
+        logger.info("[IMDG] BatchJefNearCache({}) created.", internalCache.getName());
+    }
 
-  <!-- 8. Java 호버 -->
-  <extension
-      id="hi.bxm.assist.aiHovers"
-      point="org.eclipse.jdt.ui.javaEditorTextHovers">
-    <hover id="hi.bxm.assist.aiHover"
-           class="hi.bxm.assist.editor.hover.AIHoverProvider"
-           label="AI Code Explanation"/>
-  </extension>
+    private Cache<K, V> getInitialCache(Thread currentThread) {
+    	Cache<K, V> cache = Caffeine.newBuilder()
+    			.maximumSize(config.getMaxCapacity())
+    			.recordStats()
+    			.build();
+        logger.info("[IMDG]BatchJefNearCacheByThreadId({}) created. [maxCapacity: {}][recordStat: {}]", 
+                    new Object[] {currentThread.getId(), config.getMaxCapacity(), config.isRecordStat()});
+        
+        return cache;
+    }
 
-  <!-- 9. Quick Fix -->
-  <extension
-      id="hi.bxm.assist.aiMarkerResolution"
-      point="org.eclipse.ui.ide.markerResolution">
-    <markerResolutionGenerator
-        markerType="org.eclipse.jdt.core.problem"
-        class="hi.bxm.assist.editor.quickfix.AIMarkerResolutionGenerator"/>
-    <markerResolutionGenerator
-        markerType="org.eclipse.jdt.core.task"
-        class="hi.bxm.assist.editor.quickfix.AIMarkerResolutionGenerator"/>
-    <markerResolutionGenerator
-        markerType="org.eclipse.core.resources.problemmarker"
-        class="hi.bxm.assist.editor.quickfix.AIMarkerResolutionGenerator"/>
-  </extension>
+    private Cache<K, V> getCacheForCurrentThread() {
+//        long threadId = Thread.currentThread().getId();
+//        Cache<K, V> cache = cacheMap.get(threadId);
+//
+//        if (cache == null) {
+//        	cache = getInitialCache(threadId);
+//            cacheMap.put(threadId, cache);
+//        }
+//        return cache;
+    	return threadLocalCache.get();
+    }
 
-  <!-- 10. Preferences -->
-  <extension point="org.eclipse.ui.preferencePages">
-    <page id="hi.bxm.assist.preferences"
-          name="BXM Assist"
-          class="hi.bxm.assist.ui.prefs.AssistPreferencePage"/>
-  </extension>
-  <extension point="org.eclipse.core.runtime.preferences">
-    <initializer class="hi.bxm.assist.ui.prefs.PreferenceInitializer"/>
-  </extension>
+    @Override
+    public V get(K key) {
+    	V value = null;
+    	Cache<K, V> cache = getCacheForCurrentThread();
+    	try {
+    		value = cache.getIfPresent(key);
 
-</plugin>
+    		if (logger.isDebugEnabled()) {
+    			logger.debug("NearCache GET: threadid={}, key={}, value={}", new Object[] {Thread.currentThread().getId(), key, value});
+    		}
+
+    	} catch (Exception e) {
+    		logger.error("NearCache GET ERROR. : threadid={}, key={}, error={}", 
+    				new Object[] { 
+    						Thread.currentThread().getId(), 
+    						key, 
+    						e.getMessage() 
+    		});
+    	}
+    	
+    	if (value == null && imdgClient.isActive() && !internalCache.isClosed()) {
+    		try {
+    			value = internalCache.get(key);
+    			
+    			if (value != null && cache != null ) {
+    				cache.put(key, value);
+
+    				if (logger.isDebugEnabled())
+    					logger.debug("NearCache PUT (after miss): threadid={}, key={}, value={}", new Object[] {Thread.currentThread().getId(), key, value});
+    			} 
+    		} catch (Exception e) {
+    			logger.error("InternalCache GET ERROR. : threadid={}, key={}, error={}", 
+        				new Object[] { 
+        						Thread.currentThread().getId(), 
+        						key, 
+        						e.getMessage() 
+        		});
+    		}
+    	}
+
+    	return value;
+    }
+
+    @Override
+    public void put(K key, V value) {
+        Cache<K, V> cache = getCacheForCurrentThread();
+
+        if (imdgClient.isActive() && !internalCache.isClosed()) {
+            try {
+                internalCache.put(key, value);
+                if (logger.isDebugEnabled())
+                	logger.debug("InternalCache PUT: threadid={}, key={}, value={}", new Object[] {Thread.currentThread().getId(), key, value});
+                
+            } catch (Exception e) {
+            	logger.error("InternalCache PUT ERROR. : threadid={}, key={}, error={}", 
+        				new Object[] { 
+        						Thread.currentThread().getId(), 
+        						key, 
+        						e.getMessage() 
+        		});
+            }
+        }
+
+        try {
+        	if(cache != null)
+        		cache.put(key, value);
+        	
+            if (logger.isDebugEnabled())
+            	logger.debug("NearCache PUT: threadid={}, key={}, value={}", new Object[] {Thread.currentThread().getId(), key, value});
+            
+        } catch (Exception e) {
+        	logger.error("NearCache PUT ERROR. : threadid={}, key={}, error={}", 
+    				new Object[] { 
+    						Thread.currentThread().getId(), 
+    						key, 
+    						e.getMessage() 
+    		});
+        }
+    }
+
+    @Override
+    public boolean remove(K key) {
+        Cache<K, V> cache = getCacheForCurrentThread();
+        cache.invalidate(key);   
+
+        try {
+            boolean removed = internalCache.remove(key);
+            if (logger.isDebugEnabled())
+                logger.debug("InternalCache remove(key={}) → {}", key, removed);
+            return removed;
+        } catch (Exception e) {
+            logger.error("InternalCache.remove. "+ e.getMessage(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean remove(K key, V value) {
+        Cache<K, V> cache = getCacheForCurrentThread();
+        cache.invalidate(key);
+
+        try {
+            boolean removed = internalCache.remove(key, value);
+            if (logger.isDebugEnabled())
+                logger.debug("InternalCache remove(key={}, value={}) ", key, value);
+            return removed;
+        } catch (Exception e) {
+        	logger.error("InternalCache.remove. "+ e.getMessage(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean removeAll() {
+        cleanupThreadMapAll();  // Near Cache 모두 정리
+
+        try {
+            boolean removed = internalCache.removeAll();
+            if (logger.isDebugEnabled())
+                logger.debug("InternalCache.removeAll() → {}", removed);
+            return removed;
+        } catch (Exception e) {
+        	logger.error("InternalCache.removeAll. "+ e.getMessage(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public void putAsync(K key, V value) {
+        put(key, value);
+    }
+
+    @Override
+    public void putAsyncExt(K key, V value) throws Exception {
+    	  put(key, value);
+    }
+
+    @Override
+    public V getExt(K key) throws Exception {
+        return get(key);
+    }
+
+    @Override
+    public void putExt(K key, V value) throws Exception {
+        put(key, value);
+    }
+
+    @Override
+    public String getName() {
+        return "BatchJefNearCache(" + internalCache.getName() + ")";
+    }
+
+    @Override
+    public boolean isNearCache() { return true; }
+
+    @Override
+    public boolean clearNearCache() {
+        cleanupThreadMapAll();
+        return true;
+    }
+
+    @Override
+    public void close() {
+        cleanupThreadMapAll();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return cacheMap.isEmpty();
+    }
+
+    public void clearNearRuleCache(String stepName, Thread threadId) {
+//    	CacheStats stats = getStats( stepName, threadId);
+//    	if (stats == null)
+//    		logger.info("RuleCacheClearEvent → stepId:{"+stepName+"}, threadId:{"+threadId+"}, stat:{null..}");
+//    	else
+//    		logger.info("RuleCacheClearEvent → stepId:{"+stepName+"}, threadId:{"+threadId+"}, stat:{"+stats.toString()+"}");
+//    	cleanupThread(threadId);
+    }
+	
+    public void cleanupThread(Thread threadId) {
+        mainLock.writeLock().lock();
+        try {
+            cacheMap.remove(threadId);
+        } finally {
+            mainLock.writeLock().unlock();
+        }
+    }
+    
+    public void cleanupThreadMapAll() {
+        mainLock.writeLock().lock();
+        try {
+            cacheMap.clear();
+            threadLocalCache.remove();   // 남은 ThreadLocal 가 있으면 정리
+        } finally {
+            mainLock.writeLock().unlock();
+        }
+    }
+    
+    private void startStatThread() {
+        this.enabledStat = true;
+        this.statPrintThread = new Thread(() -> {
+            while (enabledStat) {
+                try {
+                    Thread.sleep(config.getPrintStatInterval());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                } catch (Exception e) {
+                    // ignore
+                }
+
+                if (Thread.currentThread().isInterrupted()) break;
+
+                printAggregateStats();
+            }
+        });
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss.SSS");
+        this.statPrintThread.setName("[IMDG]JefNearCache(" + internalCache.getName() + ")-STAT-" + format.format(new Date()));
+        this.statPrintThread.start();
+    }
+    
+    private void printAggregateStats() {
+        long totalHit = 0;
+        long totalMiss = 0;
+        long totalSize = 0;
+        int threadCount = 0;
+
+        synchronized (cacheMap) {
+            for (Cache<K, V> cache : cacheMap.values()) {
+                if (cache != null) {
+                    com.github.benmanes.caffeine.cache.stats.CacheStats s = cache.stats(); 
+                    if (s != null) {
+                        totalHit += s.hitCount();
+                        totalMiss += s.missCount();
+                    }
+                    totalSize += cache.estimatedSize();
+                    threadCount++;
+                }
+            }
+        }
+
+        long totalRequest = totalHit + totalMiss;
+        double hitRate = totalRequest > 0 ? (double) totalHit / totalRequest * 100 : 0.0;
+        double missRate = totalRequest > 0 ? (double) totalMiss / totalRequest * 100 : 0.0;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("[JefNearCache(").append(internalCache.getName()).append(") Aggregate Stat]")
+          .append(" [Threads: ").append(threadCount).append("]")
+          .append(" [TotalCapacity: ").append(String.format("%,d", (long)config.getMaxCapacity() * threadCount)).append("]")
+          .append(" [CurrentSize: ").append(String.format("%,d", totalSize)).append("]")
+          .append(" [RequestCnt: ").append(String.format("%,d", totalRequest)).append("]")
+          .append(" [HitCnt: ").append(String.format("%,d", totalHit)).append("]")
+          .append(" [HitRate: ").append(String.format("%.2f", hitRate)).append("%]")
+          .append(" [MissCnt: ").append(String.format("%,d", totalMiss)).append("]")
+          .append(" [MissRate: ").append(String.format("%.2f", missRate)).append("%]");
+
+        logger.debug(sb.toString());
+    }
+}
