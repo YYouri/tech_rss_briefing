@@ -1,174 +1,417 @@
-package hi.bxm.assist.ui.presenter;
+package hi.bxm.assist.core.llm;
 
-import hi.bxm.assist.core.gateway.AiRequestGateway;
-import hi.bxm.assist.core.llm.CancelToken;
-import hi.bxm.assist.core.llm.PromptBuilder;
 import hi.bxm.assist.core.model.ChatMessage;
 import hi.bxm.assist.core.model.ChatMessage.Role;
+import hi.bxm.assist.core.model.CompletionRequest;
 import hi.bxm.assist.core.model.EditorContext;
-import hi.bxm.assist.editor.context.ContextCollector;
-import hi.bxm.assist.ui.view.ChatView;
-
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * BXM Assist Chat Presenter (MVP).
+ * 기능별 프롬프트 조립.
  *
- * [변경사항]
- * - OpenAIClient 직접 취득 제거 → AiRequestGateway.submitChat() 경유
- * - cancelCurrent() 에서 AiRequestGateway.getInstance().reset() 호출
- * - CancelToken 을 AiRequestGateway 에 전달하는 방식으로 변경
- * - AsyncRunner 직접 사용 제거 (Gateway 가 내부적으로 처리)
- *
- * [유지된 로직]
- * - history 관리 (buildHistorySummary, trimHistory)
- * - EditorContext 수집 (UI Thread에서 수집 후 Gateway 에 전달)
- * - friendlyError 메시지 변환은 Gateway 담당으로 이전
- *
- * [상태바]
- * - Eclipse 하단 상태바: AiRequestGateway 가 "● AI 요청 중..." / "✓ AI 완료" 처리
- * - 뷰 내부 statusLabel: ChatView.setInputEnabled() 가 "준비" / "AI 응답 대기 중..." 처리
- *
- * [JDK 7 호환] 람다 미사용, 익명 클래스 사용.
+ * [안전성 원칙]
+ * 1. 모든 코드 입력은 sanitize() 를 거쳐 전달 — JSON 파괴 문자 제거
+ * 2. 코드 길이 제한 — 폐쇄망 AI 토큰 초과 방지
+ * 3. GOLDEN_RULE — javac 컴파일 가능 코드 출력 강제
+ * 4. SAFE_OUTPUT_RULE — AI 응답의 깨지는 문자(이모지·수학기호·전각문자) 방지
  */
-public class ChatPresenter {
+public class PromptBuilder {
 
-    private static final int MAX_HISTORY       = 10;
-    private static final int MAX_HISTORY_CHARS = 3000;
+    // ── 코드 길이 제한 ─────────────────────────────────────────
+    // 폐쇄망 소형 모델 기준 안전 토큰 확보용
+    private static final int MAX_CODE_CHARS   = 3000;
+    private static final int MAX_PREFIX_CHARS = 1500;
 
-    private final ChatView          view;
-    private final PromptBuilder     promptBuilder = new PromptBuilder();
-    private final List<ChatMessage> history       = new ArrayList<ChatMessage>();
+    // ── 골든 룰: javac 통과 가능 코드 강제 ─────────────────────
+    // 예시 나열 대신 "컴파일 가능" 기준 하나로 통제
+    private static final String GOLDEN_RULE =
+        "\n\n[코드 출력 원칙]\n"
+        + "출력하는 모든 코드는 javac로 컴파일 가능한 완전한 Java 문법이어야 한다.\n"
+        + "IDE 단축어, 생략된 괄호·세미콜론, 미선언 변수는 출력하지 않는다.";
 
-    /** 현재 진행 중인 요청의 취소 토큰 */
-    private CancelToken currentToken = null;
+    // ── 출력 안전 규칙: SWT/터미널 깨짐 방지 ───────────────────
+    // 폐쇄망 AI가 응답에 섞어 넣는 위험 문자 방지
+    private static final String SAFE_OUTPUT_RULE =
+    	"\n\n[출력 문자 및 LaTeX 금지 규칙]\n"
+        + "다음 사항을 엄격히 준수한다. 위반 시 UI가 깨질 수 있다:\n"
+        + "1. LaTeX 문법 절대 금지: `\\rightarrow`, `\\textbf`, `\\text`, `\\dots` 등 백슬래시(`\\`)로 시작하는 모든 LaTeX 명령어와 수식 기호(`$`)를 절대 사용하지 않는다.\n"
+        + "2. 화살표 대체: 모든 화살표 표현은 반드시 ASCII 문자인 '->', '=>', '>' 만을 사용한다. (예: '→', '⇒' 사용 금지)\n"
+        + "3. 수식 표현: 수학적 기호가 필요할 경우 LaTeX 대신 일반 텍스트(예: '이상', '이하', '등호', '대략')나 ASCII 기호('>', '<', '=')로만 표현한다.\n"
+        + "4. 특수 기호 및 이모지 금지: 이모지(😊, ✅, ⚠), 수학/특수기호(∙, ≥, ≤, ≠, ±, ×, ÷, ∞, ∑, √), 장식용 구분선(━━━, ═══)을 절대 사용하지 않는다.\n"
+        + "5. 전각문자 금지: 모든 문자는 반각 ASCII 범위의 문자(영어, 숫자, 일반 기호)를 사용하며, 전각문자(ａ, ｂ, １, ２)를 사용하지 않는다.\n"
+        + "6. 자가 검토: 답변 생성 전, 출력물에 백슬래시(`\\`)가 포함되어 있는지 확인하고, LaTeX 문법이 발견되면 즉시 ASCII 문자로 수정하여 출력한다.";
+    
+    // ── 시스템 프롬프트 ─────────────────────────────────────────
+    private static final String SYSTEM_BASE =
+        "당신은 Eclipse IDE에 통합된 Java/Spring 시니어 개발자 어시스턴트입니다.\n"
+        + "개발 환경: JDK 8, Spring Framework, Eclipse 4.5 Mars.\n"
+        + "사용자 질문이 한국어이면 반드시 한국어로 답변한다.\n"
+        + "코드는 반드시 ```java 블록으로 감싼다.\n"
+        + "핵심만 간결하게 답변하고, 불필요한 인사말은 생략한다."
+        + GOLDEN_RULE
+        + SAFE_OUTPUT_RULE;
 
-    public ChatPresenter(ChatView view) {
-        this.view = view;
-    }
-
+    // Ghost Text / FIM 폴백 전용 (ChatView 출력 아님 — 삽입 전용)
+    private static final String SYSTEM_INLINE =
+        "당신은 Java 코드 자동완성 엔진입니다.\n"
+        + "커서 위치에 삽입할 코드 텍스트만 출력한다.\n"
+        + "설명, 마크다운 펜스, 주석 없이 코드만 출력한다.\n"
+        + "논리 단위(문장/블록/메서드) 끝에서 멈춘다."
+        + GOLDEN_RULE
+        + SAFE_OUTPUT_RULE;
+      
     /**
-     * 사용자 메시지 전송.
-     * UI Thread 에서 호출됩니다 (ChatView.onSend()).
+     * AI에 전달하기 전 코드 문자열을 정제한다.
      *
-     * @param userText  사용자 입력 텍스트
-     * @param attachCtx true 이면 활성 에디터 컨텍스트를 프롬프트에 포함
+     * 처리 항목:
+     * 1. null/빈 문자열 방어
+     * 2. Windows 줄바꿈(\r\n) -> Unix(\n) 통일
+     *    - OpenAIClient가 수동 JSON 조립 시 \r 이 JSON을 깨뜨릴 수 있음
+     * 3. JSON 파괴 제어문자 제거 (\x00~\x08, \x0B, \x0C, \x0E~\x1F)
+     *    - \n(0x0A), \t(0x09), \r(0x0D) 는 OpenAIClient.jsonStr()이 처리하므로 유지
+     * 4. 길이 초과 시 앞부분 생략 (커서 직전 코드가 더 중요)
      */
-    public void onUserMessage(final String userText, final boolean attachCtx) {
-        // 이전 요청이 있으면 취소
-        if (currentToken != null) {
-            currentToken.cancel();
-        }
-        currentToken = new CancelToken();
-        final CancelToken token = currentToken;
+    private String sanitize(String code, int maxChars) {
+        if (code == null || code.isEmpty()) return "";
 
-        // 사용자 메시지 히스토리 추가 + 화면 표시
-        history.add(new ChatMessage(Role.USER, userText));
-        Display.getDefault().asyncExec(new Runnable() {
-            @Override public void run() {
-            	view.appendMessage(Role.USER, userText);
-            	view.setInputEnabled(false);
+        // 1. 줄바꿈 통일 (\r\n -> \n, 단독 \r -> \n)
+        String s = code.replace("\r\n", "\n").replace("\r", "\n");
+
+        // 2. JSON 파괴 제어문자 제거 (탭·줄바꿈 제외)
+        StringBuilder sb = new StringBuilder(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            boolean isSafeControl = (c == '\n' || c == '\t');
+            boolean isNormalChar  = (c >= 0x20);
+            if (isSafeControl || isNormalChar) {
+                sb.append(c);
             }
-        });
-        
-        
-        // UI Thread 에서 에디터 컨텍스트 수집
-        final EditorContext ctx = attachCtx ? collectActiveEditorContext() : null;
+            // 0x00~0x08, 0x0B, 0x0C, 0x0E~0x1F 는 무시
+        }
+        s = sb.toString();
 
-        // 히스토리 스냅샷 (백그라운드 스레드 접근 방지)
-        final List<ChatMessage> historySnapshot = new ArrayList<ChatMessage>(history);
+        // 3. 길이 제한 (커서 직전이 중요하므로 앞을 생략)
+        if (s.length() > maxChars) {
+            s = "// ... (앞부분 생략)\n" + s.substring(s.length() - maxChars);
+        }
 
-        // 프롬프트 조립
-        final List<ChatMessage> msgs =
-                promptBuilder.forChat(historySnapshot, userText, ctx);
-
-        // Gateway 경유 비동기 요청
-        AiRequestGateway.getInstance().submitChat(
-                msgs, 0.7, 1024, token,
-                new AiRequestGateway.ChatCallback() {
-                    @Override
-                    public void onSuccess(final String result) {
-                        if (token.isCancelled()) return;
-                        final String text = (result != null) ? result : "";
-                        history.add(new ChatMessage(Role.ASSISTANT, text));
-                        trimHistory();
-
-                        Display.getDefault().asyncExec(new Runnable() {
-                            @Override public void run() {
-                                view.appendMessage(Role.ASSISTANT, text);
-                                view.setInputEnabled(true);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onFailure(final String errorMessage) {
-                        if (token.isCancelled()) return;
-                        Display.getDefault().asyncExec(new Runnable() {
-                            @Override public void run() {
-                                view.showError(errorMessage);
-                                view.setInputEnabled(true);
-                            }
-                        });
-                    }
-                });
+        return s;
     }
+
+    // sanitize 단순 오버로드
+    private String sanitize(String code) {
+        return sanitize(code, MAX_CODE_CHARS);
+    }
+
+
+    // ── Ctrl+Space ChatView 제안 (핵심 변경) ───────────────────
 
     /**
-     * 현재 진행 중인 요청 취소.
-     * AiRequestGateway.reset() 을 호출해 상태바도 함께 정리합니다.
+     * Ctrl+Space 선택 시 ChatView에 표시할 "분석 + 제안 + 설명" 프롬프트.
+     * forCompletion() 과 역할 분리:
+     *   forCompletion()        -> Ghost Text 삽입 (코드만)
+     *   forCtrlSpaceAssist()   -> ChatView 표시 (분석+제안+설명)
      */
-    public void cancelCurrent() {
-        if (currentToken != null) {
-            currentToken.cancel();
-            currentToken = null;
-        }
-        AiRequestGateway.getInstance().reset();
-        view.setInputEnabled(true);
-        view.setStatus("요청이 취소되었습니다.");
+    public List<ChatMessage> forCtrlSpaceAssist(String prefix,
+                                                String fileName,
+                                                int line) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+
+        String system =
+            "당신은 Eclipse IDE에 통합된 Java/Spring 시니어 개발자 어시스턴트입니다.\n"
+            + "개발 환경: JDK 8, Spring Framework.\n"
+            + "아래 형식으로만 답변한다. 불필요한 인사말 없이 바로 출력.\n"
+            + "\n"
+            + "### 1. 코드 분석\n"
+            + "<현재 코드가 무엇을 하려는지 1~3줄>\n"
+            + "\n"
+            + "### 2. 구현 제안\n"
+            + "```java\n"
+            + "<커서 이후 작성할 코드>\n"
+            + "```\n"
+            + "\n"
+            + "### 3. 설명 및 주의사항\n"
+            + "<핵심 설명, 개선 아이디어>\n"
+            + "\n"
+            + "기존 코드 반복 금지. 커서 이후 필요한 코드만 제안."
+            + GOLDEN_RULE
+            + SAFE_OUTPUT_RULE;
+
+        msgs.add(new ChatMessage(Role.SYSTEM, system));
+
+        // prefix 도 sanitize — 에디터 코드의 \r\n, 제어문자 제거
+        String cleanPrefix = sanitize(prefix, MAX_PREFIX_CHARS);
+
+        String user =
+            "파일: " + fileName + " (" + line + "번째 줄)\n\n"
+            + "## 작성 중인 코드\n"
+            + "```java\n"
+            + cleanPrefix + "\n"
+            + "```\n\n"
+            + "커서 이후에 올 코드를 제안해 주세요.";
+
+        msgs.add(new ChatMessage(Role.USER, user));
+        return msgs;
     }
 
-    /** 대화 히스토리 전체 삭제 */
-    public void clearHistory() {
-        history.clear();
+
+    // ── Ghost Text / FIM 폴백 ───────────────────────────────────
+
+    public List<ChatMessage> forCompletion(String prefix,
+                                           String fileName,
+                                           int line) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM_INLINE));
+        msgs.add(new ChatMessage(Role.USER,
+            "// File: " + fileName + " (line " + line + ")\n"
+            + sanitize(prefix, MAX_PREFIX_CHARS)));
+        return msgs;
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 내부 구현
-    // ═══════════════════════════════════════════════════════════════
+    public List<ChatMessage> forInlineCompletionChat(String prefix,
+                                                      String suffix,
+                                                      EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM_INLINE));
+        StringBuilder user = new StringBuilder();
+        if (ctx != null) {
+            if (ctx.getFileName() != null) {
+                user.append("// File: ").append(ctx.getFileName()).append('\n');
+            }
+            if (ctx.getPackageName() != null && !ctx.getPackageName().isEmpty()) {
+                user.append("// Package: ").append(ctx.getPackageName()).append('\n');
+            }
+            if (ctx.getImports() != null && !ctx.getImports().isEmpty()) {
+                user.append("// Imports:\n");
+                for (String imp : ctx.getImports()) {
+                    user.append("//   ").append(imp).append('\n');
+                }
+            }
+            List<String> api = ctx.getFrameworkApi();
+            if (api != null && !api.isEmpty()) {
+            	user.append("// 사용 가능한 프레임워크 API:\n");
+                for (int i = 0; i < api.size(); i++) {
+                    if (i > 0) user.append("\n");
+                    user.append("//   ").append(api.get(i));
+                }
+            }
 
-    /** 히스토리 크기 제한 (MAX_HISTORY * 2 초과 시 오래된 것부터 제거) */
-    private void trimHistory() {
-        while (history.size() > MAX_HISTORY * 2) {
-            history.remove(0);
+        }
+        user.append(sanitize(prefix, MAX_PREFIX_CHARS))
+            .append("<CURSOR>")
+            .append(sanitize(suffix, 500));  // suffix 는 짧게
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
+    }
+
+    public String forFimPrompt(String prefix, String suffix, String model) {
+        // FIM 토큰 자체는 모델 전용이므로 sanitize 적용 후 조립
+        String p = sanitize(prefix, MAX_PREFIX_CHARS);
+        String s = sanitize(suffix, 500);
+        String m = model == null ? "" : model.toLowerCase();
+        if (m.contains("deepseek")) {
+            return "<\uff5cfim\u2581begin\uff5c>" + p
+                 + "<\uff5cfim\u2581hole\uff5c>" + s
+                 + "<\uff5cfim\u2581end\uff5c>";
+        }
+        if (m.contains("starcoder") || m.contains("santacoder")) {
+            return "<fim_prefix>" + p + "<fim_suffix>" + s + "<fim_middle>";
+        }
+        return "<|fim_prefix|>" + p + "<|fim_suffix|>" + s + "<|fim_middle|>";
+    }
+
+
+    // ── 코드 설명 ────────────────────────────────────────────────
+
+    public List<ChatMessage> forExplain(String code,
+                                        String fileName,
+                                        EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM_BASE));
+        StringBuilder user = new StringBuilder();
+        user.append("아래 Java 코드를 단계별로 설명해줘.\n")
+            .append("파일: ").append(safe(fileName)).append("\n\n");
+        appendCtx(user, ctx);
+        user.append("```java\n").append(sanitize(code)).append("\n```");
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
+    }
+
+
+    // ── 에러 분석 ────────────────────────────────────────────────
+
+    public List<ChatMessage> forFixError(String code,
+                                         String errorMessage,
+                                         String fileName,
+                                         EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        String system = SYSTEM_BASE
+            + "\n\n답변 형식:\n"
+            + "### 원인\n<에러 원인 설명>\n\n"
+            + "### 수정 코드\n```java\n<수정된 전체 코드>\n```\n\n"
+            + "### 요약\n<한 줄 요약>";
+        msgs.add(new ChatMessage(Role.SYSTEM, system));
+        StringBuilder user = new StringBuilder();
+        user.append("아래 Java 코드에서 에러가 발생했어.\n\n")
+            .append("파일: ").append(safe(fileName)).append("\n\n");
+        appendCtx(user, ctx);
+        // 에러 메시지도 sanitize — 스택트레이스의 제어문자 제거
+        user.append("에러 메시지:\n```\n")
+            .append(sanitize(errorMessage, 1000))
+            .append("\n```\n\n")
+            .append("코드:\n```java\n")
+            .append(sanitize(code))
+            .append("\n```");
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
+    }
+
+
+    // ── 리팩토링 ─────────────────────────────────────────────────
+
+    public List<ChatMessage> forRefactor(String code,
+                                          String fileName,
+                                          EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        String system = SYSTEM_BASE
+            + "\n\n답변 형식:\n"
+            + "### 적용 패턴\n<리팩토링 패턴 이름>\n\n"
+            + "### 개선 코드\n```java\n<개선된 전체 코드>\n```\n\n"
+            + "### 효과\n<개선 효과 설명>";
+        msgs.add(new ChatMessage(Role.SYSTEM, system));
+        StringBuilder user = new StringBuilder();
+        user.append("아래 Java 코드의 리팩토링 안을 제안해줘.\n")
+            .append("파일: ").append(safe(fileName)).append("\n\n");
+        appendCtx(user, ctx);
+        user.append("```java\n").append(sanitize(code)).append("\n```");
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
+    }
+
+
+    // ── 주석 생성 ────────────────────────────────────────────────
+
+    public List<ChatMessage> forComment(String code, String fileName) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM,
+            SYSTEM_BASE
+            + "\nJavadoc과 인라인 주석을 추가한 전체 코드만 반환한다. 설명 텍스트 없음."));
+        msgs.add(new ChatMessage(Role.USER,
+            "아래 Java 코드에 Javadoc과 주석을 추가해줘.\n"
+            + "파일: " + safe(fileName) + "\n\n"
+            + "```java\n" + sanitize(code) + "\n```"));
+        return msgs;
+    }
+
+
+    // ── 자유 채팅 ────────────────────────────────────────────────
+
+    public List<ChatMessage> forChat(List<ChatMessage> history,
+                                     String userMessage,
+                                     EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        StringBuilder sys = new StringBuilder(SYSTEM_BASE);
+        if (ctx != null && ctx.getFileName() != null) {
+            sys.append("\n\n현재 에디터 컨텍스트:\n");
+            sys.append("- 파일: ").append(safe(ctx.getFileName())).append('\n');
+            if (ctx.getPackageName() != null) {
+                sys.append("- 패키지: ").append(ctx.getPackageName()).append('\n');
+            }
+            if (ctx.getSelection() != null && !ctx.getSelection().isEmpty()) {
+                sys.append("- 선택된 코드:\n```java\n")
+                   .append(sanitize(ctx.getSelection(), 1000))
+                   .append("\n```\n");
+            }
+        }
+        msgs.add(new ChatMessage(Role.SYSTEM, sys.toString()));
+        if (history != null) {
+            msgs.addAll(history);
+        }
+        // userMessage 도 sanitize (붙여넣은 코드 포함 가능)
+        msgs.add(new ChatMessage(Role.USER, sanitize(userMessage, 2000)));
+        return msgs;
+    }
+
+
+    // ── CompletionRequest 분기 (기존 유지) ──────────────────────
+
+    public List<ChatMessage> build(CompletionRequest req) {
+        switch (req.getRequestType()) {
+            case COMPLETION:
+                return forCompletion(
+                    req.getSelectedCode(), req.getFileName(), req.getCursorLine());
+            case EXPLAIN:
+                return forExplain(
+                    req.getSelectedCode(), req.getFileName(), null);
+            case COMMENT:
+                return forComment(
+                    req.getSelectedCode(), req.getFileName());
+            case FIX_ERROR:
+                return forFixError(
+                    req.getSelectedCode(), req.getErrorMessage(),
+                    req.getFileName(), null);
+            case REFACTOR:
+                return forRefactor(
+                    req.getSelectedCode(), req.getFileName(), null);
+            default:
+                throw new IllegalArgumentException(
+                    "Unsupported RequestType: " + req.getRequestType());
         }
     }
 
-    /**
-     * 현재 활성 에디터에서 EditorContext 수집.
-     * UI Thread 에서만 호출해야 합니다.
-     */
-    private EditorContext collectActiveEditorContext() {
-        try {
-            IWorkbench wb = PlatformUI.getWorkbench();
-            if (wb == null) return null;
-            IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
-            if (win == null) return null;
-            IWorkbenchPage page = win.getActivePage();
-            if (page == null) return null;
-            IEditorPart editor = page.getActiveEditor();
-            if (editor == null) return null;
-            return ContextCollector.fromEditor(editor);
-        } catch (Exception e) {
-            return null;
+
+    // ── 헬퍼 ────────────────────────────────────────────────────
+
+    private void appendCtx(StringBuilder user, EditorContext ctx) {
+        if (ctx == null) return;
+        if (ctx.getPackageName() != null && !ctx.getPackageName().isEmpty()) {
+            user.append("패키지: ").append(ctx.getPackageName()).append('\n');
         }
+        if (ctx.getImports() != null && !ctx.getImports().isEmpty()) {
+            user.append("Import 목록: ");
+            for (int i = 0; i < ctx.getImports().size(); i++) {
+                if (i > 0) user.append(", ");
+                user.append(ctx.getImports().get(i));
+            }
+            user.append("\n");
+        }
+        List<String> api = ctx.getFrameworkApi();
+        if (api != null && !api.isEmpty()) {
+        	user.append("// 사용 가능한 프레임워크 API:\n");
+            for (int i = 0; i < api.size(); i++) {
+                if (i > 0) user.append(", ");
+                user.append(api.get(i));
+            }
+        }
+        user.append('\n');
+    }
+
+    /** null/빈 문자열 방어 */
+    private String safe(String s) {
+        return (s == null || s.isEmpty()) ? "(unknown)" : s;
+    }
+
+
+    // ── 하위 호환 오버로드 ────────────────────────────────────────
+
+    public List<ChatMessage> forExplain(String code, String fileName) {
+        return forExplain(code, fileName, null);
+    }
+
+    public List<ChatMessage> forFixError(String code,
+                                          String errorMessage,
+                                          String fileName) {
+        return forFixError(code, errorMessage, fileName, null);
+    }
+
+    public List<ChatMessage> forRefactor(String code, String fileName) {
+        return forRefactor(code, fileName, null);
+    }
+
+    public List<ChatMessage> forChat(List<ChatMessage> history,
+                                     String userMessage) {
+        return forChat(history, userMessage, null);
     }
 }
