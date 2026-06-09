@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docx 텍스트 추출기</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f1117; color: #e2e8f0;
+    font-family: 'Consolas', 'Malgun Gothic', monospace;
+    min-height: 100vh; padding: 32px 20px;
+  }
+  .wrap { max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; color: #f1f5f9; }
+  .sub { font-size: 13px; color: #64748b; margin-bottom: 28px; }
+  .dropzone {
+    border: 2px dashed #334155; border-radius: 10px;
+    padding: 40px 24px; text-align: center;
+    background: #161b27; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    margin-bottom: 24px;
+  }
+  .dropzone.over { border-color: #7c3aed; background: #1e1b4b22; }
+  .dropzone .icon { font-size: 32px; margin-bottom: 8px; }
+  .dropzone .hint { font-size: 14px; color: #94a3b8; }
+  .dropzone .fname { color: #a78bfa; }
+  #fileInput { display: none; }
+  .label-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; }
+  .copy-btn {
+    background: none; border: 1px solid #334155;
+    color: #94a3b8; border-radius: 6px;
+    padding: 4px 12px; font-size: 12px; cursor: pointer;
+    font-family: inherit;
+  }
+  .copy-btn:hover { border-color: #7c3aed; color: #a78bfa; }
+  .copy-btn.done { color: #4ade80; border-color: #4ade80; }
+  textarea {
+    width: 100%; height: 400px;
+    background: #0d1117; border: 1px solid #1e293b;
+    border-radius: 8px; color: #cbd5e1;
+    font-size: 13px; padding: 14px;
+    resize: vertical; font-family: inherit;
+    line-height: 1.7;
+  }
+  .error {
+    background: #1e0a0a; border: 1px solid #7f1d1d;
+    border-radius: 8px; padding: 12px 16px;
+    color: #fca5a5; font-size: 13px; margin-bottom: 20px;
+  }
+  .loading { color: #7c3aed; font-size: 13px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📄 Docx 텍스트 추출기</h1>
+  <p class="sub">.docx 파일을 드래그하거나 클릭해서 텍스트를 추출합니다</p>
+
+  <div class="dropzone" id="dropzone">
+    <div class="icon">📂</div>
+    <div class="hint" id="hint">.docx 파일을 드래그하거나 클릭해서 선택</div>
+    <div class="loading" id="loading" style="display:none">추출 중...</div>
+  </div>
+  <input type="file" id="fileInput" accept=".docx">
+
+  <div id="error" class="error" style="display:none"></div>
+
+  <div id="resultArea" style="display:none">
+    <div class="label-row">
+      <span class="label" id="charCount"></span>
+      <button class="copy-btn" id="copyBtn" onclick="copyAll()">복사</button>
+    </div>
+    <textarea id="output" readonly></textarea>
+  </div>
+</div>
+
+<script>
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('over'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('over');
+    handleFile(e.dataTransfer.files[0]);
+  });
+
+  function handleFile(file) {
+    if (!file) return;
+    if (!file.name.endsWith('.docx')) {
+      showError('.docx 파일만 지원합니다.');
+      return;
+    }
+    showError('');
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('hint').textContent = file.name;
+    document.getElementById('hint').style.color = '#a78bfa';
+    document.getElementById('resultArea').style.display = 'none';
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      mammoth.extractRawText({ arrayBuffer: e.target.result })
+        .then(result => {
+          document.getElementById('loading').style.display = 'none';
+          const text = result.value.trim();
+          if (!text) {
+            showError('텍스트를 추출할 수 없습니다. 이미지 전용 문서일 수 있습니다.');
+            return;
+          }
+          document.getElementById('output').value = text;
+          document.getElementById('charCount').textContent =
+            '추출된 텍스트 ' + text.length.toLocaleString() + '자';
+          document.getElementById('resultArea').style.display = 'block';
+        })
+        .catch(err => {
+          document.getElementById('loading').style.display = 'none';
+          showError('파일 읽기 실패: ' + err.message);
+        });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error');
+    if (msg) { el.textContent = '⚠ ' + msg; el.style.display = 'block'; }
+    else { el.style.display = 'none'; }
+  }
+
+  function copyAll() {
+    const text = document.getElementById('output').value;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = '복사됨 ✓';
+      btn.classList.add('done');
+      setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('done'); }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
