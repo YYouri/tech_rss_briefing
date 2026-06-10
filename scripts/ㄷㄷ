@@ -1,335 +1,254 @@
-package hi.bxm.assist.core.llm;
 
-import hi.bxm.assist.core.model.ChatMessage;
-import hi.bxm.assist.core.model.ChatMessage.Role;
-import hi.bxm.assist.core.model.CompletionRequest;
-import hi.bxm.assist.core.model.EditorContext;
+package hi.bxm.assist.test;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PromptBuilder {
+/**
 
-    private static final int MAX_CODE_CHARS   = 3000;
-    private static final int MAX_PREFIX_CHARS = 1500;
+PMS -> LLM -> GitLab 통합 서비스 클래스
+[Updated] 프로젝트 ID를 찾기 위해 영문 시스템명(Path)을 사용하는 기능 추가
+*/
+public class PmsGitLabIntegrationService {  // 설정 정보
+ private final String llmBaseUrl = "http://dev-fms.hi-portal.co.kr/fms/api/llm/gemma/chat.do";
+ private final String gitLabBaseUrl = "http://10.2.12.77:48000/";
+ private final String gitLabAccessToken = "Snp4WHJox4JYUf4byNZ4";
+ private final String defaultModel = "/app/models/gemma4-31b-it-awq-4bit";  /**
+통합 프로세스 실행 메서드
+@param pmsTaskContent PMS 작업 내용
+@param pmsEmployeeId PMS 사번
+@param gitLabSystemPath GitLab 프로젝트 경로 (예: "my-group/my-project")
+*/
+public String processPmsToGitLab(String projectid, String pmsTaskContent, String pmsEmployeeId, String gitLabSystemPath) {
+ try {
+ // [Step 0] 프로젝트 ID 조회: 영문 시스템명(Path)을 통해 숫자 ID를 가져옴
+ String gitLabProjectId = findProjectIdBySystemName(gitLabSystemPath);
+ if (gitLabProjectId == null) {
+     return "Fail: GitLab 프로젝트를 찾을 수 없습니다. (Path: " + gitLabSystemPath + ")";
+ }
 
-    // ── 공통 제약 (모든 프롬프트에 적용) ────────────────────────
-    private static final String CONSTRAINTS =
-        "\n\n[공통 제약]\n"
-        + "1. javac 컴파일 가능한 완전한 Java 코드만 제안한다.\n"
-        + "2. LaTeX, 이모지, 특수기호(∙,≥,≤,×,÷,∞), 전각문자 금지.\n"
-        + "3. 화살표는 반드시 ASCII: ->, =>, > 만 사용.\n"
-        + "4. System.out, printStackTrace() 금지 — logError(msg, e) 사용.\n"
-        + "5. SQL 라인 주석(--) 금지 — 블록 주석(/* */) 사용.\n"
-        + "6. 메서드 파라미터 최대 5개.\n"
-        + "7. 인사말 없이 바로 출력.";
+ // [Step 1] LLM 변환
+ String markdownTemplate = convertToMarkdownWithLLM(pmsTaskContent);
 
-    // ── Hi2 Framework 핵심 규칙 ──────────────────────────────────
-    private static final String HI2_RULES =
-        "\n\n[Hi2 Framework 규칙]\n"
-        + "- singleton: ApplicationContextUtils.getBean() 사용\n"
-        + "- 멤버 변수 금지 — Local 변수만 사용\n"
-        + "- 로깅: if(isDebugEnabled()) { logDebug(...) }\n"
-        + "- BigDecimal/String 연산 결과는 반드시 재할당\n"
-        + "- Online: MainService(@BxmMainService) -> SubService(@BxmSubService) -> DBIO\n"
-        + "- Batch: Chunked(BC) 또는 Tasklet(BT), DB는 addBatch()/executeBatch()\n"
-        + "- 트랜잭션: @BxmTranID(transaction=\"auto\") 권장";
+ // [Step 2] 사용자 매핑
+ Long gitLabUserId = findGitLabUserIdByUsername(pmsEmployeeId);
 
-    // ── 단일 통합 시스템 프롬프트 ────────────────────────────────
-    private static final String SYSTEM =
-        "당신은 Eclipse IDE에 통합된 Hi Framework 2.0 전문 Java 개발자 어시스턴트입니다.\n"
-        + "환경: JDK 8, Spring Framework, Eclipse 4.5 Mars, Hi2 Framework.\n"
-        + "한국어 질문에는 한국어로 답변한다.\n"
-        + "\n"
-        + "질문 유형에 따라 아래 형식으로 자동 판단하여 답변한다:\n"
-        + "\n"
-        + "[코드 작성/리팩토링]\n"
-        + "### 분석\n<현재 코드 의도 1~3줄>\n"
-        + "### 제안\n```java\n<완전한 코드>\n```\n"
-        + "### 설명\n<핵심 설명>\n"
-        + "\n"
-        + "[에러/디버그]\n"
-        + "### 원인\n<에러 원인>\n"
-        + "### 해결\n```java\n<수정 코드>\n```\n"
-        + "\n"
-        + "[설계/아키텍처]\n"
-        + "### 구조 설명\n<설계 원칙>\n"
-        + "### 예시 (필요시)\n```java\n<코드>\n```\n"
-        + "\n"
-        + "[일반 질문]\n"
-        + "<간결한 답변 — 코드 블록 없이>\n"
-        + CONSTRAINTS
-        + HI2_RULES;
-
-    // ── 인라인 자동완성 전용 (삽입 코드만 출력) ─────────────────
-    private static final String SYSTEM_INLINE =
-        "Java 코드 자동완성 엔진이다.\n"
-        + "커서 위치에 삽입할 코드만 출력한다.\n"
-        + "설명, 마크다운 펜스, 주석 없이 코드만 출력한다.\n"
-        + "논리 단위(문장/블록/메서드) 끝에서 멈춘다."
-        + CONSTRAINTS;
-
-
-    // ── 자유 채팅 ────────────────────────────────────────────────
-    public List<ChatMessage> forChat(List<ChatMessage> history,
-                                     String userMessage,
-                                     EditorContext ctx) {
-        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
-
-        // 에디터 컨텍스트가 있으면 시스템 프롬프트에 추가
-        String system = SYSTEM;
-        if (ctx != null && ctx.getFileName() != null) {
-            StringBuilder sb = new StringBuilder(SYSTEM);
-            sb.append("\n\n[현재 에디터]\n");
-            sb.append("파일: ").append(safe(ctx.getFileName())).append('\n');
-            if (ctx.getPackageName() != null) {
-                sb.append("패키지: ").append(ctx.getPackageName()).append('\n');
-            }
-            if (ctx.getSelection() != null && !ctx.getSelection().isEmpty()) {
-                sb.append("선택 코드:\n```java\n")
-                  .append(sanitize(ctx.getSelection(), 1000))
-                  .append("\n```");
-            }
-            system = sb.toString();
-        }
-
-        msgs.add(new ChatMessage(Role.SYSTEM, system));
-        if (history != null) msgs.addAll(history);
-        msgs.add(new ChatMessage(Role.USER, sanitize(userMessage, 2000)));
-        return msgs;
-    }
-
-    public List<ChatMessage> forChat(List<ChatMessage> history, String userMessage) {
-        return forChat(history, userMessage, null);
-    }
-
-
-    // ── 코드 설명 ────────────────────────────────────────────────
-    public List<ChatMessage> forExplain(String code,
-                                        String fileName,
-                                        EditorContext ctx) {
-        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
-        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM));
-        StringBuilder user = new StringBuilder();
-        user.append("아래 Java 코드를 단계별로 설명해줘.\n")
-            .append("파일: ").append(safe(fileName)).append("\n\n");
-        appendCtx(user, ctx);
-        user.append("```java\n").append(sanitize(code)).append("\n```");
-        msgs.add(new ChatMessage(Role.USER, user.toString()));
-        return msgs;
-    }
-
-    public List<ChatMessage> forExplain(String code, String fileName) {
-        return forExplain(code, fileName, null);
-    }
-
-
-    // ── 에러 수정 ────────────────────────────────────────────────
-    public List<ChatMessage> forFixError(String code,
-                                         String errorMessage,
-                                         String fileName,
-                                         EditorContext ctx) {
-        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
-        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM));
-        StringBuilder user = new StringBuilder();
-        user.append("아래 Java 코드에서 에러가 발생했어.\n\n")
-            .append("파일: ").append(safe(fileName)).append("\n\n");
-        appendCtx(user, ctx);
-        user.append("에러:\n```\n")
-            .append(sanitize(errorMessage, 1000))
-            .append("\n```\n\n")
-            .append("코드:\n```java\n")
-            .append(sanitize(code))
-            .append("\n```");
-        msgs.add(new ChatMessage(Role.USER, user.toString()));
-        return msgs;
-    }
-
-    public List<ChatMessage> forFixError(String code,
-                                          String errorMessage,
-                                          String fileName) {
-        return forFixError(code, errorMessage, fileName, null);
-    }
-
-
-    // ── 리팩토링 ─────────────────────────────────────────────────
-    public List<ChatMessage> forRefactor(String code,
-                                          String fileName,
-                                          EditorContext ctx) {
-        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
-        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM));
-        StringBuilder user = new StringBuilder();
-        user.append("아래 Java 코드의 리팩토링 안을 제안해줘.\n")
-            .append("파일: ").append(safe(fileName)).append("\n\n");
-        appendCtx(user, ctx);
-        user.append("```java\n").append(sanitize(code)).append("\n```");
-        msgs.add(new ChatMessage(Role.USER, user.toString()));
-        return msgs;
-    }
-
-    public List<ChatMessage> forRefactor(String code, String fileName) {
-        return forRefactor(code, fileName, null);
-    }
-
-
-    // ── 주석 생성 ────────────────────────────────────────────────
-    public List<ChatMessage> forComment(String code, String fileName) {
-        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
-        msgs.add(new ChatMessage(Role.SYSTEM,
-            SYSTEM + "\nJavadoc과 인라인 주석을 추가한 전체 코드만 반환한다. 설명 텍스트 없음."));
-        msgs.add(new ChatMessage(Role.USER,
-            "아래 Java 코드에 Javadoc과 주석을 추가해줘.\n"
-            + "파일: " + safe(fileName) + "\n\n"
-            + "```java\n" + sanitize(code) + "\n```"));
-        return msgs;
-    }
-
-
-    // ── Ctrl+Space → ChatView 표시 ───────────────────────────────
-    public List<ChatMessage> forCtrlSpaceAssist(String prefix,
-                                                String fileName,
-                                                int line) {
-        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
-        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM));
-        msgs.add(new ChatMessage(Role.USER,
-            "파일: " + fileName + " (" + line + "번째 줄)\n\n"
-            + "## 작성 중인 코드\n"
-            + "```java\n" + sanitize(prefix, MAX_PREFIX_CHARS) + "\n```\n\n"
-            + "커서 이후에 올 코드를 제안해 주세요."));
-        return msgs;
-    }
-
-
-    // ── 인라인 자동완성 (Ghost Text) ─────────────────────────────
-    public List<ChatMessage> forCompletion(String prefix,
-                                           String fileName,
-                                           int line) {
-        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
-        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM_INLINE));
-        msgs.add(new ChatMessage(Role.USER,
-            "// File: " + fileName + " (line " + line + ")\n"
-            + sanitize(prefix, MAX_PREFIX_CHARS)));
-        return msgs;
-    }
-
-    public List<ChatMessage> forCompletion(String prefix, String fileName, int line,
-                                            List<String> jdtHints,
-                                            List<String> frameworkApi) {
-        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
-        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM));
-        StringBuilder user = new StringBuilder();
-        user.append("파일: ").append(fileName).append(" (").append(line).append("번째 줄)\n\n");
-        user.append("```java\n").append(sanitize(prefix, MAX_PREFIX_CHARS)).append("\n```\n");
-        if (!jdtHints.isEmpty()) {
-            user.append("\nJDT 후보:\n```\n");
-            for (String h : jdtHints) user.append(h).append('\n');
-            user.append("```\n");
-        }
-        if (!frameworkApi.isEmpty()) {
-            user.append("\n프레임워크 API:\n```\n");
-            for (String a : frameworkApi) user.append(a).append('\n');
-            user.append("```\n");
-        }
-        user.append("\n커서 이후 코드를 제안해 주세요.");
-        msgs.add(new ChatMessage(Role.USER, user.toString()));
-        return msgs;
-    }
-
-    public List<ChatMessage> forInlineCompletionChat(String prefix,
-                                                      String suffix,
-                                                      EditorContext ctx) {
-        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
-        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM_INLINE));
-        StringBuilder user = new StringBuilder();
-        if (ctx != null) {
-            if (ctx.getFileName() != null)
-                user.append("// File: ").append(ctx.getFileName()).append('\n');
-            if (ctx.getPackageName() != null && !ctx.getPackageName().isEmpty())
-                user.append("// Package: ").append(ctx.getPackageName()).append('\n');
-            if (ctx.getImports() != null) {
-                for (String imp : ctx.getImports())
-                    user.append("//   ").append(imp).append('\n');
-            }
-            List<String> api = ctx.getFrameworkApi();
-            if (api != null && !api.isEmpty()) {
-                for (String a : api) user.append("//   ").append(a).append('\n');
-            }
-        }
-        user.append(sanitize(prefix, MAX_PREFIX_CHARS))
-            .append("<CURSOR>")
-            .append(sanitize(suffix, 500));
-        msgs.add(new ChatMessage(Role.USER, user.toString()));
-        return msgs;
-    }
-
-    public String forFimPrompt(String prefix, String suffix, String model) {
-        String p = sanitize(prefix, MAX_PREFIX_CHARS);
-        String s = sanitize(suffix, 500);
-        String m = model == null ? "" : model.toLowerCase();
-        if (m.contains("deepseek"))
-            return "<\uff5cfim\u2581begin\uff5c>" + p
-                 + "<\uff5cfim\u2581hole\uff5c>" + s
-                 + "<\uff5cfim\u2581end\uff5c>";
-        if (m.contains("starcoder") || m.contains("santacoder"))
-            return "<fim_prefix>" + p + "<fim_suffix>" + s + "<fim_middle>";
-        return "<|fim_prefix|>" + p + "<|fim_suffix|>" + s + "<|fim_middle|>";
-    }
-
-
-    // ── CompletionRequest 분기 ───────────────────────────────────
-    public List<ChatMessage> build(CompletionRequest req) {
-        switch (req.getRequestType()) {
-            case COMPLETION: return forCompletion(
-                    req.getSelectedCode(), req.getFileName(), req.getCursorLine());
-            case EXPLAIN:    return forExplain(
-                    req.getSelectedCode(), req.getFileName());
-            case COMMENT:    return forComment(
-                    req.getSelectedCode(), req.getFileName());
-            case FIX_ERROR:  return forFixError(
-                    req.getSelectedCode(), req.getErrorMessage(), req.getFileName());
-            case REFACTOR:   return forRefactor(
-                    req.getSelectedCode(), req.getFileName());
-            default: throw new IllegalArgumentException(
-                    "Unsupported RequestType: " + req.getRequestType());
-        }
-    }
-
-
-    // ── 헬퍼 ────────────────────────────────────────────────────
-    private String sanitize(String code, int maxChars) {
-        if (code == null || code.isEmpty()) return "";
-        String s = code.replace("\r\n", "\n").replace("\r", "\n");
-        StringBuilder sb = new StringBuilder(s.length());
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (c == '\n' || c == '\t' || c >= 0x20) sb.append(c);
-        }
-        s = sb.toString();
-        if (s.length() > maxChars)
-            s = "// ... (앞부분 생략)\n" + s.substring(s.length() - maxChars);
-        return s;
-    }
-
-    private String sanitize(String code) {
-        return sanitize(code, MAX_CODE_CHARS);
-    }
-
-    private void appendCtx(StringBuilder user, EditorContext ctx) {
-        if (ctx == null) return;
-        if (ctx.getPackageName() != null && !ctx.getPackageName().isEmpty())
-            user.append("패키지: ").append(ctx.getPackageName()).append('\n');
-        if (ctx.getImports() != null && !ctx.getImports().isEmpty()) {
-            user.append("Import: ");
-            for (int i = 0; i < ctx.getImports().size(); i++) {
-                if (i > 0) user.append(", ");
-                user.append(ctx.getImports().get(i));
-            }
-            user.append('\n');
-        }
-        user.append('\n');
-    }
-
-    private String safe(String s) {
-        return (s == null || s.isEmpty()) ? "(unknown)" : s;
-    }
+ // [Step 3] 이슈 등록
+ if (gitLabUserId != null) {
+     String issueResult = createGitLabIssue(projectid, gitLabProjectId, markdownTemplate, gitLabUserId);
+     return "Success: " + issueResult;
+ } else {
+     return "Fail: GitLab User ID를 찾을 수 없습니다. (사번: " + pmsEmployeeId + ")";
+ }
+ } catch (Exception e) {
+ e.printStackTrace();
+ return "Error: 프로세스 진행 중 오류 발생 - " + e.getMessage();
+ }
+} // ========================================================================
+// NEW: STEP 0 - 프로젝트 ID 조회 (영문 시스템명 기반)
+// ======================================================================== /**
+GitLab의 프로젝트 경로(Namespace/Project Name)를 사용하여 숫자 ID를 반환합니다.
+@param systemName 영문 시스템명 (예: "dev-group/web-service")
+@return GitLab 프로젝트 숫자 ID (문자열), 찾을 수 없으면 null
+*/
+private String findProjectIdBySystemName(String systemName) throws IOException {
+ if (systemName == null || systemName.trim().isEmpty()) return null;  // GitLab API는 프로젝트 경로를 URL-encoded하여 사용할 수 있음 (예: api/v4/projects/dev-group%2Fweb-service)
+ String encodedPath = URLEncoder.encode(systemName, StandardCharsets.UTF_8.toString());
+ String urlPath = "api/v4/projects/" + encodedPath;  String responseJson = get(urlPath, gitLabAccessToken);  if (responseJson == null || responseJson.trim().equals("") || responseJson.trim().equals("{}")) {
+ return null;
+ }  // 응답 JSON에서 "id" 필드의 값을 추출 (수동 파싱)
+ try {
+ String idKey = "\"id\":";
+ int idIdx = responseJson.indexOf(idKey);
+ if (idIdx != -1) {
+     int start = idIdx + idKey.length();
+     // 숫자 뒤에 오는 문자( , 또는 } ) 전까지 추출
+     int end = responseJson.indexOf(",", start);
+     if (end == -1) end = responseJson.indexOf("}", start);
+     
+     String idValue = responseJson.substring(start, end).trim();
+     return idValue;
+ }
+ } catch (Exception e) {
+ return null;
+ }
+ return null;
+} // ========================================================================
+// STEP 1: LLM 변환 로직
+// ======================================================================== private String convertToMarkdownWithLLM(String taskContent) throws IOException {
+ List<ChatMessage> messages = new ArrayList<ChatMessage>();
+ messages.add(new ChatMessage("system", "당신은 시니어 개발자입니다. 입력된 작업 요청 내용을 분석하여, "
+     + "개발자가 수행해야 할 단계를 구체적인 '마크다운 체크리스트(- [ ])' 형태로 생성하십시오. "
+     + "분석 결과 요약도 반드시 포함하십시오."));
+ messages.add(new ChatMessage("user", "다음 작업 요청을 분석해서 체크리스트로 만들어줘: " + taskContent));  return complete(messages, 0.7, 1000);
+} private String complete(List<ChatMessage> messages, double temp, int maxTokens) throws IOException {
+ String body = buildChatBody(defaultModel, messages, temp, maxTokens, false, null);
+ String responseJson = post("v1/chat/completions", body);
+ return parseChoiceContent(responseJson);
+} private String buildChatBody(String model, List<ChatMessage> messages, double temperature, int maxTokens, boolean stream, String[] stopSequences) {
+ StringBuilder sb = new StringBuilder();
+ sb.append("{");
+ sb.append("\"model\":").append(jsonStr(model)).append(',');
+ sb.append("\"temperature\":").append(temperature).append(',');
+ sb.append("\"max_tokens\":").append(maxTokens).append(',');
+ if (stream) sb.append("\"stream\":true,");
+ 
+ if (stopSequences != null) {
+ sb.append("\"stop\":[");
+ for (int i = 0; i < stopSequences.length; i++) {
+     sb.append(jsonStr(stopSequences[i]));
+     if (i < stopSequences.length - 1) sb.append(",");
+ }
+ sb.append("],");
+ }  sb.append("\"messages\":rage:");
+ for (int i = 0; i < messages.size(); i++) {
+ ChatMessage m = messages.get(i);
+ sb.append("{\"role\":").append(jsonStr(m.getRoleString()))
+   .append(",\"content\":").append(jsonStr(m.getContent())).append('}');
+ if (i < messages.size() - 1) sb.append(',');
+ }
+ sb.append("]}");
+ return sb.toString();
+} // ========================================================================
+// STEP 2: GitLab 사용자 검색 로직
+// ======================================================================== private Long findGitLabUserIdByUsername(String username) throws IOException {
+ String urlPath = "api/v4/users?username=" + username;
+ String responseJson = get(urlPath, gitLabAccessToken);  if (responseJson == null || responseJson.trim().equals("[]") || responseJson.trim().equals("")) {
+ return null;
+ }  try {
+ String idKey = "\"id\":";
+ int idIdx = responseJson.indexOf(idKey);
+ if (idIdx != -1) {
+     int start = idIdx + idKey.length();
+     int end = responseJson.indexOf(",", start);
+     if (end == -1) end = responseJson.indexOf("}", start);
+     
+     return Long.parseLong(responseJson.substring(start, end).trim());
+ }
+ } catch (Exception e) {
+ return null;
+ }
+ return null;
+} // ========================================================================
+// STEP 3: GitLab 이슈 등록 로직
+// ======================================================================== private String createGitLabIssue(String projectId, String systemid, String description, Long assigneeId) throws IOException {
+ String urlPath = "api/v4/projects/" + systemid + "/issues";
+ 
+ StringBuilder sb = new StringBuilder();
+ sb.append("{");
+ sb.append("\"title\":").append(jsonStr(projectId)).append(","); // <--- 이 부분이 핵심입니다.
+ sb.append("\"description\":").append(jsonStr(description)).append(",");
+ sb.append("\"assignee_id\":").append(assigneeId);
+ sb.append("}");
+ 
+ String responseJson = post(urlPath, sb.toString(), gitLabAccessToken);
+ return "Issue Created: " + responseJson;
+} // ========================================================================
+// HTTP 통신 및 유틸리티 (기존 스타일 유지)
+// ======================================================================== private String post(String path, String body, String token) throws IOException {
+ URL url = new URL(gitLabBaseUrl + path);
+ HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+ conn.setRequestMethod("POST");
+ conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+ conn.setRequestProperty("PRIVATE-TOKEN", token);
+ conn.setDoOutput(true);  try (OutputStream os = conn.getOutputStream()) {
+ byte[] input = body.getBytes(StandardCharsets.UTF_8);
+ os.write(input, 0, input.length);
+ }  int code = conn.getResponseCode();
+ if (code >= 200 && code < 300) {
+ return readAll(conn.getInputStream());
+ } else {
+ return "Error Response: " + code + " - " + readAll(conn.getErrorStream());
+ }
+} private String post(String path, String body) throws IOException {
+ URL url = new URL(llmBaseUrl);
+ HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+ conn.setRequestMethod("POST");
+ conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+ conn.setDoOutput(true);  try (OutputStream os = conn.getOutputStream()) {
+ byte[] input = body.getBytes(StandardCharsets.UTF_8);
+ os.write(input, 0, input.length);
+ }  return readAll(conn.getInputStream());
+} private String get(String path, String token) throws IOException {
+ URL url = new URL(gitLabBaseUrl + path);
+ HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+ conn.setRequestMethod("GET");
+ conn.setRequestProperty("PRIVATE-TOKEN", token);  int code = conn.getResponseCode();
+ if (code == 200) {
+ return readAll(conn.getInputStream());
+ } else {
+ return "";
+ }
+} private String readAll(InputStream is) throws IOException {
+ if (is == null) return "";
+ try (BufferedReader r = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+ StringBuilder sb = new StringBuilder();
+ String line;
+ while ((line = r.readLine()) != null) sb.append(line).append('\n');
+ return sb.toString().trim();
+ }
+} private String jsonStr(String str) {
+ if (str == null) return "null";
+ StringBuilder sb = new StringBuilder();
+ sb.append('"');
+ for (int i = 0; i < str.length(); i++) {
+ char c = str.charAt(i);
+ if (c == '"' || c == '\\' || c == '/' || c == '\b' || c == '\f' || c == '\n' || c == '\r' || c == '\t') {
+     sb.append('\\');
+     switch (c) {
+         case '"': sb.append('"'); break;
+         case '\\': sb.append('\\'); break;
+         case '/': sb.append('/'); break;
+         case '\b': sb.append('b'); break;
+         case '\f': sb.append('f'); break;
+         case '\n': sb.append('n'); break;
+         case '\r': sb.append('r'); break;
+         case '\t': sb.append('t'); break;
+     }
+ } else {
+     sb.append(c);
+ }
+ }
+ sb.append('"');
+ return sb.toString();
+} private String parseChoiceContent(String responseJson) {
+ try {
+ String searchKey = "\"content\":\"";
+ int contentIdx = responseJson.indexOf(searchKey);
+ if (contentIdx == -1) return "Parse Error";
+ 
+ int start = contentIdx + searchKey.length();
+ int end = findClosingQuote(responseJson, start);
+ return responseJson.substring(start, end).replace("\\n", "\n").replace("\\\"", "\"");
+ } catch (Exception e) {
+ return "Parse Error: " + e.getMessage();
+ }
+} private int findClosingQuote(String str, int start) {
+ boolean escaped = false;
+ for (int i = start; i < str.length(); i++) {
+ char c = str.charAt(i);
+ if (c == '\\' && !escaped) {
+     escaped = true;
+     continue;
+ }
+ if (c == '"' && !escaped) return i;
+ escaped = false;
+ }
+ return str.length();
+} public static class ChatMessage {
+ private final String role;
+ private final String content;
+ public ChatMessage(String role, String content) { this.role = role; this.content = content; }
+ public String getRoleString() { return role; }
+ public String getContent() { return content; }
+}
 }
