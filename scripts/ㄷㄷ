@@ -1,4 +1,3 @@
-
 package hi.bxm.assist.test;
 
 import java.io.BufferedReader;
@@ -12,243 +11,503 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
+ * PMS -> LLM -> GitLab 통합 서비스 클래스 (중복 체크 및 이슈 종료 기능 추가)
+ */
+public class PmsGitLabIntegrationService {
 
-PMS -> LLM -> GitLab 통합 서비스 클래스
-[Updated] 프로젝트 ID를 찾기 위해 영문 시스템명(Path)을 사용하는 기능 추가
-*/
-public class PmsGitLabIntegrationService {  // 설정 정보
- private final String llmBaseUrl = "http://dev-fms.hi-portal.co.kr/fms/api/llm/gemma/chat.do";
- private final String gitLabBaseUrl = "http://10.2.12.77:48000/";
- private final String gitLabAccessToken = "Snp4WHJox4JYUf4byNZ4";
- private final String defaultModel = "/app/models/gemma4-31b-it-awq-4bit";  /**
-통합 프로세스 실행 메서드
-@param pmsTaskContent PMS 작업 내용
-@param pmsEmployeeId PMS 사번
-@param gitLabSystemPath GitLab 프로젝트 경로 (예: "my-group/my-project")
-*/
-public String processPmsToGitLab(String projectid, String pmsTaskContent, String pmsEmployeeId, String gitLabSystemPath) {
- try {
- // [Step 0] 프로젝트 ID 조회: 영문 시스템명(Path)을 통해 숫자 ID를 가져옴
- String gitLabProjectId = findProjectIdBySystemName(gitLabSystemPath);
- if (gitLabProjectId == null) {
-     return "Fail: GitLab 프로젝트를 찾을 수 없습니다. (Path: " + gitLabSystemPath + ")";
- }
+	private final String llmBaseUrl   = "http://dev-fms.hi-portal.co.kr/fms/api/llm/gemma/chat.do";
+	private final String gitLabBaseUrl = "http://10.2.12.77:48000/";
+	private final String gitLabAccessToken = "Snp4WHJox4JYUf4byNZ4";
+	private final String defaultModel = "/app/models/gemma4-31b-it-awq-4bit";
 
- // [Step 1] LLM 변환
- String markdownTemplate = convertToMarkdownWithLLM(pmsTaskContent);
+	// ========================================================================
+    // 프로젝트 ID를 제목으로 이슈 생성
+    // ========================================================================
+    public String createIssueByProjectId(String projectId, String pmsTaskContent, String pmsEmployeeId, String gitLabSystemPath) {
+        try {
+            String encodedPath = encodeProjectId(gitLabSystemPath);
+            if (encodedPath == null) return "Fail: 경로 오류";
+            
+            Long gitLabUserId = findGitLabUserIdByUsername(pmsEmployeeId);
+			if (gitLabUserId == -1) return "Fail: 계정 오류";
+			
+			String issueTitle = projectId; 
+			if (isDuplicateIssue(encodedPath, issueTitle)) {
+				return "Skip: 이미 [" + issueTitle + "] 명칭의 이슈가 존재합니다.";
+			}
+            // 1. LLM 분석
+            String llmRawResponse = analyzeWithLLM(pmsTaskContent);
+            ParsedLlmData parsedData = parseLlmResponse(llmRawResponse, pmsEmployeeId);
 
- // [Step 2] 사용자 매핑
- Long gitLabUserId = findGitLabUserIdByUsername(pmsEmployeeId);
+            // 2. 이슈 생성 (제목을 projectId로 설정)
+            // 생성 후 응답에서 iid를 추출하여 알려줍니다.
+            String response = createGitLabIssue(encodedPath, projectId, parsedData.labels, parsedData.fullDescription, gitLabUserId);
+            
+            if (response.contains("Error")) return response;
 
- // [Step 3] 이슈 등록
- if (gitLabUserId != null) {
-     String issueResult = createGitLabIssue(projectid, gitLabProjectId, markdownTemplate, gitLabUserId);
-     return "Success: " + issueResult;
- } else {
-     return "Fail: GitLab User ID를 찾을 수 없습니다. (사번: " + pmsEmployeeId + ")";
- }
- } catch (Exception e) {
- e.printStackTrace();
- return "Error: 프로세스 진행 중 오류 발생 - " + e.getMessage();
- }
-} // ========================================================================
-// NEW: STEP 0 - 프로젝트 ID 조회 (영문 시스템명 기반)
-// ======================================================================== /**
-GitLab의 프로젝트 경로(Namespace/Project Name)를 사용하여 숫자 ID를 반환합니다.
-@param systemName 영문 시스템명 (예: "dev-group/web-service")
-@return GitLab 프로젝트 숫자 ID (문자열), 찾을 수 없으면 null
-*/
-private String findProjectIdBySystemName(String systemName) throws IOException {
- if (systemName == null || systemName.trim().isEmpty()) return null;  // GitLab API는 프로젝트 경로를 URL-encoded하여 사용할 수 있음 (예: api/v4/projects/dev-group%2Fweb-service)
- String encodedPath = URLEncoder.encode(systemName, StandardCharsets.UTF_8.toString());
- String urlPath = "api/v4/projects/" + encodedPath;  String responseJson = get(urlPath, gitLabAccessToken);  if (responseJson == null || responseJson.trim().equals("") || responseJson.trim().equals("{}")) {
- return null;
- }  // 응답 JSON에서 "id" 필드의 값을 추출 (수동 파싱)
- try {
- String idKey = "\"id\":";
- int idIdx = responseJson.indexOf(idKey);
- if (idIdx != -1) {
-     int start = idIdx + idKey.length();
-     // 숫자 뒤에 오는 문자( , 또는 } ) 전까지 추출
-     int end = responseJson.indexOf(",", start);
-     if (end == -1) end = responseJson.indexOf("}", start);
-     
-     String idValue = responseJson.substring(start, end).trim();
-     return idValue;
- }
- } catch (Exception e) {
- return null;
- }
- return null;
-} // ========================================================================
-// STEP 1: LLM 변환 로직
-// ======================================================================== private String convertToMarkdownWithLLM(String taskContent) throws IOException {
- List<ChatMessage> messages = new ArrayList<ChatMessage>();
- messages.add(new ChatMessage("system", "당신은 시니어 개발자입니다. 입력된 작업 요청 내용을 분석하여, "
-     + "개발자가 수행해야 할 단계를 구체적인 '마크다운 체크리스트(- [ ])' 형태로 생성하십시오. "
-     + "분석 결과 요약도 반드시 포함하십시오."));
- messages.add(new ChatMessage("user", "다음 작업 요청을 분석해서 체크리스트로 만들어줘: " + taskContent));  return complete(messages, 0.7, 1000);
-} private String complete(List<ChatMessage> messages, double temp, int maxTokens) throws IOException {
- String body = buildChatBody(defaultModel, messages, temp, maxTokens, false, null);
- String responseJson = post("v1/chat/completions", body);
- return parseChoiceContent(responseJson);
-} private String buildChatBody(String model, List<ChatMessage> messages, double temperature, int maxTokens, boolean stream, String[] stopSequences) {
- StringBuilder sb = new StringBuilder();
- sb.append("{");
- sb.append("\"model\":").append(jsonStr(model)).append(',');
- sb.append("\"temperature\":").append(temperature).append(',');
- sb.append("\"max_tokens\":").append(maxTokens).append(',');
- if (stream) sb.append("\"stream\":true,");
- 
- if (stopSequences != null) {
- sb.append("\"stop\":[");
- for (int i = 0; i < stopSequences.length; i++) {
-     sb.append(jsonStr(stopSequences[i]));
-     if (i < stopSequences.length - 1) sb.append(",");
- }
- sb.append("],");
- }  sb.append("\"messages\":rage:");
- for (int i = 0; i < messages.size(); i++) {
- ChatMessage m = messages.get(i);
- sb.append("{\"role\":").append(jsonStr(m.getRoleString()))
-   .append(",\"content\":").append(jsonStr(m.getContent())).append('}');
- if (i < messages.size() - 1) sb.append(',');
- }
- sb.append("]}");
- return sb.toString();
-} // ========================================================================
-// STEP 2: GitLab 사용자 검색 로직
-// ======================================================================== private Long findGitLabUserIdByUsername(String username) throws IOException {
- String urlPath = "api/v4/users?username=" + username;
- String responseJson = get(urlPath, gitLabAccessToken);  if (responseJson == null || responseJson.trim().equals("[]") || responseJson.trim().equals("")) {
- return null;
- }  try {
- String idKey = "\"id\":";
- int idIdx = responseJson.indexOf(idKey);
- if (idIdx != -1) {
-     int start = idIdx + idKey.length();
-     int end = responseJson.indexOf(",", start);
-     if (end == -1) end = responseJson.indexOf("}", start);
-     
-     return Long.parseLong(responseJson.substring(start, end).trim());
- }
- } catch (Exception e) {
- return null;
- }
- return null;
-} // ========================================================================
-// STEP 3: GitLab 이슈 등록 로직
-// ======================================================================== private String createGitLabIssue(String projectId, String systemid, String description, Long assigneeId) throws IOException {
- String urlPath = "api/v4/projects/" + systemid + "/issues";
- 
- StringBuilder sb = new StringBuilder();
- sb.append("{");
- sb.append("\"title\":").append(jsonStr(projectId)).append(","); // <--- 이 부분이 핵심입니다.
- sb.append("\"description\":").append(jsonStr(description)).append(",");
- sb.append("\"assignee_id\":").append(assigneeId);
- sb.append("}");
- 
- String responseJson = post(urlPath, sb.toString(), gitLabAccessToken);
- return "Issue Created: " + responseJson;
-} // ========================================================================
-// HTTP 통신 및 유틸리티 (기존 스타일 유지)
-// ======================================================================== private String post(String path, String body, String token) throws IOException {
- URL url = new URL(gitLabBaseUrl + path);
- HttpURLConnection conn = (HttpURLConnection) url.openConnection();
- conn.setRequestMethod("POST");
- conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
- conn.setRequestProperty("PRIVATE-TOKEN", token);
- conn.setDoOutput(true);  try (OutputStream os = conn.getOutputStream()) {
- byte[] input = body.getBytes(StandardCharsets.UTF_8);
- os.write(input, 0, input.length);
- }  int code = conn.getResponseCode();
- if (code >= 200 && code < 300) {
- return readAll(conn.getInputStream());
- } else {
- return "Error Response: " + code + " - " + readAll(conn.getErrorStream());
- }
-} private String post(String path, String body) throws IOException {
- URL url = new URL(llmBaseUrl);
- HttpURLConnection conn = (HttpURLConnection) url.openConnection();
- conn.setRequestMethod("POST");
- conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
- conn.setDoOutput(true);  try (OutputStream os = conn.getOutputStream()) {
- byte[] input = body.getBytes(StandardCharsets.UTF_8);
- os.write(input, 0, input.length);
- }  return readAll(conn.getInputStream());
-} private String get(String path, String token) throws IOException {
- URL url = new URL(gitLabBaseUrl + path);
- HttpURLConnection conn = (HttpURLConnection) url.openConnection();
- conn.setRequestMethod("GET");
- conn.setRequestProperty("PRIVATE-TOKEN", token);  int code = conn.getResponseCode();
- if (code == 200) {
- return readAll(conn.getInputStream());
- } else {
- return "";
- }
-} private String readAll(InputStream is) throws IOException {
- if (is == null) return "";
- try (BufferedReader r = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
- StringBuilder sb = new StringBuilder();
- String line;
- while ((line = r.readLine()) != null) sb.append(line).append('\n');
- return sb.toString().trim();
- }
-} private String jsonStr(String str) {
- if (str == null) return "null";
- StringBuilder sb = new StringBuilder();
- sb.append('"');
- for (int i = 0; i < str.length(); i++) {
- char c = str.charAt(i);
- if (c == '"' || c == '\\' || c == '/' || c == '\b' || c == '\f' || c == '\n' || c == '\r' || c == '\t') {
-     sb.append('\\');
-     switch (c) {
-         case '"': sb.append('"'); break;
-         case '\\': sb.append('\\'); break;
-         case '/': sb.append('/'); break;
-         case '\b': sb.append('b'); break;
-         case '\f': sb.append('f'); break;
-         case '\n': sb.append('n'); break;
-         case '\r': sb.append('r'); break;
-         case '\t': sb.append('t'); break;
-     }
- } else {
-     sb.append(c);
- }
- }
- sb.append('"');
- return sb.toString();
-} private String parseChoiceContent(String responseJson) {
- try {
- String searchKey = "\"content\":\"";
- int contentIdx = responseJson.indexOf(searchKey);
- if (contentIdx == -1) return "Parse Error";
- 
- int start = contentIdx + searchKey.length();
- int end = findClosingQuote(responseJson, start);
- return responseJson.substring(start, end).replace("\\n", "\n").replace("\\\"", "\"");
- } catch (Exception e) {
- return "Parse Error: " + e.getMessage();
- }
-} private int findClosingQuote(String str, int start) {
- boolean escaped = false;
- for (int i = start; i < str.length(); i++) {
- char c = str.charAt(i);
- if (c == '\\' && !escaped) {
-     escaped = true;
-     continue;
- }
- if (c == '"' && !escaped) return i;
- escaped = false;
- }
- return str.length();
-} public static class ChatMessage {
- private final String role;
- private final String content;
- public ChatMessage(String role, String content) { this.role = role; this.content = content; }
- public String getRoleString() { return role; }
- public String getContent() { return content; }
-}
+            // 생성된 응답에서 iid 추출
+            String iid = getJsonValue(response, "iid");
+            return "Success: 이슈가 생성되었습니다. (이슈 번호: #" + iid + ")";
+
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+    // ========================================================================
+    // 프로젝트 경로와 이슈 번호를 던지면 해당 이슈를 종료 (Close)
+    // ========================================================================
+    private String findIidByTitle(String responseJson, String targetTitle) {
+        // 1. 이슈 하나하나의 객체 범위인 { ... } 를 먼저 찾습니다.
+        Pattern blockPattern = Pattern.compile("\\{[^}]*\\}");
+        Matcher blockMatcher = blockPattern.matcher(responseJson);
+
+        // 2. 블록 안에서 title과 iid를 각각 찾을 패턴
+        Pattern titlePattern = Pattern.compile("\"title\":\"([^\"]*)\"");
+        Pattern iidPattern = Pattern.compile("\"iid\":\\s*(\\d+)");
+
+        while (blockMatcher.find()) {
+            // 현재 찾은 { ... } 블록 문자열
+            String block = blockMatcher.group(); 
+
+            Matcher titleMatcher = titlePattern.matcher(block);
+            Matcher iidMatcher = iidPattern.matcher(block);
+
+            // 블록 안에 제목과 iid가 모두 존재할 때만 비교 수행
+            if (titleMatcher.find() && iidMatcher.find()) {
+                String currentTitle = titleMatcher.group(1).trim();
+                String currentIid = iidMatcher.group(1).trim();
+
+                // 제목이 일치하면 iid를 즉시 반환
+                if (currentTitle.equals(targetTitle.trim())) {
+                    return currentIid;
+                }
+            }
+        }
+        return null; // 끝까지 못 찾으면 null
+    }
+    
+    public String closeIssueByProjectIdAndNumber(String projectId, String gitLabSystemPath) {
+        if (projectId == null || gitLabSystemPath == null) {
+            return "Fail: 파라미터가 누락되었습니다.";
+        }
+        try {
+            // 1. 프로젝트 경로 인코딩
+            String encodedPath = gitLabSystemPath.replace("/", "%2F");
+
+            // 2. 이슈 목록 가져오기 (이게 성공했으므로 경로는 확실히 맞습니다)
+            String listUrl = "api/v4/projects/" + encodedPath + "/issues?per_page=100";
+            String responseJson = get(listUrl, gitLabAccessToken);
+
+            if (responseJson == null || responseJson.trim().isEmpty()) {
+                return "Fail: 이슈 목록을 가져오지 못했습니다.";
+            }
+
+            // 3. 제목으로 IID 추출
+            String issueIid = findIidByTitle(responseJson, projectId);
+            if (issueIid == null) {
+                return "Fail: [" + projectId + "] 제목의 이슈를 찾을 수 없습니다.";
+            }
+
+            // 4. [핵심 수정] PUT 메서드를 사용하여 state를 직접 업데이트합니다.
+            // URL 구조: api/v4/projects/{encoded_path}/issues/{issue_iid}
+            // (끝에 /close나 /transition을 붙이지 않습니다!)
+            String updateUrl = "api/v4/projects/" + encodedPath + "/issues/" + issueIid;
+
+            // 5. [핵심 수정] 'state'가 아니라 'state_event'를 사용해야 합니다!
+            // 값을 "close"로 보내면 이슈가 닫힙니다.
+            String updateBody = "{\"state_event\": \"close\"}";
+
+            // 6. [중요] 메서드는 PUT을 사용합니다.
+            String response = put(updateUrl, updateBody, gitLabAccessToken);
+
+            if (response.contains("Error")) {
+            	return "Fail: 이슈 종료 실패. 응답: " + response;
+            }
+
+            return "Success: [" + projectId + "] 이슈(IID: " + issueIid + ")를 성공적으로 종료했습니다.";
+
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    /**
+     * PUT 메서드를 위한 새로운 메서드 (기존 post와 유사하지만 Method만 PUT입니다)
+     */
+    private String put(String path, String body, String token) throws IOException {
+        String cleanBaseUrl = gitLabBaseUrl.endsWith("/") ? gitLabBaseUrl.substring(0, gitLabBaseUrl.length() - 1) : gitLabBaseUrl;
+        String cleanPath = path.startsWith("/") ? path.substring(1) : path;
+        
+        URL url = new URL(cleanBaseUrl + "/" + cleanPath);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        
+        conn.setRequestMethod("PUT"); // <--- 핵심: PUT으로 설정
+        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        conn.setRequestProperty("PRIVATE-TOKEN", token);
+        conn.setDoOutput(true);
+
+        try (OutputStream os = conn.getOutputStream()) { 
+            os.write(body.getBytes(StandardCharsets.UTF_8)); 
+        }
+
+        int code = conn.getResponseCode();
+        if (code >= 200 && code < 300) {
+            return readAll(conn.getInputStream());
+        } else {
+            try (java.io.InputStream is = conn.getErrorStream()) {
+                return "Error: " + code + " | Response: " + (is != null ? readAll(is) : "No body");
+            }
+        }
+    }
+	private Long findGitLabUserIdByUsername(String username) throws IOException {
+		String urlPath = "api/v4/users?username=" + username;
+		String responseJson = get(urlPath, gitLabAccessToken);
+
+		if (responseJson == null || responseJson.trim().equals("[]") || responseJson.trim().equals("")) {
+			return null;
+		}
+		try {
+			String idKey = "\"id\":";
+			int idIdx = responseJson.indexOf(idKey);
+			if (idIdx != -1) {
+				int start = idIdx + idKey.length();
+				int end = responseJson.indexOf(",", start);
+				if (end == -1) end = responseJson.indexOf("}", start);
+
+				return Long.parseLong(responseJson.substring(start, end).trim());
+			}
+		} catch (Exception e) {
+			return null;
+		}
+		return null;
+	}
+	// ========================================================================
+	// [핵심 수정] 중복 체크 로직 (제목이 ProjectId와 일치하는지 검사)
+	// ========================================================================
+	private boolean isDuplicateIssue(String encodedPath, String targetTitle) throws IOException {
+	    // 1. [수정] search 파라미터를 제거하고, 모든 이슈 목록을 가져옵니다.
+	    // state=opened를 붙여서 '열려있는' 이슈만 가져오도록 합니다.
+	    String urlPath = "api/v4/projects/" + encodedPath + "/issues?state=opened&per_page=100";
+	    
+	    String responseJson = get(urlPath, gitLabAccessToken);
+	    
+	    if (responseJson == null || responseJson.trim().equals("[]") || responseJson.trim().equals("")) {
+	        return false;
+	    }
+
+	    try {
+	        // 2. 정규표현식으로 "title":"..." 패턴 추출
+	        Pattern pattern = Pattern.compile("\"title\":\"([^\"]*)\"");
+	        Matcher matcher = pattern.matcher(responseJson);
+	        
+	        while (matcher.find()) {
+	            String foundTitle = matcher.group(1).trim();
+	            
+	            // 3. [핵심] 검색 엔진의 판단에 맡기지 않고, Java의 equals로 정확히 비교합니다.
+	            if (foundTitle.equalsIgnoreCase(targetTitle.trim())) {
+	                return true; // 정확히 일치하는 제목이 있으면 중복!
+	            }
+	        }
+	    } catch (Exception e) {
+	        return false;
+	    }
+	    return false;
+	}
+
+	// ========================================================================
+	// 나머지 핵심 로직 (LLM, Create, Encoding, Parse, Close)
+	// ========================================================================
+
+	private String analyzeWithLLM(String taskContent) throws IOException {
+		List<ChatMessage> messages = new ArrayList<ChatMessage>();
+		String systemPrompt = "당신은 Java/Spring 시니어 개발자입니다. "
+				+ "입력받은 요청 내용을 분석하여 정해진 라벨 세트에서 적절한 것을 선택하고 난이도를 산정하십시오.\n\n"
+				+ "1. 라벨 세트: [Bug, Feature, Refactoring, Task, UI, API, DB, Security, Infrastructure]\n"
+				+ "2. 출력 형식(반드시 이 형식을 엄격히 지킬 것):\n"
+				+ "[METADATA]\n"
+				+ "Label: (라벨1, 라벨2...)\n"
+				+ "Point: (1~5 사이의 숫자)\n"
+				+ "[DESCRIPTION]\n"
+				+ "### 📋 분석 결과\n(요약 내용)\n"
+				+ "### 🛠️ 작업 체크리스트\n- [ ] 작업내용...";
+
+		messages.add(new ChatMessage("system", systemPrompt));
+		messages.add(new ChatMessage("user", "다음 요청을 분석해줘: " + taskContent));
+		return complete(messages, 0.5, 1000);
+	}
+
+	   /**
+     * [최종 완성본] GitLab 이슈 등록
+     * 라벨을 JSON 배열 형식으로 자동 변환하며, 빈 라벨에 대한 예외 처리를 포함합니다.
+     */
+    private String createGitLabIssue(String encodedPath, String title, String labels, String description, Long assignee_id) throws IOException {
+        String urlPath = "api/v4/projects/" + encodedPath + "/issues";
+        
+        // 1. 라벨을 JSON 배열 형식으로 변환 (예: "API, Refactoring" -> ["API","Refactoring"])
+        // 만약 라벨이 비어있다면 빈 배열 "[]"를 반환합니다.
+        String jsonLabels = formatLabelsToJsonArray(labels);
+
+        // 2. JSON Body 조립
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("\"title\":").append(jsonStr(title)).append(",");
+        sb.append("\"labels\":").append(jsonLabels).append(","); // 변환된 배열 삽입
+        sb.append("\"description\":").append(jsonStr(description)).append(",");
+	    sb.append("\"assignee_id\":").append(assignee_id);
+        sb.append("}");
+        
+        // 3. API 호출
+        String responseJson = post(urlPath, sb.toString(), gitLabAccessToken);
+        
+        // 4. 결과 반환
+        if (responseJson.contains("Error")) {
+            return "Error: " + responseJson;
+        }
+        return "Issue Created: " + responseJson;
+    }
+
+    /**
+     * [핵심 유틸리티] 문자열 라벨을 JSON 배열 문자열로 변환
+     * 예: "API, Refactoring" -> ["API","Refactoring"]
+     * 예: "" -> []
+     */
+    private String formatLabelsToJsonArray(String labels) {
+        if (labels == null || labels.trim().isEmpty()) {
+            return "[]";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        
+        // 콤마(,)를 기준으로 분리
+        String[] labelArray = labels.split(",");
+        for (int i = 0; i < labelArray.length; i++) {
+            // 앞뒤 공백 제거 및 [ ] ( ) 와 같은 불필요한 기호 제거
+            String cleanLabel = labelArray[i].trim()
+                                        .replace("[", "")
+                                        .replace("]", "")
+                                        .replace("(", "")
+                                        .replace(")", "")
+                                        .replace("\"", "") // 따옴표 제거
+                                        .trim();
+            
+            if (!cleanLabel.isEmpty()) {
+                sb.append("\"").append(cleanLabel).append("\"");
+                if (i < labelArray.length - 1) {
+                    sb.append(",");
+                }
+            }
+        }
+        sb.append("]");
+        
+        // 만약 모든 라벨이 공백이어서 결과가 [""] 처럼 된다면 []로 반환
+        String result = sb.toString().replace("[,]", "[]").replace("[,]", "[]");
+        return result.equals("[]") ? "[]" : result;
+    }
+	private String encodeProjectId(String systemName) throws IOException {
+		if (systemName == null || systemName.trim().isEmpty()) return null;
+		return URLEncoder.encode(systemName, StandardCharsets.UTF_8.toString());
+	}
+
+	private ParsedLlmData parseLlmResponse(String rawResponse, String pmsEmployeeId) {
+		ParsedLlmData data = new ParsedLlmData();
+		try {
+			int descIdx = rawResponse.indexOf("[DESCRIPTION]");
+			if (descIdx == -1) throw new Exception("Format Error");
+			String metaPart = rawResponse.substring(0, descIdx);
+			String descPart = rawResponse.substring(descIdx + "[DESCRIPTION]".length()).trim();
+
+			// 2. Label 추출 (괄호 [ ] 및 불필요한 특수문자 제거 로직 강화)
+			int labelIdx = metaPart.indexOf("Label:");
+			if (labelIdx != -1) {
+				int endOfLine = metaPart.indexOf("\n", labelIdx);
+				if (endOfLine == -1) endOfLine = metaPart.length();
+
+				// "Label:" 뒤의 문자열을 가져옴
+				String labelStr = metaPart.substring(labelIdx + "Label:".length(), endOfLine).trim();
+
+				// [핵심 수정] 정규표현식을 사용하여 모든 괄호([, ], (, ))와 따옴표(")를 제거합니다.
+				// [ [ ( ( ] 가 모두 제거 대상입니다.
+				labelStr = labelStr.replaceAll("[\\(\\[\\]]", "").replace("\"", "").trim();
+
+				data.labels = labelStr; 
+				// 결과 예시: "(API, Refactoring)" -> "API, Refactoring"
+			}
+			int pointIdx = metaPart.indexOf("Point:");
+			if (pointIdx != -1) {
+				int endOfLine = metaPart.indexOf("\n", pointIdx);
+				if (endOfLine == -1) endOfLine = metaPart.length();
+				data.pointText = "■ 난이도: " + metaPart.substring(pointIdx + "Point:".length(), endOfLine).trim() + "점\n";
+			}
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("**담당자: [").append(pmsEmployeeId).append("]**\n\n");
+			sb.append(data.pointText).append(descPart);
+			data.fullDescription = sb.toString();
+		} catch (Exception e) {
+			data.labels = "Task";
+			data.fullDescription = "⚠️ 파싱 오류: " + rawResponse;
+		}
+		return data;
+	}
+
+	// --- 통신 및 유틸리티 (기존 유지) ---
+	private String complete(List<ChatMessage> messages, double temp, int maxTokens) throws IOException {
+		String body = buildChatBody(defaultModel, messages, temp, maxTokens, false, null);
+		return parseChoiceContent(postLlm(llmBaseUrl, body));
+	}
+
+	private String postLlm(String baseUrl, String body) throws IOException {
+		URL url = new URL(baseUrl);
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestMethod("POST");
+		conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+		conn.setDoOutput(true);
+		try (OutputStream os = conn.getOutputStream()) { os.write(body.getBytes(StandardCharsets.UTF_8)); }
+		return readAll(conn.getInputStream());
+	}
+
+	private String post(String path, String body, String token) throws IOException {
+		URL url = new URL(gitLabBaseUrl + path);
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestMethod("POST");
+		conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+		conn.setRequestProperty("PRIVATE-TOKEN", token);
+		conn.setDoOutput(true);
+		try (OutputStream os = conn.getOutputStream()) { os.write(body.getBytes(StandardCharsets.UTF_8)); }
+		int code = conn.getResponseCode();
+		return (code >= 200 && code < 300) ? readAll(conn.getInputStream()) : "Error: " + code;
+	}
+
+	private String get(String path, String token) throws IOException {
+		URL url = new URL(gitLabBaseUrl + path);
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestMethod("GET");
+		conn.setRequestProperty("PRIVATE-TOKEN", token);
+		if (conn.getResponseCode() == 200) return readAll(conn.getInputStream());
+		return "";
+	}
+
+	private String buildChatBody(String model, List<ChatMessage> messages, double temperature, int maxTokens, boolean stream, String[] stopSequences) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{");
+		sb.append("\"model\":").append(jsonStr(model)).append(',');
+		sb.append("\"temperature\":").append(temperature).append(',');
+		sb.append("\"max_tokens\":").append(maxTokens).append(',');
+		sb.append("\"messages\":[");
+		for (int i = 0; i < messages.size(); i++) {
+			ChatMessage m = messages.get(i);
+			sb.append("{\"role\":").append(jsonStr(m.getRoleString())).append(",\"content\":").append(jsonStr(m.getContent())).append('}');
+			if (i < messages.size() - 1) sb.append(',');
+		}
+		sb.append("]}");
+		return sb.toString();
+	}
+
+	private String readAll(InputStream is) throws IOException {
+		if (is == null) return "";
+		try (BufferedReader r = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = r.readLine()) != null) sb.append(line).append('\n');
+			return sb.toString().trim();
+		}
+	}
+
+	private String jsonStr(String str) {
+		if (str == null) return "null";
+		StringBuilder sb = new StringBuilder();
+		sb.append('"');
+		for (int i = 0; i < str.length(); i++) {
+			char c = str.charAt(i);
+			if (c == '"' || c == '\\' || c == '/' || c == '\b' || c == '\f' || c == '\n' || c == '\r' || c == '\t') {
+				sb.append('\\');
+				switch (c) {
+				case '"': sb.append('"'); break;
+				case '\\': sb.append('\\'); break;
+				case '/': sb.append('/'); break;
+				case '\b': sb.append('b'); break;
+				case '\f': sb.append('f'); break;
+				case '\n': sb.append('n'); break;
+				case '\r': sb.append('r'); break;
+				case '\t': sb.append('t'); break;
+				}
+			} else { sb.append(c); }
+		}
+		sb.append('"');
+		return sb.toString();
+	}
+
+	private String parseChoiceContent(String responseJson) {
+		try {
+			String searchKey = "\"content\":\"";
+			int contentIdx = responseJson.indexOf(searchKey);
+			if (contentIdx == -1) return "Parse Error";
+			int start = contentIdx + searchKey.length();
+			int end = findClosingQuote(responseJson, start);
+			return responseJson.substring(start, end).replace("\\n", "\n").replace("\\\"", "\"");
+		} catch (Exception e) { return "Parse Error"; }
+	}
+
+	private int findClosingQuote(String str, int start) {
+		boolean escaped = false;
+		for (int i = start; i < str.length(); i++) {
+			char c = str.charAt(i);
+			if (c == '\\' && !escaped) { escaped = true; continue; }
+			if (c == '"' && !escaped) return i;
+			escaped = false;
+		}
+		return str.length();
+	}
+    private String getJsonValue(String json, String key) {
+        Pattern pattern = Pattern.compile("\"" + key + "\":\\s*\"?([^,\"}]+)\"?");
+        Matcher matcher = pattern.matcher(json);
+        return matcher.find() ? matcher.group(1).trim() : null;
+    }
+
+	public static class ChatMessage {
+		private final String role;
+		private final String content;
+		public ChatMessage(String role, String content) { this.role = role; this.content = content; }
+		public String getRoleString() { return role; }
+		public String getContent() { return content; }
+	}
+
+	private static class ParsedLlmData {
+		String labels = "";
+		String fullDescription = "";
+		String pointText = "";
+	}
+
+	// ========================================================================
+	// 테스트 메인
+	// ========================================================================
+	public static void main(String[] args) {
+		PmsGitLabIntegrationService service = new PmsGitLabIntegrationService();
+
+		String projectId = "P20260610-0005";
+		String pmsTask = "로그인 API 성능 최적화 요청";
+		String pmsDesc = "로그인 API 성능 최적화 요청을 만들어 준다.";
+		String pmsId = "IB1117";
+		String systemPath = "TEST/TEST_MYDATA";
+		
+		String resource_1 = "BTd54265VO.java";
+		String resource_desc_1 = "개발원자동차사양 BTDO VO (N01051200)";
+		String resource_2 = "LTEE0640S.java";
+		String resource_desc_2 = "휴대폰전자서명 변경( 해외장기체류 사후환급)  처리 sub service";
+		
+		// 1. 생성 테스트
+		System.out.println(">>> [테스트 1] 이슈 생성 및 중복 체크");
+		String result = service.createIssueByProjectId(projectId, pmsTask+"//"+pmsDesc, pmsId, systemPath);
+		System.out.println("결과: " + result);
+
+		// 2. 종료 테스트 (만약 생성에 성공했다면, 이슈 번호 1번을 종료 시도)
+		System.out.println(">>> [테스트 2] 이슈 종료");
+		String result1 = service.closeIssueByProjectIdAndNumber(projectId, systemPath);
+		System.out.println(result1);
+	}
 }
