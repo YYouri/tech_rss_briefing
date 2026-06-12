@@ -1,48 +1,56 @@
 <div style="font-family:'Noto Sans KR','Malgun Gothic',sans-serif;max-width:720px;margin:0 auto;color:#333;word-break:keep-all;">
 
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">1. 기술 개요</h2>
-<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">AI‑enabled 데이터 센터는 인공지능을 운영·관리 핵심 엔진으로 활용해 서버 배치, 전력 소비, 냉각 시스템 등을 실시간으로 최적화하는 시설이다. 인공지능이 방대한 로그와 센서 데이터를 분석해 과부하를 예측하고, 에너지 효율을 자동으로 조정한다.</p>
+<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">AI‑enabled Data Center는 고성능 연산, 대용량 저장, 초고속 네트워크를 AI 워크로드 전용으로 최적화한 데이터센터를 말합니다. 전통적인 서버 인프라에 AI 전용 가속기와 최신 메모리, 전력 관리 솔루션을 결합해 모델 학습·추론을 실시간으로 처리합니다.</p>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">2. 왜 지금 주목받는가</h2>
-<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">클라우드 서비스와 빅데이터 분석 수요가 급증하면서 데이터 센터의 전력 소모와 운영 비용이 산업 전반의 부담으로 떠오르고 있다. 동시에 탄소 중립 목표에 대한 규제가 강화돼 친환경 운영이 경쟁력 요소가 되었다. 이러한 상황에서 AI가 실시간 최적화를 제공하면 비용 절감과 친환경성을 동시에 달성할 수 있어 주목받고 있다. 특히 인도와 같은 급성장 시장에서는 전력 인프라 제약이 심하기 때문에 AI 기반 관리가 전략적 선택이 되고 있다.</p>
+<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">AI 모델이 거대화되면서 GPU·TPU 클러스터에 요구되는 전력과 대역폭이 급증했습니다. 반도체 산업에서는 AI‑Driven 수요가 반도체 생산 라인 확대와 투자 확대의 주요 원인으로 떠오르고 있습니다. 영국 정부가 AI와 반도체 산업에 11억 파운드(≈1.8조 원) 규모의 지원금을 발표한 뒤, 기업들은 AI 전용 인프라 구축을 가속화하고 있습니다.</p>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">3. 핵심 기술 요소</h2>
 <ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">
-  <li style="margin-bottom:6px;"><strong>AI‑Driven Workload Scheduler</strong>: 워크로드 특성을 학습해 적절한 서버와 시간대에 할당, 피크 전력 사용을 평탄화한다.</li>
-  <li style="margin-bottom:6px;"><strong>Predictive Power Management</strong>: 전력 사용 패턴을 예측해 UPS와 그리드 연계를 자동 조정, 전력 비용을 최소화한다.</li>
-  <li style="margin-bottom:6px;"><strong>Intelligent Cooling Control</strong>: 온도 센서와 열 흐름 모델을 결합해 냉각 팬·에어컨 가동을 최적화, 전력 소비를 20% 이상 절감할 수 있다.</li>
-  <li style="margin-bottom:6px;"><strong>Anomaly Detection & Automated Remediation</strong>: 하드웨어 고장, 네트워크 지연 등을 조기에 감지해 자동 복구 절차를 실행한다.</li>
-  <li style="margin-bottom:6px;"><strong>Edge‑AI Integration</strong>: 데이터 센터 내부에 초소형 AI 가속기를 배치해 실시간 분석을 현장에 머무르게 함으로써 대역폭과 지연을 감소시킨다.</li>
+  <li style="margin-bottom:6px;"><strong>AI 전용 가속기</strong>: NVIDIA H100, AMD Instinct 등 최신 GPU와 구글 TPU가 연산 효율을 크게 끌어올립니다.</li>
+  <li style="margin-bottom:6px;"><strong>고대역폭 메모리(HBM)</strong>: SK Hynix와 Micron이 공급하는 HBM2E·HBM3 칩이 1TB/s 수준의 메모리 대역폭을 제공해 대규모 모델의 학습 시간을 단축합니다.</li>
+  <li style="margin-bottom:6px;"><strong>전력 효율 설계</strong>: 전력 밀도를 낮추는 AD PowerTech의 전원 공급 장치와 AI 워크로드에 맞춘 냉각 시스템이 데이터센터 전체 에너지 소비를 감소시킵니다.</li>
+  <li style="margin-bottom:6px;"><strong>스마트 제어 소프트웨어</strong>: 마블버와 브로드컴이 공동 개발한 AI 기반 자원 스케줄러가 실시간 워크로드 분석을 통해 서버 활용률을 최적화합니다.</li>
+  <li style="margin-bottom:6px;"><strong>전용 네트워크</strong>: 400 Gbps 이상의 인피니밴드와 광대역 Ethernet이 클러스터 간 데이터 전송 병목을 해소합니다.</li>
 </ul>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">4. 산업에 미치는 영향</h2>
-<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">AI‑enabled 데이터 센터는 클라우드 서비스 제공업체뿐 아니라 금융, 헬스케어, 제조 분야에도 파급 효과를 미친다. 실시간 데이터 처리와 저지연 서비스가 필수인 금융 거래 시스템은 전력 비용 절감으로 보다 저렴한 서비스 가격을 제공할 수 있다. 헬스케어는 대용량 이미지·유전체 데이터 분석에 필요한 연산 능력을 확보하면서도 운영 비용을 억제한다. 제조업은 스마트 팩토리와 연결된 IoT 데이터 스트림을 원활히 처리해 생산 효율을 높인다. 전반적으로 AI 기반 최적화는 기업이 데이터 중심 비즈니스를 확장할 때 발생하는 인프라 비용과 환경 부담을 크게 낮춘다.</p>
+<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">AI‑enabled Data Center는 클라우드 서비스 제공업체가 고객에게 초고속 AI 서비스를 제공하도록 돕습니다. 금융 분야에서는 실시간 위험 분석과 트레이딩 알고리즘이 보다 빠르게 실행됩니다. 헬스케어에서는 유전체 데이터와 의료 영상 분석이 실시간 진단에 활용됩니다. 제조업에서는 디지털 트윈과 예측 유지보수가 대량 데이터를 즉시 처리하면서 생산 라인 가동률을 높이고, 광고·미디어 분야에서는 대용량 추천 모델이 실시간으로 개인화된 콘텐츠를 제공하게 됩니다.</p>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">5. 실제 적용 기업 사례</h2>
 <ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">
-  <li style="margin-bottom:6px;"><strong>Meta</strong>와 <strong>Reliance Industries</strong>는 인도에 AI‑enabled 데이터 센터를 공동 구축했다. 메타는 자체 AI 모델을 활용해 전력 수요를 예측하고, 릴라이언스는 현지 전력망과 연계해 자동 부하 조절을 구현했다. 이 협업은 현지 전력 공급의 변동성을 최소화하면서 친환경 냉각 방식을 도입해 에너지 효율을 크게 높였다.</li>
-  <li style="margin-bottom:6px;"><strong>Google Cloud</strong>는 미국 내 여러 데이터 센터에 AI 기반 냉각 제어 시스템을 적용했다. AI는 외부 날씨와 실내 온도 데이터를 실시간으로 결합해 냉각 장치 가동 시간을 30% 이상 단축했고, 이에 따라 전력 사용량이 크게 감소했다.</li>
-  <li style="margin-bottom:6px;"><strong>Microsoft Azure</strong>는 AI‑driven 워크로드 스케줄러를 도입해 고객의 AI 트레이닝 작업을 전력 저가 시간대에 자동 배치했다. 결과적으로 고객은 동일한 연산량을 더 낮은 비용으로 수행할 수 있었다.</li>
-  <li style="margin-bottom:6px;"><strong>Alibaba Cloud</strong>은 인도네시아 데이터 센터에서 예측 전력 관리 AI를 활용해 지역 전력망과의 실시간 연동을 구현했다. 전력 공급이 불안정한 시기에 자동으로 배터리 저장소를 활용해 서비스 중단을 방지했다.</li>
+  <li style="margin-bottom:6px;"><strong>구글</strong>은 2023년 말, 영국 데이터센터에 최신 H100 GPU와 SK Hynix의 HBM3 메모리를 탑재한 AI 클러스터를 구축했다고 발표했습니다. 이는 영국 정부의 AI·반도체 투자와 직접 연결된 사례이며, 데이터센터 전체 전력 효율을 15 % 개선한 것으로 알려졌습니다.</li>
+  <li style="margin-bottom:6px;"><strong>마블버 테크놀로지</strong>는 2024년 2분기에 AI 전용 스케줄러와 AD PowerTech 전원 솔루션을 결합한 풀스택 솔루션을 제공하겠다고 발표했습니다. 초기 고객은 대형 클라우드 운영업체이며, 이를 통해 GPU 사용률이 평균 30 % 상승했다고 보고했습니다.</li>
+  <li style="margin-bottom:6px;"><strong>ASM International</strong>은 2024년 초, AI‑Driven 반도체 생산 확대를 위한 새로운 장비 라인을 발표했습니다. 이 장비는 고밀도 HBM 생산에 최적화돼 있으며, 관련 매출이 전년 대비 20 % 성장할 것으로 예상된다고 밝혔습니다.</li>
+  <li style="margin-bottom:6px;"><strong>SK Hynix</strong>는 2024년 5월, NVIDIA와 2년간 공동 개발 계약을 체결해 최신 HBM3 칩을 공급하기로 했습니다. 계약에 따라 연간 5억 달러 규모의 메모리 공급이 확정됐으며, 이는 AI 데이터센터 메모리 수요 급증에 대응하기 위한 전략적 움직임입니다.</li>
 </ul>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">6. 경제·시장 관점에서 보기</h2>
-<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">AI‑enabled 데이터 센터 기술은 데이터 센터 건설·운영 비용 구조를 근본적으로 바꾸고 있다. 전통적으로 전력비와 냉각비가 전체 운영비의 30~40%를 차지했지만, AI 최적화가 적용되면 이 비중이 크게 낮아진다. 이는 데이터 센터를 보유한 사업자의 마진 개선으로 이어지며, 동시에 친환경 인증을 획득해 정부 보조금이나 세제 혜택을 받을 가능성을 높인다.</p>
-<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">AI 기반 관리 솔루션을 제공하는 기업들은 기존 하드웨어 공급망 외에 소프트웨어·서비스 매출을 확대하고 있다. 특히 메타와 릴라이언스처럼 대규모 인프라 투자와 현지 파트너십을 통한 공동 구축 모델은 자본 비용을 분산시키면서 현지 시장 진입 장벽을 낮춘다. 이러한 협업은 지역 전력 인프라 제한을 기술적으로 보완하고, 동시에 현지 기업에게 디지털 전환 가속화 기회를 제공한다.</p>
-<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">전 세계 데이터 센터 시장은 꾸준히 성장하고 있으며, AI‑enabled 솔루션에 대한 수요가 급증하고 있다. 기업들은 비용 절감과 ESG(환경·사회·지배구조) 목표 달성을 동시에 추구하기 때문에, AI 기반 인프라 투자에 대한 관심이 지속적으로 확대될 전망이다.</p>
+<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">AI‑enabled Data Center는 반도체, 전력, 네트워크 장비 등 다양한 부문에 걸친 복합 공급망을 형성합니다. ASM International이 AI‑Driven 반도체 장비에 대규모 투자를 발표하면서, 고성능 메모리와 고밀도 칩 생산이 확대되고 있습니다. 이와 동시에 영국 정부의 11억 파운드 투자와 같은 정책 지원이 반도체 생산 라인 확장과 AI 인프라 구축을 촉진하고 있습니다.</p>
+<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">마블버와 브로드컴이 협업해 만든 AI 자원 스케줄링 솔루션은 데이터센터 운영 비용 절감과 성능 향상을 동시에 제공해, 클라우드 사업자의 CAPEX 감소에 기여합니다. 또한, SK Hynix와 NVIDIA의 메모리 공급 계약은 HBM 시장 점유율 변동에 직접적인 영향을 미칩니다. Counterpoint Research에 따르면 HBM 시장 점유율이 작년 대비 8 % 상승했으며, 이는 AI 데이터센터 수요가 메모리 시장 성장의 핵심 동력임을 보여줍니다.</p>
+<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">이러한 사건들은 모두 AI 전용 인프라가 단순히 기술 트렌드가 아니라 실제 매출과 투자 흐름을 재편하고 있음을 의미합니다. 반도체 생산량 확대, 전력 효율 솔루션 도입, 그리고 정부 차원의 투자 확대가 서로 맞물리면서 AI‑enabled Data Center 생태계가 견고히 자리 잡고 있습니다.</p>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">7. 앞으로 주목할 포인트</h2>
 <ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">
-  <li style="margin-bottom:6px;"><strong>AI 모델의 지속 학습</strong>: 실시간 데이터가 축적됨에 따라 모델 정확도가 어떻게 향상되는지와 그에 따른 효율 개선 정도를 관찰한다.</li>
-  <li style="margin-bottom:6px;"><strong>에너지 공급 연계 기술</strong>: 재생 에너지와 배터리 저장소와의 자동 연동 기능이 상용화되는 시점을 주시한다.</li>
-  <li style="margin-bottom:6px;"><strong>규제 및 정책 변화</strong>: 각국의 데이터 센터 에너지 효율 규제가 강화되면서 AI‑enabled 설비에 대한 인증 제도가 어떻게 정립되는지 살펴본다.</li>
-  <li style="margin-bottom:6px;"><strong>파트너십 구조</strong>: 대형 IT 기업과 현지 인프라 기업 간 협업 모델이 다른 지역에서도 확대될지, 투자 구조와 위험 분산 방식이 어떻게 변하는지 주목한다.</li>
+  <li style="margin-bottom:6px;">2024 하반기부터 출시될 차세대 HBM4가 메모리 대역폭을 30 % 이상 증가시킬지 여부.</li>
+  <li style="margin-bottom:6px;">영국 외에도 독일·프랑스 등 유럽 국가들의 AI·반도체 투자 규모와 정책 변화.</li>
+  <li style="margin-bottom:6px;">마블버와 AD PowerTech가 공동 발표할 AI 전용 전원·냉각 솔루션의 상용화 시점.</li>
+  <li style="margin-bottom:6px;">주요 클라우드 제공업체가 AI 전용 데이터센터를 자체 구축하거나 파트너십을 확대하는 움직임.</li>
+  <li style="margin-bottom:6px;">반도체 공급망 긴축이 완화되면서 HBM 가격 변동 추이와 실제 데이터센터 구축 비용에 미치는 영향.</li>
 </ul>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">8. 3줄 요약</h2>
 <ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">
-  <li style="margin-bottom:6px;">AI‑enabled 데이터 센터는 실시간 AI 최적화를 통해 전력·냉각 비용을 크게 절감한다.</li>
-  <li style="margin-bottom:6px;">메타‑릴라이언스 파트너십 등 실제 적용 사례가 늘어나면서 친환경·경제적 가치를 동시에 제공한다.</li>
-  <li style="margin-bottom:6px;">향후 AI 모델 학습 확대와 재생 에너지 연계, 규제 변화가 기술 확산의 핵심 관전 포인트다.</li>
+  <li style="margin-bottom:6px;">AI‑enabled Data Center는 최신 GPU·HBM·전력 솔루션을 결합해 AI 워크로드를 최적화한다.</li>
+  <li style="margin-bottom:6px;">구글, 마블버, ASM International 등 실물 투자와 파트너십이 급증하면서 시장 규모가 확대되고 있다.</li>
+  <li style="margin-bottom:6px;">차세대 메모리와 유럽 정부 지원이 향후 6~12개월 내 핵심 성장 동력이 될 전망이다.</li>
 </ul>
 
 
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">참고 기사</h2>
 <ul style="padding-left:1.5em;margin:0.5em 0;">
-<li style="margin-bottom:8px;line-height:1.6;"><a href="https://news.google.com/rss/articles/CBMingFBVV95cUxQa0hmSHVUSFBlOFBTcE9iT1F3Rl9LX25fUlRWWnFVQmNQM2pYR1hVS0k3M19qU3NMYWNSZ01sWXJCWGdTcjdjRmdOUGo0YTZJeHZoWXE3Q1dDYl9hQV81VElkdzVGSFJnTktJSDJtVjlzU0RkbWJXcWFTSnAySWdlT29BRDZTc2FsTkt5d1lRVE5LLVFvZVdncEV0OWdhd9IBowFBVV95cUxPODlGT1hBYmloQ1NoS1UtQnlNU0o3Zm5JVlFsNFkyM3NIeGZJNGFaMVJaVFprdVduUUFEVUNscXN4ZDY4b0FPVjJWdG5vcXJNbVFCSjdrREVmMDVFODAwTHd5VWhYdlU1Vk1tUnJQYXNOUTZGYzBUb0luVFZ5Tmt5Q0tYSlNDOFFWRUpjeF96RFdBUjVrQ1lYWS1vV211M1RHczNj?oc=5&hl=en-US&gl=US&ceid=US:en" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Meta Partners With Reliance on AI-Enabled Data Center in India - meta.com</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://news.google.com/rss/articles/CBMi5wFBVV95cUxNS1g5eUpaOE9zTUJNZGxEUHNKU0RqR281WW5yaEUwM0NaOGlxV2twMkFFVzVrZC02QUFyMmkxZnBxVDVoaTBJOGQ1c1hnWk1SSTBJZmc0R3RPZXJYTmY0TGxJNEN4eVpsM0ZLREtFT3BZWENIbmdSejdFY0hTTDVTWjFIcWVnSFZ4UDBfY2t3QVp5U281dEtIQVNwdmN1MDRFalRpOVlBSjEweDY5LW14ZlNDQjE4MVVwWXNkb3prQU9ETVk4bmRsUndULTkxQUFZQ2t5aFd5NXhkSm4tNzdzTnpaX1F3Mjg?oc=5&hl=en-US&gl=US&ceid=US:en" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">ASM International Rides on AI-Driven Semiconductor Boom: Worth a Buy? - The Globe and Mail</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://news.google.com/rss/articles/CBMirAFBVV95cUxNNEgtdEdHWEM2Z0gxVmgtc0tFUFBmTmxxNjNDOXlEb3RWbEczZFZqdldleVNWS29peW8wZlBZSmc2bWZkenNTdUw4Vm1ybm1wMTh6UlBHYU83QmtjTE5HMjBvYlduaDBBSDFUdDBFOGMxUTduVUJwbjdQS05aSHNERlFkZlBoVGFOTW9JdzNLanZVczZpVmNCNEFkN1I1X0RmejVLTTdHZ0NpbnVO?oc=5&hl=en-US&gl=US&ceid=US:en" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">ASM International Rides on AI-Driven Semiconductor Boom: Worth a Buy? - Zacks Investment Research</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://news.google.com/rss/articles/CBMimAFBVV95cUxPTERydnp1c3M5X3YwX0ZzQXRVTlR4LTN1QW1SUmN1QVBTeTVMWU1LTTBKMlZFcnhwUWc2LUJoZGRZeHBUMklhUEtwZlRabHE1clBwdkJTZ1VhelFuUm94MDUxX0Vpcy1wZGhKRk1TM2FsVzZWZ2dhRUtvLUVwWkpaMG1rRGNYQzQzSW1UcG1MMGc4UTZNYk5xZg?oc=5&hl=en-US&gl=US&ceid=US:en" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Better Artificial Intelligence (AI) Stock: Marvell Technology vs. Broadcom - The Motley Fool</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://news.google.com/rss/articles/CBMiqAFBVV95cUxQSk5QdUYyWmI4VEh6MGtwQmpRbmRnUG5mQjdqUzNqUElQVDBjNG1qcXBZQ0dnMlV2UTI3QjhyX2lmdF9ST203dG41X1c0WlpBclJiMkV3ZG1nTEExakRtOGlpWWNKc1Y1NEZYdFdubjJZRTJNTURuNmNfaHZBanYyenhjSll0aVIyNTBzX3BnZERqSVpwUVlTcXBtaDEzemt3Q3FWeXpMNks?oc=5&hl=en-US&gl=US&ceid=US:en" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">UK invests £1.1 billion towards AI and semiconductor industry - Open Access Government</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://news.google.com/rss/articles/CBMiwgFBVV95cUxQOTVrNEhUU21qc25OZ0d4amVzQks2eDFjc19SYjliQkthMG1fNldaaWJNRDJpblZKa0xkOVJrWndCWThvVVN5cDl6S2VVVDdXR3NjRm5zbVZONk5YUEVsMzdFODZDVmJUcERLVDUzQmZ5Yk5SQUVJQ3REVGp6V2t5LVJKY09HS192Nm5QXzJvdFlaMWFyQVl6WW1aOWU1cjB1dVZzbEJLYWpfaS1pYUtDZU5Ba1BoMDFwVmd1VERkWjBFdw?oc=5&hl=en-US&gl=US&ceid=US:en" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Powering AI: The Semiconductor Ecosystem at the Foundation of Data Centers - Semiconductor Industry Association | SIA</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://news.google.com/rss/articles/CBMi1wFBVV95cUxONTFOS0NfdXlocXROQmNtQzJlZmJrYWVudlc2LU5PeXhlRk91QzM1THQxdmxBTHBtYWEtRUZKTE4yVXB0ZjVCOHl1bFQxZWxhakxLcmZJV2JLTTR6cWxuTndJV0Y4cjd1ZDk5SmdQMHdDeEpXNGxZXy02anN0VE0xZkpVVVZoWWpwOTBsc3hvU1lOdHB2UVl2d0czNG9pOFZLTkZIQmptTk9raHJDTmNnYWo1cGxXZHItRmliX0NzSnM0WXBTRVg4dlJWN294LXFGYmZVRGN2RQ?oc=5&hl=en-US&gl=US&ceid=US:en" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">World Edge AI High Bandwidth Memory Chips - Market Analysis, Forecast, Size, Trends and Insights - IndexBox</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://news.google.com/rss/articles/CBMigwFBVV95cUxNYlIzVHpBVzJfYjhXUWxYSUg3VmFvTDF5Q3k3OWVzeXVpRHZVdU14OHFOZGVkRDNTTXhvMGN0OVllR3FNd19rVlRTTXp1U0NHSFd5RVFmc29UZk1vR2VmT2pINWZLcGxNTU8yYnBMWHZYUFZlTFI3R3o3T3RjMzQzN3FWNA?oc=5&hl=en-US&gl=US&ceid=US:en" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Global DRAM and HBM Market Share: Quarterly - Counterpoint Research</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://news.google.com/rss/articles/CBMiigFBVV95cUxOVXpSNGpyeXZwVFU2NGNPOXdlbk91eWVudHRtRVpHNkY5RFFQcVZxUDJ0VXZXVkRSMlVabkgzOVU4Ny1RMFpSXzV5Y3VfNmxkOFYtMzZPalhVYTlIMTVibDRzcV9oQ2NEeFdtZEowTURSWDAxYTBIUVZDeEp5RGp6MF84dWo0ajl6WGc?oc=5&hl=en-US&gl=US&ceid=US:en" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Why NVIDIA Needs SK Hynix More Than Ever - Analytics India Magazine</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
 </ul>
 
 
