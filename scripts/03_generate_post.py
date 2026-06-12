@@ -9,6 +9,7 @@ import re
 import sys
 import urllib.request
 import urllib.error
+import base64
 from datetime import datetime
 
 TOPIC_FILE  = "data/selected_topic.json"
@@ -22,6 +23,33 @@ MODELS = [
     "openai/gpt-oss-20b:free",
     "nvidia/nemotron-3-super:free",
 ]
+def mermaid_to_image_url(mermaid_code: str) -> str:
+    """Mermaid 다이어그램 코드 → mermaid.ink 이미지 URL"""
+    graphbytes = mermaid_code.encode("utf8")
+    base64_string = base64.urlsafe_b64encode(graphbytes).decode("ascii")
+    return f"https://mermaid.ink/img/{base64_string}?type=png"
+
+
+def generate_diagram(topic_data: dict) -> str:
+    topic = topic_data["topic"]
+    prompt = f"""'{topic}' 기술의 핵심 구조나 작동 흐름을 보여주는
+간단한 Mermaid 다이어그램 코드를 작성하세요.
+
+규칙:
+- graph TD (top-down) 또는 graph LR (left-right) 형식
+- 노드는 5~8개 이내, 한국어 라벨 사용
+- 색상 없이 기본 스타일만
+- 노드 라벨에는 괄호, 따옴표, 특수문자 사용 완전 금지 (한글/영문/숫자/공백만)
+- 설명 없이 mermaid 코드만 출력 (코드블록 표시 없이 순수 코드만)
+
+예시:
+graph LR
+    A[입력 데이터] --> B[처리 단계]
+    B --> C[출력 결과]
+"""
+    raw = call_ai(prompt, max_tokens=300)
+    raw = re.sub(r"```mermaid|```", "", raw).strip()
+    return raw
 
 def call_ai(prompt: str, max_tokens: int = 4096) -> str:
     if not OPENROUTER_API_KEY:
@@ -312,7 +340,23 @@ def main():
     body_md   = generate_body(topic_data)
     print(f"\n[본문 생성 완료] {len(body_md)}자")
 
-    # 참고 기사: 본문 생성에 쓴 것과 동일한 관련 기사 선별
+    # 구성도 생성
+    print("\n[구성도 생성 중...]")
+    diagram_html = ""
+    try:
+        diagram_code = generate_diagram(topic_data)
+        diagram_url = mermaid_to_image_url(diagram_code)
+        diagram_html = f'''
+<div style="text-align:center;margin:2em 0;">
+  <img src="{diagram_url}" alt="{topic} 구조도" style="max-width:100%;border-radius:8px;border:1px solid #eee;" />
+  <p style="font-size:0.85em;color:#999;margin-top:8px;">{topic} 핵심 구조도</p>
+</div>
+'''
+        print(f"[구성도 URL] {diagram_url[:80]}...")
+    except Exception as e:
+        print(f"[WARN] 구성도 생성 실패: {e}")
+
+    # 참고 기사
     topic_lower = topic.lower()
     relevant_articles = [
         a for a in articles
@@ -322,6 +366,15 @@ def main():
         relevant_articles = articles[:8]
 
     body_html = md_to_html(body_md, title, relevant_articles)
+
+    # 구성도를 "3. 핵심 기술 요소" 섹션 바로 앞에 삽입
+    if diagram_html:
+        marker = '<h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">3.'
+        idx = body_html.find(marker)
+        if idx != -1:
+            body_html = body_html[:idx] + diagram_html + body_html[idx:]
+        else:
+            body_html += diagram_html  # 마커 못 찾으면 끝에 추가
 
     print("\n[제목/카테고리 추천 중...]")
     refined = refine_title(topic_data)
