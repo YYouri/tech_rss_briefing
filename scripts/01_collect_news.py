@@ -58,14 +58,14 @@ def resolve_google_news_url(url: str) -> str:
             return r.url
     except Exception:
         return url
-
+        
 def collect_google_news() -> list[dict]:
     articles = []
     base = "https://news.google.com/rss/search?q={q}&hl=en-US&gl=US&ceid=US:en"
     for q in GOOGLE_NEWS_QUERIES:
         url = base.format(q=urllib.parse.quote(q))
         feed = feedparser.parse(url)
-         for entry in feed.entries[:5]:
+        for entry in feed.entries[:5]:
             title = clean(entry.get("title", ""))
             link = entry.get("link", "")
             link = resolve_google_news_url(link)
@@ -81,6 +81,7 @@ def collect_google_news() -> list[dict]:
         time.sleep(1)
     print(f"[Google News] {len(articles)}개 수집")
     return articles
+
 
 # ── 2. Yahoo Finance RSS ──────────────────────────────────────────────────────
 
