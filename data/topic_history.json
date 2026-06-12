@@ -82,5 +82,12 @@
     "url": "",
     "tags": "LLM Inference,실시간 AI,GPU 최적화,TensorRT,대규모 언어 모델",
     "date": "2026-06-12T11:59:34.205503"
+  },
+  {
+    "topic": "On-Device AI",
+    "title": "On-Device AI 모바일 혁신 3가지",
+    "url": "",
+    "tags": "온디바이스AI,스마트폰AI,엣지컴퓨팅,AI추론,모바일ML",
+    "date": "2026-06-12T12:17:35.999852"
   }
 ]

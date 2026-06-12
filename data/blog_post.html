@@ -1,58 +1,58 @@
 <div style="font-family:'Noto Sans KR','Malgun Gothic',sans-serif;max-width:720px;margin:0 auto;color:#333;word-break:keep-all;">
 
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">1. 기술 개요</h2>
-<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">LLM(Inference)은 학습된 대형 언어 모델을 실제 서비스에 적용해 사용자가 입력한 질문이나 명령에 실시간으로 답변을 생성하는 과정을 말한다. 모델 자체는 거대한 파라미터를 가지고 있지만, 추론 단계에서는 최소한의 지연 시간과 비용으로 결과를 내보내는 것이 핵심 목표다.</p>
+<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">온디바이스 AI는 인공지능 모델을 스마트폰·웨어러블 등의 기기 내부에서 바로 실행하는 기술을 말한다. 클라우드에 데이터를 전송하지 않고도 실시간 영상 효과, 음성 인식, 동작 추적 등 다양한 AI 기능을 제공한다.</p>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">2. 왜 지금 주목받는가</h2>
-<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">최근 기업들은 AI 서비스를 고객 접점에 직접 배치하려는 움직임이 급증하고 있다. 특히 클라우드 환경에서 GPU와 TensorRT 같은 고성능 엔진을 활용해 추론 효율을 극대화하는 사례가 늘어나면서, 실시간 응답이 가능한 LLM 서비스가 새로운 경쟁 우위로 부상하고 있다. 이러한 흐름은 메타와 AWS 같은 대형 클라우드 제공업체가 자체 최적화 기술을 공개하면서 더욱 가속화되고 있다.</p>
+<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">최근 AI 서비스가 일상에 스며들면서 지연 시간과 개인 정보 보호에 대한 우려가 커졌다. 로컬에서 연산이 이루어지면 네트워크 지연이 사라지고, 사용자의 사진·음성 데이터가 외부 서버로 떠나는 일이 없어 프라이버시 위험이 크게 낮아진다. 이러한 장점은 모바일·웨어러블 시장이 급격히 확대되는 시점과 맞물려 온디바이스 AI에 대한 관심을 집중시키고 있다.</p>
 
 <div style="text-align:center;margin:2em 0;">
-  <img src="https://mermaid.ink/img/Z3JhcGggVEQKICAgIElucHV0RGF0YVvsnoXroKUg642w7J207YSwXSAtLT4gVG9rZW5pemVb7Yag7YGw7ZmUXQogICAgVG9rZW5pemUgLS0-IEVtYmVkZGluZ1vsnoTrsqDrlKkg7IOd7ISxXQogICAgRW1iZWRkaW5nIC0tPiBNb2RlbFvrqqjrjbgg7LaU66GgXQogICAgTW9kZWwgLS0-IFBvc3Rwcm9jZXNzW-2bhOyymOumrF0KICAgIFBvc3Rwcm9jZXNzIC0tPiBPdXRwdXRb7Lac66ClIOqysOqzvF0=?type=png" alt="LLM Inference 구조도" style="max-width:100%;border-radius:8px;border:1px solid #eee;" />
-  <p style="font-size:0.85em;color:#999;margin-top:8px;">LLM Inference 핵심 구조도</p>
+  <img src="https://mermaid.ink/img/Z3JhcGggVEQKICAgIOyeheugpeuNsOydtO2EsCAtLT4g7KCE7LKY66asCiAgICDsoITsspjrpqwgLS0-IOuqqOuNuOy2lOuhoAogICAg66qo64247LaU66GgIC0tPiDtm4TsspjrpqwKICAgIO2bhOyymOumrCAtLT4g6rKw6rO87Lac66ClCiAgICDrqqjrjbjstpTroaAgLS0-IOuqqOuNuOyXheuNsOydtO2KuAogICAg66qo64247JeF642w7J207Yq4IC0tPiDsoITsspjrpqw=?type=png" alt="On-Device AI 구조도" style="max-width:100%;border-radius:8px;border:1px solid #eee;" />
+  <p style="font-size:0.85em;color:#999;margin-top:8px;">On-Device AI 핵심 구조도</p>
 </div>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">3. 핵심 기술 요소</h2>
 <ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">
-  <li style="margin-bottom:6px;"><strong>Tensor Parallelism</strong> : 모델의 연산을 여러 GPU에 분산시켜 대규모 파라미터를 동시에 처리한다.</li>
-  <li style="margin-bottom:6px;"><strong>Context Parallelism</strong> : 입력 토큰 시퀀스를 여러 장치에 나누어 병렬 처리함으로써 긴 컨텍스트에서도 지연 시간을 낮춘다.</li>
-  <li style="margin-bottom:6px;"><strong>Expert Parallelism</strong> : 특화된 전문가 모델을 선택적으로 호출해 계산량을 줄이고 효율을 높인다.</li>
-  <li style="margin-bottom:6px;"><strong>TensorRT 엔진 최적화</strong> : GPU 전용 추론 엔진을 통해 연산 그래프를 최적화하고 메모리 사용을 최소화한다.</li>
-  <li style="margin-bottom:6px;"><strong>BentoML LLM‑Optimizer</strong> : 모델 패키징과 배포를 자동화하면서 추론 속도와 비용을 동시에 개선한다.</li>
+  <li style="margin-bottom:6px;"><strong>Neural Processing Unit (NPU)</strong>: AI 연산에 특화된 하드웨어 블록으로, CPU와 GPU보다 효율적으로 모델을 실행한다.</li>
+  <li style="margin-bottom:6px;"><strong>경량화 모델 프레임워크</strong>: LiteRT와 같은 도구는 복잡한 신경망을 작은 메모리와 낮은 전력 소모로 동작하도록 변환한다.</li>
+  <li style="margin-bottom:6px;"><strong>멀티미디어‑AI 융합 칩</strong>: Qualcomm의 Dragonwing MBM 실리콘처럼 멀티미디어 스트리밍과 AI 추론을 하나의 칩에 통합한다.</li>
+  <li style="margin-bottom:6px;"><strong>전력·열 관리 기술</strong>: 온디바이스 AI는 배터리와 발열을 최소화하기 위해 동적 전압·주파수 조정 및 온도 모니터링을 적용한다.</li>
 </ul>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">4. 산업에 미치는 영향</h2>
 <ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">
-  <li style="margin-bottom:6px;"><strong>콘텐츠 생성</strong> : 실시간 기사 요약·번역·동영상 자막 생성이 가능해 제작 비용이 크게 감소한다.</li>
-  <li style="margin-bottom:6px;"><strong>고객 지원</strong> : 챗봇과 콜센터 AI가 순간적인 응답을 제공해 사용자 만족도가 상승한다.</li>
-  <li style="margin-bottom:6px;"><strong>금융·법률</strong> : 방대한 문서 분석과 계약 검토를 신속히 수행해 업무 효율을 높인다.</li>
-  <li style="margin-bottom:6px;"><strong>헬스케어</strong> : 의료 기록 검색과 진단 보조가 실시간으로 이루어져 임상 의사결정에 도움이 된다.</li>
+  <li style="margin-bottom:6px;"><strong>스마트폰</strong>: 실시간 카메라 필터, 음성 비서, 사용자 맞춤 UI가 지연 없이 제공돼 사용자 경험이 크게 향상된다.</li>
+  <li style="margin-bottom:6px;"><strong>웨어러블</strong>: 운동 인식, 건강 모니터링 등 데이터가 실시간으로 분석돼 더 정확한 피드백과 알림이 가능해진다.</li>
+  <li style="margin-bottom:6px;"><strong>게이밍·크리에이티브</strong>: 고성능 그래픽과 AI 기반 영상 효과가 로컬에서 처리돼 클라우드 의존도를 낮춘다.</li>
+  <li style="margin-bottom:6px;"><strong>보안·프라이버시</strong>: 민감한 생체 정보·영상 데이터가 외부로 유출되지 않아 데이터 보호 수준이 높아진다.</li>
 </ul>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">5. 실제 적용 기업 사례</h2>
 <ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">
-  <li style="margin-bottom:6px;"><strong>Amazon SageMaker와 BentoML</strong> : SageMaker에서 BentoML의 LLM‑Optimizer를 활용해 모델 배포와 추론 파이프라인을 자동화하고, GPU 활용도를 최적화했다. 이를 통해 서비스 운영 비용을 절감하면서도 응답 속도를 크게 끌어올렸다. <sup style="font-size:0.75em;color:#1a73e8;">[<a href="https://aws.amazon.com/blogs/machine-learning/optimizing-llm-inference-on-amazon-sagemaker-ai-with-bentomls-llm-optimizer/" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Optimizing LLM inference on Am</a>]</sup></li>
-  <li style="margin-bottom:6px;"><strong>Meta</strong> : 자체 연구팀이 Tensor Parallelism, Context Parallelism, Expert Parallelism을 결합한 새로운 스케일링 방법을 공개했다. 이 접근법은 대형 모델을 수십 개 GPU에 효율적으로 분산시켜, 기존 대비 추론 처리량을 획기적으로 확대한 것으로 평가받고 있다. <sup style="font-size:0.75em;color:#1a73e8;">[<a href="https://engineering.fb.com/2025/10/17/ai-research/scaling-llm-inference-innovations-tensor-parallelism-context-parallelism-expert-parallelism/" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Scaling LLM Inference: Innovat</a>]</sup></li>
-  <li style="margin-bottom:6px;"><strong>HackerNoon에 소개된 로컬 추론</strong> : 8GB VRAM GPU 환경에서도 모델 압축·양자화 기법을 적용해 실시간 추론이 가능하도록 설정하는 방법을 제시했다. 이는 클라우드 비용을 절감하려는 중소기업에게 실용적인 가이드가 되고 있다. <sup style="font-size:0.75em;color:#1a73e8;">[<a href="https://hackernoon.com/optimizing-local-llm-inference-for-8gb-vram-gpus" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Optimizing Local LLM Inference</a>]</sup></li>
+  <li style="margin-bottom:6px;"><strong>Logitech</strong>: 신제품 Mobi Fold Travel Mouse에 온디바이스 AI를 탑재해, 마우스가 접히는 동작을 스마트폰 플립폰처럼 인식하고 제어한다. 이는 작은 주변기기에서도 AI 기반 인터랙션을 가능하게 한다. <sup style="font-size:0.75em;color:#1a73e8;">[<a href="https://hothardware.com/news/logitech-mobi-fold-travel-mouse-on-device-ai-folds-shut" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Logitech Mobi Fold Travel Mous</a>]</sup></li>
+  <li style="margin-bottom:6px;"><strong>Qualcomm</strong>: 최신 Dragonwing MBM 실리콘은 인터랙티브 멀티미디어와 고성능 연결 기능에 온디바이스 AI를 결합해, 차세대 모바일 및 IoT 디바이스가 보다 지능적으로 동작하도록 설계되었다. <sup style="font-size:0.75em;color:#1a73e8;">[<a href="https://wifinowglobal.com/news-blog/qualcomms-new-dragonwing-mbm-silicon-solution-combines-interactive-multimedia-with-top-tier-wi-fi-5g-connectivity-and-on-device-ai/" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Qualcomm's new Dragonwing MBM </a>]</sup></li>
+  <li style="margin-bottom:6px;"><strong>Google</strong>: LiteRT와 NPU 활용 사례를 통해 개발자는 실시간 영상 효과, 음성 인식, 모션 캡처와 같은 복잡한 AI 기능을 스마트폰에 구현하면서도 배터리·열 문제를 최소화할 수 있다. <sup style="font-size:0.75em;color:#1a73e8;">[<a href="https://developers.googleblog.com/building-real-world-on-device-ai-with-litert-and-npu/" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Building real-world on-device </a>]</sup></li>
+  <li style="margin-bottom:6px;"><strong>Arm</strong>: Arm은 수십억 모바일 사용자에게 온디바이스 AI를 제공한다는 비전을 제시하며, 스마트폰 카메라 효과·음성 서비스 등에서 클라우드 의존도를 낮추는 방향을 강조한다. <sup style="font-size:0.75em;color:#1a73e8;">[<a href="https://newsroom.arm.com/blog/democratizing-ai-on-mobile" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">On-device AI on smartphones: H</a>]</sup></li>
 </ul>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">6. 경제·시장 관점에서 보기</h2>
-<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">클라우드 기반 GPU 서버와 최적화 툴 체인의 성장으로 LLM 서비스의 진입 장벽이 낮아지고 있다. AWS와 같은 플랫폼이 BentoML과 같은 오픈소스 솔루션을 공식 파트너로 채택하면서, 기업들은 별도 인프라 구축 없이도 고성능 추론 환경을 구축할 수 있다. 이는 GPU 제조업체와 칩 설계사에게는 수요 확대 요인으로 작용한다. 동시에, Meta가 발표한 복합 병렬화 기술은 대규모 데이터센터 운영 비용을 절감하면서도 처리량을 늘리는 효과가 기대된다. 이러한 기술 발전은 AI 기반 서비스의 가격 경쟁력을 높이고, 다양한 산업 분야에서 AI 도입을 가속화한다.</p>
+<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">온디바이스 AI는 하드웨어와 소프트웨어 양측에서 새로운 수요를 창출한다. Qualcomm의 Dragonwing MBM은 고성능 연결과 AI 연산을 결합해 모바일 칩셋 시장에서 차별화된 포지션을 확보하고 있다. 이는 스마트폰 제조사가 차세대 플래그십 모델에 AI 가속기를 기본 탑재하도록 유도한다. 또한, Arm의 IP 라이선스는 전 세계 반도체 파운드리와 설계 업체가 AI‑최적화 코어를 자체 설계에 포함시키게 만들며, 공급망 전체에 파급 효과를 낳는다. Logitech은 마우스와 같은 주변기기에 AI를 적용해 제품 라인업을 고부가가치 사양으로 확장하고, 소비자에게 새로운 사용 경험을 제공한다. 이러한 흐름은 칩 제조·소프트웨어 툴·완제품 제조사가 긴밀히 협업해 온디바이스 AI 생태계를 구축하는 방향으로 시장을 재편하고 있다.</p>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">7. 앞으로 주목할 포인트</h2>
 <ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">
-  <li style="margin-bottom:6px;"><strong>멀티모달 병렬화</strong> : 텍스트·이미지·음성 모델을 동시에 최적화하는 기술의 실용화 여부.</li>
-  <li style="margin-bottom:6px;"><strong>추론 전용 하드웨어</strong> : GPU 외에 ASIC·FPGA 기반 추론 가속기의 상용화 진행 상황.</li>
-  <li style="margin-bottom:6px;"><strong>자동화된 비용 최적화 플랫폼</strong> : 사용량 기반으로 실시간 비용과 성능을 조절해주는 클라우드 서비스의 경쟁 구도.</li>
+  <li style="margin-bottom:6px;"><strong>AI 전용 실리콘의 성능·전력 효율 개선</strong>: 차세대 NPU와 멀티코어 AI 칩이 얼마나 빠르게 배터리 소비를 낮출지.</li>
+  <li style="margin-bottom:6px;"><strong>개발 툴 생태계 확장</strong>: LiteRT와 같은 경량화 프레임워크가 어떤 새로운 모델을 지원하며, 개발자 채택률이 어떻게 변할지.</li>
+  <li style="margin-bottom:6px;"><strong>산업별 온디바이스 AI 적용 사례 확대</strong>: 웨어러블 헬스케어, AR/VR 기기, 자동차 인포테인먼트 등에서 실제 제품에 적용되는 시점과 시장 반응.</li>
 </ul>
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">8. 3줄 요약</h2>
 <ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">
-  <li style="margin-bottom:6px;">LLM 추론은 실시간 응답과 비용 효율성을 동시에 달성해야 하는 핵심 과제다.</li>
-  <li style="margin-bottom:6px;">Tensor Parallelism, Context Parallelism, Expert Parallelism 등 복합 병렬화 기술이 성능을 크게 끌어올린다.</li>
-  <li style="margin-bottom:6px;">AWS·BentoML, Meta, 로컬 GPU 최적화 사례가 보여주듯, 기업은 다양한 툴과 하드웨어를 조합해 비용‑성능 균형을 맞추고 있다.</li>
+  <li style="margin-bottom:6px;">온디바이스 AI는 데이터 전송 지연과 프라이버시 위험을 해소하며 실시간 사용자 경험을 제공한다.</li>
+  <li style="margin-bottom:6px;">Qualcomm, Logitech, Google, Arm 등 주요 기업이 하드웨어와 소프트웨어 양면에서 기술을 고도화하고 있다.</li>
 </ul>
 
 
 <h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;
 padding-bottom:8px;border-bottom:2px solid #333;">참고 기사</h2>
 <ul style="padding-left:1.5em;margin:0.5em 0;">
-<li style="margin-bottom:8px;line-height:1.6;"><a href="https://aws.amazon.com/blogs/machine-learning/optimizing-llm-inference-on-amazon-sagemaker-ai-with-bentomls-llm-optimizer/" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Optimizing LLM inference on Amazon SageMaker AI with BentoML’s LLM- Optimizer | Amazon Web Services - Amazon Web Services (AWS)</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
-<li style="margin-bottom:8px;line-height:1.6;"><a href="https://engineering.fb.com/2025/10/17/ai-research/scaling-llm-inference-innovations-tensor-parallelism-context-parallelism-expert-parallelism/" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Scaling LLM Inference: Innovations in Tensor Parallelism, Context Parallelism, and Expert Parallelism - Engineering at Meta Blog</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
-<li style="margin-bottom:8px;line-height:1.6;"><a href="https://towardsdatascience.com/why-weve-been-optimizing-the-wrong-thing-in-llms-for-years/" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Training Objective That Makes LLM Inference 3X Faster - Towards Data Science</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
-<li style="margin-bottom:8px;line-height:1.6;"><a href="https://hackernoon.com/optimizing-local-llm-inference-for-8gb-vram-gpus" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Optimizing Local LLM Inference for 8GB VRAM GPUs - HackerNoon</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://hothardware.com/news/logitech-mobi-fold-travel-mouse-on-device-ai-folds-shut" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Logitech Mobi Fold Travel Mouse With On-Device AI Folds Shut Like A Flip Phone - HotHardware</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://wifinowglobal.com/news-blog/qualcomms-new-dragonwing-mbm-silicon-solution-combines-interactive-multimedia-with-top-tier-wi-fi-5g-connectivity-and-on-device-ai/" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Qualcomm's new Dragonwing MBM silicon combines interactive multimedia with top-tier connectivity & on-device AI - Wi-Fi NOW Global</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://developers.googleblog.com/building-real-world-on-device-ai-with-litert-and-npu/" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">Building real-world on-device AI with LiteRT and NPU - blog.google</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://letsdatascience.com/news/msi-debuts-stealth-a16-ai-with-on-device-ai-a4d96ed7" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">MSI Debuts Stealth A16 AI+ With On-Device AI - Let's Data Science</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
+<li style="margin-bottom:8px;line-height:1.6;"><a href="https://newsroom.arm.com/blog/democratizing-ai-on-mobile" target="_blank" rel="noopener noreferrer" style="color:#1a73e8;text-decoration:none;">On-device AI on smartphones: How Arm brings generative AI to billions of mobile users - Arm Newsroom</a><span style="color:#999;font-size:0.85em;"> — Google News</span></li>
 </ul>
 
 
