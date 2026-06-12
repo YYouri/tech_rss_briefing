@@ -49,22 +49,18 @@ def fetch_url(url: str, headers: dict = None, timeout: int = 15) -> bytes | None
 
 
 def fetch_article_body(url: str) -> str:
-    """
-    기사 URL에서 본문 일부를 가져온다.
-    실패하면 빈 문자열 반환 (비필수).
-    <p> 태그 내용만 추출해 500자 이내로 반환.
-    """
     try:
-        data = fetch_url(url, timeout=8)
-        if not data:
-            return ""
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (compatible; BlogBot/1.0)"
+        })
+        with urllib.request.urlopen(req, timeout=8) as r:
+            data = r.read()
         text = data.decode("utf-8", errors="ignore")
-        # <p> 태그 내용만 추출
         paragraphs = re.findall(r"<p[^>]*>(.*?)</p>", text, re.DOTALL | re.IGNORECASE)
         body = " ".join(clean(p) for p in paragraphs[:6])
         return body[:500]
     except Exception:
-        return ""
+        return ""  # 조용히 실패
 
 
 # ── 1. Google News RSS ────────────────────────────────────────────────────────
