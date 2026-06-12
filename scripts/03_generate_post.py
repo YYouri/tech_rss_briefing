@@ -149,13 +149,45 @@ def sanitize_untagged_numerics(text: str) -> str:
         # 수치가 있는데 출처 태그가 없으면 제거
         print(f"  [후처리 제거] {stripped[:80]}...")
         removed_count += 1
-        # 빈 줄로 대체하지 않고 완전 제거
         continue
 
     if removed_count:
         print(f"  [후처리] 미태깅 수치 문장 {removed_count}개 제거됨")
 
     return "\n".join(cleaned)
+
+
+def enforce_three_line_summary(text: str) -> str:
+    """
+    ## 8. 3줄 요약 섹션의 bullet이 3개인지 확인.
+    3개 미만이면 경고 출력 (재생성은 하지 않고 로그만).
+    3개 초과면 앞 3개만 남김.
+    """
+    # 섹션 찾기
+    match = re.search(r'(## 8[^\n]*\n)(.*?)(\Z|## \d)', text, re.DOTALL)
+    if not match:
+        return text
+
+    section_header = match.group(1)
+    section_body   = match.group(2)
+    after          = match.group(3)
+
+    bullets = [l for l in section_body.split("\n") if l.strip().startswith("- ")]
+
+    if len(bullets) < 3:
+        print(f"  [후처리 경고] 3줄 요약 bullet {len(bullets)}개 — 3개 미만")
+        # 부족한 만큼 빈 항목 추가
+        while len(bullets) < 3:
+            bullets.append("- (요약 항목 생성 필요)")
+        fixed_body = "\n".join(bullets) + "\n"
+        return text[:match.start(2)] + fixed_body + after
+
+    if len(bullets) > 3:
+        print(f"  [후처리] 3줄 요약 bullet {len(bullets)}개 → 3개로 축소")
+        fixed_body = "\n".join(bullets[:3]) + "\n"
+        return text[:match.start(2)] + fixed_body + after
+
+    return text
 
 
 # ──────────────────────────────────────────
@@ -287,7 +319,10 @@ def generate_body(topic_data: dict) -> str:
 (여러 산업 분야에 미치는 파급 효과)
 
 ## 5. 실제 적용 기업 사례
-(참조 뉴스에 등장하는 실명 기업 2~4개, 구체적 사건 기반)
+(반드시 참조 뉴스에 실제로 등장하는 기업과 사건만 서술.
+참조 뉴스에 없는 기업·제품·사건은 절대 언급 금지.
+기업이 참조 뉴스에서 다른 주제로 등장한 경우, 이 토픽과 억지로 연결하지 말 것.
+예: 히타치-구글 기사가 Physical AI 관련이라면, Quantum Computing 글에서 히타치를 양자 컴퓨팅 사례로 쓰지 말 것.)
 
 ## 6. 경제·시장 관점에서 보기
 (참조 뉴스의 구체적 사건 → 해석 구조로 작성.
@@ -296,9 +331,10 @@ def generate_body(topic_data: dict) -> str:
 공급망 관련 기업 1~2개 구체적으로 언급)
 
 ## 7. 앞으로 주목할 포인트
-(향후 6~12개월 내 관전 포인트 3가지)
+(향후 6~12개월 내 관전 포인트 3가지, 반드시 bullet 3개)
 
 ## 8. 3줄 요약
+(반드시 bullet 정확히 3개. 2개 또는 4개 금지.)
 - 핵심 1
 - 핵심 2
 - 핵심 3
