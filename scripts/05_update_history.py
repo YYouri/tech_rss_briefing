@@ -8,7 +8,7 @@ import json
 import os
 from datetime import datetime, timedelta
 
-RESULT_FILE  = "data/post_result.json"
+RESULT_FILE  = "data/blog_post.json"
 HISTORY_FILE = "data/topic_history.json"
 KEEP_DAYS    = 30
 
