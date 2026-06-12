@@ -48,6 +48,16 @@ GOOGLE_NEWS_QUERIES = [
     "AI data center infrastructure",
     "tech industry trend",
 ]
+def resolve_google_news_url(url: str) -> str:
+    """Google News 리다이렉트 URL → 실제 기사 URL"""
+    try:
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (compatible; BlogBot/1.0)"
+        })
+        with urllib.request.urlopen(req, timeout=8) as r:
+            return r.url
+    except Exception:
+        return url
 
 def collect_google_news() -> list[dict]:
     articles = []
@@ -55,9 +65,10 @@ def collect_google_news() -> list[dict]:
     for q in GOOGLE_NEWS_QUERIES:
         url = base.format(q=urllib.parse.quote(q))
         feed = feedparser.parse(url)
-        for entry in feed.entries[:5]:
+         for entry in feed.entries[:5]:
             title = clean(entry.get("title", ""))
             link = entry.get("link", "")
+            link = resolve_google_news_url(link)
             summary = clean(entry.get("summary", ""))[:200]
             if title and link:
                 articles.append({
