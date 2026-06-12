@@ -103,6 +103,15 @@ def generate_body(topic_data: dict) -> str:
 - SEO를 위해 핵심 키워드를 자연스럽게 반복 포함
 - 문체: 친절하고 전문적, 딱딱하지 않게
 
+【추가 작성 규칙 - 자연스러운 블로그 톤】
+- 마크다운 표(|---|) 사용 금지, 비교가 필요하면 문장이나 리스트로 풀어서 설명
+- 구분선(---) 사용 금지
+- "본 글에서는", "~에 대해 알아보겠습니다" 같은 챗봇식 도입 문구 금지
+- 글 시작은 독자의 궁금증이나 일상적 경험으로 자연스럽게 시작 (예: "요즘 뉴스 보다 보면 ○○라는 말이 자주 보이죠?")
+- 각 섹션 사이에 짧은 연결 문장 추가 (다음 내용으로 넘어가는 느낌)
+- 글 중간에 필자의 생각이나 의견을 1~2문장 자연스럽게 섞기 (단정적 표현보다 "~인 것 같습니다", "~로 보입니다")
+- 전문용어는 처음 등장할 때만 간단히 풀어서 설명
+- 문단 길이는 3~5문장 내로, 너무 길지 않게
 【출력 형식】
 마크다운으로 작성. 섹션 구조:
 
@@ -130,23 +139,84 @@ def generate_body(topic_data: dict) -> str:
 - 핵심 3
 """
     return call_ai(prompt, max_tokens=4096)
+def refine_title(topic_data: dict) -> dict:
+    prompt = f"""아래 블로그 제목을 검색 유입에 최적화해서 3개 추천해주세요.
+
+원본 제목: {topic_data['korean_title']}
+주제 키워드: {topic_data['topic']}
+
+조건:
+- 28자 이내
+- 클릭을 유도하는 궁금증 또는 숫자 활용 (예: "~하는 이유", "~3가지", "2026년 ~")
+- 키워드를 제목 앞쪽에 배치
+- 카테고리도 1개 추천 (예: IT/테크, 반도체, AI/소프트웨어, 산업동향 중)
+
+JSON만 출력:
+{{"titles": ["제목1", "제목2", "제목3"], "category": "추천 카테고리"}}
+"""
+    raw = call_ai(prompt, max_tokens=300)
+    match = re.search(r"\{.*\}", raw, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group())
+        except Exception:
+            pass
+    return {"titles": [topic_data["korean_title"]], "category": "IT/테크"}
 
 def md_to_html(md: str, title: str) -> str:
-    """Markdown → 네이버 블로그 스타일 HTML"""
     lines = md.split("\n")
     html_lines = []
     in_ul = False
+    in_table = False
+    table_rows = []
+
+    def flush_table():
+        nonlocal table_rows, in_table
+        if not table_rows:
+            in_table = False
+            return
+        # 첫 줄=헤더, 둘째 줄=구분선(스킵), 나머지=본문
+        header = table_rows[0]
+        body_rows = table_rows[2:] if len(table_rows) > 2 else []
+        html_lines.append('<table style="width:100%;border-collapse:collapse;margin:1.2em 0;font-size:0.95em;">')
+        html_lines.append('<thead><tr>')
+        for cell in header:
+            html_lines.append(f'<th style="border:1px solid #ddd;padding:10px;background:#f5f5f5;text-align:left;">{cell.strip()}</th>')
+        html_lines.append('</tr></thead><tbody>')
+        for row in body_rows:
+            html_lines.append('<tr>')
+            for cell in row:
+                cell_html = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", cell.strip())
+                html_lines.append(f'<td style="border:1px solid #ddd;padding:10px;">{cell_html}</td>')
+            html_lines.append('</tr>')
+        html_lines.append('</tbody></table>')
+        table_rows = []
+        in_table = False
 
     for line in lines:
+        stripped = line.strip()
+
+        # 구분선 (--- 또는 ***) -> 그냥 스킵 (또는 <hr> 처리)
+        if re.fullmatch(r"-{3,}|\*{3,}", stripped):
+            continue
+
+        # 표 라인 감지
+        if stripped.startswith("|") and stripped.endswith("|"):
+            cells = [c for c in stripped.strip("|").split("|")]
+            table_rows.append(cells)
+            in_table = True
+            continue
+        elif in_table:
+            flush_table()
+
         if line.startswith("## "):
             if in_ul:
                 html_lines.append("</ul>")
                 in_ul = False
             text = line[3:].strip()
             html_lines.append(
-                f'<div style="background:#f8f9fa;border-left:4px solid #333;'
-                f'padding:14px 18px;margin:2em 0 1em;font-size:1.05em;'
-                f'font-weight:bold;color:#222;">{text}</div>'
+                f'<h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;'
+                f'margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">{text}</h2>'
             )
         elif line.startswith("- ") or line.startswith("* "):
             if not in_ul:
@@ -156,21 +226,20 @@ def md_to_html(md: str, title: str) -> str:
             text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
             html_lines.append(f'  <li style="margin-bottom:6px;">{text}</li>')
         else:
-            if in_ul and line.strip():
+            if in_ul and stripped:
                 html_lines.append("</ul>")
                 in_ul = False
-            if line.strip():
-                text = line.strip()
-                text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
+            if stripped:
+                text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", stripped)
                 text = re.sub(r"`(.+?)`", r'<code style="background:#f1f1f1;padding:2px 6px;border-radius:3px;font-size:0.9em;">\1</code>', text)
-                html_lines.append(
-                    f'<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">{text}</p>'
-                )
+                html_lines.append(f'<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">{text}</p>')
             else:
                 if in_ul:
                     html_lines.append("</ul>")
                     in_ul = False
 
+    if in_table:
+        flush_table()
     if in_ul:
         html_lines.append("</ul>")
 
@@ -209,13 +278,25 @@ def main():
 
     body_html = md_to_html(body_md, title)
 
+    # 제목 후보 + 카테고리 추천
+    print("\n[제목/카테고리 추천 중...]")
+    refined = refine_title(topic_data)
+    title_candidates = refined.get("titles", [title])
+    category = refined.get("category", "IT/테크")
+    final_title = title_candidates[0] if title_candidates else title
+
+    print(f"[제목 추천] {title_candidates}")
+    print(f"[카테고리 추천] {category}")
+
     post = {
-        "title":        title,
-        "topic":        topic,
-        "content_html": body_html,
-        "content_md":   body_md,
-        "tags":         ",".join(tags),
-        "created_at":   datetime.now().isoformat(),
+        "title":            final_title,
+        "title_candidates": title_candidates,
+        "category":         category,
+        "topic":            topic,
+        "content_html":     body_html,
+        "content_md":       body_md,
+        "tags":             ",".join(tags),
+        "created_at":       datetime.now().isoformat(),
     }
 
     # JSON 저장 (05_update_history.py 참조용)
