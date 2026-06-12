@@ -1,6 +1,12 @@
 """
 03_generate_post.py
 OpenRouter Free API로 블로그 포스팅 본문을 생성하고 HTML로 변환한다.
+
+개선 사항:
+- 기사 요약 150자 → 500자로 확장
+- 수치 사용 시 [출처: 기사제목] 태깅 강제
+- 후처리에서 미태깅 수치 문장 자동 제거
+- 출처 태그를 HTML 각주 스타일로 변환
 """
 
 import json
@@ -12,8 +18,8 @@ import urllib.error
 import base64
 from datetime import datetime
 
-TOPIC_FILE  = "data/selected_topic.json"
-POST_FILE   = "data/blog_post.json"
+TOPIC_FILE = "data/selected_topic.json"
+POST_FILE  = "data/blog_post.json"
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
@@ -23,33 +29,17 @@ MODELS = [
     "openai/gpt-oss-20b:free",
     "nvidia/nemotron-3-super:free",
 ]
+
+
+# ──────────────────────────────────────────
+# 유틸
+# ──────────────────────────────────────────
+
 def mermaid_to_image_url(mermaid_code: str) -> str:
-    """Mermaid 다이어그램 코드 → mermaid.ink 이미지 URL"""
     graphbytes = mermaid_code.encode("utf8")
     base64_string = base64.urlsafe_b64encode(graphbytes).decode("ascii")
     return f"https://mermaid.ink/img/{base64_string}?type=png"
 
-
-def generate_diagram(topic_data: dict) -> str:
-    topic = topic_data["topic"]
-    prompt = f"""'{topic}' 기술의 핵심 구조나 작동 흐름을 보여주는
-간단한 Mermaid 다이어그램 코드를 작성하세요.
-
-규칙:
-- graph TD (top-down) 또는 graph LR (left-right) 형식
-- 노드는 5~8개 이내, 한국어 라벨 사용
-- 색상 없이 기본 스타일만
-- 노드 라벨에는 괄호, 따옴표, 특수문자 사용 완전 금지 (한글/영문/숫자/공백만)
-- 설명 없이 mermaid 코드만 출력 (코드블록 표시 없이 순수 코드만)
-
-예시:
-graph LR
-    A[입력 데이터] --> B[처리 단계]
-    B --> C[출력 결과]
-"""
-    raw = call_ai(prompt, max_tokens=300)
-    raw = re.sub(r"```mermaid|```", "", raw).strip()
-    return raw
 
 def call_ai(prompt: str, max_tokens: int = 4096) -> str:
     if not OPENROUTER_API_KEY:
@@ -90,7 +80,17 @@ def call_ai(prompt: str, max_tokens: int = 4096) -> str:
     print("[ERROR] 모든 모델 실패")
     sys.exit(1)
 
+
+# ──────────────────────────────────────────
+# 기사 컨텍스트 빌더 — 500자로 확장
+# ──────────────────────────────────────────
+
 def build_article_context(articles: list[dict], topic: str) -> str:
+    """
+    참조 기사를 AI에게 넘길 컨텍스트로 변환.
+    - 요약을 500자까지 포함 (기존 150자에서 확장)
+    - 기사 제목을 인덱스와 함께 제공해 출처 태깅에 활용
+    """
     topic_lower = topic.lower()
     relevant = [
         a for a in articles
@@ -98,12 +98,135 @@ def build_article_context(articles: list[dict], topic: str) -> str:
     ][:10]
     if not relevant:
         relevant = articles[:10]
+
     lines = []
-    for a in relevant:
-        lines.append(f"- [{a['source']}] {a['title']}")
+    for i, a in enumerate(relevant, 1):
+        lines.append(f"[기사{i}] 제목: {a['title']}")
+        lines.append(f"       출처: {a.get('source', '')}")
         if a.get("summary"):
-            lines.append(f"  {a['summary'][:150]}")
+            # 500자로 확장
+            lines.append(f"       내용: {a['summary'][:500]}")
+        lines.append("")
     return "\n".join(lines)
+
+
+# ──────────────────────────────────────────
+# 수치 후처리 — 미태깅 수치 문장 제거
+# ──────────────────────────────────────────
+
+# 수치가 포함된 패턴: 숫자 + % 또는 단위(억, 만, 배, 개월 등)
+NUMERIC_PATTERN = re.compile(
+    r'\d+(\.\d+)?'           # 숫자
+    r'\s*'
+    r'(%|억|만|천|조|배|개|명|건|회|달러|원|배포|배출|감소|증가|단축|절감|향상|성장|상승)',
+    re.UNICODE
+)
+SOURCE_TAG_PATTERN = re.compile(r'\[출처\s*:\s*.+?\]')
+
+
+def sanitize_untagged_numerics(text: str) -> str:
+    """
+    수치가 포함된 문장 중 [출처: ...] 태그가 없는 문장을 제거한다.
+    마크다운 bullet(-) 또는 일반 문장 단위로 처리.
+    """
+    lines = text.split("\n")
+    cleaned = []
+    removed_count = 0
+
+    for line in lines:
+        stripped = line.strip()
+
+        # 수치가 없으면 그냥 통과
+        if not NUMERIC_PATTERN.search(stripped):
+            cleaned.append(line)
+            continue
+
+        # 수치가 있고 출처 태그도 있으면 통과
+        if SOURCE_TAG_PATTERN.search(stripped):
+            cleaned.append(line)
+            continue
+
+        # 수치가 있는데 출처 태그가 없으면 제거
+        print(f"  [후처리 제거] {stripped[:80]}...")
+        removed_count += 1
+        # 빈 줄로 대체하지 않고 완전 제거
+        continue
+
+    if removed_count:
+        print(f"  [후처리] 미태깅 수치 문장 {removed_count}개 제거됨")
+
+    return "\n".join(cleaned)
+
+
+# ──────────────────────────────────────────
+# 출처 태그 → HTML 각주 변환
+# ──────────────────────────────────────────
+
+def convert_source_tags_to_html(text: str, articles: list[dict]) -> str:
+    """
+    [출처: 기사제목] 태그를 HTML 링크 각주로 변환.
+    기사 목록에서 제목 매칭으로 URL 연결.
+    """
+    # 제목 → URL 매핑 빌드
+    title_to_url = {}
+    for a in articles:
+        title_to_url[a["title"].strip()] = a.get("link", "")
+
+    def replace_tag(match):
+        tag_content = match.group(0)  # [출처: 기사제목]
+        inner = re.sub(r'^\[출처\s*:\s*', '', tag_content).rstrip(']').strip()
+
+        # 가장 유사한 기사 제목 찾기 (완전 일치 우선, 부분 일치 차선)
+        url = title_to_url.get(inner, "")
+        if not url:
+            for title, u in title_to_url.items():
+                if inner[:20] in title or title[:20] in inner:
+                    url = u
+                    break
+
+        if url:
+            return (
+                f'<sup style="font-size:0.75em;color:#1a73e8;">'
+                f'[<a href="{url}" target="_blank" rel="noopener noreferrer" '
+                f'style="color:#1a73e8;text-decoration:none;">{inner[:30]}</a>]</sup>'
+            )
+        else:
+            return (
+                f'<sup style="font-size:0.75em;color:#888;">[{inner[:30]}]</sup>'
+            )
+
+    return SOURCE_TAG_PATTERN.sub(replace_tag, text)
+
+
+# ──────────────────────────────────────────
+# 다이어그램 생성
+# ──────────────────────────────────────────
+
+def generate_diagram(topic_data: dict) -> str:
+    topic = topic_data["topic"]
+    prompt = f"""'{topic}' 기술의 핵심 구조나 작동 흐름을 보여주는
+간단한 Mermaid 다이어그램 코드를 작성하세요.
+
+규칙:
+- graph TD (top-down) 또는 graph LR (left-right) 형식
+- 노드는 5~8개 이내, 한국어 라벨 사용
+- 색상 없이 기본 스타일만
+- 노드 라벨에는 괄호, 따옴표, 특수문자 사용 완전 금지 (한글/영문/숫자/공백만)
+- 설명 없이 mermaid 코드만 출력 (코드블록 표시 없이 순수 코드만)
+
+예시:
+graph LR
+    A[입력 데이터] --> B[처리 단계]
+    B --> C[출력 결과]
+"""
+    raw = call_ai(prompt, max_tokens=300)
+    raw = re.sub(r"```mermaid|```", "", raw).strip()
+    return raw
+
+
+# ──────────────────────────────────────────
+# 본문 생성 — 출처 태깅 강제
+# ──────────────────────────────────────────
 
 def generate_body(topic_data: dict) -> str:
     topic    = topic_data["topic"]
@@ -128,23 +251,25 @@ def generate_body(topic_data: dict) -> str:
 - 독자 수준: IT에 관심 있는 일반인 / 경제 뉴스 독자
 - 주식 추천, 매수/매도 의견, 목표가 절대 금지
 - 기업명 언급 가능하나 투자 추천 표현 금지
-- SEO를 위해 핵심 키워드를 자연스럽게 반복 포함
 - 문체: 친절하고 전문적, 딱딱하지 않게
-- 이모지, 아이콘, 화살표 기호(➡️, 👉, 1️⃣ 등) 사용 금지
-- 마크다운 표(|---|), 구분선(---), ">" 인용구 사용 금지
+- 이모지, 아이콘, 화살표 기호 사용 금지
+- 마크다운 표, 구분선, ">" 인용구 사용 금지
 - "본 글에서는", "~에 대해 알아보겠습니다" 같은 챗봇식 도입 문구 금지
 - 글 시작은 독자의 궁금증이나 일상적 경험으로 자연스럽게 시작
-- 각 섹션 사이 연결 문장은 평서문으로, 인용구 기호 없이 작성
-- 비교가 필요하면 문장이나 리스트로 풀어서 설명 (표 형식 대신)
-- 참조 뉴스】에 등장하는 구체적인 사실(기업명, 제품명, 발표 시점, 수치, 계약/파트너십 내용)을
-  최소 5개 이상 본문에 자연스럽게 녹여서 사용할 것
-- 일반론적인 설명보다, "최근 ○○가 ~를 발표했다"처럼 실제 사건 기반으로 서술
-- "빠르게 성장하고 있다", "많은 기업이 주목하고 있다" 같은 모호한 문장은
-  섹션당 최대 1회까지만 허용
-【문장 스타일 예시】
+
+【수치 사용 규칙 — 반드시 준수】
+- 수치(숫자+%, 억, 만, 배, 감소, 증가 등)는 참조 뉴스에 명시된 것만 사용
+- 수치를 사용할 때는 반드시 문장 끝에 [출처: 기사제목] 형태로 태깅
+  예시) "마이크로소프트는 처리 속도가 40% 향상됐다고 밝혔다. [출처: Microsoft Copilot speeds up Dynamics 365]"
+- 참조 뉴스에 수치가 없으면 수치 없이 정성적으로 서술
+  예시) "처리 속도가 크게 향상됐다는 평가가 나온다."
+- [출처: ] 태그 없이 수치를 단정적으로 제시하는 것은 절대 금지
+- 출처 불명 수치를 만들어내는 것은 절대 금지
+
+【문장 스타일】
 나쁜 예: "AI 기술은 다양한 산업에 큰 영향을 미치고 있습니다."
 좋은 예: "메타가 인도 Reliance와 AI 데이터센터 구축 계약을 발표하면서,
-        동남아 시장에서 GPU 클러스터 수요가 본격화될 조짐을 보이고 있습니다."
+        동남아 시장에서 GPU 클러스터 수요가 본격화될 조짐을 보이고 있다. [출처: Meta Reliance AI datacenter deal]"
 
 【출력 형식】
 마크다운으로 작성. 섹션 구조:
@@ -153,7 +278,7 @@ def generate_body(topic_data: dict) -> str:
 (무엇인가, 한 줄 정의부터 시작)
 
 ## 2. 왜 지금 주목받는가
-(최근 시장/산업 트렌드와 연결)
+(최근 시장/산업 트렌드와 연결, 참조 뉴스 사건 기반 서술)
 
 ## 3. 핵심 기술 요소
 (3~5가지 핵심 개념을 bullet로)
@@ -162,21 +287,16 @@ def generate_body(topic_data: dict) -> str:
 (여러 산업 분야에 미치는 파급 효과)
 
 ## 5. 실제 적용 기업 사례
-(실명 기업 2~4개 구체적 사례)
+(참조 뉴스에 등장하는 실명 기업 2~4개, 구체적 사건 기반)
 
 ## 6. 경제·시장 관점에서 보기
-(이 기술이 관련 산업/기업의 실적, 공급망, 시장 규모에 어떤 의미를 갖는지 설명.
-주가나 매수/매도 언급 없이, "왜 시장이 이 기술을 주목하는가"를 경제 흐름 관점에서 풀어줄 것.
-참조 뉴스에 등장하는 기업의 투자 규모, 계약 금액, 파트너십, 생산 계획,
-실적 발표 내용 등 구체적 사건을 중심으로 서술.
-"이 발표가 의미하는 것은 ~이다"처럼 사건 → 해석 구조로 작성.
-참조 뉴스에 수치가 있다면 적극 활용하고, 없을 때만 정성적 표현 사용.
-공급망에서 이 기술과 관련된 기업들(부품/장비/소프트웨어)을 구체적으로 1~2개 언급
-출처가 불분명하면 "빠르게 성장하고 있다", "수요가 꾸준히 늘고 있다" 같은
-정성적 표현으로 작성. 숫자를 단정적으로 제시하지 말 것)
+(참조 뉴스의 구체적 사건 → 해석 구조로 작성.
+수치가 있으면 [출처: ] 태깅 후 사용.
+없으면 정성적 표현만 사용.
+공급망 관련 기업 1~2개 구체적으로 언급)
 
 ## 7. 앞으로 주목할 포인트
-(향후 6~12개월 내 관전 포인트)
+(향후 6~12개월 내 관전 포인트 3가지)
 
 ## 8. 3줄 요약
 - 핵심 1
@@ -184,6 +304,11 @@ def generate_body(topic_data: dict) -> str:
 - 핵심 3
 """
     return call_ai(prompt, max_tokens=4096)
+
+
+# ──────────────────────────────────────────
+# 제목 추천
+# ──────────────────────────────────────────
 
 def refine_title(topic_data: dict) -> dict:
     prompt = f"""아래 블로그 제목을 검색 유입에 최적화해서 3개 추천해주세요.
@@ -209,49 +334,29 @@ JSON만 출력:
             pass
     return {"titles": [topic_data["korean_title"]], "category": "IT/테크"}
 
+
+# ──────────────────────────────────────────
+# Markdown → HTML 변환
+# ──────────────────────────────────────────
+
 def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
-    """Markdown → 네이버/티스토리 블로그 스타일 HTML"""
+    # 1) 수치 후처리 — 미태깅 수치 문장 제거
+    md = sanitize_untagged_numerics(md)
+
+    # 2) 출처 태그 → HTML 각주 변환
+    if articles:
+        md = convert_source_tags_to_html(md, articles)
+
     lines = md.split("\n")
     html_lines = []
     in_ul = False
-    in_table = False
-    table_rows = []
-
-    def flush_table():
-        nonlocal table_rows, in_table
-        if not table_rows:
-            in_table = False
-            return
-        header = table_rows[0]
-        body_rows = table_rows[2:] if len(table_rows) > 2 else []
-        html_lines.append('<table style="width:100%;border-collapse:collapse;margin:1.2em 0;font-size:0.95em;">')
-        html_lines.append('<thead><tr>')
-        for cell in header:
-            html_lines.append(f'<th style="border:1px solid #ddd;padding:10px;background:#f5f5f5;text-align:left;">{cell.strip()}</th>')
-        html_lines.append('</tr></thead><tbody>')
-        for row in body_rows:
-            html_lines.append('<tr>')
-            for cell in row:
-                cell_html = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", cell.strip())
-                html_lines.append(f'<td style="border:1px solid #ddd;padding:10px;">{cell_html}</td>')
-            html_lines.append('</tr>')
-        html_lines.append('</tbody></table>')
-        table_rows = []
-        in_table = False
 
     for line in lines:
         stripped = line.strip()
 
+        # 구분선 무시
         if re.fullmatch(r"-{3,}|\*{3,}", stripped):
             continue
-
-        if stripped.startswith("|") and stripped.endswith("|"):
-            cells = [c for c in stripped.strip("|").split("|")]
-            table_rows.append(cells)
-            in_table = True
-            continue
-        elif in_table:
-            flush_table()
 
         if line.startswith("## "):
             if in_ul:
@@ -275,15 +380,19 @@ def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
                 in_ul = False
             if stripped:
                 text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", stripped)
-                text = re.sub(r"`(.+?)`", r'<code style="background:#f1f1f1;padding:2px 6px;border-radius:3px;font-size:0.9em;">\1</code>', text)
-                html_lines.append(f'<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">{text}</p>')
+                text = re.sub(
+                    r"`(.+?)`",
+                    r'<code style="background:#f1f1f1;padding:2px 6px;border-radius:3px;font-size:0.9em;">\1</code>',
+                    text
+                )
+                html_lines.append(
+                    f'<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">{text}</p>'
+                )
             else:
                 if in_ul:
                     html_lines.append("</ul>")
                     in_ul = False
 
-    if in_table:
-        flush_table()
     if in_ul:
         html_lines.append("</ul>")
 
@@ -306,7 +415,8 @@ def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
                 f'<span style="color:#999;font-size:0.85em;"> — {src_label}</span></li>'
             )
         references_html = f"""
-<h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">참고 기사</h2>
+<h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;
+padding-bottom:8px;border-bottom:2px solid #333;">참고 기사</h2>
 <ul style="padding-left:1.5em;margin:0.5em 0;">
 {chr(10).join(ref_items)}
 </ul>
@@ -325,19 +435,23 @@ def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
 </div>"""
 
 
+# ──────────────────────────────────────────
+# 메인
+# ──────────────────────────────────────────
+
 def main():
     with open(TOPIC_FILE, encoding="utf-8") as f:
         topic_data = json.load(f)
 
-    topic = topic_data["topic"]
-    title = topic_data["korean_title"]
-    tags  = topic_data.get("tags", [topic, "IT기술", "기술트렌드"])
+    topic    = topic_data["topic"]
+    title    = topic_data["korean_title"]
+    tags     = topic_data.get("tags", [topic, "IT기술", "기술트렌드"])
     articles = topic_data.get("source_articles", [])
 
     print(f"[포스팅 생성] 주제: {topic}")
     print(f"[포스팅 생성] 제목: {title}")
 
-    body_md   = generate_body(topic_data)
+    body_md = generate_body(topic_data)
     print(f"\n[본문 생성 완료] {len(body_md)}자")
 
     # 구성도 생성
@@ -345,7 +459,7 @@ def main():
     diagram_html = ""
     try:
         diagram_code = generate_diagram(topic_data)
-        diagram_url = mermaid_to_image_url(diagram_code)
+        diagram_url  = mermaid_to_image_url(diagram_code)
         diagram_html = f'''
 <div style="text-align:center;margin:2em 0;">
   <img src="{diagram_url}" alt="{topic} 구조도" style="max-width:100%;border-radius:8px;border:1px solid #eee;" />
@@ -356,7 +470,7 @@ def main():
     except Exception as e:
         print(f"[WARN] 구성도 생성 실패: {e}")
 
-    # 참고 기사
+    # 참조 기사 필터링
     topic_lower = topic.lower()
     relevant_articles = [
         a for a in articles
@@ -374,13 +488,13 @@ def main():
         if idx != -1:
             body_html = body_html[:idx] + diagram_html + body_html[idx:]
         else:
-            body_html += diagram_html  # 마커 못 찾으면 끝에 추가
+            body_html += diagram_html
 
     print("\n[제목/카테고리 추천 중...]")
-    refined = refine_title(topic_data)
+    refined          = refine_title(topic_data)
     title_candidates = refined.get("titles", [title])
-    category = refined.get("category", "테크인사이트-IT트렌드")
-    final_title = title_candidates[0] if title_candidates else title
+    category         = refined.get("category", "테크인사이트-IT트렌드")
+    final_title      = title_candidates[0] if title_candidates else title
 
     print(f"[제목 추천] {title_candidates}")
     print(f"[카테고리 추천] {category}")
@@ -402,8 +516,9 @@ def main():
     with open("data/blog_post.html", "w", encoding="utf-8") as f:
         f.write(body_html)
 
-    print(f"포스팅 저장 완료 → {POST_FILE}")
+    print(f"\n포스팅 저장 완료 → {POST_FILE}")
     print(f"HTML 저장 완료  → data/blog_post.html")
+
 
 if __name__ == "__main__":
     main()
