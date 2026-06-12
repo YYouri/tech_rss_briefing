@@ -17,15 +17,11 @@ POST_FILE   = "data/blog_post.json"
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
 MODELS = [
-    "nvidia/nemotron-3-ultra:free",
     "openai/gpt-oss-120b:free",
     "google/gemma-4-31b:free",
     "openai/gpt-oss-20b:free",
     "nvidia/nemotron-3-super:free",
 ]
-
-
-# ── OpenRouter 호출 ───────────────────────────────────────────────────────────
 
 def call_ai(prompt: str, max_tokens: int = 4096) -> str:
     if not OPENROUTER_API_KEY:
@@ -66,8 +62,6 @@ def call_ai(prompt: str, max_tokens: int = 4096) -> str:
     print("[ERROR] 모든 모델 실패")
     sys.exit(1)
 
-# ── 참조 기사 요약 ────────────────────────────────────────────────────────────
-
 def build_article_context(articles: list[dict], topic: str) -> str:
     topic_lower = topic.lower()
     relevant = [
@@ -76,15 +70,12 @@ def build_article_context(articles: list[dict], topic: str) -> str:
     ][:10]
     if not relevant:
         relevant = articles[:10]
-
     lines = []
     for a in relevant:
         lines.append(f"- [{a['source']}] {a['title']}")
         if a.get("summary"):
             lines.append(f"  {a['summary'][:150]}")
     return "\n".join(lines)
-
-# ── 본문 생성 ─────────────────────────────────────────────────────────────────
 
 def generate_body(topic_data: dict) -> str:
     topic    = topic_data["topic"]
@@ -140,31 +131,30 @@ def generate_body(topic_data: dict) -> str:
 """
     return call_ai(prompt, max_tokens=4096)
 
-# ── Markdown → HTML 변환 ──────────────────────────────────────────────────────
-
 def md_to_html(md: str, title: str) -> str:
-    """간단한 Markdown → Tistory용 HTML 변환"""
+    """Markdown → 네이버 블로그 스타일 HTML"""
     lines = md.split("\n")
     html_lines = []
     in_ul = False
 
     for line in lines:
-        # h2
         if line.startswith("## "):
             if in_ul:
                 html_lines.append("</ul>")
                 in_ul = False
             text = line[3:].strip()
-            html_lines.append(f'<h2 style="margin-top:2em;border-bottom:2px solid #e0e0e0;padding-bottom:8px;">{text}</h2>')
-        # bold
+            html_lines.append(
+                f'<div style="background:#f8f9fa;border-left:4px solid #333;'
+                f'padding:14px 18px;margin:2em 0 1em;font-size:1.05em;'
+                f'font-weight:bold;color:#222;">{text}</div>'
+            )
         elif line.startswith("- ") or line.startswith("* "):
             if not in_ul:
-                html_lines.append('<ul style="line-height:1.9;">')
+                html_lines.append('<ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">')
                 in_ul = True
             text = line[2:].strip()
-            # **bold**
             text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
-            html_lines.append(f"  <li>{text}</li>")
+            html_lines.append(f'  <li style="margin-bottom:6px;">{text}</li>')
         else:
             if in_ul and line.strip():
                 html_lines.append("</ul>")
@@ -172,8 +162,10 @@ def md_to_html(md: str, title: str) -> str:
             if line.strip():
                 text = line.strip()
                 text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
-                text = re.sub(r"`(.+?)`", r"<code>\1</code>", text)
-                html_lines.append(f"<p>{text}</p>")
+                text = re.sub(r"`(.+?)`", r'<code style="background:#f1f1f1;padding:2px 6px;border-radius:3px;font-size:0.9em;">\1</code>', text)
+                html_lines.append(
+                    f'<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">{text}</p>'
+                )
             else:
                 if in_ul:
                     html_lines.append("</ul>")
@@ -183,22 +175,23 @@ def md_to_html(md: str, title: str) -> str:
         html_lines.append("</ul>")
 
     today = datetime.now().strftime("%Y년 %m월 %d일")
-    body = "\n".join(html_lines)
+    body  = "\n".join(html_lines)
 
-    return f"""<div style="font-family:'Noto Sans KR',sans-serif;max-width:800px;margin:0 auto;line-height:1.8;color:#333;">
+    return f"""<div style="font-family:'Noto Sans KR','Malgun Gothic',sans-serif;max-width:720px;margin:0 auto;color:#333;word-break:keep-all;">
 
-<p style="color:#888;font-size:0.85em;">📅 {today} | 오늘 시장이 주목한 IT 기술</p>
+<div style="background:#f0f0f0;border-radius:8px;padding:16px 20px;margin-bottom:2em;font-size:0.9em;color:#555;line-height:1.8;">
+오늘 경제/IT 뉴스에서 가장 많이 언급된 기술 키워드를 분석해 해설합니다.<br>
+📅 {today} &nbsp;|&nbsp; 투자 추천 없음 &nbsp;·&nbsp; 기술 정보 목적
+</div>
 
 {body}
 
-<hr style="margin-top:3em;border:none;border-top:1px solid #e0e0e0;">
-<p style="font-size:0.8em;color:#999;">
-⚠️ 본 콘텐츠는 IT 기술 정보 제공 목적으로 작성되었으며, 투자 추천이나 매수/매도 의견을 포함하지 않습니다.
-</p>
+<div style="margin-top:3em;padding:18px 20px;background:#fafafa;border:1px solid #e8e8e8;border-radius:8px;font-size:0.85em;color:#999;line-height:1.8;">
+⚠️ 본 콘텐츠는 IT 기술 정보 제공 목적으로 작성되었습니다.<br>
+투자 추천, 매수/매도 의견, 목표가를 포함하지 않습니다.
+</div>
 
 </div>"""
-
-# ── 메인 ──────────────────────────────────────────────────────────────────────
 
 def main():
     with open(TOPIC_FILE, encoding="utf-8") as f:
@@ -211,25 +204,30 @@ def main():
     print(f"[포스팅 생성] 주제: {topic}")
     print(f"[포스팅 생성] 제목: {title}")
 
-    body_md = generate_body(topic_data)
+    body_md   = generate_body(topic_data)
     print(f"\n[본문 생성 완료] {len(body_md)}자")
 
     body_html = md_to_html(body_md, title)
 
     post = {
-        "title": title,
-        "topic": topic,
+        "title":        title,
+        "topic":        topic,
         "content_html": body_html,
-        "content_md": body_md,
-        "tags": ",".join(tags),
-        "created_at": datetime.now().isoformat(),
+        "content_md":   body_md,
+        "tags":         ",".join(tags),
+        "created_at":   datetime.now().isoformat(),
     }
 
+    # JSON 저장 (05_update_history.py 참조용)
+    with open(POST_FILE, "w", encoding="utf-8") as f:
+        json.dump(post, f, ensure_ascii=False, indent=2)
+
+    # HTML 파일 저장 (복붙용)
     with open("data/blog_post.html", "w", encoding="utf-8") as f:
         f.write(body_html)
 
-
     print(f"포스팅 저장 완료 → {POST_FILE}")
+    print(f"HTML 저장 완료  → data/blog_post.html")
 
 if __name__ == "__main__":
     main()

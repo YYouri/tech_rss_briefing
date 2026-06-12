@@ -19,7 +19,6 @@ TOPIC_FILE     = "data/selected_topic.json"
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
 MODELS = [
-    "nvidia/nemotron-3-ultra:free",
     "openai/gpt-oss-120b:free",
     "google/gemma-4-31b:free",
     "openai/gpt-oss-20b:free",

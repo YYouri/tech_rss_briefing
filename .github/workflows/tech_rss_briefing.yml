@@ -40,12 +40,6 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
-      - name: Step 4 - Post to Tistory
-        run: python scripts/04_post_tistory.py
-        env:
-          TISTORY_ACCESS_TOKEN: ${{ secrets.TISTORY_ACCESS_TOKEN }}
-          TISTORY_BLOG_NAME: ${{ secrets.TISTORY_BLOG_NAME }}
-
       - name: Step 5 - Update topic history
         run: python scripts/05_update_history.py
 
