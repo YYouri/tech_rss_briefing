@@ -22,27 +22,34 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Install dependencies
         run: pip install requests feedparser googlenewsdecoder
 
       - name: Step 1 - Collect news
         run: python scripts/01_collect_news.py
-        env:
-          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
-          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
 
       - name: Step 2 - Extract tech keywords & select topic
         run: python scripts/02_select_topic.py
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
-      - name: Step 3 - Generate blog po st
+      - name: Step 3 - Generate blog post
         run: python scripts/03_generate_post.py
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
       - name: Step 5 - Update topic history
         run: python scripts/05_update_history.py
+
+      - name: Upload generated post as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: blog-post-${{ github.run_number }}
+          path: |
+            data/blog_post.html
+            data/blog_post.json
+          retention-days: 7
 
       - name: Commit updated history
         run: |
