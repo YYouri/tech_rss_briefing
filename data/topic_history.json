@@ -75,5 +75,12 @@
     "url": "",
     "tags": "Digital Twin,시뮬레이션,스마트 제조,자동차 산업,Industry 4.0",
     "date": "2026-06-12T09:16:16.433095"
+  },
+  {
+    "topic": "LLM Inference",
+    "title": "LLM Inference 최적화 3가지 비법",
+    "url": "",
+    "tags": "LLM Inference,실시간 AI,GPU 최적화,TensorRT,대규모 언어 모델",
+    "date": "2026-06-12T11:59:34.205503"
   }
 ]
