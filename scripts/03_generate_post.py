@@ -17,11 +17,13 @@ POST_FILE   = "data/blog_post.json"
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
 MODELS = [
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "deepseek/deepseek-r1:free",
-    "google/gemma-3-27b-it:free",
-    "microsoft/phi-4:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "mistralai/mistral-7b-instruct:free",
+    "qwen/qwen-2.5-7b-instruct:free",
+    "google/gemini-2.0-flash-exp:free",
+    "tngtech/deepseek-r1t-chimera:free",
 ]
+
 
 # ── OpenRouter 호출 ───────────────────────────────────────────────────────────
 
