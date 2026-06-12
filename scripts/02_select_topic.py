@@ -19,12 +19,13 @@ TOPIC_FILE     = "data/selected_topic.json"
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
 MODELS = [
-    "meta-llama/llama-3.2-3b-instruct:free",
-    "mistralai/mistral-7b-instruct:free",
-    "qwen/qwen-2.5-7b-instruct:free",
-    "google/gemini-2.0-flash-exp:free",
-    "tngtech/deepseek-r1t-chimera:free",
+    "nvidia/nemotron-3-ultra:free",
+    "openai/gpt-oss-120b:free",
+    "google/gemma-4-31b:free",
+    "openai/gpt-oss-20b:free",
+    "nvidia/nemotron-3-super:free",
 ]
+
 
 # ── OpenRouter 호출 ───────────────────────────────────────────────────────────
 
