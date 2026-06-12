@@ -94,24 +94,21 @@ def generate_body(topic_data: dict) -> str:
 {ctx}
 
 【작성 규칙】
-- 반드시 아래 7개 섹션 구조로 작성
+- 반드시 아래 8개 섹션 구조로 작성
 - 각 섹션은 ## 헤딩 사용
-- 전체 분량: 1500~2500자 (한국어 기준)
+- 전체 분량: 1800~2800자 (한국어 기준)
 - 독자 수준: IT에 관심 있는 일반인 / 경제 뉴스 독자
 - 주식 추천, 매수/매도 의견, 목표가 절대 금지
 - 기업명 언급 가능하나 투자 추천 표현 금지
 - SEO를 위해 핵심 키워드를 자연스럽게 반복 포함
 - 문체: 친절하고 전문적, 딱딱하지 않게
-
-【추가 작성 규칙 - 자연스러운 블로그 톤】
-- 마크다운 표(|---|) 사용 금지, 비교가 필요하면 문장이나 리스트로 풀어서 설명
-- 구분선(---) 사용 금지
+- 이모지, 아이콘, 화살표 기호(➡️, 👉, 1️⃣ 등) 사용 금지
+- 마크다운 표(|---|), 구분선(---), ">" 인용구 사용 금지
 - "본 글에서는", "~에 대해 알아보겠습니다" 같은 챗봇식 도입 문구 금지
-- 글 시작은 독자의 궁금증이나 일상적 경험으로 자연스럽게 시작 (예: "요즘 뉴스 보다 보면 ○○라는 말이 자주 보이죠?")
-- 각 섹션 사이에 짧은 연결 문장 추가 (다음 내용으로 넘어가는 느낌)
-- 글 중간에 필자의 생각이나 의견을 1~2문장 자연스럽게 섞기 (단정적 표현보다 "~인 것 같습니다", "~로 보입니다")
-- 전문용어는 처음 등장할 때만 간단히 풀어서 설명
-- 문단 길이는 3~5문장 내로, 너무 길지 않게
+- 글 시작은 독자의 궁금증이나 일상적 경험으로 자연스럽게 시작
+- 각 섹션 사이 연결 문장은 평서문으로, 인용구 기호 없이 작성
+- 비교가 필요하면 문장이나 리스트로 풀어서 설명 (표 형식 대신)
+
 【출력 형식】
 마크다운으로 작성. 섹션 구조:
 
@@ -130,15 +127,21 @@ def generate_body(topic_data: dict) -> str:
 ## 5. 실제 적용 기업 사례
 (실명 기업 2~4개 구체적 사례)
 
-## 6. 앞으로 주목할 포인트
+## 6. 경제·시장 관점에서 보기
+(이 기술이 관련 산업/기업의 실적, 공급망, 시장 규모에 어떤 의미를 갖는지 설명.
+주가나 매수/매도 언급 없이, "왜 시장이 이 기술을 주목하는가"를 경제 흐름 관점에서 풀어줄 것.
+관련 시장 규모, 성장률, 공급망 구조 등 객관적 정보 중심)
+
+## 7. 앞으로 주목할 포인트
 (향후 6~12개월 내 관전 포인트)
 
-## 7. 3줄 요약
+## 8. 3줄 요약
 - 핵심 1
 - 핵심 2
 - 핵심 3
 """
     return call_ai(prompt, max_tokens=4096)
+
 def refine_title(topic_data: dict) -> dict:
     prompt = f"""아래 블로그 제목을 검색 유입에 최적화해서 3개 추천해주세요.
 
@@ -163,7 +166,8 @@ JSON만 출력:
             pass
     return {"titles": [topic_data["korean_title"]], "category": "IT/테크"}
 
-def md_to_html(md: str, title: str) -> str:
+def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
+    """Markdown → 네이버/티스토리 블로그 스타일 HTML"""
     lines = md.split("\n")
     html_lines = []
     in_ul = False
@@ -175,7 +179,6 @@ def md_to_html(md: str, title: str) -> str:
         if not table_rows:
             in_table = False
             return
-        # 첫 줄=헤더, 둘째 줄=구분선(스킵), 나머지=본문
         header = table_rows[0]
         body_rows = table_rows[2:] if len(table_rows) > 2 else []
         html_lines.append('<table style="width:100%;border-collapse:collapse;margin:1.2em 0;font-size:0.95em;">')
@@ -196,11 +199,9 @@ def md_to_html(md: str, title: str) -> str:
     for line in lines:
         stripped = line.strip()
 
-        # 구분선 (--- 또는 ***) -> 그냥 스킵 (또는 <hr> 처리)
         if re.fullmatch(r"-{3,}|\*{3,}", stripped):
             continue
 
-        # 표 라인 감지
         if stripped.startswith("|") and stripped.endswith("|"):
             cells = [c for c in stripped.strip("|").split("|")]
             table_rows.append(cells)
@@ -243,24 +244,43 @@ def md_to_html(md: str, title: str) -> str:
     if in_ul:
         html_lines.append("</ul>")
 
-    today = datetime.now().strftime("%Y년 %m월 %d일")
-    body  = "\n".join(html_lines)
+    body = "\n".join(html_lines)
+
+    # 참고 기사 링크 섹션
+    references_html = ""
+    if articles:
+        ref_items = []
+        for a in articles[:8]:
+            src_label = {
+                "google_news": "Google News",
+                "yahoo_finance": "Yahoo Finance",
+                "hacker_news": "Hacker News",
+            }.get(a.get("source", ""), a.get("source", ""))
+            ref_items.append(
+                f'<li style="margin-bottom:8px;line-height:1.6;">'
+                f'<a href="{a["link"]}" target="_blank" rel="noopener noreferrer" '
+                f'style="color:#1a73e8;text-decoration:none;">{a["title"]}</a>'
+                f'<span style="color:#999;font-size:0.85em;"> — {src_label}</span></li>'
+            )
+        references_html = f"""
+<h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">참고 기사</h2>
+<ul style="padding-left:1.5em;margin:0.5em 0;">
+{chr(10).join(ref_items)}
+</ul>
+"""
 
     return f"""<div style="font-family:'Noto Sans KR','Malgun Gothic',sans-serif;max-width:720px;margin:0 auto;color:#333;word-break:keep-all;">
 
-<div style="background:#f0f0f0;border-radius:8px;padding:16px 20px;margin-bottom:2em;font-size:0.9em;color:#555;line-height:1.8;">
-오늘 경제/IT 뉴스에서 가장 많이 언급된 기술 키워드를 분석해 해설합니다.<br>
-📅 {today} &nbsp;|&nbsp; 투자 추천 없음 &nbsp;·&nbsp; 기술 정보 목적
-</div>
-
 {body}
 
+{references_html}
+
 <div style="margin-top:3em;padding:18px 20px;background:#fafafa;border:1px solid #e8e8e8;border-radius:8px;font-size:0.85em;color:#999;line-height:1.8;">
-⚠️ 본 콘텐츠는 IT 기술 정보 제공 목적으로 작성되었습니다.<br>
-투자 추천, 매수/매도 의견, 목표가를 포함하지 않습니다.
+본 콘텐츠는 IT 기술 정보 제공 목적으로 작성되었습니다. 투자 판단의 근거로 사용하지 마시기 바랍니다.
 </div>
 
 </div>"""
+
 
 def main():
     with open(TOPIC_FILE, encoding="utf-8") as f:
@@ -269,6 +289,7 @@ def main():
     topic = topic_data["topic"]
     title = topic_data["korean_title"]
     tags  = topic_data.get("tags", [topic, "IT기술", "기술트렌드"])
+    articles = topic_data.get("source_articles", [])
 
     print(f"[포스팅 생성] 주제: {topic}")
     print(f"[포스팅 생성] 제목: {title}")
@@ -276,13 +297,21 @@ def main():
     body_md   = generate_body(topic_data)
     print(f"\n[본문 생성 완료] {len(body_md)}자")
 
-    body_html = md_to_html(body_md, title)
+    # 참고 기사: 본문 생성에 쓴 것과 동일한 관련 기사 선별
+    topic_lower = topic.lower()
+    relevant_articles = [
+        a for a in articles
+        if topic_lower in a["title"].lower() or topic_lower in a.get("summary", "").lower()
+    ][:8]
+    if not relevant_articles:
+        relevant_articles = articles[:8]
 
-    # 제목 후보 + 카테고리 추천
+    body_html = md_to_html(body_md, title, relevant_articles)
+
     print("\n[제목/카테고리 추천 중...]")
     refined = refine_title(topic_data)
     title_candidates = refined.get("titles", [title])
-    category = refined.get("category", "IT/테크")
+    category = refined.get("category", "테크인사이트-IT트렌드")
     final_title = title_candidates[0] if title_candidates else title
 
     print(f"[제목 추천] {title_candidates}")
@@ -299,11 +328,9 @@ def main():
         "created_at":       datetime.now().isoformat(),
     }
 
-    # JSON 저장 (05_update_history.py 참조용)
     with open(POST_FILE, "w", encoding="utf-8") as f:
         json.dump(post, f, ensure_ascii=False, indent=2)
 
-    # HTML 파일 저장 (복붙용)
     with open("data/blog_post.html", "w", encoding="utf-8") as f:
         f.write(body_html)
 
