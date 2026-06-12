@@ -101,7 +101,9 @@ def extract_keywords(article_text: str) -> list[dict]:
 규칙:
 - 단순 기업명, 인물명 제외
 - 실제 IT 기술, 아키텍처, 표준, 개념만 포함
-- 예: HBM, MCP, Agentic AI, CXL, SASE, Physical AI, RAG, LoRA, LLM Inference
+- 반드시 "구체적인" 기술/개념이어야 함 (예: HBM, MCP, Agentic AI, CXL, SASE, Physical AI, RAG, LoRA, LLM Inference, On-Device AI, Edge AI, Digital Twin, Zero Trust)
+- 너무 광범위하거나 포괄적인 상위 개념(예: AI, 인공지능, 반도체, 클라우드, 빅데이터, IT, 기술, 소프트웨어, 디지털)은 절대 추출하지 말 것
+- 만약 'AI'가 자주 언급된다면, 그 기사들에서 다뤄지는 더 구체적인 하위 기술/응용 분야를 찾아서 추출 (예: 'AI' 대신 'Agentic AI', 'Edge AI', 'AI 반도체', 'AI 거버넌스', 'On-Device AI' 등)
 - 각 키워드의 기사 언급 횟수와 중요도(1-10)를 추정
 - 반드시 JSON 배열만 출력 (설명 없이)
 
@@ -129,16 +131,23 @@ def extract_keywords(article_text: str) -> list[dict]:
         return []
 
 # ── Step 2: 토픽 선정 ─────────────────────────────────────────────────────────
-
+TOO_BROAD = {
+    "ai", "인공지능", "반도체", "클라우드", "빅데이터", "it", "기술",
+    "소프트웨어", "디지털", "데이터", "머신러닝", "딥러닝", "네트워크",
+}
 def select_topic(keywords: list[dict], recent_topics: list[str]) -> dict:
     # 최근 30일 발행 키워드 제외
     filtered = [
         kw for kw in keywords
         if kw["keyword"].lower() not in recent_topics
+        and kw["keyword"].lower() not in TOO_BROAD
     ]
     if not filtered:
-        print("[WARN] 최근 30일 이력 제외 후 키워드 없음 → 이력 무시하고 재시도")
-        filtered = keywords
+        print("[WARN] 필터링 후 키워드 없음 → 이력 무시하고 재시도")
+        filtered = [
+            kw for kw in keywords
+            if kw["keyword"].lower() not in TOO_BROAD
+        ] or keywords
 
     # 중요도 × count 점수 정렬
     scored = sorted(
