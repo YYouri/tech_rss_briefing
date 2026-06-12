@@ -19,6 +19,8 @@ import html
 import urllib.request
 import urllib.parse
 import urllib.error
+from googlenewsdecoder import gnewsdecoder
+
 from datetime import datetime, timezone, timedelta
 
 import feedparser  # pip install feedparser
@@ -85,13 +87,14 @@ GOOGLE_NEWS_QUERIES = [
     "quantum computing enterprise",
 ]
 
+
 def resolve_google_news_url(url: str) -> str:
+    """Google News 리다이렉트 URL → 실제 기사 URL"""
     try:
-        req = urllib.request.Request(url, headers={
-            "User-Agent": "Mozilla/5.0 (compatible; BlogBot/1.0)"
-        })
-        with urllib.request.urlopen(req, timeout=8) as r:
-            return r.url
+        result = gnewsdecoder(url, interval=1)
+        if result.get("status"):
+            return result["decoded_url"]
+        return url
     except Exception:
         return url
 
