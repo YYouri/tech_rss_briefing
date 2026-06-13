@@ -152,7 +152,10 @@ def main():
 
     with open(HTML_FILE, "w", encoding="utf-8") as f:
         f.write(content_html)
-
+    with open("data/blog_post.md", "w", encoding="utf-8") as f:
+        f.write(f"# {post['title']}\n\n")
+        f.write(post.get("content_md", ""))
+        
     print(f"\n[기출 이력 섹션 추가 완료] → {POST_FILE}, {HTML_FILE}")
 
 
