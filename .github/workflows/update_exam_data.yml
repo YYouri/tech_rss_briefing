@@ -1,0 +1,59 @@
+name: Update Exam History Data
+
+on:
+  push:
+    paths:
+      - 'data/*.xls'
+      - 'data/*.xlsx'
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install openpyxl
+
+      - name: Find and convert xls/xlsx in data/
+        run: |
+          shopt -s nullglob
+          files=(data/*.xls data/*.xlsx)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "변환할 파일 없음"
+            exit 0
+          fi
+
+          for f in "${files[@]}"; do
+            echo "처리 중: $f"
+            ext="${f##*.}"
+
+            if [ "$ext" = "xls" ]; then
+              sudo apt-get update -y && sudo apt-get install -y libreoffice-calc
+              soffice --headless --convert-to xlsx --outdir data "$f"
+              xlsx_file="data/$(basename "${f%.xls}").xlsx"
+            else
+              xlsx_file="$f"
+            fi
+
+            python scripts/update_exam_history.py "$xlsx_file"
+          done
+
+      - name: Commit converted exam history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/exam_history.json
+          git diff --staged --quiet || git commit -m "chore: update exam_history.json from uploaded exam file [skip ci]"
+          git push
