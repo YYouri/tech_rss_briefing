@@ -69,7 +69,6 @@ def search_exam_questions(terms: list[str], exam_data: list[dict]) -> list[dict]
     matched.sort(key=lambda x: x.get("round", 0), reverse=True)
     return matched
 
-
 def build_exam_section_html(matches: list[dict], topic: str) -> str:
     if not matches:
         return ""
@@ -84,22 +83,22 @@ def build_exam_section_html(matches: list[dict], topic: str) -> str:
             q_text = q_text[:120] + "..."
 
         items_html.append(
-            f'<li style="margin-bottom:8px;line-height:1.7;">'
-            f'<span style="color:#888;font-size:0.85em;">제{round_no}회 · {subject}</span><br>'
+            f'<li style="margin-bottom:8px;line-height:1.7;font-size:0.92em;">'
+            f'<span style="color:#aaa;font-size:0.85em;">제{round_no}회 · {subject}</span><br>'
             f'{q_text}</li>'
         )
 
     return f"""
-<h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">기술사 기출 연계</h2>
-<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">
-오늘 다룬 <strong>{topic}</strong>은 정보관리기술사 시험에서도 아래와 같이 출제된 적이 있는 주제입니다.
-업무 트렌드뿐 아니라 자격증 준비 관점에서도 한 번쯔음 짚어볼 만한 키워드입니다.
+<div style="margin-top:1.5em;padding:16px 20px;background:#fcfcfc;border:1px solid #eee;border-radius:8px;">
+<p style="font-size:0.85em;font-weight:700;color:#999;margin:0 0 10px;letter-spacing:0.5px;">기술사 기출 연계</p>
+<p style="line-height:1.8;margin:0 0 10px;color:#777;font-size:0.92em;">
+오늘 다룬 <strong style="color:#555;">{topic}</strong>은 정보관리기술사 시험에서도 출제된 적이 있는 주제입니다.
 </p>
-<ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">
+<ul style="padding-left:1.3em;margin:0;">
 {chr(10).join(items_html)}
 </ul>
+</div>
 """
-
 
 def main():
     if not os.path.exists(POST_FILE):
