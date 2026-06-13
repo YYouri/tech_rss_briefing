@@ -32,20 +32,37 @@ TOPIC_ALIASES = {
 }
 
 
-def build_search_terms(topic: str) -> list[str]:
-    topic_lower = topic.lower().strip()
-    terms = set()
-    terms.add(topic)
+def build_search_terms(topic: str, exam_data: list[dict]) -> list[str]:
+    # 기출문제에서 자주 나오는 키워드 샘플 추출
+    sample_questions = [item["question"][:50] for item in exam_data[:30]]
+    sample_text = "\n".join(sample_questions)
 
-    for key, aliases in TOPIC_ALIASES.items():
-        if key in topic_lower or topic_lower in key:
-            terms.update(aliases)
+    prompt = f"""아래 IT 기술 토픽의 동의어, 한글 표현, 약어를 추출하세요.
+기출문제 검색에 사용할 키워드 목록입니다.
 
-    for w in re.split(r"[\s\-_/]+", topic):
-        if len(w) >= 3:
-            terms.add(w)
+토픽: {topic}
 
-    return list(terms)
+참고 - 기출문제 샘플:
+{sample_text}
+
+규칙:
+- 한국어/영어 혼용 가능
+- 5~8개 이내
+- JSON 배열만 출력
+
+예시: ["Edge AI", "엣지 AI", "온디바이스", "On-Device AI"]
+"""
+    raw = call_ai(prompt, max_tokens=200)
+    match = re.search(r"\[.*\]", raw, re.DOTALL)
+    if match:
+        try:
+            terms = json.loads(match.group())
+            terms.append(topic)  # 원본 토픽도 포함
+            return list(set(terms))
+        except Exception:
+            pass
+    return [topic]
+
 
 
 def search_exam_questions(terms: list[str], exam_data: list[dict]) -> list[dict]:
@@ -118,7 +135,7 @@ def main():
     topic = post["topic"]
     print(f"[기출 이력 검색] 토픽: {topic}")
 
-    terms = build_search_terms(topic)
+    terms = build_search_terms(topic, exam_data)
     print(f"  검색어: {terms}")
 
     matches = search_exam_questions(terms, exam_data)
