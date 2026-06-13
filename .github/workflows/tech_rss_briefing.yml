@@ -39,6 +39,9 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
+      - name: Step 6 - Add exam history section
+        run: python scripts/06_exam_history.py
+
       - name: Step 5 - Update topic history
         run: python scripts/05_update_history.py
 
