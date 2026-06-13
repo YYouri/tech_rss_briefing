@@ -666,6 +666,12 @@ def main():
     with open("data/blog_post.html", "w", encoding="utf-8") as f:
         f.write(body_html)
 
+    # 이 줄 추가
+    with open("data/blog_post.md", "w", encoding="utf-8") as f:
+        f.write(f"# {final_title}\n\n")
+        f.write(body_md)
+
+
     print(f"\n포스팅 저장 완료 → {POST_FILE}")
     print(f"HTML 저장 완료  → data/blog_post.html")
 
