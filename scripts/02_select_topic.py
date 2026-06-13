@@ -5,10 +5,10 @@ OpenRouter Free API를 사용해 기사에서 IT 기술 키워드를 추출하�
 중복 방지: 최근 30일 발행 이력 참조
 
 개선 사항:
-- 토픽 선정 후 관련 기사 수 검증 (최소 3개 이상)
-- 관련 기사 부족 시 차순위 토픽으로 자동 교체
-- 선정된 토픽의 관련 기사만 source_articles에 저장
-- 기사 요약을 토픽 선정 프롬프트에도 충분히 제공
+- 토픽 선정 후 관련 기사 수 검증 (최소 5개 이상, 기존 3 → 5)
+- 단일/소수 기사 기반의 너무 구체적인 키워드 추출 방지
+- 관련 기사 부족 시 차순위 토픽으로 자동 교체, 모두 실패하면 ERROR 종료
+- 선정된 토픽의 관련 기사만 source_articles에 저장 (폴백으로 무관한 기사 채우지 않음)
 """
 
 import json
@@ -25,8 +25,8 @@ TOPIC_FILE    = "data/selected_topic.json"
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
-# 관련 기사 최소 기준 — 이 수 미만이면 차순위 토픽으로 교체
-MIN_RELATED_ARTICLES = 3
+# 관련 기사 최소 기준 — 이 수 미만이면 차순위 토픽으로 교체 (3 → 5로 강화)
+MIN_RELATED_ARTICLES = 5
 
 MODELS = [
     "openai/gpt-oss-120b:free",
@@ -103,7 +103,7 @@ def articles_to_text(articles: list[dict]) -> str:
     for i, a in enumerate(articles, 1):
         lines.append(f"{i}. [{a['source']}] {a['title']}")
         if a.get("summary"):
-            lines.append(f"   {a['summary'][:300]}")  # 120 → 300
+            lines.append(f"   {a['summary'][:300]}")
     return "\n".join(lines)
 
 
@@ -111,19 +111,22 @@ def find_related_articles(topic: str, articles: list[dict]) -> list[dict]:
     """
     토픽 키워드가 제목 또는 요약에 포함된 기사를 반환.
     대소문자 무시, 부분 일치.
+    토픽이 3단어 이상이면 최소 2개 단어 일치를 요구해 너무 느슨한 매칭을 방지.
     """
     topic_lower = topic.lower()
-    # 토픽이 여러 단어일 경우 단어 분리해서 각각 검색
     keywords = [w for w in topic_lower.split() if len(w) > 2]
+
+    if len(keywords) >= 3:
+        min_match = 2
+    else:
+        min_match = max(1, len(keywords) // 2)
 
     related = []
     for a in articles:
         text = (a["title"] + " " + a.get("summary", "")).lower()
-        # 전체 토픽 일치 우선
         if topic_lower in text:
             related.append(a)
-        # 키워드 중 절반 이상 포함 시 관련 기사로 인정
-        elif keywords and sum(1 for kw in keywords if kw in text) >= max(1, len(keywords) // 2):
+        elif keywords and sum(1 for kw in keywords if kw in text) >= min_match:
             related.append(a)
 
     return related
@@ -144,6 +147,12 @@ def extract_keywords(article_text: str) -> list[dict]:
 - 너무 광범위한 상위 개념(AI, 인공지능, 반도체, 클라우드, 빅데이터, IT, 기술,
   소프트웨어, 디지털)은 절대 추출하지 말 것
 - 'AI'가 자주 언급된다면 더 구체적인 하위 기술을 찾아서 추출
+- 매우 중요: 반드시 "최소 3개 이상의 서로 다른 기사"에서 공통적으로 언급되거나
+  다룰 수 있는 키워드만 추출할 것. 단 1개 기사의 제목/내용에서만
+  등장하는 매우 특수하고 지엽적인 표현(예: 특정 기사 제목에만 나오는
+  신조어, 단발성 보도 표현)은 절대 추출하지 말 것
+- count는 실제로 해당 키워드와 관련된 기사가 몇 개인지 최대한 정확히 추정할 것
+  (count가 2 이하로 추정되는 키워드는 추출하지 말 것)
 - 각 키워드의 기사 언급 횟수와 중요도(1-10)를 추정
 - 반드시 JSON 배열만 출력 (설명 없이)
 
@@ -170,7 +179,10 @@ def extract_keywords(article_text: str) -> list[dict]:
 
 # ── Step 2: 토픽 선정 + 관련 기사 수 검증 ────────────────────────────────────
 
-def select_topic(keywords: list[dict], recent_topics: list[str], articles: list[dict]) -> dict:
+def select_topic(keywords: list[dict], recent_topics: list[str], articles: list[dict]):
+    """
+    반환값: (topic_dict, related_articles) 또는 (None, None) — 검증 통과 토픽 없음
+    """
     # 최근 발행 및 너무 광범위한 키워드 제외
     filtered = [
         kw for kw in keywords
@@ -188,23 +200,22 @@ def select_topic(keywords: list[dict], recent_topics: list[str], articles: list[
         reverse=True,
     )
 
-    # ── 핵심 개선: 관련 기사 수 검증 후 토픽 선정 ──
-    # 상위 후보들 중 관련 기사가 MIN_RELATED_ARTICLES개 이상인 첫 번째 토픽 선택
+    # ── 관련 기사 수 검증 후 토픽 선정 (폴백으로 무관한 기사 채우지 않음) ──
     validated_keyword = None
+    validated_related = None
+
     for kw in scored[:10]:
         related = find_related_articles(kw["keyword"], articles)
         print(f"  [{kw['keyword']}] 관련 기사 {len(related)}개")
         if len(related) >= MIN_RELATED_ARTICLES:
             validated_keyword = kw
+            validated_related = related
             break
 
     if not validated_keyword:
-        print(f"[WARN] 관련 기사 {MIN_RELATED_ARTICLES}개 이상인 토픽 없음 → 기사 수 가장 많은 토픽 선택")
-        validated_keyword = max(
-            scored[:10],
-            key=lambda kw: len(find_related_articles(kw["keyword"], articles)),
-            default=scored[0],
-        )
+        print(f"[ERROR] 관련 기사 {MIN_RELATED_ARTICLES}개 이상인 토픽이 없음")
+        print(f"        후보 키워드 전체: {[(k['keyword'], len(find_related_articles(k['keyword'], articles))) for k in scored[:10]]}")
+        return None, None
 
     # AI에게 최종 제목/태그 생성 요청
     top_keywords = scored[:10]
@@ -241,17 +252,21 @@ def select_topic(keywords: list[dict], recent_topics: list[str], articles: list[
 
     if not match:
         kw = validated_keyword["keyword"]
-        return {
+        topic = {
             "topic":        kw,
             "korean_title": f"오늘 시장이 주목하는 기술: {kw}",
             "reason":       validated_keyword.get("reason", ""),
             "tags":         [kw, "IT기술", "반도체", "AI", "산업동향"],
         }
+        return topic, validated_related
+
     try:
-        return json.loads(match.group())
+        topic = json.loads(match.group())
+        return topic, validated_related
     except Exception:
         kw = validated_keyword["keyword"]
-        return {"topic": kw, "korean_title": f"{kw} 완전 해설", "reason": "", "tags": [kw]}
+        topic = {"topic": kw, "korean_title": f"{kw} 완전 해설", "reason": "", "tags": [kw]}
+        return topic, validated_related
 
 
 # ── 메인 ──────────────────────────────────────────────────────────────────────
@@ -277,20 +292,17 @@ def main():
         sys.exit(1)
 
     print("\n[Step 2] 토픽 선정 + 관련 기사 수 검증 중...")
-    topic = select_topic(keywords, recent_topics, articles)
-    print(f"선정 토픽: {topic['topic']} → {topic['korean_title']}")
+    topic, related_articles = select_topic(keywords, recent_topics, articles)
 
-    # ── 핵심 개선: 관련 기사만 추려서 저장 ──
-    related_articles = find_related_articles(topic["topic"], articles)
+    if topic is None:
+        print("[ERROR] 충분한 관련 기사를 가진 토픽을 찾지 못함 → 종료")
+        sys.exit(1)
+
+    print(f"선정 토픽: {topic['topic']} → {topic['korean_title']}")
     print(f"관련 기사 {len(related_articles)}개 → source_articles에 저장")
 
-    # 관련 기사가 너무 적으면 전체 기사에서 보완
-    if len(related_articles) < MIN_RELATED_ARTICLES:
-        print(f"[WARN] 관련 기사 부족 → 전체 기사 상위 10개로 보완")
-        related_articles = articles[:10]
-
     topic["all_keywords"]    = keywords[:15]
-    topic["source_articles"] = related_articles  # 전체 아닌 관련 기사만
+    topic["source_articles"] = related_articles
 
     with open(TOPIC_FILE, "w", encoding="utf-8") as f:
         json.dump(topic, f, ensure_ascii=False, indent=2)
