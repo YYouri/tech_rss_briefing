@@ -126,27 +126,15 @@ SOURCE_TAG_PATTERN = re.compile(r'\[출처\s*:\s*.+?\]')
 def sanitize_untagged_numerics(text: str) -> str:
     lines = text.split("\n")
     cleaned = []
-    removed_count = 0
-
     for line in lines:
         stripped = line.strip()
-
-        if not NUMERIC_PATTERN.search(stripped):
-            cleaned.append(line)
-            continue
-
-        if SOURCE_TAG_PATTERN.search(stripped):
-            cleaned.append(line)
-            continue
-
-        print(f"  [후처리 제거] {stripped[:80]}...")
-        removed_count += 1
-        continue
-
-    if removed_count:
-        print(f"  [후처리] 미태깅 수치 문장 {removed_count}개 제거됨")
-
+        if NUMERIC_PATTERN.search(stripped) and not SOURCE_TAG_PATTERN.search(stripped):
+            # 문장 삭제 대신 수치 표현만 제거
+            line = NUMERIC_PATTERN.sub("", line)
+            print(f"  [후처리 수치 제거] {stripped[:60]}...")
+        cleaned.append(line)
     return "\n".join(cleaned)
+
 
 
 def enforce_three_line_summary(text: str) -> str:
