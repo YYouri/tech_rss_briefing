@@ -116,6 +116,52 @@ def build_exam_section_html(matches: list[dict], topic: str) -> str:
 </ul>
 </div>
 """
+import urllib.request
+import urllib.error
+import sys
+
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+
+MODELS = [
+    "openai/gpt-oss-120b:free",
+    "google/gemma-4-31b:free",
+    "openai/gpt-oss-20b:free",
+    "nvidia/nemotron-3-super:free",
+]
+
+def call_ai(prompt: str, max_tokens: int = 200) -> str:
+    if not OPENROUTER_API_KEY:
+        print("[WARN] OPENROUTER_API_KEY 없음 → 토픽 그대로 사용")
+        return "[]"
+
+    for model in MODELS:
+        payload = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+        }
+        data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        req = urllib.request.Request(
+            "https://openrouter.ai/api/v1/chat/completions",
+            data=data,
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json; charset=utf-8",
+                "HTTP-Referer": "https://github.com",
+                "X-Title": "Tech Blog",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                result = json.loads(r.read().decode("utf-8"))
+            content = result.get("choices", [{}])[0].get("message", {}).get("content")
+            if content:
+                return content.strip()
+        except Exception as e:
+            print(f"[WARN] {model} 실패: {e}")
+
+    return "[]"
+   
 
 def main():
     if not os.path.exists(POST_FILE):
