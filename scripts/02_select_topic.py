@@ -92,10 +92,10 @@ def load_recent_topics() -> list[str]:
         history: list[dict] = json.load(f)
     cutoff = datetime.now() - timedelta(days=30)
     return [
-        h["topic"].lower()
-        for h in history
-        if datetime.fromisoformat(h["date"]) >= cutoff
-    ]
+    re.sub(r'\s+', '', h["topic"]).lower()
+    for h in history
+    if datetime.fromisoformat(h["date"]) >= cutoff
+]
 
 
 def articles_to_text(articles: list[dict]) -> str:
