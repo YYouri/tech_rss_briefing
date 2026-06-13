@@ -345,6 +345,9 @@ def generate_body(topic_data: dict) -> str:
 # ──────────────────────────────────────────
 # 제목 추천
 # ──────────────────────────────────────────
+# ──────────────────────────────────────────
+# 제목 추천
+# ──────────────────────────────────────────
 
 def refine_title(topic_data: dict) -> dict:
     prompt = f"""아래 블로그 제목을 검색 유입에 최적화해서 3개 추천해주세요.
@@ -354,9 +357,22 @@ def refine_title(topic_data: dict) -> dict:
 
 조건:
 - 28자 이내
-- 클릭을 유도하는 궁금증 또는 숫자 활용 (예: "~하는 이유", "~3가지", "2026년 ~")
 - 키워드를 제목 앞쪽에 배치
 - 카테고리도 1개 추천 (예: IT/테크, 반도체, AI/소프트웨어, 산업동향 중)
+
+【중요 - 숫자 사용 금지】
+- 본문은 "기술 개요 - 주목 이유 - 핵심 기술 요소 - 산업 영향 - 적용 기업 사례 -
+  경제/시장 관점 - 향후 전망 - 3줄 요약"으로 구성된 해설 글입니다.
+- "~하는 이유 3가지", "~핵심 5가지", "~2026 변화 N가지" 같이
+  본문에 없는 개수를 암시하는 숫자 표현은 절대 사용하지 마세요.
+  (본문 구성과 제목의 숫자가 불일치하면 독자에게 혼란을 줍니다)
+- 대신 아래 같은 형태를 사용하세요:
+  - "{{키워드}}란 무엇인가: 산업이 주목하는 이유"
+  - "{{키워드}}, 왜 지금 시장의 화두가 됐나"
+  - "2026년 {{키워드}} 동향과 전망"
+  - "{{키워드}} 완벽 정리: 기술부터 산업 영향까지"
+  - "{{키워드}}가 바꾸는 산업 지형도"
+- 숫자가 들어가도 되는 경우는 연도(2026) 표기뿐입니다.
 
 JSON만 출력:
 {{"titles": ["제목1", "제목2", "제목3"], "category": "추천 카테고리"}}
@@ -474,7 +490,6 @@ padding-bottom:8px;border-bottom:2px solid #333;">참고 기사</h2>
 # ──────────────────────────────────────────
 # 메인
 # ──────────────────────────────────────────
-
 def main():
     with open(TOPIC_FILE, encoding="utf-8") as f:
         topic_data = json.load(f)
@@ -489,6 +504,9 @@ def main():
 
     body_md = generate_body(topic_data)
     print(f"\n[본문 생성 완료] {len(body_md)}자")
+
+    # ── 3줄 요약 보정 (누락된 후처리 적용) ──
+    body_md = enforce_three_line_summary(body_md)
 
     # 구성도 생성
     print("\n[구성도 생성 중...]")
@@ -506,14 +524,8 @@ def main():
     except Exception as e:
         print(f"[WARN] 구성도 생성 실패: {e}")
 
-    # 참조 기사 필터링
-    topic_lower = topic.lower()
-    relevant_articles = [
-        a for a in articles
-        if topic_lower in a["title"].lower() or topic_lower in a.get("summary", "").lower()
-    ][:8]
-    if not relevant_articles:
-        relevant_articles = articles[:8]
+    # 참조 기사 — 02에서 이미 관련 기사만 필터링되어 들어오므로 그대로 사용
+    relevant_articles = articles[:8] if articles else []
 
     body_html = md_to_html(body_md, title, relevant_articles)
 
@@ -558,3 +570,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
