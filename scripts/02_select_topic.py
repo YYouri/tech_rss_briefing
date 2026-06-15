@@ -5,10 +5,12 @@ OpenRouter Free API를 사용해 기사에서 IT 기술 키워드를 추출하�
 중복 방지: 최근 30일 발행 이력 참조
 
 개선 사항:
-- 토픽 선정 후 관련 기사 수 검증 (최소 5개 이상, 기존 3 → 5)
+- 토픽 선정 후 관련 기사 수 검증 (최소 5개 이상)
 - 단일/소수 기사 기반의 너무 구체적인 키워드 추출 방지
-- 관련 기사 부족 시 차순위 토픽으로 자동 교체, 모두 실패하면 ERROR 종료
-- 선정된 토픽의 관련 기사만 source_articles에 저장 (폴백으로 무관한 기사 채우지 않음)
+- 관련 기사 부족 시 차순위 토픽으로 자동 교체
+- 선정된 토픽의 관련 기사만 source_articles에 저장
+- AI 기반 유사 토픽 감지 (하드코딩 없음)
+- 기술 depth를 위한 키워드 추출 강화
 """
 
 import json
@@ -25,7 +27,6 @@ TOPIC_FILE    = "data/selected_topic.json"
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
-# 관련 기사 최소 기준 — 이 수 미만이면 차순위 토픽으로 교체 (3 → 5로 강화)
 MIN_RELATED_ARTICLES = 5
 
 MODELS = [
@@ -92,10 +93,10 @@ def load_recent_topics() -> list[str]:
         history: list[dict] = json.load(f)
     cutoff = datetime.now() - timedelta(days=30)
     return [
-    re.sub(r'\s+', '', h["topic"]).lower()
-    for h in history
-    if datetime.fromisoformat(h["date"]) >= cutoff
-]
+        h["topic"].lower()
+        for h in history
+        if datetime.fromisoformat(h["date"]) >= cutoff
+    ]
 
 
 def articles_to_text(articles: list[dict]) -> str:
@@ -110,8 +111,7 @@ def articles_to_text(articles: list[dict]) -> str:
 def find_related_articles(topic: str, articles: list[dict]) -> list[dict]:
     """
     토픽 키워드가 제목 또는 요약에 포함된 기사를 반환.
-    대소문자 무시, 부분 일치.
-    토픽이 3단어 이상이면 최소 2개 단어 일치를 요구해 너무 느슨한 매칭을 방지.
+    토픽이 3단어 이상이면 최소 2개 단어 일치를 요구.
     """
     topic_lower = topic.lower()
     keywords = [w for w in topic_lower.split() if len(w) > 2]
@@ -143,17 +143,13 @@ def extract_keywords(article_text: str) -> list[dict]:
 - 실제 IT 기술, 아키텍처, 표준, 개념만 포함
 - 반드시 "구체적인" 기술/개념이어야 함
   (예: HBM, MCP, Agentic AI, CXL, SASE, Physical AI, RAG, LoRA,
-       LLM Inference, On-Device AI, Edge AI, Digital Twin, Zero Trust)
+       LLM Inference, On-Device AI, Edge AI, Digital Twin, Zero Trust,
+       NVLink, Flash Attention, RLHF, Mixture of Experts, Speculative Decoding)
 - 너무 광범위한 상위 개념(AI, 인공지능, 반도체, 클라우드, 빅데이터, IT, 기술,
   소프트웨어, 디지털)은 절대 추출하지 말 것
-- 'AI'가 자주 언급된다면 더 구체적인 하위 기술을 찾아서 추출
-- 매우 중요: 반드시 "최소 3개 이상의 서로 다른 기사"에서 공통적으로 언급되거나
-  다룰 수 있는 키워드만 추출할 것. 단 1개 기사의 제목/내용에서만
-  등장하는 매우 특수하고 지엽적인 표현(예: 특정 기사 제목에만 나오는
-  신조어, 단발성 보도 표현)은 절대 추출하지 말 것
-- count는 실제로 해당 키워드와 관련된 기사가 몇 개인지 최대한 정확히 추정할 것
-  (count가 2 이하로 추정되는 키워드는 추출하지 말 것)
-- 각 키워드의 기사 언급 횟수와 중요도(1-10)를 추정
+- 반드시 "최소 3개 이상의 서로 다른 기사"에서 공통적으로 언급되는 키워드만 추출
+- count가 2 이하로 추정되는 키워드는 추출하지 말 것
+- 각 키워드의 기사 언급 횟수(count)와 중요도(importance, 1-10)를 추정
 - 반드시 JSON 배열만 출력 (설명 없이)
 
 출력 형식:
@@ -177,58 +173,41 @@ def extract_keywords(article_text: str) -> list[dict]:
         return []
 
 
-# ── Step 2: 토픽 선정 + 관련 기사 수 검증 ────────────────────────────────────
+# ── Step 2: 토픽 선정 + 유사 토픽 감지 + 관련 기사 검증 ──────────────────────
 
-def select_topic(keywords: list[dict], recent_topics: list[str], articles: list[dict]):
+def _try_select_topic(
+    candidate_kw: dict,
+    scored: list[dict],
+    recent_topics: list[str],
+) -> dict:
     """
-    반환값: (topic_dict, related_articles) 또는 (None, None) — 검증 통과 토픽 없음
+    후보 키워드로 AI에게 제목/태그 생성 + 유사 토픽 감지 요청.
+    반환: topic dict (reason에 "유사토픽주의" 포함 시 스킵 대상)
     """
-    # 최근 발행 및 너무 광범위한 키워드 제외
-    filtered = [
-        kw for kw in keywords
-        if kw["keyword"].lower() not in recent_topics
-        and kw["keyword"].lower() not in TOO_BROAD
-    ]
-    if not filtered:
-        print("[WARN] 필터링 후 키워드 없음 → 이력 무시하고 재시도")
-        filtered = [kw for kw in keywords if kw["keyword"].lower() not in TOO_BROAD] or keywords
-
-    # 중요도 × count 점수 정렬
-    scored = sorted(
-        filtered,
-        key=lambda x: x.get("importance", 5) * x.get("count", 1),
-        reverse=True,
-    )
-
-    # ── 관련 기사 수 검증 후 토픽 선정 (폴백으로 무관한 기사 채우지 않음) ──
-    validated_keyword = None
-    validated_related = None
-
-    for kw in scored[:10]:
-        related = find_related_articles(kw["keyword"], articles)
-        print(f"  [{kw['keyword']}] 관련 기사 {len(related)}개")
-        if len(related) >= MIN_RELATED_ARTICLES:
-            validated_keyword = kw
-            validated_related = related
-            break
-
-    if not validated_keyword:
-        print(f"[ERROR] 관련 기사 {MIN_RELATED_ARTICLES}개 이상인 토픽이 없음")
-        print(f"        후보 키워드 전체: {[(k['keyword'], len(find_related_articles(k['keyword'], articles))) for k in scored[:10]]}")
-        return None, None
-
-    # AI에게 최종 제목/태그 생성 요청
     top_keywords = scored[:10]
     kw_text = "\n".join(
         f"- {k['keyword']} (중요도:{k.get('importance',5)}, 언급:{k.get('count',1)}) {k.get('reason','')}"
         for k in top_keywords
     )
+    recent_str = "\n".join(f"- {t}" for t in recent_topics) if recent_topics else "없음"
 
     prompt = f"""당신은 IT 기술 블로그 에디터입니다.
 아래에서 선정된 주제로 블로그 포스팅 제목과 태그를 생성하세요.
 
-선정된 주제: {validated_keyword['keyword']}
-선정 이유: {validated_keyword.get('reason', '')}
+선정된 주제: {candidate_kw['keyword']}
+선정 이유: {candidate_kw.get('reason', '')}
+
+【최근 30일 발행 토픽 이력】
+{recent_str}
+
+【유사 토픽 판단 규칙 - 중요】
+위 발행 이력을 보고, 선정된 주제가 이미 발행된 토픽과 의미적으로 같거나
+매우 유사한 범주라고 판단되면 reason 필드에 반드시 "유사토픽주의:"로 시작하는
+설명을 포함하세요.
+예시: 이력에 "Agentic AI"가 있는데 "AI Agent"가 선정된 경우
+     → reason: "유사토픽주의: Agentic AI와 동일한 범주"
+
+유사하지 않다면 reason에 선정 이유만 간략히 작성하세요.
 
 선정 기준:
 1. 일반 독자도 이해 가능한 기술
@@ -238,9 +217,9 @@ def select_topic(keywords: list[dict], recent_topics: list[str], articles: list[
 
 반드시 JSON만 출력 (설명 없이):
 {{
-  "topic": "{validated_keyword['keyword']}",
+  "topic": "{candidate_kw['keyword']}",
   "korean_title": "블로그 포스팅 제목 (한국어, SEO 친화적, 28자 이내)",
-  "reason": "선정 이유 (2줄 이내)",
+  "reason": "선정 이유 또는 유사토픽주의: ...",
   "tags": ["태그1", "태그2", "태그3", "태그4", "태그5"]
 }}
 
@@ -251,22 +230,73 @@ def select_topic(keywords: list[dict], recent_topics: list[str], articles: list[
     match = re.search(r"\{.*\}", raw, re.DOTALL)
 
     if not match:
-        kw = validated_keyword["keyword"]
-        topic = {
-            "topic":        kw,
-            "korean_title": f"오늘 시장이 주목하는 기술: {kw}",
-            "reason":       validated_keyword.get("reason", ""),
-            "tags":         [kw, "IT기술", "반도체", "AI", "산업동향"],
+        return {
+            "topic":        candidate_kw["keyword"],
+            "korean_title": f"{candidate_kw['keyword']} 동향과 전망",
+            "reason":       candidate_kw.get("reason", ""),
+            "tags":         [candidate_kw["keyword"], "IT기술", "반도체", "AI", "산업동향"],
         }
-        return topic, validated_related
-
     try:
-        topic = json.loads(match.group())
-        return topic, validated_related
+        return json.loads(match.group())
     except Exception:
-        kw = validated_keyword["keyword"]
-        topic = {"topic": kw, "korean_title": f"{kw} 완전 해설", "reason": "", "tags": [kw]}
-        return topic, validated_related
+        return {
+            "topic":        candidate_kw["keyword"],
+            "korean_title": f"{candidate_kw['keyword']} 완전 해설",
+            "reason":       "",
+            "tags":         [candidate_kw["keyword"]],
+        }
+
+
+def select_topic(
+    keywords: list[dict],
+    recent_topics: list[str],
+    articles: list[dict],
+):
+    """
+    반환값: (topic_dict, related_articles) 또는 (None, None)
+    """
+    # 최근 발행 및 너무 광범위한 키워드 제외
+    filtered = [
+        kw for kw in keywords
+        if kw["keyword"].lower() not in recent_topics
+        and kw["keyword"].lower() not in TOO_BROAD
+    ]
+    if not filtered:
+        print("[WARN] 필터링 후 키워드 없음 → 이력 무시하고 재시도")
+        filtered = [
+            kw for kw in keywords
+            if kw["keyword"].lower() not in TOO_BROAD
+        ] or keywords
+
+    # 중요도 × count 점수 정렬
+    scored = sorted(
+        filtered,
+        key=lambda x: x.get("importance", 5) * x.get("count", 1),
+        reverse=True,
+    )
+
+    # 관련 기사 수 검증 + 유사 토픽 감지 → 통과하는 첫 번째 후보 선택
+    for kw in scored[:10]:
+        # 1) 관련 기사 수 검증
+        related = find_related_articles(kw["keyword"], articles)
+        print(f"  [{kw['keyword']}] 관련 기사 {len(related)}개")
+        if len(related) < MIN_RELATED_ARTICLES:
+            print(f"    → 관련 기사 부족 ({len(related)} < {MIN_RELATED_ARTICLES}), 스킵")
+            continue
+
+        # 2) AI 유사 토픽 감지
+        topic = _try_select_topic(kw, scored, recent_topics)
+
+        if "유사토픽주의" in topic.get("reason", ""):
+            print(f"    → 유사 토픽 감지: {topic['reason']} → 차순위로")
+            continue
+
+        # 두 조건 모두 통과
+        print(f"  [선정] {kw['keyword']} → {topic['korean_title']}")
+        return topic, related
+
+    print(f"[ERROR] 관련 기사 {MIN_RELATED_ARTICLES}개 이상 + 유사 토픽 아닌 키워드를 찾지 못함")
+    return None, None
 
 
 # ── 메인 ──────────────────────────────────────────────────────────────────────
@@ -291,11 +321,11 @@ def main():
         print("[ERROR] 키워드 추출 실패")
         sys.exit(1)
 
-    print("\n[Step 2] 토픽 선정 + 관련 기사 수 검증 중...")
+    print("\n[Step 2] 토픽 선정 + 유사 토픽 감지 + 관련 기사 검증 중...")
     topic, related_articles = select_topic(keywords, recent_topics, articles)
 
     if topic is None:
-        print("[ERROR] 충분한 관련 기사를 가진 토픽을 찾지 못함 → 종료")
+        print("[ERROR] 적합한 토픽을 찾지 못함 → 종료")
         sys.exit(1)
 
     print(f"선정 토픽: {topic['topic']} → {topic['korean_title']}")
