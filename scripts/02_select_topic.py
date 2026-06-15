@@ -133,7 +133,6 @@ def find_related_articles(topic: str, articles: list[dict]) -> list[dict]:
 
 
 # ── Step 1: 키워드 추출 ───────────────────────────────────────────────────────
-
 def extract_keywords(article_text: str) -> list[dict]:
     prompt = f"""당신은 IT 시장 분석 전문가입니다.
 아래 뉴스 기사 목록에서 반복적으로 언급되는 IT 기술 키워드를 추출하세요.
@@ -150,31 +149,33 @@ def extract_keywords(article_text: str) -> list[dict]:
 - 반드시 "최소 3개 이상의 서로 다른 기사"에서 공통적으로 언급되는 키워드만 추출
 - count가 2 이하로 추정되는 키워드는 추출하지 말 것
 - 각 키워드의 기사 언급 횟수(count)와 중요도(importance, 1-10)를 추정
-- 반드시 JSON 배열만 출력 (설명 없이)
+- 반드시 유효한 JSON 배열만 출력 (설명, 마크다운 코드블록 없이 순수 JSON만)
+- 큰따옴표만 사용 (작은따옴표 절대 금지)
 
-출력 형식:
+출력 형식 예시:
 [
   {{"keyword": "HBM", "count": 5, "importance": 9, "reason": "반도체 메모리 핵심 기술"}},
-  ...
+  {{"keyword": "Edge AI", "count": 4, "importance": 8, "reason": "엣지 추론 기술"}}
 ]
 
 뉴스 기사 목록:
 {article_text}
 """
-    for attempt in range(3):  # 최대 3회 재시도
-        raw   = call_ai(prompt, max_tokens=1500)
 
-        # JSON 배열 추출 시도
+    for attempt in range(3):
+        raw = call_ai(prompt, max_tokens=1500)
+
+        # 코드블록 제거
+        raw = re.sub(r"```json|```", "", raw).strip()
+
         match = re.search(r"\[.*\]", raw, re.DOTALL)
         if not match:
             print(f"[WARN] 키워드 파싱 실패 (시도 {attempt+1}). 재시도...")
             continue
 
-        # 흔한 JSON 오류 보정
         json_str = match.group()
-        json_str = json_str.replace("'", '"')          # 작은따옴표 → 큰따옴표
-        json_str = re.sub(r",\s*]", "]", json_str)    # trailing comma 제거
-        json_str = re.sub(r",\s*}", "}", json_str)    # trailing comma 제거
+        json_str = re.sub(r",\s*]", "]", json_str)
+        json_str = re.sub(r",\s*}", "}", json_str)
 
         try:
             result = json.loads(json_str)
