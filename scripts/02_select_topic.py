@@ -4,13 +4,9 @@ OpenRouter Free API를 사용해 기사에서 IT 기술 키워드를 추출하�
 오늘 발행할 최적 토픽 1개를 선정한다.
 중복 방지: 최근 30일 발행 이력 참조
 
-개선 사항:
-- 토픽 선정 후 관련 기사 수 검증 (최소 5개 이상)
-- 단일/소수 기사 기반의 너무 구체적인 키워드 추출 방지
-- 관련 기사 부족 시 차순위 토픽으로 자동 교체
-- 선정된 토픽의 관련 기사만 source_articles에 저장
-- AI 기반 유사 토픽 감지 (하드코딩 없음)
-- 기술 depth를 위한 키워드 추출 강화
+수정사항:
+- main() 함수 전면 재작성 (selected_topic.json 저장 로직 누락 버그 수정)
+- source_articles를 selected_topic.json에 포함하여 03번 스크립트로 전달
 """
 
 import json
@@ -190,17 +186,13 @@ def extract_keywords(article_text: str) -> list[dict]:
     return []
 
 
-# ── Step 2: 토픽 선정 + 유사 토픽 감지 + 관련 기사 검증 ──────────────────────
+# ── Step 2: 토픽 선정 ──────────────────────────────────────────────────────
 
 def _try_select_topic(
     candidate_kw: dict,
     scored: list[dict],
     recent_topics: list[str],
 ) -> dict:
-    """
-    후보 키워드로 AI에게 제목/태그 생성 + 유사 토픽 감지 요청.
-    반환: topic dict (reason에 "유사토픽주의" 포함 시 스킵 대상)
-    """
     top_keywords = scored[:10]
     kw_text = "\n".join(
         f"- {k['keyword']} (중요도:{k.get('importance',5)}, 언급:{k.get('count',1)}) {k.get('reason','')}"
@@ -272,7 +264,6 @@ def select_topic(
     """
     반환값: (topic_dict, related_articles) 또는 (None, None)
     """
-    # 최근 발행 및 너무 광범위한 키워드 제외
     filtered = [
         kw for kw in keywords
         if kw["keyword"].lower() not in recent_topics
@@ -285,30 +276,25 @@ def select_topic(
             if kw["keyword"].lower() not in TOO_BROAD
         ] or keywords
 
-    # 중요도 × count 점수 정렬
     scored = sorted(
         filtered,
         key=lambda x: x.get("importance", 5) * x.get("count", 1),
         reverse=True,
     )
 
-    # 관련 기사 수 검증 + 유사 토픽 감지 → 통과하는 첫 번째 후보 선택
     for kw in scored[:10]:
-        # 1) 관련 기사 수 검증
         related = find_related_articles(kw["keyword"], articles)
         print(f"  [{kw['keyword']}] 관련 기사 {len(related)}개")
         if len(related) < MIN_RELATED_ARTICLES:
             print(f"    → 관련 기사 부족 ({len(related)} < {MIN_RELATED_ARTICLES}), 스킵")
             continue
 
-        # 2) AI 유사 토픽 감지
         topic = _try_select_topic(kw, scored, recent_topics)
 
         if "유사토픽주의" in topic.get("reason", ""):
             print(f"    → 유사 토픽 감지: {topic['reason']} → 차순위로")
             continue
 
-        # 두 조건 모두 통과
         print(f"  [선정] {kw['keyword']} → {topic['korean_title']}")
         return topic, related
 
@@ -319,49 +305,57 @@ def select_topic(
 # ── 메인 ──────────────────────────────────────────────────────────────────────
 
 def main():
-    if not os.path.exists(RESULT_FILE):
-        print("[WARN] blog_post.json 없음 → 이력 업데이트 스킵")
-        return
+    # 1) 수집된 기사 로드
+    if not os.path.exists(ARTICLES_FILE):
+        print(f"[ERROR] {ARTICLES_FILE} 없음 — 01_collect_news.py를 먼저 실행하세요")
+        sys.exit(1)
 
-    with open(RESULT_FILE, encoding="utf-8") as f:
-        result = json.load(f)
+    with open(ARTICLES_FILE, encoding="utf-8") as f:
+        articles: list[dict] = json.load(f)
 
-    history: list[dict] = []
-    if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, encoding="utf-8") as f:
-            history = json.load(f)
+    if not articles:
+        print("[ERROR] 수집된 기사가 없습니다")
+        sys.exit(1)
 
-    new_entry = {
-        "topic":    result["topic"],
-        "title":    result["title"],
-        "category": result.get("category", ""),
-        "url":      result.get("url", ""),
-        "tags":     result.get("tags", ""),
-        "date":     datetime.now().isoformat(),
-    }
+    print(f"[로드] 기사 {len(articles)}개")
 
-    # ── 중복 방지: 오늘 날짜에 같은 토픽이 이미 있으면 추가 안 함 ──
-    today = datetime.now().strftime("%Y-%m-%d")
-    already_exists = any(
-        h["topic"].lower() == new_entry["topic"].lower()
-        and h["date"][:10] == today
-        for h in history
-    )
-    if already_exists:
-        print(f"[SKIP] 오늘 이미 발행된 토픽: {new_entry['topic']}")
-    else:
-        history.append(new_entry)
+    # 2) 최근 발행 이력 로드
+    recent_topics = load_recent_topics()
+    print(f"[이력] 최근 30일 발행 토픽: {recent_topics or '없음'}")
 
-    # 30일 이전 항목 제거
-    cutoff  = datetime.now() - timedelta(days=KEEP_DAYS)
-    history = [
-        h for h in history
-        if datetime.fromisoformat(h["date"]) >= cutoff
-    ]
+    # 3) 키워드 추출
+    print("\n[키워드 추출 중...]")
+    article_text = articles_to_text(articles)
+    keywords = extract_keywords(article_text)
 
-    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(history, f, ensure_ascii=False, indent=2)
+    if not keywords:
+        print("[ERROR] 키워드 추출 실패")
+        sys.exit(1)
 
-    print(f"[이력 업데이트] 현재 {len(history)}개 항목 (최근 {KEEP_DAYS}일)")
-    for h in history[-5:]:
-        print(f"  - {h['date'][:10]} | {h['topic']} | {h['title'][:40]}")
+    print(f"[키워드] {len(keywords)}개 추출됨:")
+    for kw in keywords[:10]:
+        print(f"  - {kw['keyword']} (중요도:{kw.get('importance',0)}, 언급:{kw.get('count',0)})")
+
+    # 4) 토픽 선정
+    print("\n[토픽 선정 중...]")
+    topic_data, related_articles = select_topic(keywords, recent_topics, articles)
+
+    if topic_data is None:
+        print("[ERROR] 적합한 토픽을 선정하지 못했습니다")
+        sys.exit(1)
+
+    # 5) selected_topic.json 저장 (source_articles 포함)
+    os.makedirs("data", exist_ok=True)
+    topic_data["source_articles"] = related_articles or []
+
+    with open(TOPIC_FILE, "w", encoding="utf-8") as f:
+        json.dump(topic_data, f, ensure_ascii=False, indent=2)
+
+    print(f"\n[완료] 선정된 토픽: {topic_data['topic']}")
+    print(f"[완료] 블로그 제목: {topic_data['korean_title']}")
+    print(f"[완료] 관련 기사: {len(topic_data['source_articles'])}개")
+    print(f"[완료] 저장 경로: {TOPIC_FILE}")
+
+
+if __name__ == "__main__":
+    main()
