@@ -2,17 +2,16 @@
 03_generate_post.py
 OpenRouter Free API로 블로그 포스팅 본문을 생성하고 HTML로 변환한다.
 
-개선 사항:
-- 리드 문단 추가 (섹션 헤딩 전 2~3문장)
+수정/개선 사항:
+- selected_topic.json 파일 존재 여부 명시적 체크 및 에러 메시지 개선
+- IT 전문가 필자 페르소나 강화 (AI 작성 티 제거)
+- 구어체 혼용, 현장감 있는 문체 유도
+- 실제 뉴스 기반 기업 사례 서술 강화
 - 섹션별 컬러 라벨 배지 (TECH/TREND/CORE/IMPACT/CASE/MARKET/AHEAD/SUMMARY)
 - 3번(핵심 기술 요소) 카드형 레이아웃
-- 8번(3줄 요약) 강조 박스 ("한눈에 보기")
-- 참고 기사 섹션을 부록 스타일로 축소
-- 기사 요약 150자 → 500자로 확장
-- 수치 사용 시 [출처: 기사제목] 태깅 강제
-- 후처리에서 미태깅 수치 문장 자동 제거
-- 출처 태그를 HTML 각주 스타일로 변환
-- 3줄 요약 bullet 개수 보정
+- 8번(3줄 요약) 강조 박스
+- 참고 기사 부록 스타일
+- 수치 출처 태깅 강제 및 후처리
 """
 
 import json
@@ -129,12 +128,10 @@ def sanitize_untagged_numerics(text: str) -> str:
     for line in lines:
         stripped = line.strip()
         if NUMERIC_PATTERN.search(stripped) and not SOURCE_TAG_PATTERN.search(stripped):
-            # 문장 삭제 대신 수치 표현만 제거
             line = NUMERIC_PATTERN.sub("", line)
             print(f"  [후처리 수치 제거] {stripped[:60]}...")
         cleaned.append(line)
     return "\n".join(cleaned)
-
 
 
 def enforce_three_line_summary(text: str) -> str:
@@ -224,7 +221,7 @@ graph LR
 
 
 # ──────────────────────────────────────────
-# 본문 생성
+# 본문 생성 — IT 전문가 페르소나 강화
 # ──────────────────────────────────────────
 
 def generate_body(topic_data: dict) -> str:
@@ -234,7 +231,8 @@ def generate_body(topic_data: dict) -> str:
     articles = topic_data.get("source_articles", [])
     ctx      = build_article_context(articles, topic)
 
-    prompt = f"""당신은 IT 기술 전문 블로거입니다.
+    prompt = f"""당신은 15년 경력의 IT 전문 저널리스트입니다.
+반도체·AI·소프트웨어 분야를 현장 취재하며 기업 CTO, 연구소장과 인터뷰해온 실무 전문가입니다.
 아래 정보를 바탕으로 블로그 포스팅을 작성하세요.
 
 【주제】{topic}
@@ -243,73 +241,86 @@ def generate_body(topic_data: dict) -> str:
 【참조 뉴스】
 {ctx}
 
+【핵심 작성 원칙 — AI 느낌 완전 제거】
+- "~에 대해 알아보겠습니다", "살펴보도록 하겠습니다", "정리해보았습니다" 같은
+  챗봇·AI 전형 문구 절대 금지
+- "다양한", "혁신적인", "주목할 만한", "중요한" 같은 무의미한 형용사 사용 금지
+- 전문가가 현장에서 직접 보고 분석한 것처럼 구체적으로 서술
+- 단정보다는 전문가의 시각과 해석을 담은 어조 사용
+  예) "~라는 점이 업계에서 주목받고 있다" → OK
+      "~은 매우 중요합니다" → 금지
+- 문장은 짧고 밀도 있게. 한 문장에 하나의 정보만
+- 주어-동사 구조를 명확히 (수동태 남용 금지)
+- 어려운 기술 용어는 처음 등장 시 괄호로 간단히 풀이
+  예) HBM(고대역폭 메모리)
+- 업계 현장 느낌을 살리는 표현 적극 사용
+  예) "현장에서 체감하는 온도는 다르다", "업계 관계자들 사이에서",
+      "실제 도입 사례를 보면", "수치보다 중요한 것은"
+
 【작성 규칙】
 - 반드시 아래 8개 섹션 구조로 작성
 - 각 섹션은 ## 헤딩 사용
-- 전체 분량: 1800~2800자 (한국어 기준)
-- 독자 수준: IT에 관심 있는 일반인 / 경제 뉴스 독자
+- 전체 분량: 2000~3000자 (한국어 기준)
+- 독자 수준: IT에 관심 있는 직장인, 경제 뉴스 독자
 - 주식 추천, 매수/매도 의견, 목표가 절대 금지
 - 기업명 언급 가능하나 투자 추천 표현 금지
-- 문체: 친절하고 전문적, 딱딱하지 않게
 - 이모지, 아이콘, 화살표 기호 사용 금지
 - 마크다운 표, 구분선, ">" 인용구 사용 금지
-- "본 글에서는", "~에 대해 알아보겠습니다" 같은 챗봇식 도입 문구 금지
 
-【리드 문단 - 반드시 작성】
-- 본문 8개 섹션이 시작되기 전에, ## 헤딩 없이 2~3문장의 리드 문단을 작성할 것
-- 독자의 궁금증이나 일상적 경험으로 자연스럽게 시작
-  (예: "최근 IT 뉴스를 보면 자주 등장하는 단어가 있습니다. 오늘은 이 기술이
-  왜 이렇게 주목받는지 살펴보겠습니다." 같은 흐름)
-- 리드 문단에 토픽 키워드를 1회 이상 포함
-- 리드 문단 다음 줄부터 "## 1. 기술 개요"가 시작되어야 함
+【리드 문단 — 반드시 작성】
+- ## 헤딩 없이 2~3문장
+- 뉴스 현장에서 시작하거나, 독자가 공감할 상황으로 시작
+- 너무 일반적인 도입 금지. 구체적 사건/상황으로 바로 시작
+  좋은 예) "엔비디아가 GB200 NVL72 랙 출하를 앞당기면서, 데이터센터 업계의
+           관심이 {topic}으로 쏠리고 있다."
+  나쁜 예) "최근 IT 업계에서 많이 언급되는 기술이 있습니다."
 
 【수치 사용 규칙 — 반드시 준수】
-- 수치(숫자+%, 억, 만, 배, 감소, 증가 등)는 참조 뉴스에 명시된 것만 사용
-- 수치를 사용할 때는 반드시 문장 끝에 [출처: 기사제목] 형태로 태깅
-  예시) "마이크로소프트는 처리 속도가 40% 향상됐다고 밝혔다. [출처: Microsoft Copilot speeds up Dynamics 365]"
-- 참조 뉴스에 수치가 없으면 수치 없이 정성적으로 서술
-  예시) "처리 속도가 크게 향상됐다는 평가가 나온다."
-- [출처: ] 태그 없이 수치를 단정적으로 제시하는 것은 절대 금지
-- 출처 불명 수치를 만들어내는 것은 절대 금지
+- 수치는 참조 뉴스에 명시된 것만 사용
+- 수치 사용 시 문장 끝에 반드시 [출처: 기사제목] 태깅
+  예) "처리 속도가 40% 향상됐다. [출처: Microsoft Copilot speeds up Dynamics 365]"
+- 참조 뉴스에 수치 없으면 정성적으로만 서술
+- [출처: ] 없는 수치 단정 표현 절대 금지
 
-【문장 스타일】
+【문장 스타일 예시】
 나쁜 예: "AI 기술은 다양한 산업에 큰 영향을 미치고 있습니다."
 좋은 예: "메타가 인도 Reliance와 AI 데이터센터 구축 계약을 발표하면서,
-        동남아 시장에서 GPU 클러스터 수요가 본격화될 조짐을 보이고 있다. [출처: Meta Reliance AI datacenter deal]"
+        동남아 시장에서 GPU 클러스터 수요가 본격화될 조짐을 보이고 있다."
+
+나쁜 예: "이 기술은 매우 중요하며 앞으로 발전할 것입니다."
+좋은 예: "문제는 속도가 아니라 전력이다. 같은 성능을 절반의 전력으로 구현하는
+        것이 지금 팹리스 업계의 핵심 과제로 부상했다."
 
 【출력 형식】
 마크다운으로 작성.
 
-(여기에 리드 문단 2~3문장. 헤딩 없이 작성)
+(리드 문단 — 헤딩 없이 2~3문장. 구체적 사건/상황으로 시작)
 
 ## 1. 기술 개요
-(무엇인가, 한 줄 정의부터 시작)
+(한 줄 정의부터. 전문 용어는 첫 등장 시 괄호 풀이)
 
 ## 2. 왜 지금 주목받는가
-(최근 시장/산업 트렌드와 연결, 참조 뉴스 사건 기반 서술)
+(참조 뉴스 속 구체적 사건과 연결. "최근"이라는 모호한 표현 대신 구체적 기업/사건 언급)
 
 ## 3. 핵심 기술 요소
-(3~5가지 핵심 개념을 bullet로. 각 항목은 "**용어**: 설명" 형식으로 짧게 작성)
+(3~5가지. 각 항목은 "**용어**: 설명" 형식. 풀이는 현장 관점으로)
 
 ## 4. 산업에 미치는 영향
-(여러 산업 분야에 미치는 파급 효과)
+(구체적 산업 분야 2~3개. 영향의 메커니즘을 논리적으로 서술)
 
 ## 5. 실제 적용 기업 사례
-(반드시 참조 뉴스에 실제로 등장하는 기업과 사건만 서술.
-참조 뉴스에 없는 기업·제품·사건은 절대 언급 금지.
-기업이 참조 뉴스에서 다른 주제로 등장한 경우, 이 토픽과 억지로 연결하지 말 것.)
+(반드시 참조 뉴스에 실제로 등장하는 기업과 사건만.
+없으면 "참조 뉴스에서 확인된 기업 사례는 아직 제한적이다"라고 솔직하게 서술)
 
 ## 6. 경제·시장 관점에서 보기
-(참조 뉴스의 구체적 사건 → 해석 구조로 작성.
-수치가 있으면 [출처: ] 태깅 후 사용.
-없으면 정성적 표현만 사용.
-공급망 관련 기업 1~2개 구체적으로 언급)
+(참조 뉴스 → 해석 구조. 수치 있으면 [출처: ] 태깅 후 사용.
+없으면 정성적으로. 공급망/생태계 관점 포함)
 
 ## 7. 앞으로 주목할 포인트
-(향후 6~12개월 내 관전 포인트 3가지, 반드시 bullet 3개)
+(향후 6~12개월 관전 포인트. 반드시 bullet 정확히 3개)
 
 ## 8. 3줄 요약
-(반드시 bullet 정확히 3개. 2개 또는 4개 금지.)
+(반드시 bullet 정확히 3개. 핵심만 압축)
 - 핵심 1
 - 핵심 2
 - 핵심 3
@@ -333,17 +344,14 @@ def refine_title(topic_data: dict) -> dict:
 - 카테고리도 1개 추천 (예: IT/테크, 반도체, AI/소프트웨어, 산업동향 중)
 
 【중요 - 숫자 사용 금지】
-- 본문은 "기술 개요 - 주목 이유 - 핵심 기술 요소 - 산업 영향 - 적용 기업 사례 -
-  경제/시장 관점 - 향후 전망 - 3줄 요약"으로 구성된 해설 글입니다.
-- "~하는 이유 3가지", "~핵심 5가지", "~2026 변화 N가지" 같이
-  본문에 없는 개수를 암시하는 숫자 표현은 절대 사용하지 마세요.
-- 대신 아래 같은 형태를 사용하세요:
+- "~하는 이유 3가지", "~핵심 5가지" 같이 본문에 없는 개수를 암시하는 표현 금지
+- 허용 형태:
   - "{{키워드}}란 무엇인가: 산업이 주목하는 이유"
   - "{{키워드}}, 왜 지금 시장의 화두가 됐나"
   - "2026년 {{키워드}} 동향과 전망"
   - "{{키워드}} 완벽 정리: 기술부터 산업 영향까지"
   - "{{키워드}}가 바꾸는 산업 지형도"
-- 숫자가 들어가도 되는 경우는 연도(2026) 표기뿐입니다.
+- 연도(2026) 표기는 숫자 허용
 
 JSON만 출력:
 {{"titles": ["제목1", "제목2", "제목3"], "category": "추천 카테고리"}}
@@ -446,7 +454,7 @@ def render_summary_box(bullet_lines: list[str]) -> str:
 
 
 def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
-    # 1) 수치 후처리 — 미태깅 수치 문장 제거
+    # 1) 수치 후처리
     md = sanitize_untagged_numerics(md)
 
     # 2) 출처 태그 → HTML 각주 변환
@@ -477,7 +485,7 @@ def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
                 html_lines.append(f'  <li style="margin-bottom:6px;">{text}</li>')
             html_lines.append("</ul>")
 
-        ul_buffer = []
+        ul_buffer.clear()
         in_ul = False
 
     is_first_content_line = True
@@ -517,8 +525,8 @@ def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
 
                 if is_first_content_line and current_section is None:
                     html_lines.append(
-                        f'<p style="line-height:1.9;margin:0 0 1.5em;color:#555;'
-                        f'font-size:1.02em;border-left:3px solid #1a73e8;'
+                        f'<p style="line-height:1.9;margin:0 0 1.5em;color:#444;'
+                        f'font-size:1.05em;border-left:3px solid #1a73e8;'
                         f'padding-left:14px;">{text}</p>'
                     )
                     is_first_content_line = False
@@ -578,6 +586,13 @@ def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
 # ──────────────────────────────────────────
 
 def main():
+    # ── 파일 존재 여부 확인 ──
+    if not os.path.exists(TOPIC_FILE):
+        print(f"[ERROR] {TOPIC_FILE} 파일이 없습니다.")
+        print("       02_select_topic.py를 먼저 실행하세요.")
+        print(f"       현재 data/ 디렉토리 내용: {os.listdir('data') if os.path.exists('data') else '(디렉토리 없음)'}")
+        sys.exit(1)
+
     with open(TOPIC_FILE, encoding="utf-8") as f:
         topic_data = json.load(f)
 
@@ -588,6 +603,7 @@ def main():
 
     print(f"[포스팅 생성] 주제: {topic}")
     print(f"[포스팅 생성] 제목: {title}")
+    print(f"[포스팅 생성] 관련 기사: {len(articles)}개")
 
     body_md = generate_body(topic_data)
     print(f"\n[본문 생성 완료] {len(body_md)}자")
@@ -612,10 +628,9 @@ def main():
         print(f"[WARN] 구성도 생성 실패: {e}")
 
     relevant_articles = articles[:8] if articles else []
-
     body_html = md_to_html(body_md, title, relevant_articles)
 
-    # 구성도를 "CORE" 라벨(3. 핵심 기술 요소) 섹션 바로 앞에 삽입
+    # 구성도를 CORE 섹션 바로 앞에 삽입
     if diagram_html:
         marker = '>CORE</span>'
         idx = body_html.find(marker)
@@ -648,20 +663,21 @@ def main():
         "created_at":       datetime.now().isoformat(),
     }
 
+    os.makedirs("data", exist_ok=True)
+
     with open(POST_FILE, "w", encoding="utf-8") as f:
         json.dump(post, f, ensure_ascii=False, indent=2)
 
     with open("data/blog_post.html", "w", encoding="utf-8") as f:
         f.write(body_html)
 
-    # 이 줄 추가
     with open("data/blog_post.md", "w", encoding="utf-8") as f:
         f.write(f"# {final_title}\n\n")
         f.write(body_md)
 
-
     print(f"\n포스팅 저장 완료 → {POST_FILE}")
     print(f"HTML 저장 완료  → data/blog_post.html")
+    print(f"MD 저장 완료    → data/blog_post.md")
 
 
 if __name__ == "__main__":
