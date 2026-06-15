@@ -38,6 +38,13 @@ jobs:
         run: python scripts/03_generate_post.py
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      - name: Step 4 - Post to Blogger
+        run: python scripts/04_post_blogger.py
+        env:
+          GAS_WEBHOOK_URL:  ${{ secrets.GAS_WEBHOOK_URL }}
+          GAS_SECRET_TOKEN: ${{ secrets.GAS_SECRET_TOKEN }}
+          BLOGGER_BLOG_ID:  ${{ secrets.BLOGGER_BLOG_ID }}
+
 
       - name: Step 6 - Add exam history section
         run: python scripts/06_exam_history.py
