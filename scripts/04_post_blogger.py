@@ -3,12 +3,11 @@
 Google Apps Script 웹 앱을 통해 Blogger에 포스팅한다.
 OAuth 로컬 인증 불필요 — GAS가 구글 계정 인증을 대신 처리.
 """
-
 import json
 import os
 import sys
-import urllib.request
-import urllib.error
+
+import requests
 
 POST_FILE   = "data/blog_post.json"
 RESULT_FILE = "data/post_result.json"
@@ -37,20 +36,18 @@ def post_via_gas(title: str, content: str, labels: list[str]) -> dict:
         "labels":  labels,
     }
 
-    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    req  = urllib.request.Request(
-        GAS_WEBHOOK_URL,
-        data=data,
-        headers={"Content-Type": "application/json; charset=utf-8"},
-    )
-
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
-            result = json.loads(r.read().decode("utf-8"))
-        return result
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8")
-        print(f"[ERROR] GAS 호출 실패 HTTP {e.code}: {body[:400]}")
+        response = requests.post(
+            GAS_WEBHOOK_URL,
+            json=payload,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+            allow_redirects=True,
+            timeout=30,
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.HTTPError as e:
+        print(f"[ERROR] GAS 호출 실패 HTTP {e.response.status_code}: {e.response.text[:400]}")
         sys.exit(1)
     except Exception as e:
         print(f"[ERROR] GAS 호출 실패: {e}")
