@@ -161,16 +161,32 @@ def extract_keywords(article_text: str) -> list[dict]:
 뉴스 기사 목록:
 {article_text}
 """
-    raw   = call_ai(prompt, max_tokens=1500)
-    match = re.search(r"\[.*\]", raw, re.DOTALL)
-    if not match:
-        print(f"[WARN] 키워드 파싱 실패. 원본:\n{raw[:300]}")
-        return []
-    try:
-        return json.loads(match.group())
-    except Exception as e:
-        print(f"[WARN] JSON 파싱 오류: {e}")
-        return []
+    for attempt in range(3):  # 최대 3회 재시도
+        raw   = call_ai(prompt, max_tokens=1500)
+
+        # JSON 배열 추출 시도
+        match = re.search(r"\[.*\]", raw, re.DOTALL)
+        if not match:
+            print(f"[WARN] 키워드 파싱 실패 (시도 {attempt+1}). 재시도...")
+            continue
+
+        # 흔한 JSON 오류 보정
+        json_str = match.group()
+        json_str = json_str.replace("'", '"')          # 작은따옴표 → 큰따옴표
+        json_str = re.sub(r",\s*]", "]", json_str)    # trailing comma 제거
+        json_str = re.sub(r",\s*}", "}", json_str)    # trailing comma 제거
+
+        try:
+            result = json.loads(json_str)
+            if result:
+                return result
+            print(f"[WARN] 빈 배열 반환 (시도 {attempt+1}). 재시도...")
+        except Exception as e:
+            print(f"[WARN] JSON 파싱 오류 (시도 {attempt+1}): {e}")
+            continue
+
+    print("[ERROR] 키워드 추출 3회 모두 실패")
+    return []
 
 
 # ── Step 2: 토픽 선정 + 유사 토픽 감지 + 관련 기사 검증 ──────────────────────
@@ -302,44 +318,49 @@ def select_topic(
 # ── 메인 ──────────────────────────────────────────────────────────────────────
 
 def main():
-    with open(ARTICLES_FILE, encoding="utf-8") as f:
-        articles = json.load(f)
+    if not os.path.exists(RESULT_FILE):
+        print("[WARN] blog_post.json 없음 → 이력 업데이트 스킵")
+        return
 
-    if not articles:
-        print("[ERROR] 기사 없음")
-        sys.exit(1)
+    with open(RESULT_FILE, encoding="utf-8") as f:
+        result = json.load(f)
 
-    article_text  = articles_to_text(articles)
-    recent_topics = load_recent_topics()
-    print(f"최근 30일 발행 토픽: {recent_topics}")
+    history: list[dict] = []
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, encoding="utf-8") as f:
+            history = json.load(f)
 
-    print("\n[Step 1] 키워드 추출 중...")
-    keywords = extract_keywords(article_text)
-    print(f"추출된 키워드 {len(keywords)}개: {[k['keyword'] for k in keywords[:10]]}")
+    new_entry = {
+        "topic":    result["topic"],
+        "title":    result["title"],
+        "category": result.get("category", ""),
+        "url":      result.get("url", ""),
+        "tags":     result.get("tags", ""),
+        "date":     datetime.now().isoformat(),
+    }
 
-    if not keywords:
-        print("[ERROR] 키워드 추출 실패")
-        sys.exit(1)
+    # ── 중복 방지: 오늘 날짜에 같은 토픽이 이미 있으면 추가 안 함 ──
+    today = datetime.now().strftime("%Y-%m-%d")
+    already_exists = any(
+        h["topic"].lower() == new_entry["topic"].lower()
+        and h["date"][:10] == today
+        for h in history
+    )
+    if already_exists:
+        print(f"[SKIP] 오늘 이미 발행된 토픽: {new_entry['topic']}")
+    else:
+        history.append(new_entry)
 
-    print("\n[Step 2] 토픽 선정 + 유사 토픽 감지 + 관련 기사 검증 중...")
-    topic, related_articles = select_topic(keywords, recent_topics, articles)
+    # 30일 이전 항목 제거
+    cutoff  = datetime.now() - timedelta(days=KEEP_DAYS)
+    history = [
+        h for h in history
+        if datetime.fromisoformat(h["date"]) >= cutoff
+    ]
 
-    if topic is None:
-        print("[ERROR] 적합한 토픽을 찾지 못함 → 종료")
-        sys.exit(1)
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, indent=2)
 
-    print(f"선정 토픽: {topic['topic']} → {topic['korean_title']}")
-    print(f"관련 기사 {len(related_articles)}개 → source_articles에 저장")
-
-    topic["all_keywords"]    = keywords[:15]
-    topic["source_articles"] = related_articles
-
-    with open(TOPIC_FILE, "w", encoding="utf-8") as f:
-        json.dump(topic, f, ensure_ascii=False, indent=2)
-
-    print(f"\n토픽 저장 완료 → {TOPIC_FILE}")
-    print(f"source_articles: {len(related_articles)}개")
-
-
-if __name__ == "__main__":
-    main()
+    print(f"[이력 업데이트] 현재 {len(history)}개 항목 (최근 {KEEP_DAYS}일)")
+    for h in history[-5:]:
+        print(f"  - {h['date'][:10]} | {h['topic']} | {h['title'][:40]}")
