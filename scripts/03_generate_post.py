@@ -231,7 +231,8 @@ def generate_body(topic_data: dict) -> str:
     articles = topic_data.get("source_articles", [])
     ctx      = build_article_context(articles, topic)
 
-    prompt = f"""당신은 15년 경력의 IT 전문 저널리스트입니다.
+    prompt = f"""당신은 15년 경력의 IT 전문 기자이자 현업 엔지니어 출신 칼럼니스트다.
+글을 읽는 독자는 AI가 작성한 글을 매우 싫어한다.
 반도체·AI·소프트웨어 분야를 현장 취재하며 기업 CTO, 연구소장과 인터뷰해온 실무 전문가입니다.
 아래 정보를 바탕으로 블로그 포스팅을 작성하세요.
 
