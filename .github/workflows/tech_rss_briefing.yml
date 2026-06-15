@@ -1,4 +1,4 @@
-name: Tistory Blog Automation
+name: Tech Blog Auto Publisher
 
 on:
   schedule:
@@ -29,7 +29,7 @@ jobs:
       - name: Step 1 - Collect news
         run: python scripts/01_collect_news.py
 
-      - name: Step 2 - Extract tech keywords & select topic
+      - name: Step 2 - Extract keywords & select topic
         run: python scripts/02_select_topic.py
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
@@ -38,6 +38,7 @@ jobs:
         run: python scripts/03_generate_post.py
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
       - name: Step 4 - Post to Blogger
         run: python scripts/04_post_blogger.py
         env:
@@ -45,13 +46,12 @@ jobs:
           GAS_SECRET_TOKEN: ${{ secrets.GAS_SECRET_TOKEN }}
           BLOGGER_BLOG_ID:  ${{ secrets.BLOGGER_BLOG_ID }}
 
-
-      - name: Step 6 - Add exam history section
+      - name: Step 5 - Add exam history section
         run: python scripts/06_exam_history.py
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-           
-      - name: Step 5 - Update topic history
+
+      - name: Step 6 - Update topic history
         run: python scripts/05_update_history.py
 
       - name: Upload generated post as artifact
@@ -61,12 +61,13 @@ jobs:
           path: |
             data/blog_post.html
             data/blog_post.json
+            data/blog_post.md
           retention-days: 7
 
-      - name: Commit updated history
+      - name: Commit updated history & post files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/topic_history.json data/blog_post.html data/blog_post.json data/blog_post.md
-          git diff --staged --quiet || git commit -m "chore: update topic history [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: auto-publish $(date +'%Y-%m-%d') [skip ci]"
           git push
