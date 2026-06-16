@@ -39,13 +39,13 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
-          
-      - name: Step 4 - Add exam history section  # ← 먼저
+               
+      - name: Step 4 - Add exam history section
          run: python scripts/06_exam_history.py
          env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
-      - name: Step 5 - Post to Blogger           # ← 그 다음 발행
+      - name: Step 5 - Post to Blogger
          run: python scripts/04_post_blogger.py
          env:
            BLOGGER_BLOG_ID: ${{ secrets.BLOGGER_BLOG_ID }}
