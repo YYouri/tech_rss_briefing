@@ -6,10 +6,11 @@
 
 개선사항:
 - TOPIC_ALIASES 하드코딩 제거 → AI가 동적으로 검색어 생성
+- 기출 샘플 30개 → 200개로 확대 (기술사 표기 패턴 학습)
 - 태그에 'KPC정보관리기술사' 자동 추가
-- AI 모델 폴백 로직 개선
-- 기출 섹션 HTML 디자인 개선
-- 코드 구조 정리
+- 기출 섹션 위치: 본문 맨 아래 부록으로 이동
+- MARKET → 기술사 연계 섹션명 변경
+- 기출 없을 때도 키워드 섹션은 표시
 """
 
 import json
@@ -24,6 +25,7 @@ HTML_FILE = "data/blog_post.html"
 EXAM_FILE = "data/exam_history.json"
 
 MAX_MATCHES = 5
+KPE_TAG = "KPC정보관리기술사"
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
@@ -33,8 +35,6 @@ MODELS = [
     "openai/gpt-oss-20b:free",
     "nvidia/nemotron-3-super:free",
 ]
-
-KPE_TAG = "KPC정보관리기술사"
 
 
 # ─────────────────────────────────────────
@@ -86,10 +86,10 @@ def call_ai(prompt: str, max_tokens: int = 300) -> str:
 def build_search_terms(topic: str, title: str, tags: str, exam_data: list[dict]) -> list[str]:
     """
     AI가 토픽/제목/태그를 분석해 기출문제 검색에 적합한 키워드를 동적으로 생성.
-    하드코딩된 TOPIC_ALIASES 없이 완전 자동화.
+    샘플 200개로 기술사 특유의 한글 표기 패턴(에이전틱, 온톨로지 등)을 학습.
     """
-    # 기출문제 샘플로 컨텍스트 제공
-    sample_questions = [item["question"][:60] for item in exam_data[:40]]
+    # ✅ 200개로 확대 → 기술사 표기 패턴 학습
+    sample_questions = [item["question"][:60] for item in exam_data[:200]]
     sample_text = "\n".join(sample_questions)
 
     prompt = f"""당신은 정보관리기술사 시험 전문가입니다.
@@ -100,24 +100,24 @@ def build_search_terms(topic: str, title: str, tags: str, exam_data: list[dict])
 - 제목: {title}
 - 태그: {tags}
 
-[기출문제 샘플 (참고용)]
+[기출문제 샘플 200개 - 반드시 이 표기 패턴을 참고하세요]
 {sample_text}
 
 [규칙]
-- 한국어와 영어 모두 포함
-- 약어와 풀네임 모두 포함 (예: AI, 인공지능)
-- 기출문제에 실제로 나올 법한 표현 우선
+- 기출문제 샘플에서 실제로 사용된 한글 표기를 우선 사용 (예: Agentic AI → 에이전틱 AI)
+- 영어 원문과 한글 표기 모두 포함
+- 약어와 풀네임 모두 포함
+- 상위 개념과 하위 개념 모두 포함
 - 6~10개 이내
 - JSON 배열 형식만 출력 (설명 없이)
 
-출력 예시: ["Zero Trust", "제로트러스트", "제로 트러스트", "망분리", "접근제어", "IAM"]
+출력 예시: ["에이전틱 AI", "Agentic AI", "AI 에이전트", "자율 AI", "지능형 에이전트"]
 """
     raw = call_ai(prompt, max_tokens=300)
     match = re.search(r"\[.*?\]", raw, re.DOTALL)
     if match:
         try:
             terms = json.loads(match.group())
-            # 원본 토픽도 항상 포함
             all_terms = list(set([topic] + [t for t in terms if isinstance(t, str) and t.strip()]))
             return all_terms
         except Exception as e:
@@ -158,40 +158,60 @@ def search_exam_questions(terms: list[str], exam_data: list[dict]) -> list[dict]
 # 기출 섹션 HTML 생성
 # ─────────────────────────────────────────
 
-def build_exam_section_html(matches: list[dict], topic: str) -> str:
-    if not matches:
-        return ""
+def build_exam_section_html(matches: list[dict], topic: str, terms: list[str]) -> str:
+    """
+    기출 연계 섹션 HTML.
+    기출 없어도 키워드 섹션은 표시.
+    위치: 본문 맨 아래 부록.
+    """
+    # 키워드 뱃지
+    keyword_badges = "".join([
+        f'<span style="display:inline-block;background:#eef2ff;color:#4a6cf7;'
+        f'font-size:0.8em;padding:3px 10px;border-radius:12px;margin:3px 3px 3px 0;">'
+        f'{t}</span>'
+        for t in terms[:8]
+    ])
 
-    items_html = []
-    for m in matches[:MAX_MATCHES]:
-        round_no = m.get("round", "")
-        subject  = m.get("subject", "")
-        q_text   = m.get("question", "")
-        q_text   = re.sub(r"^\d+\.\s*", "", q_text).strip()
-        if len(q_text) > 120:
-            q_text = q_text[:120] + "…"
+    # 기출 목록
+    if matches:
+        items_html = []
+        for m in matches[:MAX_MATCHES]:
+            round_no = m.get("round", "")
+            subject  = m.get("subject", "")
+            q_text   = m.get("question", "")
+            q_text   = re.sub(r"^\d+\.\s*", "", q_text).strip()
+            if len(q_text) > 120:
+                q_text = q_text[:120] + "…"
 
-        items_html.append(
-            f'<li style="margin-bottom:10px;line-height:1.75;font-size:0.91em;">'
-            f'<span style="display:inline-block;background:#f0f0f0;color:#888;'
-            f'font-size:0.78em;padding:1px 7px;border-radius:10px;margin-bottom:3px;">'
-            f'제{round_no}회 · {subject}</span><br>'
-            f'<span style="color:#444;">{q_text}</span>'
-            f'</li>'
-        )
+            items_html.append(
+                f'<li style="margin-bottom:10px;line-height:1.75;font-size:0.91em;">'
+                f'<span style="display:inline-block;background:#f0f0f0;color:#888;'
+                f'font-size:0.78em;padding:1px 7px;border-radius:10px;margin-bottom:3px;">'
+                f'제{round_no}회 · {subject}</span><br>'
+                f'<span style="color:#444;">{q_text}</span>'
+                f'</li>'
+            )
+        exam_list_html = f"""
+<p style="font-size:0.88em;font-weight:600;color:#555;margin:14px 0 8px;">📝 관련 기출문제</p>
+<ul style="padding-left:1.2em;margin:0;list-style:disc;">
+  {''.join(items_html)}
+</ul>"""
+    else:
+        exam_list_html = """
+<p style="font-size:0.88em;color:#999;margin:14px 0 0;">
+  아직 이 주제로 출제된 기출문제가 없습니다. 최신 트렌드로 앞으로 출제 가능성이 높은 주제입니다.
+</p>"""
 
     return f"""
-<div style="margin-top:2em;padding:20px 24px;background:#f8f9fb;border-left:4px solid #4a6cf7;border-radius:0 8px 8px 0;">
-  <p style="font-size:0.8em;font-weight:700;color:#4a6cf7;margin:0 0 6px;letter-spacing:0.8px;text-transform:uppercase;">
+<div style="margin-top:2.5em;padding:20px 24px;background:#f8f9fb;border-left:4px solid #4a6cf7;border-radius:0 8px 8px 0;">
+  <p style="font-size:0.78em;font-weight:700;color:#4a6cf7;margin:0 0 6px;letter-spacing:0.8px;">
     📋 정보관리기술사 기출 연계
   </p>
-  <p style="line-height:1.8;margin:0 0 14px;color:#555;font-size:0.93em;">
-    오늘 다룬 <strong style="color:#333;">{topic}</strong> 주제는 정보관리기술사 시험에서도 출제된 바 있습니다.
-    실무 개념과 함께 시험 맥락으로도 이해해두면 더욱 깊은 학습이 됩니다.
+  <p style="line-height:1.8;margin:0 0 10px;color:#555;font-size:0.92em;">
+    오늘 다룬 <strong style="color:#333;">{topic}</strong> 주제는 정보관리기술사 시험과 연계되는 핵심 키워드입니다.
   </p>
-  <ul style="padding-left:1.2em;margin:0;list-style:disc;">
-    {chr(10).join(items_html)}
-  </ul>
+  <div style="margin-bottom:4px;">{keyword_badges}</div>
+  {exam_list_html}
 </div>
 """
 
@@ -201,7 +221,6 @@ def build_exam_section_html(matches: list[dict], topic: str) -> str:
 # ─────────────────────────────────────────
 
 def add_kpe_tag(tags_str: str) -> str:
-    """태그 문자열에 KPC정보관리기술사 태그가 없으면 추가"""
     tags = [t.strip() for t in tags_str.split(",") if t.strip()]
     if KPE_TAG not in tags:
         tags.append(KPE_TAG)
@@ -233,7 +252,7 @@ def main():
 
     print(f"[기출 이력 검색] 토픽: {topic}")
 
-    # 1. AI로 검색어 동적 생성
+    # 1. AI로 검색어 동적 생성 (샘플 200개 기반)
     terms = build_search_terms(topic, title, tags, exam_data)
     print(f"  검색어: {terms}")
 
@@ -241,45 +260,43 @@ def main():
     matches = search_exam_questions(terms, exam_data)
     print(f"  매칭된 기출문제: {len(matches)}개")
 
+    if matches:
+        for m in matches[:MAX_MATCHES]:
+            print(f"    - 제{m['round']}회 {m['subject']}: {m['question'][:50]}")
+    else:
+        print("  관련 기출문제 없음 → 키워드 섹션만 표시")
+
     # 3. 태그에 KPC정보관리기술사 추가
     updated_tags = add_kpe_tag(tags)
     if updated_tags != tags:
         print(f"  태그 추가: {KPE_TAG}")
     post["tags"] = updated_tags
 
-    # 4. 기출 섹션 HTML 삽입
-    if matches:
-        for m in matches[:MAX_MATCHES]:
-            print(f"    - 제{m['round']}회 {m['subject']}: {m['question'][:50]}")
+    # 4. 기출 섹션 HTML → 본문 맨 아래에 추가
+    exam_section = build_exam_section_html(matches, topic, terms)
+    content_html = post["content_html"]
 
-        exam_section = build_exam_section_html(matches, topic)
-        content_html = post["content_html"]
-
-        # 마무리 섹션(배경색 박스) 앞에 삽입, 없으면 맨 뒤에 추가
-        marker = '<div style="margin-top:3em;padding:18px 20px;background:#fafafa;'
-        idx = content_html.find(marker)
-        if idx != -1:
-            content_html = content_html[:idx] + exam_section + "\n" + content_html[idx:]
-        else:
-            content_html += exam_section
-
-        post["content_html"] = content_html
-        post["exam_matches"] = [
-            {
-                "round":    m["round"],
-                "subject":  m["subject"],
-                "question": m["question"],
-            }
-            for m in matches[:MAX_MATCHES]
-        ]
+    # SUMMARY 섹션 뒤, 참고기사 앞에 삽입 시도
+    marker = '<div style="margin-top:3em;padding:18px 20px;background:#fafafa;'
+    idx = content_html.find(marker)
+    if idx != -1:
+        content_html = content_html[:idx] + exam_section + "\n" + content_html[idx:]
     else:
-        print("  관련 기출문제 없음 → 기출 섹션 스킵")
+        content_html += exam_section
+
+    post["content_html"] = content_html
+    post["exam_matches"] = [
+        {
+            "round":    m["round"],
+            "subject":  m["subject"],
+            "question": m["question"],
+        }
+        for m in matches[:MAX_MATCHES]
+    ]
 
     # 5. 파일 저장
     with open(POST_FILE, "w", encoding="utf-8") as f:
         json.dump(post, f, ensure_ascii=False, indent=2)
-
-    content_html = post["content_html"]
 
     with open(HTML_FILE, "w", encoding="utf-8") as f:
         f.write(content_html)
