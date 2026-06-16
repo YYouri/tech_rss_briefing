@@ -91,13 +91,13 @@ KR_MAP = {
 }
 
 SECTION_LABELS = {
-    "1": ("OPEN",    "#1a73e8"),
-    "2": ("DRIVER",  "#0f9d58"),
-    "3": ("CORE",    "#f57c00"),
-    "4": ("KR",      "#7b1fa2"),
-    "5": ("SECTOR",  "#c62828"),
-    "6": ("RISK",    "#00838f"),
-    "7": ("SUMMARY", "#1a73e8"),
+    "1": ("OPEN",    "#0052cc"),
+    "2": ("DRIVER",  "#057a55"),
+    "3": ("SECTOR",  "#b45309"),
+    "4": ("KR",      "#6d28d9"),
+    "5": ("WATCH",   "#b91c1c"),
+    "6": ("RISK",    "#0e7490"),
+    "7": ("SUMMARY", "#1e293b"),
 }
 
 
@@ -338,53 +338,59 @@ def render_heading(text: str) -> str:
     m = re.match(r"^(\d+)\.\s*(.+)$", text.strip())
     if not m:
         return (
-            f'<h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;'
-            f'margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #eee;">'
+            f'<h2 style="font-size:1.15em;font-weight:700;color:#0f172a;'
+            f'margin:2.4em 0 0.9em;padding-left:14px;'
+            f'border-left:4px solid #cbd5e1;">'
             f'{text}</h2>'
         )
     num, title_text = m.group(1), m.group(2)
     label_info = SECTION_LABELS.get(num)
     badge = ""
+    bar_color = "#cbd5e1"
     if label_info:
         label, color = label_info
+        bar_color = color
         badge = (
             f'<span style="display:inline-block;background:{color};color:#fff;'
-            f'font-size:0.7em;font-weight:700;padding:3px 9px;border-radius:4px;'
-            f'margin-right:10px;vertical-align:middle;letter-spacing:0.5px;">'
+            f'font-size:0.68em;font-weight:800;padding:2px 8px;border-radius:3px;'
+            f'margin-right:10px;vertical-align:middle;letter-spacing:1px;'
+            f'font-family:monospace;">'
             f'{label}</span>'
         )
     return (
-        f'<h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;'
-        f'margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #eee;">'
+        f'<h2 style="font-size:1.15em;font-weight:700;color:#0f172a;'
+        f'margin:2.4em 0 0.9em;padding-left:14px;'
+        f'border-left:4px solid {bar_color};">'
         f'{badge}{title_text}</h2>'
     )
 
 
 def render_sector_cards(bullet_lines: list) -> str:
     cards = []
-    for line in bullet_lines:
+    accent_colors = ["#0052cc", "#057a55", "#b45309", "#6d28d9", "#b91c1c"]
+    for i, line in enumerate(bullet_lines):
         text = re.sub(r"^[-*]\s*", "", line.strip())
         m = re.match(r"^\*\*(.+?)\*\*\s*[:：]\s*(.+)$", text)
+        accent = accent_colors[i % len(accent_colors)]
         if m:
             term, desc = m.group(1), m.group(2)
             cards.append(
-                '<div style="background:#f8f9fa;border-radius:10px;padding:14px 16px;">'
-                f'<strong style="color:#1a73e8;font-size:0.98em;">{term}</strong>'
-                f'<p style="margin:6px 0 0;font-size:0.92em;color:#555;line-height:1.6;">{desc}</p>'
+                f'<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;'
+                f'padding:14px 16px;border-left:3px solid {accent};">'
+                f'<strong style="color:{accent};font-size:0.9em;letter-spacing:0.3px;">{term}</strong>'
+                f'<p style="margin:6px 0 0;font-size:0.88em;color:#475569;line-height:1.65;">{desc}</p>'
                 '</div>'
             )
         else:
             cards.append(
-                '<div style="background:#f8f9fa;border-radius:10px;padding:14px 16px;">'
-                f'<p style="margin:0;font-size:0.92em;color:#555;line-height:1.6;">{text}</p>'
+                f'<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;'
+                f'padding:14px 16px;border-left:3px solid {accent};">'
+                f'<p style="margin:0;font-size:0.88em;color:#475569;line-height:1.65;">{text}</p>'
                 '</div>'
             )
     return (
-        '<div style="display:flex;flex-wrap:wrap;gap:12px;margin:1em 0;">'
-        + "".join(
-            f'<div style="flex:1 1 calc(50% - 6px);min-width:220px;">{c}</div>'
-            for c in cards
-        )
+        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:1em 0;">'
+        + "".join(f'<div>{c}</div>' for c in cards)
         + "</div>"
     )
 
@@ -396,93 +402,103 @@ def _strip_bullet(line: str) -> str:
 
 def render_summary_box(bullet_lines: list) -> str:
     items = "".join(
-        f'<li style="margin-bottom:8px;line-height:1.7;color:#333;">'
+        f'<li style="margin-bottom:10px;line-height:1.75;color:#e2e8f0;font-size:0.95em;">'
         f'{_strip_bullet(l)}</li>'
         for l in bullet_lines
     )
     return (
-        '<div style="background:#eef4ff;border-radius:10px;padding:18px 20px;margin:1.5em 0;">'
-        '<p style="font-weight:700;color:#1a73e8;margin:0 0 10px;font-size:1.02em;">한눈에 보기</p>'
+        '<div style="background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);'
+        'border-radius:12px;padding:20px 24px;margin:1.8em 0;">'
+        '<p style="font-weight:700;color:#94a3b8;margin:0 0 12px;font-size:0.75em;'
+        'letter-spacing:2px;text-transform:uppercase;font-family:monospace;">SUMMARY</p>'
         f'<ul style="padding-left:1.3em;margin:0;">{items}</ul>'
         '</div>'
     )
 
 
 def build_ticker_dashboard(quotes: dict) -> str:
-    def card(q: dict) -> str:
-        color = "#0f9d58" if q["chg_pct"] >= 0 else "#c62828"
-        sign  = "+" if q["chg_pct"] >= 0 else ""
-        arrow = "▲" if q["chg_pct"] >= 0 else "▼"
+    def idx_card(q: dict) -> str:
+        up    = q["chg_pct"] >= 0
+        color = "#22c55e" if up else "#f87171"
+        sign  = "+" if up else ""
+        arrow = "\u25b2" if up else "\u25bc"
+        bg    = "rgba(34,197,94,0.10)" if up else "rgba(248,113,113,0.10)"
         return (
-            f'<div style="background:#f8f9fa;border-radius:10px;padding:14px 16px;'
-            f'min-width:100px;text-align:center;flex:1;">'
-            f'<div style="font-size:0.78em;color:#888;margin-bottom:4px;">{q["name"]}</div>'
-            f'<div style="font-size:1.1em;font-weight:700;color:#1a1a1a;">'
+            f'<div style="background:#1e293b;border-radius:10px;padding:16px 14px;'
+            f'flex:1;min-width:110px;text-align:center;border:1px solid #334155;">'
+            f'<div style="font-size:0.72em;color:#94a3b8;margin-bottom:6px;letter-spacing:0.5px;">{q["name"]}</div>'
+            f'<div style="font-size:1.2em;font-weight:800;color:#f1f5f9;font-variant-numeric:tabular-nums;">'
             f'{q["price"]:,.2f}</div>'
-            f'<div style="font-size:0.88em;font-weight:600;color:{color};margin-top:2px;">'
-            f'{arrow} {sign}{q["chg_pct"]}%</div>'
+            f'<div style="display:inline-block;margin-top:6px;padding:2px 8px;background:{bg};border-radius:20px;">'
+            f'<span style="font-size:0.8em;font-weight:700;color:{color};">{arrow} {sign}{q["chg_pct"]}%</span></div>'
             f'</div>'
         )
 
-    idx_cards   = [card(quotes[s]) for s in ["^IXIC", "^GSPC", "^DJI", "^VIX"] if s in quotes]
-    macro_cards = [card(quotes[s]) for s in ["DX-Y.NYB", "CL=F", "GC=F"] if s in quotes]
+    def macro_card(q: dict) -> str:
+        up    = q["chg_pct"] >= 0
+        color = "#22c55e" if up else "#f87171"
+        sign  = "+" if up else ""
+        arrow = "\u25b2" if up else "\u25bc"
+        return (
+            f'<div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;'
+            f'padding:14px 16px;flex:1;min-width:100px;text-align:center;">'
+            f'<div style="font-size:0.72em;color:#64748b;margin-bottom:4px;">{q["name"]}</div>'
+            f'<div style="font-size:1.05em;font-weight:700;color:#cbd5e1;">{q["price"]:,.2f}</div>'
+            f'<div style="font-size:0.8em;font-weight:600;color:{color};margin-top:3px;">{arrow} {sign}{q["chg_pct"]}%</div>'
+            f'</div>'
+        )
+
+    idx_cards   = [idx_card(quotes[s])   for s in ["^IXIC","^GSPC","^DJI","^VIX"]    if s in quotes]
+    macro_cards = [macro_card(quotes[s]) for s in ["DX-Y.NYB","CL=F","GC=F"]          if s in quotes]
 
     rows = []
-    for sym in ["NVDA", "AMD", "INTC", "TSM", "AAPL", "MSFT", "TSLA", "AMZN", "GOOGL", "META"]:
+    for sym in ["NVDA","AMD","INTC","TSM","AAPL","MSFT","TSLA","AMZN","GOOGL","META"]:
         q = quotes.get(sym)
         if not q:
             continue
-        color = "#0f9d58" if q["chg_pct"] >= 0 else "#c62828"
-        sign  = "+" if q["chg_pct"] >= 0 else ""
+        up    = q["chg_pct"] >= 0
+        color = "#22c55e" if up else "#f87171"
+        sign  = "+" if up else ""
+        bg    = "rgba(34,197,94,0.07)" if up else "rgba(248,113,113,0.07)"
         kr    = ", ".join(KR_MAP.get(sym, ["-"]))
         rows.append(
-            f'<tr>'
-            f'<td style="padding:9px 12px;border-bottom:1px solid #f0f0f0;">'
-            f'<strong>{q["name"]}</strong>'
-            f'<span style="color:#aaa;font-size:0.8em;margin-left:6px;">{sym}</span></td>'
-            f'<td style="padding:9px 12px;border-bottom:1px solid #f0f0f0;'
-            f'text-align:right;font-variant-numeric:tabular-nums;">{q["price"]:,.2f}</td>'
-            f'<td style="padding:9px 12px;border-bottom:1px solid #f0f0f0;'
-            f'text-align:right;color:{color};font-weight:600;">{sign}{q["chg_pct"]}%</td>'
-            f'<td style="padding:9px 12px;border-bottom:1px solid #f0f0f0;'
-            f'color:#888;font-size:0.85em;">{kr}</td>'
+            f'<tr style="border-bottom:1px solid #1e293b;">'
+            f'<td style="padding:10px 14px;white-space:nowrap;">'
+            f'<span style="font-weight:700;color:#e2e8f0;font-size:0.9em;">{q["name"]}</span>'
+            f'<span style="color:#475569;font-size:0.75em;margin-left:6px;">{sym}</span></td>'
+            f'<td style="padding:10px 14px;text-align:right;font-variant-numeric:tabular-nums;'
+            f'color:#cbd5e1;font-size:0.88em;font-weight:600;">{q["price"]:,.2f}</td>'
+            f'<td style="padding:10px 14px;text-align:right;">'
+            f'<span style="display:inline-block;padding:2px 8px;background:{bg};'
+            f'border-radius:20px;font-size:0.8em;font-weight:700;color:{color};">{sign}{q["chg_pct"]}%</span></td>'
+            f'<td style="padding:10px 14px;color:#64748b;font-size:0.8em;">{kr}</td>'
             f'</tr>'
         )
 
-    return f"""
-<div style="background:#f8f9fa;border-radius:12px;padding:20px;margin-bottom:2em;">
+    idx_html   = "".join(idx_cards)
+    macro_html = "".join(macro_cards)
+    rows_html  = "".join(rows)
 
-  <p style="font-size:0.75em;font-weight:700;color:#888;letter-spacing:2px;
-  text-transform:uppercase;margin:0 0 12px;">주요 지수</p>
-  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
-    {''.join(idx_cards)}
-  </div>
+    return (
+        '<div style="background:#0f172a;border-radius:14px;padding:22px;margin-bottom:2em;border:1px solid #1e293b;">'
+        '<p style="font-size:0.7em;font-weight:700;color:#475569;letter-spacing:2.5px;'
+        'text-transform:uppercase;margin:0 0 14px;font-family:monospace;">MAJOR INDEX</p>'
+        f'<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px;">{idx_html}</div>'
+        '<p style="font-size:0.7em;font-weight:700;color:#475569;letter-spacing:2.5px;'
+        'text-transform:uppercase;margin:0 0 12px;font-family:monospace;">MACRO</p>'
+        f'<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px;">{macro_html}</div>'
+        '<p style="font-size:0.7em;font-weight:700;color:#475569;letter-spacing:2.5px;'
+        'text-transform:uppercase;margin:0 0 10px;font-family:monospace;">US STOCKS &amp; KR IMPACT</p>'
+        '<div style="overflow-x:auto;">'
+        '<table style="width:100%;border-collapse:collapse;font-size:0.88em;background:#0f172a;">'
+        '<thead><tr style="border-bottom:2px solid #334155;">'
+        '<th style="padding:8px 14px;text-align:left;color:#475569;font-weight:600;font-size:0.8em;">종목</th>'
+        '<th style="padding:8px 14px;text-align:right;color:#475569;font-weight:600;font-size:0.8em;">현재가</th>'
+        '<th style="padding:8px 14px;text-align:right;color:#475569;font-weight:600;font-size:0.8em;">등락</th>'
+        '<th style="padding:8px 14px;text-align:left;color:#475569;font-weight:600;font-size:0.8em;">한국 연관</th>'
+        f'</tr></thead><tbody>{rows_html}</tbody></table></div></div>'
+    )
 
-  <p style="font-size:0.75em;font-weight:700;color:#888;letter-spacing:2px;
-  text-transform:uppercase;margin:0 0 12px;">매크로</p>
-  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
-    {''.join(macro_cards)}
-  </div>
-
-  <p style="font-size:0.75em;font-weight:700;color:#888;letter-spacing:2px;
-  text-transform:uppercase;margin:0 0 10px;">핵심 종목 & 한국 연관주</p>
-  <div style="overflow-x:auto;">
-  <table style="width:100%;border-collapse:collapse;font-size:0.88em;background:#fff;
-  border-radius:8px;overflow:hidden;">
-    <thead>
-      <tr style="background:#f0f0f0;">
-        <th style="padding:9px 12px;text-align:left;color:#555;font-weight:600;">종목</th>
-        <th style="padding:9px 12px;text-align:right;color:#555;font-weight:600;">현재가</th>
-        <th style="padding:9px 12px;text-align:right;color:#555;font-weight:600;">등락</th>
-        <th style="padding:9px 12px;text-align:left;color:#555;font-weight:600;">한국 연관</th>
-      </tr>
-    </thead>
-    <tbody>{''.join(rows)}</tbody>
-  </table>
-  </div>
-
-</div>
-"""
 
 
 def md_to_html(md: str, quotes: dict) -> str:
@@ -549,9 +565,10 @@ def md_to_html(md: str, quotes: dict) -> str:
                 )
                 if is_lead and cur_sec is None:
                     html_out.append(
-                        f'<p style="line-height:1.9;margin:0 0 1.5em;color:#444;'
-                        f'font-size:1.05em;border-left:3px solid #1a73e8;'
-                        f'padding-left:14px;">{t}</p>'
+                        f'<p style="line-height:1.85;margin:0 0 1.8em;color:#334155;'
+                        f'font-size:1.05em;padding:16px 20px;'
+                        f'background:#f1f5f9;border-radius:8px;'
+                        f'border-left:4px solid #0052cc;">{t}</p>'
                     )
                     is_lead = False
                 else:
@@ -568,13 +585,16 @@ def md_to_html(md: str, quotes: dict) -> str:
 
     body = "\n".join(html_out)
 
-    return f"""<div style="font-family:'Noto Sans KR','Malgun Gothic',sans-serif;max-width:720px;margin:0 auto;color:#333;word-break:keep-all;">
+    return f"""<div style="font-family:'Noto Sans KR','Malgun Gothic',sans-serif;max-width:720px;margin:0 auto;color:#1e293b;word-break:keep-all;background:#f8fafc;padding:0;border-radius:16px;">
 
 {build_ticker_dashboard(quotes)}
 
+<div style="padding:0 4px;">
 {body}
+</div>
 
-<div style="margin-top:1.5em;padding:18px 20px;background:#fafafa;border:1px solid #e8e8e8;border-radius:8px;font-size:0.85em;color:#999;line-height:1.8;">
+<div style="margin-top:2em;padding:14px 18px;background:#f1f5f9;border-radius:8px;
+font-size:0.8em;color:#94a3b8;line-height:1.8;border-left:3px solid #cbd5e1;">
 본 콘텐츠는 공개 데이터 기반 자동 생성 정보로, 투자 권유가 아닙니다. 실제 투자 결정은 본인 판단 하에 전문가와 상담 후 진행하시기 바랍니다.
 </div>
 
