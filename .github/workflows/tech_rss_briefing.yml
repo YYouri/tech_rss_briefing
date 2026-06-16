@@ -42,9 +42,10 @@ jobs:
       - name: Step 4 - Post to Blogger
         run: python scripts/04_post_blogger.py
         env:
-          GAS_WEBHOOK_URL:  ${{ secrets.GAS_WEBHOOK_URL }}
-          GAS_SECRET_TOKEN: ${{ secrets.GAS_SECRET_TOKEN }}
-          BLOGGER_BLOG_ID:  ${{ secrets.BLOGGER_BLOG_ID }}
+          BLOGGER_BLOG_ID: ${{ secrets.BLOGGER_BLOG_ID }}
+          BLOGGER_CLIENT_ID: ${{ secrets.BLOGGER_CLIENT_ID }}
+          BLOGGER_CLIENT_SECRET: ${{ secrets.BLOGGER_CLIENT_SECRET }}
+          BLOGGER_REFRESH_TOKEN: ${{ secrets.BLOGGER_REFRESH_TOKEN }} 
 
       - name: Step 5 - Add exam history section
         run: python scripts/06_exam_history.py
