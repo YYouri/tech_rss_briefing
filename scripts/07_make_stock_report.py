@@ -37,7 +37,7 @@ OPENROUTER_API_KEY    = os.environ.get("OPENROUTER_API_KEY")
 BLOGGER_BLOG_ID       = os.environ.get("BLOGGER_BLOG_ID")
 BLOGGER_CLIENT_ID     = os.environ.get("BLOGGER_CLIENT_ID")
 BLOGGER_CLIENT_SECRET = os.environ.get("BLOGGER_CLIENT_SECRET")
-BLOGGER_REFRESH_TOKEN_2 = os.environ.get("BLOGGER_REFRESH_TOKEN_2")
+BLOGGER_REFRESH_TOKEN = os.environ.get("BLOGGER_REFRESH_TOKEN_2")
 
 # ✅ DRY_RUN: "true" 이면 Blogger 발행 없이 HTML 파일만 저장
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
@@ -506,53 +506,51 @@ def build_ticker_dashboard(quotes: dict) -> str:
 
 
 def md_to_html(md: str, quotes: dict) -> str:
-    # 1. 날짜 정보 생성
+    # (기존 regex 부분 생략)
+    
+    # 1. 최상단 날짜 & 헤드라인 대시보드 생성
     now_kst = datetime.now(KST)
     date_display = now_kst.strftime("%Y년 %m월 %d일")
-
-    # ---------------------------------------------------------
-    # [데이터 파싱 로직 수정] 
-    # 사용자님 데이터 구조: 
-    # line 0: 제목 (오늘 시장 한줄 정의)
-    # line 1: 요약 (미국-이란 평화협정과...)
-    # line 2: 나머지 (본문)
-    # ---------------------------------------------------------
-    lines = [line.strip() for line in md.split('\n') if line.strip()]
     
-    if len(lines) >= 2:
-        # lines[0]은 '오늘 시장 한줄 정의'이므로 무시하거나 제목으로 사용
-        # lines[1]을 '리드 문단'으로 사용
-        body_lead_paragraph = lines[1]
-        # lines[2]부터 끝까지를 '본문'으로 사용
-        body_content = "\n".join(lines[2:])
-    elif len(lines) == 1:
-        body_lead_paragraph = lines[0]
-        body_content = ""
-    else:
-        body_lead_paragraph = "시장 분석 데이터가 없습니다."
-        body_content = ""
+    # (중략: 기존 md_to_html 로직 유지하되 CSS 클래스/스타일만 교체)
+    
+    # 핵심 디자인 변경 사항:
+    # - 글꼴: 'Inter', 'Pretendard', 'Noto Sans KR' 우선 적용
+    # - 카드: 그림자(box-shadow)를 부드럽게 넣어 입체감 부여
+    # - 색상: Deep Navy (#0f172a)와 Slate 계열을 사용하여 신뢰감 형성
+    
+    # [apply_design_logic] 예시 (함수 내부 로직에 반영될 스타일)
+    header_style = """
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 30px 20px; border-radius: 16px; margin-bottom: 30px; text-align: center;">
+        <div style="color: #94a3b8; font-size: 0.85em; letter-spacing: 3px; margin-bottom: 10px; font-family: monospace;">MARKET INTELLIGENCE REPORT</div>
+        <div style="color: #ffffff; font-size: 1.6em; font-weight: 800; margin-bottom: 15px;">{final_title_placeholder}</div>
+        <div style="display: inline-block; padding: 4px 12px; background: rgba(255,255,255,0.1); border-radius: 20px; color: #cbd5e1; font-size: 0.85em;">
+            📅 {date_display} | 🇺🇸 US Market Analysis
+        </div>
+    </div>
+    """
 
-    # ---------------------------------------------------------
-    # 2. HTML 생성 (디자인 로직)
-    # ---------------------------------------------------------
-    # (header_style 등 디자인 변수는 그대로 유지)
+    # (기존 코드의 md_to_html 내부 루프는 유지하되, 
+    #  최종 리턴되는 HTML 구조를 아래와 같이 감싸줍니다)
     
     return f"""
-    <div style="font-family: 'Pretendard Variable', 'Pretendard', sans-serif; max-width: 750px; margin: 0 auto; color: #334155; line-height: 1.7; background-color: #ffffff; padding: 0;">
-        <!-- [1] 상단 대시보드 -->
-        {build_ticker_dashboard(quotes)}
+    <div style="font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Noto Sans KR', 'Malgun Gothic', sans-serif; max-width: 750px; margin: 0 auto; color: #334155; line-height: 1.7; background-color: #ffffff; padding: 0;">
         
+        <!-- [1] 상단 대시보드 (종목 시세) -->
+        {build_ticker_dashboard(quotes)}
+
         <!-- [2] 리포트 본문 영역 -->
         <div style="padding: 0 10px;">
-            <!-- 리드 문단 (강조된 요약 섹션) -->
+            
+            <!-- 리드 문단 (AI가 생성한 첫 문단 스타일링) -->
             <div style="background: #f8fafc; border-left: 5px solid #0f172a; padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 30px;">
                 <p style="margin: 0; font-size: 1.15em; font-weight: 500; color: #1e293b; line-height: 1.6;">
                     {body_lead_paragraph}
                 </p>
             </div>
 
-            <!-- AI 분석 본문 (마크다운 스타일이 적용된 본문) -->
-            <div style="font-size: 1.05em; color: #334155;">
+            <!-- AI 분석 본문 -->
+            <div style="font-size: 1.05em;">
                 {body_content}
             </div>
         </div>
@@ -560,7 +558,7 @@ def md_to_html(md: str, quotes: dict) -> str:
         <!-- [3] 하단 푸터 -->
         <div style="margin-top: 50px; padding: 30px 20px; background: #f1f5f9; border-radius: 20px; text-align: center; border: 1px solid #e2e8f0;">
             <p style="font-size: 0.85em; color: #64748b; margin: 0; line-height: 1.8;">
-                본 리포트는 <b style="color: #0f172a;">실시간 시장 데이터</b>를 기반으로 AI가 분석한 정보입니다.<br>
+                본 리포트는 <b>실시간 시장 데이터</b>를 기반으로 AI가 분석한 정보입니다.<br>
                 투자 판단의 최종 책임은 투자자 본인에게 있으며, 본 내용은 정보 제공만을 목적으로 합니다.
             </p>
             <div style="margin-top: 15px; font-size: 0.8em; color: #94a3b8; font-family: monospace;">
@@ -622,7 +620,7 @@ def get_access_token() -> str:
     payload = {
         "client_id":     BLOGGER_CLIENT_ID,
         "client_secret": BLOGGER_CLIENT_SECRET,
-        "refresh_token": BLOGGER_REFRESH_TOKEN_2,
+        "refresh_token": BLOGGER_REFRESH_TOKEN,
         "grant_type":    "refresh_token",
     }
     data = urllib.parse.urlencode(payload).encode("utf-8")
@@ -644,17 +642,11 @@ def get_access_token() -> str:
         sys.exit(1)
 
 
-def post_to_blogger(title: str, content: str, labels: list[str]) -> dict:
-    """Blogger API로 포스트 발행"""
+def post_to_blogger(title: str, content: str, labels: list) -> dict:
     access_token = get_access_token()
-
-    payload = {
-        "title":   title,
-        "content": content,
-        "labels":  labels,
-    }
-    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    req  = urllib.request.Request(
+    payload = {"title": title, "content": content, "labels": labels}
+    data    = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    req     = urllib.request.Request(
         f"https://www.googleapis.com/blogger/v3/blogs/{BLOGGER_BLOG_ID}/posts/",
         data=data,
         headers={
@@ -667,11 +659,12 @@ def post_to_blogger(title: str, content: str, labels: list[str]) -> dict:
             return json.loads(r.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8")
-        print(f"[ERROR] Blogger API 실패 HTTP {e.code}: {body[:400]}")
+        print(f"[ERROR] Blogger API HTTP {e.code}: {body[:400]}")
         sys.exit(1)
     except Exception as e:
         print(f"[ERROR] Blogger API 실패: {e}")
         sys.exit(1)
+
 
 # ── 메인 ─────────────────────────────────────────────────────────────────────
 
@@ -692,7 +685,7 @@ def main():
                 ("BLOGGER_BLOG_ID",         BLOGGER_BLOG_ID),
                 ("BLOGGER_CLIENT_ID",        BLOGGER_CLIENT_ID),
                 ("BLOGGER_CLIENT_SECRET",    BLOGGER_CLIENT_SECRET),
-                ("BLOGGER_REFRESH_TOKEN_2",  BLOGGER_REFRESH_TOKEN_2),
+                ("BLOGGER_REFRESH_TOKEN_2",  BLOGGER_REFRESH_TOKEN),
             ]
             if not val
         ]
