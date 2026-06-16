@@ -17,6 +17,7 @@
 """
 
 from __future__ import annotations
+from market_html_builder import build_ticker_dashboard, md_to_html, CSS
 
 import json
 import os
@@ -416,192 +417,6 @@ def render_summary_box(bullet_lines: list) -> str:
         '</div>'
     )
 
-
-def build_ticker_dashboard(quotes: dict) -> str:
-    def idx_card(q: dict) -> str:
-        up    = q["chg_pct"] >= 0
-        color = "#22c55e" if up else "#f87171"
-        sign  = "+" if up else ""
-        arrow = "\u25b2" if up else "\u25bc"
-        bg    = "rgba(34,197,94,0.10)" if up else "rgba(248,113,113,0.10)"
-        return (
-            f'<div style="background:#1e293b;border-radius:10px;padding:16px 14px;'
-            f'flex:1;min-width:110px;text-align:center;border:1px solid #334155;">'
-            f'<div style="font-size:0.72em;color:#94a3b8;margin-bottom:6px;letter-spacing:0.5px;">{q["name"]}</div>'
-            f'<div style="font-size:1.2em;font-weight:800;color:#f1f5f9;font-variant-numeric:tabular-nums;">'
-            f'{q["price"]:,.2f}</div>'
-            f'<div style="display:inline-block;margin-top:6px;padding:2px 8px;background:{bg};border-radius:20px;">'
-            f'<span style="font-size:0.8em;font-weight:700;color:{color};">{arrow} {sign}{q["chg_pct"]}%</span></div>'
-            f'</div>'
-        )
-
-    def macro_card(q: dict) -> str:
-        up    = q["chg_pct"] >= 0
-        color = "#22c55e" if up else "#f87171"
-        sign  = "+" if up else ""
-        arrow = "\u25b2" if up else "\u25bc"
-        return (
-            f'<div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;'
-            f'padding:14px 16px;flex:1;min-width:100px;text-align:center;">'
-            f'<div style="font-size:0.72em;color:#64748b;margin-bottom:4px;">{q["name"]}</div>'
-            f'<div style="font-size:1.05em;font-weight:700;color:#cbd5e1;">{q["price"]:,.2f}</div>'
-            f'<div style="font-size:0.8em;font-weight:600;color:{color};margin-top:3px;">{arrow} {sign}{q["chg_pct"]}%</div>'
-            f'</div>'
-        )
-
-    idx_cards   = [idx_card(quotes[s])   for s in ["^IXIC","^GSPC","^DJI","^VIX"]    if s in quotes]
-    macro_cards = [macro_card(quotes[s]) for s in ["DX-Y.NYB","CL=F","GC=F"]          if s in quotes]
-
-    rows = []
-    for sym in ["NVDA","AMD","INTC","TSM","AAPL","MSFT","TSLA","AMZN","GOOGL","META"]:
-        q = quotes.get(sym)
-        if not q:
-            continue
-        up    = q["chg_pct"] >= 0
-        color = "#22c55e" if up else "#f87171"
-        sign  = "+" if up else ""
-        bg    = "rgba(34,197,94,0.07)" if up else "rgba(248,113,113,0.07)"
-        kr    = ", ".join(KR_MAP.get(sym, ["-"]))
-        rows.append(
-            f'<tr style="border-bottom:1px solid #1e293b;">'
-            f'<td style="padding:10px 14px;white-space:nowrap;">'
-            f'<span style="font-weight:700;color:#e2e8f0;font-size:0.9em;">{q["name"]}</span>'
-            f'<span style="color:#475569;font-size:0.75em;margin-left:6px;">{sym}</span></td>'
-            f'<td style="padding:10px 14px;text-align:right;font-variant-numeric:tabular-nums;'
-            f'color:#cbd5e1;font-size:0.88em;font-weight:600;">{q["price"]:,.2f}</td>'
-            f'<td style="padding:10px 14px;text-align:right;">'
-            f'<span style="display:inline-block;padding:2px 8px;background:{bg};'
-            f'border-radius:20px;font-size:0.8em;font-weight:700;color:{color};">{sign}{q["chg_pct"]}%</span></td>'
-            f'<td style="padding:10px 14px;color:#64748b;font-size:0.8em;">{kr}</td>'
-            f'</tr>'
-        )
-
-    idx_html   = "".join(idx_cards)
-    macro_html = "".join(macro_cards)
-    rows_html  = "".join(rows)
-
-    return (
-        '<div style="background:#0f172a;border-radius:14px;padding:22px;margin-bottom:2em;border:1px solid #1e293b;">'
-        '<p style="font-size:0.7em;font-weight:700;color:#475569;letter-spacing:2.5px;'
-        'text-transform:uppercase;margin:0 0 14px;font-family:monospace;">MAJOR INDEX</p>'
-        f'<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px;">{idx_html}</div>'
-        '<p style="font-size:0.7em;font-weight:700;color:#475569;letter-spacing:2.5px;'
-        'text-transform:uppercase;margin:0 0 12px;font-family:monospace;">MACRO</p>'
-        f'<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px;">{macro_html}</div>'
-        '<p style="font-size:0.7em;font-weight:700;color:#475569;letter-spacing:2.5px;'
-        'text-transform:uppercase;margin:0 0 10px;font-family:monospace;">US STOCKS &amp; KR IMPACT</p>'
-        '<div style="overflow-x:auto;">'
-        '<table style="width:100%;border-collapse:collapse;font-size:0.88em;background:#0f172a;">'
-        '<thead><tr style="border-bottom:2px solid #334155;">'
-        '<th style="padding:8px 14px;text-align:left;color:#475569;font-weight:600;font-size:0.8em;">종목</th>'
-        '<th style="padding:8px 14px;text-align:right;color:#475569;font-weight:600;font-size:0.8em;">현재가</th>'
-        '<th style="padding:8px 14px;text-align:right;color:#475569;font-weight:600;font-size:0.8em;">등락</th>'
-        '<th style="padding:8px 14px;text-align:left;color:#475569;font-weight:600;font-size:0.8em;">한국 연관</th>'
-        f'</tr></thead><tbody>{rows_html}</tbody></table></div></div>'
-    )
-
-
-
-def md_to_html(md: str, quotes: dict) -> str:
-    md = SOURCE_TAG_PATTERN.sub(
-        lambda m: f'<sup style="font-size:0.75em;color:#888;">{m.group()}</sup>', md
-    )
-
-    lines    = md.split("\n")
-    html_out = []
-    in_ul    = False
-    ul_buf   = []
-    cur_sec  = None
-    is_lead  = True
-
-    def flush_ul():
-        nonlocal in_ul, ul_buf
-        if not ul_buf:
-            in_ul = False
-            return
-        if cur_sec in ("3", "5"):
-            html_out.append(render_sector_cards(ul_buf))
-        elif cur_sec == "7":
-            html_out.append(render_summary_box(ul_buf))
-        else:
-            html_out.append('<ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">')
-            for l in ul_buf:
-                t = re.sub(r"^[-*]\s*", "", l.strip())
-                t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
-                html_out.append(f'  <li style="margin-bottom:6px;">{t}</li>')
-            html_out.append("</ul>")
-        ul_buf.clear()
-        in_ul = False
-
-    for line in lines:
-        stripped = line.strip()
-
-        if re.fullmatch(r"-{3,}|\*{3,}", stripped):
-            continue
-
-        if line.startswith("## "):
-            if in_ul:
-                flush_ul()
-            heading_text = line[3:].strip()
-            html_out.append(render_heading(heading_text))
-            m = re.match(r"^(\d+)\.", heading_text)
-            cur_sec = m.group(1) if m else None
-            is_lead = False
-
-        elif re.match(r"^[-*] ", line):
-            is_lead = False
-            in_ul   = True
-            ul_buf.append(line.strip())
-
-        else:
-            if in_ul and stripped:
-                flush_ul()
-            if stripped:
-                t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", stripped)
-                t = re.sub(
-                    r"`(.+?)`",
-                    r'<code style="background:#f1f1f1;padding:2px 6px;'
-                    r'border-radius:3px;font-size:0.9em;">\1</code>',
-                    t,
-                )
-                if is_lead and cur_sec is None:
-                    html_out.append(
-                        f'<p style="line-height:1.85;margin:0 0 1.8em;color:#334155;'
-                        f'font-size:1.05em;padding:16px 20px;'
-                        f'background:#f1f5f9;border-radius:8px;'
-                        f'border-left:4px solid #0052cc;">{t}</p>'
-                    )
-                    is_lead = False
-                else:
-                    html_out.append(
-                        f'<p style="line-height:1.95;margin:0.9em 0;'
-                        f'color:#333;font-size:1em;">{t}</p>'
-                    )
-            else:
-                if in_ul:
-                    flush_ul()
-
-    if in_ul:
-        flush_ul()
-
-    body = "\n".join(html_out)
-
-    return f"""<div style="font-family:'Noto Sans KR','Malgun Gothic',sans-serif;max-width:720px;margin:0 auto;color:#1e293b;word-break:keep-all;background:#f8fafc;padding:0;border-radius:16px;">
-
-{build_ticker_dashboard(quotes)}
-
-<div style="padding:0 4px;">
-{body}
-</div>
-
-<div style="margin-top:2em;padding:14px 18px;background:#f1f5f9;border-radius:8px;
-font-size:0.8em;color:#94a3b8;line-height:1.8;border-left:3px solid #cbd5e1;">
-본 콘텐츠는 공개 데이터 기반 자동 생성 정보로, 투자 권유가 아닙니다. 실제 투자 결정은 본인 판단 하에 전문가와 상담 후 진행하시기 바랍니다.
-</div>
-
-</div>"""
-
-
 # ── 6. 제목 생성 ──────────────────────────────────────────────────────────────
 
 def generate_title(quotes: dict, now_kst: datetime):
@@ -749,7 +564,9 @@ def main():
     print(f"  분석 완료: {len(analysis)}자")
 
     # 5) HTML 변환
+    dashboard    = build_ticker_dashboard(quotes, now_kst)
     content_html = md_to_html(analysis, quotes)
+    content_html = content_html.replace("{DASHBOARD}", dashboard)
 
     # 6) 제목 생성
     print("[4] 제목 생성 중...")
