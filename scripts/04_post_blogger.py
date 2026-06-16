@@ -81,7 +81,7 @@ def main():
         ("BLOGGER_BLOG_ID",       BLOGGER_BLOG_ID),
         ("BLOGGER_CLIENT_ID",     BLOGGER_CLIENT_ID),
         ("BLOGGER_CLIENT_SECRET", BLOGGER_CLIENT_SECRET),
-        ("BLOGGER_REFRESH_TOKEN", BLOGGER_REFRESH_TOKEN),
+        ("BLOGGER_REFRESH_TOKEN_2", BLOGGER_REFRESH_TOKEN),
     ]:
         if not val:
             print(f"[ERROR] {name} 없음")
