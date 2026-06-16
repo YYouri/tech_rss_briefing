@@ -36,25 +36,25 @@
       "symbol": "DX-Y.NYB",
       "name": "달러인덱스",
       "kind": "macro",
-      "price": 99.69,
+      "price": 99.66,
       "prev": 99.63,
-      "chg_pct": 0.06
+      "chg_pct": 0.03
     },
     "CL=F": {
       "symbol": "CL=F",
       "name": "WTI유가",
       "kind": "macro",
-      "price": 78.62,
+      "price": 78.39,
       "prev": 80.75,
-      "chg_pct": -2.64
+      "chg_pct": -2.92
     },
     "GC=F": {
       "symbol": "GC=F",
       "name": "금선물",
       "kind": "macro",
-      "price": 4349.4,
+      "price": 4349.6,
       "prev": 4328.0,
-      "chg_pct": 0.49
+      "chg_pct": 0.5
     },
     "NVDA": {
       "symbol": "NVDA",
@@ -234,9 +234,9 @@
       "link": "https://finance.yahoo.com/m/a24b5d00-7cf7-37aa-9ed3-33810a290dd8/micron%2C-amd-lead-chip-stocks.html?.tsrc=rss"
     },
     {
-      "title": "AMD Acquires MEXT to Tackle Data Center Memory Constraints",
-      "summary": "The deal adds AI-driven flash storage optimization to AMD's data center portfolio as memory demand accelerates",
-      "link": "https://finance.yahoo.com/sectors/technology/articles/amd-acquires-mext-tackle-data-201825648.html?.tsrc=rss"
+      "title": "Stocks Settle Sharply Higher as US-Iran Peace Deal Spurs Optimism",
+      "summary": "The S&P 500 Index ($SPX ) (SPY ) on Monday closed up +1.65%, the Dow Jones Industrial Average ($DOWI ) (DIA ) closed up +0.92%, and the Nasdaq 100 Index ($IUXX ) (QQQ ) closed up +3.06%. June E-mini S&P futures (ESM26 ) rose +1.68%, and June E-mini Nasdaq futures...",
+      "link": "https://www.barchart.com/story/news/2480274/stocks-settle-sharply-higher-as-us-iran-peace-deal-spurs-optimism?.tsrc=rss"
     },
     {
       "title": "U.S. stock futures are flat after Dow record close on U.S.-Iran deal; Nikkei 225 hits record high: Live updates - CNBC",
@@ -264,5 +264,5 @@
       "link": "https://news.google.com/rss/articles/CBMi4AFBVV95cUxNSTJ2YXFtWUpXME5PWGUzekpCV2gxS29QNUs0cVBDT0l5MmtZY29XcVkxSFgxV2t4YjF2OUk2NE5nYW41Ykg1anl4MHhJRHFTV3FZZU5NTFdWTGxBVWxiaE5DUXNyRmhaVWwtOG9CRHlCdmd6QkwxMkVXcVFPeXI1UkRXSk15cnhwX3hOYjlOTS00U3FsZ1VBOHFkRXNYTlpGOHpMVF9MSlM4T25tYklpSk9xdWExbnd3a24tZzA4QVlUdXh3bFk5VHpIbFA2ZXRONFprVS0wRWhQY2pxZEgwQg?oc=5"
     }
   ],
-  "generated_at": "2026-06-16T16:43:56.730392+09:00"
+  "generated_at": "2026-06-16T16:53:15.250502+09:00"
 }
