@@ -284,7 +284,7 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime) -> str:
     market_text = "\n".join(idx_lines + macro_lines + stock_lines + news_lines)
     date_str    = now_kst.strftime("%Y년 %m월 %d일")
 
-     return f"""당신은 20년 경력의 매크로 애널리스트이자 현업 펀드매니저다.
+    return f"""당신은 20년 경력의 매크로 애널리스트이자 현업 펀드매니저다.
 독자는 AI가 작성한 뻔한 글을 극도로 싫어한다.
 아래 실제 시장 데이터를 바탕으로 오늘 아침 한국 증시 대응 리포트를 작성하라.
 
@@ -328,6 +328,7 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime) -> str:
 ## 7. 3줄 요약
 - bullet 정확히 3개
 """
+
 
 # ── 5. HTML 변환 ──────────────────────────────────────────────────────────────
 
