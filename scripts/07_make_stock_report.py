@@ -37,7 +37,7 @@ OPENROUTER_API_KEY    = os.environ.get("OPENROUTER_API_KEY")
 BLOGGER_BLOG_ID       = os.environ.get("BLOGGER_BLOG_ID")
 BLOGGER_CLIENT_ID     = os.environ.get("BLOGGER_CLIENT_ID")
 BLOGGER_CLIENT_SECRET = os.environ.get("BLOGGER_CLIENT_SECRET")
-BLOGGER_REFRESH_TOKEN_2 = os.environ.get("BLOGGER_REFRESH_TOKEN_2")
+BLOGGER_REFRESH_TOKEN = os.environ.get("BLOGGER_REFRESH_TOKEN_2")
 
 # ✅ DRY_RUN: "true" 이면 Blogger 발행 없이 HTML 파일만 저장
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
@@ -284,7 +284,7 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime) -> str:
     market_text = "\n".join(idx_lines + macro_lines + stock_lines + news_lines)
     date_str    = now_kst.strftime("%Y년 %m월 %d일")
 
-    return f"""당신은 20년 경력의 매크로 애널리스트이자 현업 펀드매니저다.
+     return f"""당신은 20년 경력의 매크로 애널리스트이자 현업 펀드매니저다.
 독자는 AI가 작성한 뻔한 글을 극도로 싫어한다.
 아래 실제 시장 데이터를 바탕으로 오늘 아침 한국 증시 대응 리포트를 작성하라.
 
@@ -328,7 +328,6 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime) -> str:
 ## 7. 3줄 요약
 - bullet 정확히 3개
 """
-
 
 # ── 5. HTML 변환 ──────────────────────────────────────────────────────────────
 
@@ -653,7 +652,7 @@ def get_access_token() -> str:
     payload = {
         "client_id":     BLOGGER_CLIENT_ID,
         "client_secret": BLOGGER_CLIENT_SECRET,
-        "refresh_token": BLOGGER_REFRESH_TOKEN_2,
+        "refresh_token": BLOGGER_REFRESH_TOKEN,
         "grant_type":    "refresh_token",
     }
     data = urllib.parse.urlencode(payload).encode("utf-8")
@@ -718,7 +717,7 @@ def main():
                 ("BLOGGER_BLOG_ID",         BLOGGER_BLOG_ID),
                 ("BLOGGER_CLIENT_ID",        BLOGGER_CLIENT_ID),
                 ("BLOGGER_CLIENT_SECRET",    BLOGGER_CLIENT_SECRET),
-                ("BLOGGER_REFRESH_TOKEN_2",  BLOGGER_REFRESH_TOKEN_2),
+                ("BLOGGER_REFRESH_TOKEN_2",  BLOGGER_REFRESH_TOKEN),
             ]
             if not val
         ]
