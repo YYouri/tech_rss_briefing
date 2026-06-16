@@ -16,7 +16,7 @@ RESULT_FILE = "data/post_result.json"
 BLOGGER_BLOG_ID       = os.environ.get("BLOGGER_BLOG_ID")
 BLOGGER_CLIENT_ID     = os.environ.get("BLOGGER_CLIENT_ID")
 BLOGGER_CLIENT_SECRET = os.environ.get("BLOGGER_CLIENT_SECRET")
-BLOGGER_REFRESH_TOKEN = os.environ.get("BLOGGER_REFRESH_TOKEN")
+BLOGGER_REFRESH_TOKEN = os.environ.get("BLOGGER_REFRESH_TOKEN_2")
 
 
 def get_access_token() -> str:
