@@ -1,39 +1,36 @@
-# Agentic AI가 이끄는 기업 자동화 혁신
+# On-Device AI, 스마트폰·IoT 현황과 미래 전망
 
-SAP가 최신 버전의 Joule 에 Agentic AI 기능을 탑재했다. 고객 지원 티켓을 자동으로 분류하고, 해결 절차를 스스로 조정한다. 기업 현장은 이미 파일럿 단계에서 벗어나 실 생산에 적용하려는 움직임을 보이고 있다.
+스마트폰에 최신 AI 기능이 바로 적용되면서, 사용자는 네트워크 지연 없이 실시간 영상 편집·음성인식 등을 체험하고 있다. 현장에서는 메모리 설계와 NPU 활용이 핵심 키워드가 되고 있다.
 
 ## 1. 현장에서 무슨 일이 있었나
-SAP Joule 시연 현장에서 담당자는 AI가 1차 문의를 30초 내에 분류했으며, 2차 검토 단계까지 자동으로 라우팅했다고 보고했다. 같은 날 Saravam 창업자는 자사의 AI 플랫폼이 고객사의 업무 흐름에 직접 삽입돼 2주 내에 처리 속도를 두 배 이상 끌어올렸다고 주장했다. 반면 다수 기업은 파일럿을 넘지 못하고 있다. Forrester 조사에 따르면 75%가 Agentic AI 채택을 선언했지만, 실제 운영 환경에 적용한 기업은 소수에 불과하다[출처: Agentic AI hype races ahead as enterprises remain stuck in pilot mode - The Register].
+스마트폰 메모리 기업이 HBM(High Bandwidth Memory) 구조를 차용한 Low Latency Wide DRAM을 공개했다. 기존 DRAM 대비 1.5배 높은 전송 속도를 제공하고, 발열을 크게 낮췄다[출처: Low Latency Wide DRAM Adopts HBM’s Integrated Design To Enable On-Device AI In Smartphones]. 같은 시기에 삼성은 Exynos 2600 칩으로 MLPerf 벤치마크에서 온디바이스 AI 성능을 2배 끌어올렸다[출처: Samsung's Exynos 2600 doubles on-device AI performance in MLPerf benchmarks].
 
 ## 2. 왜 업계가 반응하는가
-기업은 인건비 절감과 서비스 속도 향상을 목표로 한다. 기존 RPA(로봇 프로세스 자동화)는 정형 업무에만 머물렀다. Agentic AI는 상황 인식을 바탕으로 자체 의사결정을 내린다. 따라서 복합적인 ITSM(IT 서비스 관리) 단계에서도 인간 개입을 최소화한다. 보안 부문에서는 AI‑웜이 새로운 위협으로 등장해 방어 체계 재정비를 요구한다[출처: Adaptive, Agentic AI Worms Loom as Next Enterprise Threat - Dark Reading].
+AI 연산을 클라우드가 아닌 기기 안에서 처리하면 응답 속도가 개선된다. 동시에 사용자 데이터가 외부로 흐르지 않아 프라이버시 위험이 감소한다. 배터리 소모는 연산량에 비례해 증가하지만, 전용 NPU와 고대역폭 메모리 덕분에 효율이 크게 올라갔다.
 
 ## 3. 기술적으로 보면
-- **Agentic Core**: 목표 지향 행동을 설계하는 모듈. 목표와 제약을 입력받아 실행 계획을 수립한다.  
-- **Context Architecture**: Retrieval‑Augmented Generation(RAG) 방식을 보완해 최신 내부 데이터를 실시간으로 삽입한다. 이는 대용량 문서 검색 한계를 넘는다[출처: Context architecture is replacing RAG as agentic AI pushes enterprise retrieval to its limits - VentureBeat].  
-- **Governance Layer**: 정책 기반 접근 제어와 로그 기록을 통합한다. EY 보고서는 인도 기업에 맞춤형 통제 모델을 제시한다[출처: Agentic AI governance: Why Indian enterprises need a new control model - EY].  
-- **Zero‑Trust Adapter**: Zscaler가 제공하는 제로트러스트(Zero‑Trust) 프레임워크와 연동해 AI 실행 흐름을 검증한다[출처: Securing the AI workforce: Zscaler’s zero-trust play for agentic AI - SiliconANGLE].  
-- **Forward‑Deployed Engineering (FDE)**: ServiceNow와 Accenture가 공동 운영하는 현장 엔지니어링 팀이 AI 모델을 현장 맞춤형으로 튜닝한다[출처: ServiceNow and Accenture Launch Forward Deployed Engineering Program to Scale Agentic AI Across the Enterprise - Accenture].
+- **NPU(Neural Processing Unit)**: AI 모델 실행에 최적화된 연산 유닛. 일반 CPU보다 전력당 연산량이 높다.  
+- **Low Latency Wide DRAM**: HBM 설계를 차용해 대역폭을 1.5배 확대하고 열을 감소시킨 메모리.  
+- **LiteRT**: 구글이 제공하는 런타임 라이브러리. NPU와 직접 연결해 프레임 드롭 없이 실시간 영상·음성 처리를 지원한다[출처: Building real-world on-device AI with LiteRT and NPU - blog.google].  
+- **Exynos 2600 AI 코어**: 두 개의 고성능 AI 코어가 병렬로 동작해 MLPerf 점수를 이전 세대 대비 2배 상승시켰다[출처: Samsung's Exynos 2600 doubles on-device AI performance in MLPerf benchmarks].
 
 ## 4. 실제 현장 적용 사례
-1) **SAP Joule** – 글로벌 제조 기업은 재고 예측 오류를 AI가 자동 교정하도록 설정했다. 오류 감지 후 5분 이내에 조정 명령을 발행했다.  
-2) **Saravam** – 금융 서비스 업체는 고객 문의 자동 분류와 실시간 답변 제안을 도입했다. 평균 응답 시간이 40% 감소했다.  
-3) **PwC × Anthropic** – 대형 회계법인은 내부 감사 프로세스에 Agentic AI를 삽입해 위험 탐지를 자동화했다. 위험 항목 발견율이 파일럿 대비 2배 상승했다[출처: PwC and Anthropic expand alliance for enterprise agentic AI - PwC].
+Logitech은 Mobi Fold Travel Mouse에 온디바이스 AI를 탑재해, 사용자의 손동작을 실시간으로 인식해 커서 이동을 최적화했다[출처: Logitech Mobi Fold Travel Mouse With On-Device AI Folds Shut Like A Flip Phone]. Qualcomm은 Dragonwing MBM 실리콘에 AI 가속기를 내장해, 고화질 스트리밍과 동시에 AI 기반 배경 제거 기능을 제공한다[출처: Qualcomm's new Dragonwing MBM silicon combines interactive multimedia with top-tier connectivity & on-device AI]. 구글 안드로이드 앱에서도 설치형 AI 도구 세트를 열어, 사진 보정·음성 명령·실시간 번역을 오프라인에서도 수행한다[출처: Google's underrated AI app unlocked 3 amazing on-device AI tools on my Android phone].
 
 ## 5. 엔지니어가 봐야 할 포인트
-- 모델 학습 데이터의 최신성 확보가 필수다. Context Architecture가 이를 자동화하지만, 데이터 파이프라인 오류가 전체 성능을 저하한다.  
-- 정책 엔진과 실행 엔진 사이의 인터페이스가 지연을 유발한다. Zero‑Trust Adapter를 적용하면 검증 단계가 추가되지만, 인증 토큰 캐시를 최적화하면 오버헤드를 30% 이하로 낮출 수 있다.  
-- 로그와 메트릭 수집을 중앙화해야 한다. Governance Layer가 제공하는 표준 스키마를 따르지 않으면 규제 대응이 복잡해진다.
+- 메모리 대역폭과 NPU 활용 비율을 프로파일링한다.  
+- 온디바이스 모델은 정밀도와 연산량 사이에서 트레이드오프가 필요하다.  
+- 열 관리 설계가 배터리 수명에 직접적인 영향을 준다.  
+- SDK(LiteRT 등)와 하드웨어 가속 기능을 조합해 프레임 레이트를 유지한다.
 
 ## 6. 정보관리기술사 연계
 
-관련 기출:
-없음
+관련 기출: 없음
 
 답안 핵심 키워드:
-- Agentic AI
-- Context Architecture
-- Governance Layer
+- 온디바이스 AI
+- Low Latency Wide DRAM
+- NPU
 
 답안 작성 포인트:
 - 정의
@@ -42,11 +39,11 @@ SAP Joule 시연 현장에서 담당자는 AI가 1차 문의를 30초 내에
 - 기대효과
 
 ## 7. 앞으로 볼 포인트
-- 모델‑정책 간 실시간 연동 메커니즘의 표준화  
-- Zero‑Trust Adapter의 경량화와 클라우드 네이티브 구현  
-- 악성 Agentic AI Worm에 대비한 행동 기반 탐지 기술
+- 메모리와 NPU 통합 설계가 표준화될 가능성
+- 저전력 AI 코어가 IoT Edge 디바이스에 확대 적용
+- Generative AI 모델이 모바일 수준으로 경량화 진행
 
 ## 8. 3줄 요약
-- 기업은 파일럿 단계에서 생산 단계로 전환하기 위해 Agentic AI의 의사결정·보안·거버넌스 통합이 필수다.  
-- Context Architecture와 Zero‑Trust Adapter가 현재 가장 활발히 도입되는 핵심 기술이다.  
-- 향후 표준화와 경량화가 진행되면 대규모 배포가 가속화될 전망이다.
+- HBM 기반 DRAM과 Exynos 2600 덕분에 스마트폰 AI 처리 속도가 크게 상승했다.  
+- LiteRT와 NPU 조합이 실시간 영상·음성 서비스의 품질을 유지한다.  
+- 향후 메모리·AI 코어 통합과 경량화 모델이 IoT 전반에 퍼질 전망이다.
