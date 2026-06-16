@@ -2,16 +2,11 @@
 03_generate_post.py
 OpenRouter Free API로 블로그 포스팅 본문을 생성하고 HTML로 변환한다.
 
-수정/개선 사항:
-- selected_topic.json 파일 존재 여부 명시적 체크 및 에러 메시지 개선
-- IT 전문가 필자 페르소나 강화 (AI 작성 티 제거)
-- 구어체 혼용, 현장감 있는 문체 유도
-- 실제 뉴스 기반 기업 사례 서술 강화
-- 섹션별 컬러 라벨 배지 (TECH/TREND/CORE/IMPACT/CASE/MARKET/AHEAD/SUMMARY)
-- 3번(핵심 기술 요소) 카드형 레이아웃
-- 8번(3줄 요약) 강조 박스
-- 참고 기사 부록 스타일
-- 수치 출처 태깅 강제 및 후처리
+개선사항:
+- 숫자 누락 버그 수정: 출처 없는 수치는 제거 대신 경고만 출력
+- 섹션 라벨 수정: MARKET → KPE, 헤딩 띄어쓰기 수정
+- 대표 이미지: Unsplash API 연동
+- 섹션 접두어 렌더링 개선 (배지 + 제목 사이 공백)
 """
 
 import json
@@ -20,13 +15,15 @@ import re
 import sys
 import urllib.request
 import urllib.error
+import urllib.parse
 import base64
 from datetime import datetime
 
 TOPIC_FILE = "data/selected_topic.json"
 POST_FILE  = "data/blog_post.json"
 
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+OPENROUTER_API_KEY   = os.environ.get("OPENROUTER_API_KEY")
+UNSPLASH_ACCESS_KEY  = os.environ.get("UNSPLASH_ACCESS_KEY")
 
 MODELS = [
     "openai/gpt-oss-120b:free",
@@ -87,6 +84,73 @@ def call_ai(prompt: str, max_tokens: int = 4096) -> str:
 
 
 # ──────────────────────────────────────────
+# 대표 이미지 — Unsplash
+# ──────────────────────────────────────────
+
+def fetch_unsplash_image(topic: str) -> dict | None:
+    """Unsplash에서 토픽 관련 이미지 검색. 없으면 None 반환."""
+    if not UNSPLASH_ACCESS_KEY:
+        print("[WARN] UNSPLASH_ACCESS_KEY 없음 → 대표 이미지 스킵")
+        return None
+
+    # 영어 검색어로 변환 (토픽이 한글이면 AI가 변환)
+    query = topic.replace(" ", "+")
+
+    url = (
+        f"https://api.unsplash.com/search/photos"
+        f"?query={urllib.parse.quote(topic)}"
+        f"&per_page=1&orientation=landscape"
+        f"&content_filter=high"
+    )
+    req = urllib.request.Request(
+        url,
+        headers={
+            "Authorization": f"Client-ID {UNSPLASH_ACCESS_KEY}",
+            "Accept-Version": "v1",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            data = json.loads(r.read().decode("utf-8"))
+        results = data.get("results", [])
+        if not results:
+            print(f"[WARN] Unsplash 검색 결과 없음: {topic}")
+            return None
+        photo = results[0]
+        return {
+            "url":      photo["urls"]["regular"],
+            "thumb":    photo["urls"]["small"],
+            "alt":      photo.get("alt_description") or topic,
+            "author":   photo["user"]["name"],
+            "author_url": photo["user"]["links"]["html"],
+            "unsplash_url": photo["links"]["html"],
+        }
+    except Exception as e:
+        print(f"[WARN] Unsplash 이미지 검색 실패: {e}")
+        return None
+
+
+def build_hero_image_html(image: dict, topic: str) -> str:
+    """대표 이미지 HTML 생성 (Unsplash 저작권 표기 포함)"""
+    return f"""
+<div style="margin:0 0 2em;border-radius:12px;overflow:hidden;position:relative;">
+  <img
+    src="{image['url']}"
+    alt="{image['alt']}"
+    style="width:100%;max-height:400px;object-fit:cover;display:block;"
+    loading="lazy"
+  />
+  <p style="font-size:0.75em;color:#aaa;margin:6px 0 0;text-align:right;">
+    Photo by <a href="{image['author_url']}?utm_source=mystacklog&utm_medium=referral"
+    target="_blank" rel="noopener noreferrer" style="color:#aaa;">{image['author']}</a>
+    on <a href="https://unsplash.com?utm_source=mystacklog&utm_medium=referral"
+    target="_blank" rel="noopener noreferrer" style="color:#aaa;">Unsplash</a>
+  </p>
+</div>
+"""
+
+
+# ──────────────────────────────────────────
 # 기사 컨텍스트 빌더
 # ──────────────────────────────────────────
 
@@ -110,7 +174,7 @@ def build_article_context(articles: list[dict], topic: str) -> str:
 
 
 # ──────────────────────────────────────────
-# 수치 후처리 — 미태깅 수치 문장 제거
+# ✅ 수치 후처리 — 제거 대신 경고만 출력
 # ──────────────────────────────────────────
 
 NUMERIC_PATTERN = re.compile(
@@ -123,15 +187,16 @@ SOURCE_TAG_PATTERN = re.compile(r'\[출처\s*:\s*.+?\]')
 
 
 def sanitize_untagged_numerics(text: str) -> str:
+    """
+    ✅ 수정: 출처 없는 수치는 제거하지 않고 경고만 출력.
+    기존 코드가 수치를 삭제해서 '효율을 이상 끌어올린' 같은 문장이 만들어졌음.
+    """
     lines = text.split("\n")
-    cleaned = []
     for line in lines:
         stripped = line.strip()
         if NUMERIC_PATTERN.search(stripped) and not SOURCE_TAG_PATTERN.search(stripped):
-            line = NUMERIC_PATTERN.sub("", line)
-            print(f"  [후처리 수치 제거] {stripped[:60]}...")
-        cleaned.append(line)
-    return "\n".join(cleaned)
+            print(f"  [경고] 출처 미태깅 수치 발견: {stripped[:80]}...")
+    return text  # 원문 그대로 반환
 
 
 def enforce_three_line_summary(text: str) -> str:
@@ -172,14 +237,12 @@ def convert_source_tags_to_html(text: str, articles: list[dict]) -> str:
     def replace_tag(match):
         tag_content = match.group(0)
         inner = re.sub(r'^\[출처\s*:\s*', '', tag_content).rstrip(']').strip()
-
         url = title_to_url.get(inner, "")
         if not url:
             for title, u in title_to_url.items():
                 if inner[:20] in title or title[:20] in inner:
                     url = u
                     break
-
         if url:
             return (
                 f'<sup style="font-size:0.75em;color:#1a73e8;">'
@@ -187,9 +250,7 @@ def convert_source_tags_to_html(text: str, articles: list[dict]) -> str:
                 f'style="color:#1a73e8;text-decoration:none;">{inner[:30]}</a>]</sup>'
             )
         else:
-            return (
-                f'<sup style="font-size:0.75em;color:#888;">[{inner[:30]}]</sup>'
-            )
+            return f'<sup style="font-size:0.75em;color:#888;">[{inner[:30]}]</sup>'
 
     return SOURCE_TAG_PATTERN.sub(replace_tag, text)
 
@@ -204,16 +265,11 @@ def generate_diagram(topic_data: dict) -> str:
 간단한 Mermaid 다이어그램 코드를 작성하세요.
 
 규칙:
-- graph TD (top-down) 또는 graph LR (left-right) 형식
+- graph TD 또는 graph LR 형식
 - 노드는 5~8개 이내, 한국어 라벨 사용
 - 색상 없이 기본 스타일만
-- 노드 라벨에는 괄호, 따옴표, 특수문자 사용 완전 금지 (한글/영문/숫자/공백만)
-- 설명 없이 mermaid 코드만 출력 (코드블록 표시 없이 순수 코드만)
-
-예시:
-graph LR
-    A[입력 데이터] --> B[처리 단계]
-    B --> C[출력 결과]
+- 노드 라벨에는 괄호, 따옴표, 특수문자 사용 완전 금지
+- 설명 없이 mermaid 코드만 출력 (코드블록 없이 순수 코드만)
 """
     raw = call_ai(prompt, max_tokens=300)
     raw = re.sub(r"```mermaid|```", "", raw).strip()
@@ -221,7 +277,7 @@ graph LR
 
 
 # ──────────────────────────────────────────
-# 본문 생성 — IT 전문가 페르소나 강화
+# 본문 생성
 # ──────────────────────────────────────────
 
 def generate_body(topic_data: dict) -> str:
@@ -243,134 +299,56 @@ def generate_body(topic_data: dict) -> str:
 {ctx}
 
 【핵심 작성 원칙 — AI 느낌 완전 제거】
-- "~에 대해 알아보겠습니다", "살펴보도록 하겠습니다", "정리해보았습니다" 같은
-  챗봇·AI 전형 문구 절대 금지
+- "~에 대해 알아보겠습니다", "살펴보도록 하겠습니다", "정리해보았습니다" 같은 챗봇 문구 절대 금지
 - "다양한", "혁신적인", "주목할 만한", "중요한" 같은 무의미한 형용사 사용 금지
 - 전문가가 현장에서 직접 보고 분석한 것처럼 구체적으로 서술
-- 단정보다는 전문가의 시각과 해석을 담은 어조 사용
-  예) "~라는 점이 업계에서 주목받고 있다" → OK
-      "~은 매우 중요합니다" → 금지
 - 문장은 짧고 밀도 있게. 한 문장에 하나의 정보만
-- 주어-동사 구조를 명확히 (수동태 남용 금지)
 - 어려운 기술 용어는 처음 등장 시 괄호로 간단히 풀이
-  예) HBM(고대역폭 메모리)
-- 업계 현장 느낌을 살리는 표현 적극 사용
-  예) "현장에서 체감하는 온도는 다르다", "업계 관계자들 사이에서",
-      "실제 도입 사례를 보면", "수치보다 중요한 것은"
-- 절대 사용 금지: 최근 ,또한 ,한편, 즉 ,따라서 ,다양한, 혁신적인, 중요한 ,주목받고 있다, 전망이다, 기대된다, 살펴보자, 알아보자, 정리했다
-【작성 규칙】
-- 반드시 아래 8개 섹션 구조로 작성
-- 각 섹션은 ## 헤딩 사용
-- 전체 분량: 2000~3000자 (한국어 기준)
-- 독자 수준: IT에 관심 있는 직장인, 경제 뉴스 독자
-- 주식 추천, 매수/매도 의견, 목표가 절대 금지
-- 기업명 언급 가능하나 투자 추천 표현 금지
-- 이모지, 아이콘, 화살표 기호 사용 금지
-- 마크다운 표, 구분선, ">" 인용구 사용 금지
-
-【리드 문단 — 반드시 작성】
-- ## 헤딩 없이 2~3문장
-- 뉴스 현장에서 시작하거나, 독자가 공감할 상황으로 시작
-- 너무 일반적인 도입 금지. 구체적 사건/상황으로 바로 시작
-  좋은 예) "엔비디아가 GB200 NVL72 랙 출하를 앞당기면서, 데이터센터 업계의
-           관심이 {topic}으로 쏠리고 있다."
-  나쁜 예) "최근 IT 업계에서 많이 언급되는 기술이 있습니다."
+- 절대 사용 금지: 최근, 또한, 한편, 즉, 따라서, 다양한, 혁신적인, 중요한, 전망이다, 기대된다
 
 【수치 사용 규칙 — 반드시 준수】
 - 수치는 참조 뉴스에 명시된 것만 사용
 - 수치 사용 시 문장 끝에 반드시 [출처: 기사제목] 태깅
-  예) "처리 속도가 40% 향상됐다. [출처: Microsoft Copilot speeds up Dynamics 365]"
 - 참조 뉴스에 수치 없으면 정성적으로만 서술
 - [출처: ] 없는 수치 단정 표현 절대 금지
 
-【문장 스타일 예시】
-나쁜 예: "AI 기술은 다양한 산업에 큰 영향을 미치고 있습니다."
-좋은 예: "메타가 인도 Reliance와 AI 데이터센터 구축 계약을 발표하면서,
-        동남아 시장에서 GPU 클러스터 수요가 본격화될 조짐을 보이고 있다."
-
-나쁜 예: "이 기술은 매우 중요하며 앞으로 발전할 것입니다."
-좋은 예: "문제는 속도가 아니라 전력이다. 같은 성능을 절반의 전력으로 구현하는
-        것이 지금 팹리스 업계의 핵심 과제로 부상했다."
+【작성 규칙】
+- 반드시 아래 8개 섹션 구조로 작성
+- 각 섹션은 ## 헤딩 사용
+- 전체 분량: 2000~3000자
+- 이모지, 아이콘, 화살표 기호 사용 금지
+- 마크다운 표, 구분선, ">" 인용구 사용 금지
 
 【출력 형식】
-마크다운으로 작성.
 
 (리드 문단 — 헤딩 없이 2~3문장. 구체적 사건/상황으로 시작)
 
 ## 1. 현장에서 무슨 일이 있었나
-
-- 참조 뉴스 속 실제 사건으로 시작
-
-- 기업명, 제품명, 발표 내용 중심
-
-- 정의부터 시작 금지
-
 ## 2. 왜 업계가 반응하는가
-
-- 단순 뉴스 요약 금지
-
-- 비용, 시장, 경쟁, 공급망 관점 해석
-
 ## 3. 기술적으로 보면
-
-- 여기서 처음 기술 설명
-
-- 핵심 구성요소 3~5개
-
-- "**용어**: 설명" 형식
-
+- **용어**: 설명 형식으로 핵심 구성요소 3~5개
 ## 4. 실제 현장 적용 사례
-
-- 참조 기사에 등장하는 기업만 사용
-
-- 마케팅 문구 금지
-
-- 실제 사용 방식 중심
-
 ## 5. 엔지니어가 봐야 할 포인트
-
-- 구현 난이도
-
-- 비용 문제
-
-- 보안 문제
-
-- 운영 이슈
-
 ## 6. 정보관리기술사 연계
 
-반드시 아래 형식
-
 관련 기출:
-
-(있으면 작성)
+(있으면 작성, 없으면 없음)
 
 답안 핵심 키워드:
-
 - 키워드1
-
 - 키워드2
-
 - 키워드3
 
-- 키워드4
-
 답안 작성 포인트:
-
 - 정의
-
 - 구조
-
 - 활용
-
 - 기대효과
 
 ## 7. 앞으로 볼 포인트
-
 - bullet 정확히 3개
 
 ## 8. 3줄 요약
-
 - bullet 정확히 3개
 """
     return call_ai(prompt, max_tokens=4096)
@@ -389,17 +367,8 @@ def refine_title(topic_data: dict) -> dict:
 조건:
 - 28자 이내
 - 키워드를 제목 앞쪽에 배치
-- 카테고리도 1개 추천 (예: IT/테크, 반도체, AI/소프트웨어, 산업동향 중)
-
-【중요 - 숫자 사용 금지】
-- "~하는 이유 3가지", "~핵심 5가지" 같이 본문에 없는 개수를 암시하는 표현 금지
-- 허용 형태:
-  - "{{키워드}}란 무엇인가: 산업이 주목하는 이유"
-  - "{{키워드}}, 왜 지금 시장의 화두가 됐나"
-  - "2026년 {{키워드}} 동향과 전망"
-  - "{{키워드}} 완벽 정리: 기술부터 산업 영향까지"
-  - "{{키워드}}가 바꾸는 산업 지형도"
-- 연도(2026) 표기는 숫자 허용
+- 숫자로 개수를 암시하는 표현 금지 ("3가지", "5가지" 등)
+- 카테고리도 1개 추천
 
 JSON만 출력:
 {{"titles": ["제목1", "제목2", "제목3"], "category": "추천 카테고리"}}
@@ -415,18 +384,18 @@ JSON만 출력:
 
 
 # ──────────────────────────────────────────
-# Markdown → HTML 변환
+# ✅ 섹션 라벨 수정 — MARKET → KPE, 헤딩 렌더링 개선
 # ──────────────────────────────────────────
 
 SECTION_LABELS = {
-    "1": "TECH",
-    "2": "TREND",
-    "3": "CORE",
-    "4": "IMPACT",
-    "5": "CASE",
-    "6": "MARKET",
-    "7": "AHEAD",
-    "8": "SUMMARY",
+    "1": ("TECH",   "#1a73e8"),
+    "2": ("TREND",  "#0f9d58"),
+    "3": ("CORE",   "#f57c00"),
+    "4": ("IMPACT", "#7b1fa2"),
+    "5": ("CASE",   "#c62828"),
+    "6": ("KPE",    "#00838f"),   # ✅ MARKET → KPE (정보관리기술사)
+    "7": ("AHEAD",  "#37474f"),
+    "8": ("SUMMARY","#1a73e8"),
 }
 
 
@@ -435,22 +404,28 @@ def render_heading(text: str) -> str:
     if not match:
         return (
             f'<h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;'
-            f'margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">{text}</h2>'
+            f'margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">'
+            f'{text}</h2>'
         )
 
     num, title_text = match.group(1), match.group(2)
-    label = SECTION_LABELS.get(num, "")
-    badge = ""
-    if label:
+    label_info = SECTION_LABELS.get(num)
+
+    if label_info:
+        label, color = label_info
         badge = (
-            f'<span style="display:inline-block;background:#1a73e8;color:#fff;'
+            f'<span style="display:inline-block;background:{color};color:#fff;'
             f'font-size:0.7em;font-weight:700;padding:3px 9px;border-radius:4px;'
-            f'margin-right:10px;vertical-align:middle;letter-spacing:0.5px;">{label}</span>'
+            f'margin-right:10px;vertical-align:middle;letter-spacing:0.5px;">'
+            f'{label}</span>'
         )
+    else:
+        badge = ""
+
     return (
         f'<h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;'
-        f'margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;'
-        f'display:flex;align-items:center;">{badge}{title_text}</h2>'
+        f'margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #eee;">'
+        f'{badge}{title_text}</h2>'  # ✅ 배지와 제목 사이 공백 자연스럽게
     )
 
 
@@ -502,10 +477,7 @@ def render_summary_box(bullet_lines: list[str]) -> str:
 
 
 def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
-    # 1) 수치 후처리
     md = sanitize_untagged_numerics(md)
-
-    # 2) 출처 태그 → HTML 각주 변환
     if articles:
         md = convert_source_tags_to_html(md, articles)
 
@@ -549,7 +521,6 @@ def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
                 flush_ul()
             heading_text = line[3:].strip()
             html_lines.append(render_heading(heading_text))
-
             m = re.match(r"^(\d+)\.", heading_text)
             current_section = m.group(1) if m else None
             is_first_content_line = False
@@ -570,7 +541,6 @@ def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
                     r'<code style="background:#f1f1f1;padding:2px 6px;border-radius:3px;font-size:0.9em;">\1</code>',
                     text
                 )
-
                 if is_first_content_line and current_section is None:
                     html_lines.append(
                         f'<p style="line-height:1.9;margin:0 0 1.5em;color:#444;'
@@ -591,15 +561,14 @@ def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
 
     body = "\n".join(html_lines)
 
-    # 참고 기사 — 부록 스타일
     references_html = ""
     if articles:
         ref_items = []
         for a in articles[:8]:
             src_label = {
-                "google_news": "Google News",
+                "google_news":   "Google News",
                 "yahoo_finance": "Yahoo Finance",
-                "hacker_news": "Hacker News",
+                "hacker_news":   "Hacker News",
             }.get(a.get("source", ""), a.get("source", ""))
             ref_items.append(
                 f'<li style="margin-bottom:6px;line-height:1.6;">'
@@ -618,6 +587,8 @@ def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
 
     return f"""<div style="font-family:'Noto Sans KR','Malgun Gothic',sans-serif;max-width:720px;margin:0 auto;color:#333;word-break:keep-all;">
 
+{{HERO_IMAGE}}
+
 {body}
 
 {references_html}
@@ -634,11 +605,9 @@ def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
 # ──────────────────────────────────────────
 
 def main():
-    # ── 파일 존재 여부 확인 ──
     if not os.path.exists(TOPIC_FILE):
         print(f"[ERROR] {TOPIC_FILE} 파일이 없습니다.")
         print("       02_select_topic.py를 먼저 실행하세요.")
-        print(f"       현재 data/ 디렉토리 내용: {os.listdir('data') if os.path.exists('data') else '(디렉토리 없음)'}")
         sys.exit(1)
 
     with open(TOPIC_FILE, encoding="utf-8") as f:
@@ -653,13 +622,21 @@ def main():
     print(f"[포스팅 생성] 제목: {title}")
     print(f"[포스팅 생성] 관련 기사: {len(articles)}개")
 
+    # 1. 대표 이미지 검색
+    print("\n[대표 이미지 검색 중...]")
+    hero_image = fetch_unsplash_image(topic)
+    if hero_image:
+        print(f"[대표 이미지 OK] {hero_image['url'][:60]}...")
+    else:
+        print("[대표 이미지 없음] 스킵")
+
+    # 2. 본문 생성
     body_md = generate_body(topic_data)
     print(f"\n[본문 생성 완료] {len(body_md)}자")
 
-    # 3줄 요약 보정
     body_md = enforce_three_line_summary(body_md)
 
-    # 구성도 생성
+    # 3. 구성도 생성
     print("\n[구성도 생성 중...]")
     diagram_html = ""
     try:
@@ -667,7 +644,7 @@ def main():
         diagram_url  = mermaid_to_image_url(diagram_code)
         diagram_html = f'''
 <div style="text-align:center;margin:2em 0;">
-  <img src="{diagram_url}" alt="{topic} 구조도" style="max-width:100%;border-radius:8px;border:1px solid #eee;" />
+  <img src="{diagram_url}" alt="{topic} 구조도" style="max-width:100%;border-radius:8px;border:1px solid #eee;" loading="lazy" />
   <p style="font-size:0.85em;color:#999;margin-top:8px;">{topic} 핵심 구조도</p>
 </div>
 '''
@@ -675,10 +652,15 @@ def main():
     except Exception as e:
         print(f"[WARN] 구성도 생성 실패: {e}")
 
+    # 4. HTML 변환
     relevant_articles = articles[:8] if articles else []
     body_html = md_to_html(body_md, title, relevant_articles)
 
-    # 구성도를 CORE 섹션 바로 앞에 삽입
+    # 5. 대표 이미지 삽입
+    hero_html = build_hero_image_html(hero_image, topic) if hero_image else ""
+    body_html = body_html.replace("{HERO_IMAGE}", hero_html)
+
+    # 6. 구성도 삽입 (CORE 섹션 앞)
     if diagram_html:
         marker = '>CORE</span>'
         idx = body_html.find(marker)
@@ -686,19 +668,18 @@ def main():
             h2_start = body_html.rfind('<h2', 0, idx)
             if h2_start != -1:
                 body_html = body_html[:h2_start] + diagram_html + body_html[h2_start:]
-            else:
-                body_html = body_html[:idx] + diagram_html + body_html[idx:]
         else:
             body_html += diagram_html
 
+    # 7. 제목 추천
     print("\n[제목/카테고리 추천 중...]")
     refined          = refine_title(topic_data)
     title_candidates = refined.get("titles", [title])
-    category         = refined.get("category", "테크인사이트-IT트렌드")
+    category         = refined.get("category", "IT/테크")
     final_title      = title_candidates[0] if title_candidates else title
 
     print(f"[제목 추천] {title_candidates}")
-    print(f"[카테고리 추천] {category}")
+    print(f"[카테고리] {category}")
 
     post = {
         "title":            final_title,
@@ -709,6 +690,7 @@ def main():
         "content_md":       body_md,
         "tags":             ",".join(tags),
         "created_at":       datetime.now().isoformat(),
+        "hero_image":       hero_image,
     }
 
     os.makedirs("data", exist_ok=True)
@@ -724,8 +706,6 @@ def main():
         f.write(body_md)
 
     print(f"\n포스팅 저장 완료 → {POST_FILE}")
-    print(f"HTML 저장 완료  → data/blog_post.html")
-    print(f"MD 저장 완료    → data/blog_post.md")
 
 
 if __name__ == "__main__":
