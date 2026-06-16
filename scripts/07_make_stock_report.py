@@ -12,7 +12,7 @@
   - DRY_RUN 환경변수 지원 (Blogger 발행 없이 HTML만 생성)
   - bytes | None → Optional[bytes] (Python 3.9 호환)
   - dict | None  → Optional[dict]  (Python 3.9 호환)
-  - render_summary_box 정규식 버그 수정 (\\s → \s)
+  - render_summary_box 정규식 버그 수정 (f-string 내 백슬래시 제거)
   - Blogger 발행 전 필수 환경변수 사전 검증으로 이동
 """
 
@@ -387,11 +387,15 @@ def render_sector_cards(bullet_lines: list) -> str:
     )
 
 
+def _strip_bullet(line: str) -> str:
+    """bullet 기호(- *) 제거 — f-string 안에서 백슬래시 사용 불가 문제 회피"""
+    return re.sub(r"^[-*]\s*", "", line.strip())
+
+
 def render_summary_box(bullet_lines: list) -> str:
-    # ✅ 버그 수정: r"^[-*]\\s*" → r"^[-*]\s*"
     items = "".join(
         f'<li style="margin-bottom:8px;line-height:1.7;color:#333;">'
-        f'{re.sub(r"^[-*]\s*", "", l.strip())}</li>'
+        f'{_strip_bullet(l)}</li>'
         for l in bullet_lines
     )
     return (
