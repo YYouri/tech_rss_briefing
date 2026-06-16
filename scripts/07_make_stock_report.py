@@ -46,15 +46,15 @@ DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
 KST      = timezone(timedelta(hours=9))
 DATA_DIR = "data"
 
+# 2026-06-16 기준 OpenRouter 무료 모델 (PDF 확인)
 MODELS = [
-    "openai/gpt-oss-120b:free",
-    "google/gemma-3-27b-it:free",
-    "mistralai/mistral-small-3.2-24b-instruct:free",
-    "deepseek/deepseek-r1-0528:free",
-    "meta-llama/llama-4-maverick:free",
-    "qwen/qwen3-235b-a22b:free",
-    "openai/gpt-oss-20b:free",
-    "nvidia/nemotron-3-super:free",
+    "openai/gpt-oss-120b:free",           # gpt-oss 계열, 안정적
+    "google/gemma-4-26b-a4b:free",        # 262K context, MoE 고품질
+    "qwen/qwen3-next-80b-a3b-instruct:free",  # 262K context, 멀티링궐 강점
+    "meta-llama/llama-3.3-70b-instruct:free", # 131K, 검증된 70B
+    "nousresearch/hermes-3-405b-instruct:free", # 131K, 고품질 파인튠
+    "openai/gpt-oss-20b:free",            # 소형 폴백
+    "meta-llama/llama-3.2-3b-instruct:free",  # 최후 폴백
 ]
 
 TICKERS = {
@@ -230,10 +230,12 @@ def call_ai(prompt: str, max_tokens: int = 3500) -> str:
             with urllib.request.urlopen(req, timeout=120) as r:
                 result = json.loads(r.read().decode("utf-8"))
             content = result.get("choices", [{}])[0].get("message", {}).get("content")
-            if content and len(content.strip()) > 100:
+            # max_tokens 200 이하(제목 등 단답)는 최소 5자, 그 외 100자 기준
+            min_len = 5 if max_tokens <= 200 else 100
+            if content and len(content.strip()) >= min_len:
                 print(f"  [OK] 모델: {model}")
                 return content.strip()
-            print(f"  [WARN] {model} 응답 부실")
+            print(f"  [WARN] {model} 응답 부실 ({len((content or '').strip())}자)")
         except urllib.error.HTTPError as e:
             body = e.read().decode("utf-8", errors="ignore")
             print(f"  [WARN] {model} HTTP {e.code}: {body[:120]}")
