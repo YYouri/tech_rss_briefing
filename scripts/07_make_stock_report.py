@@ -37,7 +37,7 @@ OPENROUTER_API_KEY    = os.environ.get("OPENROUTER_API_KEY")
 BLOGGER_BLOG_ID       = os.environ.get("BLOGGER_BLOG_ID")
 BLOGGER_CLIENT_ID     = os.environ.get("BLOGGER_CLIENT_ID")
 BLOGGER_CLIENT_SECRET = os.environ.get("BLOGGER_CLIENT_SECRET")
-BLOGGER_REFRESH_TOKEN = os.environ.get("BLOGGER_REFRESH_TOKEN_2")
+BLOGGER_REFRESH_TOKEN_2 = os.environ.get("BLOGGER_REFRESH_TOKEN_2")
 
 # ✅ DRY_RUN: "true" 이면 Blogger 발행 없이 HTML 파일만 저장
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
@@ -622,7 +622,7 @@ def get_access_token() -> str:
     payload = {
         "client_id":     BLOGGER_CLIENT_ID,
         "client_secret": BLOGGER_CLIENT_SECRET,
-        "refresh_token": BLOGGER_REFRESH_TOKEN,
+        "refresh_token": BLOGGER_REFRESH_TOKEN_2,
         "grant_type":    "refresh_token",
     }
     data = urllib.parse.urlencode(payload).encode("utf-8")
@@ -687,7 +687,7 @@ def main():
                 ("BLOGGER_BLOG_ID",         BLOGGER_BLOG_ID),
                 ("BLOGGER_CLIENT_ID",        BLOGGER_CLIENT_ID),
                 ("BLOGGER_CLIENT_SECRET",    BLOGGER_CLIENT_SECRET),
-                ("BLOGGER_REFRESH_TOKEN_2",  BLOGGER_REFRESH_TOKEN),
+                ("BLOGGER_REFRESH_TOKEN_2",  BLOGGER_REFRESH_TOKEN_2),
             ]
             if not val
         ]
