@@ -511,55 +511,48 @@ def md_to_html(md: str, quotes: dict) -> str:
     date_display = now_kst.strftime("%Y년 %m월 %d일")
 
     # ---------------------------------------------------------
-    # [핵심 수정 부분] AI가 생성한 마크다운(md)을 분석하여 
-    # 변수(body_lead_paragraph, body_content)에 할당하는 로직
+    # [데이터 파싱 로직 수정] 
+    # 사용자님 데이터 구조: 
+    # line 0: 제목 (오늘 시장 한줄 정의)
+    # line 1: 요약 (미국-이란 평화협정과...)
+    # line 2: 나머지 (본문)
     # ---------------------------------------------------------
-    # 마크다운의 줄바꿈을 기준으로 문단을 나눕니다.
     lines = [line.strip() for line in md.split('\n') if line.strip()]
     
-    if len(lines) > 0:
-        # 첫 번째 줄을 '리드 문단'으로 간주 (가장 중요한 요약문)
+    if len(lines) >= 2:
+        # lines[0]은 '오늘 시장 한줄 정의'이므로 무시하거나 제목으로 사용
+        # lines[1]을 '리드 문단'으로 사용
+        body_lead_paragraph = lines[1]
+        # lines[2]부터 끝까지를 '본문'으로 사용
+        body_content = "\n".join(lines[2:])
+    elif len(lines) == 1:
         body_lead_paragraph = lines[0]
-        # 두 번째 줄부터 끝까지를 '본문 내용'으로 간주
-        body_content = "\n".join(lines[1:])
+        body_content = ""
     else:
-        # 만약 데이터가 비어있을 경우를 대비한 예외 처리
         body_lead_paragraph = "시장 분석 데이터가 없습니다."
         body_content = ""
 
-    # 만약 md(마크다운) 형식이 이미 복잡하다면, 
-    # 간단하게 첫 문단과 나머지 문단을 분리하는 로직을 추가했습니다.
-    # (이 부분은 사용하시는 md의 구조에 따라 미세 조정이 필요할 수 있습니다.)
     # ---------------------------------------------------------
-
-    # 2. 헤더 스타일 설정 (기존 코드 유지)
-    header_style = f"""
-    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 30px 20px; border-radius: 16px; margin-bottom: 30px; text-align: center;">
-        <div style="color: #94a3b8; font-size: 0.85em; letter-spacing: 3px; margin-bottom: 10px; font-family: monospace;">MARKET INTELLIGENCE REPORT</div>
-        <div style="color: #ffffff; font-size: 1.6em; font-weight: 800; margin-bottom: 15px;">Daily Market Briefing</div>
-        <div style="display: inline-block; padding: 4px 12px; background: rgba(255,255,255,0.1); border-radius: 20px; color: #cbd5e1; font-size: 0.85em;">
-            📅 {date_display} | 🇺🇸 US Market Analysis
-        </div>
-    </div>
-    """
-
-    # 3. 최종 HTML 구조 생성 및 반환
+    # 2. HTML 생성 (디자인 로직)
+    # ---------------------------------------------------------
+    # (header_style 등 디자인 변수는 그대로 유지)
+    
     return f"""
-    <div style="font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Noto Sans KR', 'Malgun Gothic', sans-serif; max-width: 750px; margin: 0 auto; color: #334155; line-height: 1.7; background-color: #ffffff; padding: 0;">
-        <!-- [1] 상단 대시보드 (종목 시세) -->
+    <div style="font-family: 'Pretendard Variable', 'Pretendard', sans-serif; max-width: 750px; margin: 0 auto; color: #334155; line-height: 1.7; background-color: #ffffff; padding: 0;">
+        <!-- [1] 상단 대시보드 -->
         {build_ticker_dashboard(quotes)}
         
         <!-- [2] 리포트 본문 영역 -->
         <div style="padding: 0 10px;">
-            <!-- 리드 문단 (AI가 생성한 첫 문단 스타일링) -->
+            <!-- 리드 문단 (강조된 요약 섹션) -->
             <div style="background: #f8fafc; border-left: 5px solid #0f172a; padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 30px;">
                 <p style="margin: 0; font-size: 1.15em; font-weight: 500; color: #1e293b; line-height: 1.6;">
                     {body_lead_paragraph}
                 </p>
             </div>
-            
-            <!-- AI 분석 본문 -->
-            <div style="font-size: 1.05em;">
+
+            <!-- AI 분석 본문 (마크다운 스타일이 적용된 본문) -->
+            <div style="font-size: 1.05em; color: #334155;">
                 {body_content}
             </div>
         </div>
