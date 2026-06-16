@@ -40,18 +40,18 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           
-      - name: Step 4 - Post to Blogger
-        run: python scripts/04_post_blogger.py
-        env:
-          BLOGGER_BLOG_ID: ${{ secrets.BLOGGER_BLOG_ID }}
-          BLOGGER_CLIENT_ID: ${{ secrets.BLOGGER_CLIENT_ID }}
-          BLOGGER_CLIENT_SECRET: ${{ secrets.BLOGGER_CLIENT_SECRET }}
-          BLOGGER_REFRESH_TOKEN_2: ${{ secrets.BLOGGER_REFRESH_TOKEN_2 }} 
-
-      - name: Step 5 - Add exam history section
-        run: python scripts/06_exam_history.py
-        env:
+      - name: Step 4 - Add exam history section  # ← 먼저
+         run: python scripts/06_exam_history.py
+         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+      - name: Step 5 - Post to Blogger           # ← 그 다음 발행
+         run: python scripts/04_post_blogger.py
+         env:
+           BLOGGER_BLOG_ID: ${{ secrets.BLOGGER_BLOG_ID }}
+    BLOGGER_CLIENT_ID: ${{ secrets.BLOGGER_CLIENT_ID }}
+    BLOGGER_CLIENT_SECRET: ${{ secrets.BLOGGER_CLIENT_SECRET }}
+    BLOGGER_REFRESH_TOKEN_2: ${{ secrets.BLOGGER_REFRESH_TOKEN_2 }}
 
       - name: Step 6 - Update topic history
         run: python scripts/05_update_history.py
