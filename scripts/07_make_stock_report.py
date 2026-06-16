@@ -644,11 +644,17 @@ def get_access_token() -> str:
         sys.exit(1)
 
 
-def post_to_blogger(title: str, content: str, labels: list) -> dict:
+def post_to_blogger(title: str, content: str, labels: list[str]) -> dict:
+    """Blogger API로 포스트 발행"""
     access_token = get_access_token()
-    payload = {"title": title, "content": content, "labels": labels}
-    data    = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    req     = urllib.request.Request(
+
+    payload = {
+        "title":   title,
+        "content": content,
+        "labels":  labels,
+    }
+    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    req  = urllib.request.Request(
         f"https://www.googleapis.com/blogger/v3/blogs/{BLOGGER_BLOG_ID}/posts/",
         data=data,
         headers={
@@ -661,12 +667,11 @@ def post_to_blogger(title: str, content: str, labels: list) -> dict:
             return json.loads(r.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8")
-        print(f"[ERROR] Blogger API HTTP {e.code}: {body[:400]}")
+        print(f"[ERROR] Blogger API 실패 HTTP {e.code}: {body[:400]}")
         sys.exit(1)
     except Exception as e:
         print(f"[ERROR] Blogger API 실패: {e}")
         sys.exit(1)
-
 
 # ── 메인 ─────────────────────────────────────────────────────────────────────
 
