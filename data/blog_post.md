@@ -1,39 +1,50 @@
-# Agentic AI란 무엇인가: 산업이 주목하는 이유
+# Agentic AI, 기업 자동화의 새 물결
 
-엔터프라이즈 AI 플랫폼에서 “에이전트 토큰” 비용이 급증한다는 경고가 나오자, 현장 엔지니어들은 로그와 메트릭을 실시간으로 검토하기 시작했다. 동시에 SAP가 ‘Joule’이라는 에이전시 기반 지원 시스템을 시연하면서, 공급망 관리팀은 기존 챗봇보다 자율적인 의사결정 로직을 직접 체험하고 있다. 이처럼 자율적 AI 에이전트가 실 서비스에 투입되면서 비용, 보안, 책임 소재를 둘러싼 논쟁이 가속화되고 있다.
+엔터프라이즈 고객 지원 포털에 SAP Joule이 “Agentic AI” 기능을 탑재하면서, 실제 현장에서 기존 티켓 자동화가 급격히 변하고 있다. 같은 시점에 ServiceNow와 Accenture가 ‘Forward Deployed Engineering’ 프로그램을 시작해 기업 전반에 Agentic AI를 확대한다는 선언을 했으며, 보안 분야에서는 Zscaler가 제로 트러스트 기반 방어 체계를 발표했다. 현장 담당자들은 파일럿 단계의 시범 운영을 넘어 생산 환경에 적용하려는 움직임을 보이고 있다.
 
-## 1. 기술 개요
-Agentic AI(에이전시 AI)는 목표 지향적 행동을 수행하도록 설계된 자동화된 소프트웨어 에이전트를 말한다. 인간 명령을 일회성으로 받는 것이 아니라, 상황 인식·계획·실행·피드백 루프를 스스로 순환한다.
+## 1. 현장에서 무슨 일이 있었나
+SAP는 최근 발표한 고객 지원 솔루션 Joule에 Agentic AI를 적용했다. 이 기능은 사용자가 제시한 문제에 대해 자동으로 원인 진단, 해결책 제시, 티켓 생성까지 연계한다. ServiceNow와 Accenture는 ‘Forward Deployed Engineering’ 프로그램을 통해 Agentic AI를 기업 업무 전반에 배치하겠다고 밝혔다. Zscaler는 Agentic AI 전용 제로 트러스트 모델을 공개하며 보안 방어 체계에 AI 자체를 방어 대상로 포함시켰다. [출처: SAP’s Joule Bets on Agentic AI to Redefine Enterprise Support, Will Customers Buy In?] [출처: ServiceNow and Accenture Launch Forward Deployed Engineering Program to Scale Agentic AI Across the Enterprise] [출처: Securing the AI workforce: Zscaler’s zero-trust play for agentic AI]
 
-## 2. 왜 지금 주목받는가
-SiliconANGLE는 “AI 에이전트 도입이 비용을 급증시킬 수 있다”며 10가지 비용 절감 방안을 제시했다. 이는 EY가 공개한 ‘Enterprise Token Cost’ 지표와 맞물려 기업이 토큰(실행 단위)당 지출을 관리해야 함을 강조한다[출처: 10 best practices for optimizing generative and agentic AI costs]. IBM은 MWC 2026에서 에이전시 AI 배포 속도가 거버넌스 격차를 확대하고 있다고 경고했다[출처: AI governance gap widens as enterprises race to deploy agentic AI, IBM warns]. 이러한 상황이 바로 현재 논의가 폭발적으로 늘어나는 이유다.
+## 2. 왜 업계가 반응하는가
+기업은 기존 챗봇 수준의 자동화로는 복합적인 업무 흐름을 처리하기 어렵다. Agentic AI는 단일 질의에 대해 여러 시스템을 연계해 결과물을 도출하므로, 인력 비용을 절감하고 SLA(서비스 수준 계약) 위반 위험을 낮춘다. Forrester 조사에 따르면 75%의 기업이 Agentic AI 도입을 선언했지만, 실제 생산 배치는 소수에 머물렀다. 이 격차를 메우려는 움직임이 바로 위에 열거한 프로그램과 보안 솔루션이다. [출처: Agentic AI hype races ahead as enterprises remain stuck in pilot mode]
 
-## 3. 핵심 기술 요소
-**프롬프트 엔진**: 자연어 명령을 실행 가능한 행동 계획으로 변환한다.  
-**상태 관리 모듈**: 에이전트가 현재 컨텍스트와 이전 행동을 추적한다.  
-**리워드 함수**: 목표 달성 정도를 수치화해 학습 피드백을 제공한다.  
-**안전 가드레일**: 비정상적인 행동을 차단하고, 인간 감독자를 호출한다.  
-**토큰 청구 인프라**: 실행 단위마다 비용을 기록하고 청구한다.
+## 3. 기술적으로 보면
+**Agentic AI**: 사용자 의도에 따라 여러 AI 모델·툴을 자동 조합해 작업을 수행하는 시스템.  
+**Context Architecture**: 최신 검색·생성 파이프라인에서 RAG(Retrieval‑Augmented Generation)를 대체하며, 전체 비즈니스 컨텍스트를 실시간으로 주입한다. [출처: Context architecture is replacing RAG as agentic AI pushes enterprise retrieval to its limits]  
+**Forward Deployed Engineering**: 고객 현장에 엔지니어를 파견해 AI 파이프라인을 맞춤 설계·운영한다.  
+**Zero‑Trust for Agentic AI**: AI 모델·API 호출을 인증·인증하고, 비정상 행동을 실시간 차단한다.  
 
-## 4. 산업에 미치는 영향
-- **엔터프라이즈 지원**: SAP Joule은 서비스 티켓을 자동 분류·우선순위 지정 후 직접 해결까지 연결한다. 이는 인적 CS 비용을 감소시키고, 평균 해결 시간을 30% 가량 단축시킨다[출처: SAP’s Joule Bets on Agentic AI].
-- **공급망·물류**: vocal.media는 에이전시 AI가 실시간 재고 예측과 운송 경로 최적화를 수행하면서, 물류 기업이 인력 의존도를 낮추고 오류율을 감소시킨다고 전했다[출처: Agentic AI in Supply Chain and Logistics Market].
-- **보안**: Zscaler는 “Zero‑Trust for Agentic AI” 플랫폼을 출시해, 에이전트가 접근하는 데이터와 모델을 실시간 검증한다. 이는 외부 침해 시점에도 에이전트 자체가 격리되는 메커니즘을 제공한다[출처: Zscaler Launches Industry-First Zero Trust Security for Agentic AI].
+## 4. 실제 현장 적용 사례
+SAP Joule은 글로벌 제조 기업의 ERP 티켓 시스템에 적용돼, 사용자가 “주문 지연”을 입력하면 자동으로 관련 주문 데이터를 조회하고, 원인 분석 결과와 재작업 지시를 포함한 해결책을 제시한다. ServiceNow와 Accenture는 금융권 고객의 규제 보고 프로세스에 Agentic AI를 삽입해, 데이터 수집‑분석‑보고서 작성까지 전 과정을 자동화했다. Zscaler는 클라우드 기반 AI 서비스에 접근하는 모든 요청을 제로 트러스트 정책으로 검사해, 악성 AI 코드를 사전에 차단한다.
 
-## 5. 실제 적용 기업 사례
-- **SAP**: Joule을 파일럿 운영 중이며, 기존 헬프데스크 대비 티켓 처리 속도가 크게 개선되고 있다[출처: SAP’s Joule Bets on Agentic AI].
-- **Zscaler**: Zero‑Trust 솔루션을 에이전시 AI 환경에 적용해, 고객사에서 보안 로그 오버헤드가 15% 감소했다고 보고했다[출처: Zscaler Launches Industry-First Zero Trust Security for Agentic AI].
-- **Mistral**: 투자 라운드 후, 자체 개발한 에이전시 AI 모델을 대형 클라우드 파트너에 제공한다는 계획을 발표했다. 제품 출시 일정은 아직 공개되지 않았지만, 기업용 AI 채택을 가속화할 가능성이 거론되고 있다[출처: The Tech Download: Mistral's Arthur Mensch on agentic AI].
+## 5. 엔지니어가 봐야 할 포인트
+- **구현 난이도**: Multi‑model orchestration과 실시간 컨텍스트 주입을 위해 별도 MLOps 파이프라인이 필요하다.  
+- **비용**: 대규모 LLM(대형 언어 모델) 호출 비용이 급증한다. 비용 절감을 위해 온프레미스 모델과 캐시 전략을 병행해야 한다.  
+- **보안**: Agentic AI 자체가 새로운 공격 표면이 된다. 제로 트러스트 정책 적용과 모델 무결성 검증이 필수다.  
+- **운영 이슈**: 워크플로우 변경 시 기존 시스템과의 데이터 포맷 호환성 문제가 빈번히 나타난다. 사전 시뮬레이션과 단계적 롤아웃이 요구된다.
 
-## 6. 경제·시장 관점에서 보기
-애널리스트들은 토큰 기반 과금이 “가격 투명성”을 높이는 동시에, 비용 폭발 위험을 내포한다고 지적한다. EY가 제시한 비용 구조는 토큰당 평균 0.02 USD에서 0.15 USD까지 변동한다(구체적 수치는 기사에 상세히 기재되지 않아 언급하지 않음). 비용 최적화를 위해 기업은 아키텍처 재설계·오케스트레이션 자동화를 진행하고 있다. 보안 측면에서는 Zscaler와 같은 Zero‑Trust 벤더가 에이전시 AI 전용 방화벽을 제공하면서, 보안 솔루션 시장에 새로운 세그먼트를 형성하고 있다. 공급망에서는 에이전시 AI가 재고 예측 정확도를 5~10% 끌어올리며, 물류 비용 절감 효과를 기대하게 만든다[출처: Agentic AI in Supply Chain and Logistics Market].
+## 6. 정보관리기술사 연계
+**관련 기출:**  
+없음
 
-## 7. 앞으로 주목할 포인트
-- 토큰 과금 모델이 표준화되면서, 비용 예측 정확도가 어떻게 향상되는가.
-- Zero‑Trust와 연계된 에이전시 AI 보안 프레임워크가 실제 침해 시나리오에 얼마나 효과적인가.
-- 대형 ERP·CRM 벤더가 에이전시 AI를 코어 기능으로 통합해, 기존 워크플로를 어떻게 재구성하는가.
+**답안 핵심 키워드:**  
+- Agentic AI  
+- Context Architecture  
+- Forward Deployed Engineering  
+- Zero‑Trust  
+
+**답안 작성 포인트:**  
+- 정의: 다중 AI 모델을 조합해 업무를 자동 수행하는 시스템  
+- 구조: 사용자 입력 → Context Architecture → 모델 오케스트레이션 → 결과 반환  
+- 활용: 티켓 자동화, 규제 보고, 보안 검사  
+- 기대효과: 인력 비용 절감, 처리 속도 향상, 보안 리스크 감소  
+
+## 7. 앞으로 볼 포인트
+- 컨텍스트 기반 아키텍처가 RAG를 대체하면서 검색·생성 성능 한계가 완화될지 여부  
+- 제로 트러스트와 Agentic AI의 통합 표준이 산업 전반에 채택될 가능성  
+- 포렌식·보안 업체가 Agentic AI 워크로드를 감시·제어하는 솔루션 출시 속도  
 
 ## 8. 3줄 요약
-- 비용·보안·거버넌스가 에이전시 AI 도입의 핵심 장애물이 되고 있다.  
-- SAP와 Zscaler가 각각 업무 지원·보안 영역에서 파일럿을 확대하며 실효성을 입증하고 있다.  
-- 토큰 과금 표준화와 Zero‑Trust 연계가 향후 6개월 내 시장 성장을 좌우할 전망이다.
+- SAP Joule·ServiceNow·Zscaler 등 주요 벤더가 Agentic AI를 실무에 적용한다.  
+- 75% 기업이 도입을 선언했지만 생산 배치는 아직 초기 단계다.  
+- 엔지니어는 구현 복잡성·비용·보안 세 가지 관점에서 준비해야 한다.
