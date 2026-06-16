@@ -506,49 +506,58 @@ def build_ticker_dashboard(quotes: dict) -> str:
 
 
 def md_to_html(md: str, quotes: dict) -> str:
-    # (기존 regex 부분 생략)
-    
-    # 1. 최상단 날짜 & 헤드라인 대시보드 생성
+    # 1. 날짜 정보 생성
     now_kst = datetime.now(KST)
     date_display = now_kst.strftime("%Y년 %m월 %d일")
+
+    # ---------------------------------------------------------
+    # [핵심 수정 부분] AI가 생성한 마크다운(md)을 분석하여 
+    # 변수(body_lead_paragraph, body_content)에 할당하는 로직
+    # ---------------------------------------------------------
+    # 마크다운의 줄바꿈을 기준으로 문단을 나눕니다.
+    lines = [line.strip() for line in md.split('\n') if line.strip()]
     
-    # (중략: 기존 md_to_html 로직 유지하되 CSS 클래스/스타일만 교체)
-    
-    # 핵심 디자인 변경 사항:
-    # - 글꼴: 'Inter', 'Pretendard', 'Noto Sans KR' 우선 적용
-    # - 카드: 그림자(box-shadow)를 부드럽게 넣어 입체감 부여
-    # - 색상: Deep Navy (#0f172a)와 Slate 계열을 사용하여 신뢰감 형성
-    
-    # [apply_design_logic] 예시 (함수 내부 로직에 반영될 스타일)
-    header_style = """
+    if len(lines) > 0:
+        # 첫 번째 줄을 '리드 문단'으로 간주 (가장 중요한 요약문)
+        body_lead_paragraph = lines[0]
+        # 두 번째 줄부터 끝까지를 '본문 내용'으로 간주
+        body_content = "\n".join(lines[1:])
+    else:
+        # 만약 데이터가 비어있을 경우를 대비한 예외 처리
+        body_lead_paragraph = "시장 분석 데이터가 없습니다."
+        body_content = ""
+
+    # 만약 md(마크다운) 형식이 이미 복잡하다면, 
+    # 간단하게 첫 문단과 나머지 문단을 분리하는 로직을 추가했습니다.
+    # (이 부분은 사용하시는 md의 구조에 따라 미세 조정이 필요할 수 있습니다.)
+    # ---------------------------------------------------------
+
+    # 2. 헤더 스타일 설정 (기존 코드 유지)
+    header_style = f"""
     <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 30px 20px; border-radius: 16px; margin-bottom: 30px; text-align: center;">
         <div style="color: #94a3b8; font-size: 0.85em; letter-spacing: 3px; margin-bottom: 10px; font-family: monospace;">MARKET INTELLIGENCE REPORT</div>
-        <div style="color: #ffffff; font-size: 1.6em; font-weight: 800; margin-bottom: 15px;">{final_title_placeholder}</div>
+        <div style="color: #ffffff; font-size: 1.6em; font-weight: 800; margin-bottom: 15px;">Daily Market Briefing</div>
         <div style="display: inline-block; padding: 4px 12px; background: rgba(255,255,255,0.1); border-radius: 20px; color: #cbd5e1; font-size: 0.85em;">
             📅 {date_display} | 🇺🇸 US Market Analysis
         </div>
     </div>
     """
 
-    # (기존 코드의 md_to_html 내부 루프는 유지하되, 
-    #  최종 리턴되는 HTML 구조를 아래와 같이 감싸줍니다)
-    
+    # 3. 최종 HTML 구조 생성 및 반환
     return f"""
     <div style="font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Noto Sans KR', 'Malgun Gothic', sans-serif; max-width: 750px; margin: 0 auto; color: #334155; line-height: 1.7; background-color: #ffffff; padding: 0;">
-        
         <!-- [1] 상단 대시보드 (종목 시세) -->
         {build_ticker_dashboard(quotes)}
-
+        
         <!-- [2] 리포트 본문 영역 -->
         <div style="padding: 0 10px;">
-            
             <!-- 리드 문단 (AI가 생성한 첫 문단 스타일링) -->
             <div style="background: #f8fafc; border-left: 5px solid #0f172a; padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 30px;">
                 <p style="margin: 0; font-size: 1.15em; font-weight: 500; color: #1e293b; line-height: 1.6;">
                     {body_lead_paragraph}
                 </p>
             </div>
-
+            
             <!-- AI 분석 본문 -->
             <div style="font-size: 1.05em;">
                 {body_content}
@@ -558,7 +567,7 @@ def md_to_html(md: str, quotes: dict) -> str:
         <!-- [3] 하단 푸터 -->
         <div style="margin-top: 50px; padding: 30px 20px; background: #f1f5f9; border-radius: 20px; text-align: center; border: 1px solid #e2e8f0;">
             <p style="font-size: 0.85em; color: #64748b; margin: 0; line-height: 1.8;">
-                본 리포트는 <b>실시간 시장 데이터</b>를 기반으로 AI가 분석한 정보입니다.<br>
+                본 리포트는 <b style="color: #0f172a;">실시간 시장 데이터</b>를 기반으로 AI가 분석한 정보입니다.<br>
                 투자 판단의 최종 책임은 투자자 본인에게 있으며, 본 내용은 정보 제공만을 목적으로 합니다.
             </p>
             <div style="margin-top: 15px; font-size: 0.8em; color: #94a3b8; font-family: monospace;">
