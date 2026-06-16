@@ -38,7 +38,8 @@ jobs:
         run: python scripts/03_generate_post.py
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          
       - name: Step 4 - Post to Blogger
         run: python scripts/04_post_blogger.py
         env:
