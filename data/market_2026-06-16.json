@@ -28,33 +28,33 @@
       "symbol": "^VIX",
       "name": "VIX",
       "kind": "index",
-      "price": 16.16,
+      "price": 16.12,
       "prev": 16.2,
-      "chg_pct": -0.25
+      "chg_pct": -0.49
     },
     "DX-Y.NYB": {
       "symbol": "DX-Y.NYB",
       "name": "달러인덱스",
       "kind": "macro",
-      "price": 99.66,
+      "price": 99.61,
       "prev": 99.63,
-      "chg_pct": 0.03
+      "chg_pct": -0.02
     },
     "CL=F": {
       "symbol": "CL=F",
       "name": "WTI유가",
       "kind": "macro",
-      "price": 78.39,
+      "price": 77.46,
       "prev": 80.75,
-      "chg_pct": -2.92
+      "chg_pct": -4.07
     },
     "GC=F": {
       "symbol": "GC=F",
       "name": "금선물",
       "kind": "macro",
-      "price": 4349.6,
+      "price": 4363.0,
       "prev": 4328.0,
-      "chg_pct": 0.5
+      "chg_pct": 0.81
     },
     "NVDA": {
       "symbol": "NVDA",
@@ -139,6 +139,16 @@
   },
   "news": [
     {
+      "title": "US Stock Market Today: S&P 500 Futures Climb On Lower Yields And Easing Geopolitics",
+      "summary": "The Morning Bull - US Market Morning Update Tuesday, Jun, 16 2026 US stock futures are pointing higher this morning, with E-mini S&P 500 contracts up about 2.1% and Nasdaq-100 futures ahead roughly 3.2%, as investors respond to lower government bond yields and easing geopolitical risks. The US 10 year Treasury yield is around 4.43% to 4.50%, which signals cheaper borrowing costs for mortgages, cre",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/us-stock-market-today-p-081116223.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Futures Edge Higher as Iran Peace Rally Takes a Breather",
+      "summary": "Stocks looked set to struggle for direction on Tuesday as investors took the opportunity to lock in some profit after the U.S.-Iran peace deal sparked a stellar tech rally. S&P 500 futures traded flat, and contracts tied to the tech-heavy Nasdaq 100 slipped 0.1%. The three major indexes all surged on Monday, with the Nasdaq having its best session since late March.",
+      "link": "https://finance.yahoo.com/m/dc3dfccf-9d4f-3d41-9614-a67c3d378a74/dow-futures-edge-higher-as.html?.tsrc=rss"
+    },
+    {
       "title": "Another veteran analyst doubles down on stock market message",
       "summary": "A year ago, a price target of 7,700 for the S&P 500 by the end of 2026 would have sounded aggressive to most strategists. By May, the index had already rallied 8% for the year, and the analyst behind that target found himself in an unusual position: his own forecast was starting to look ...",
       "link": "https://www.thestreet.com/investing/stocks/another-veteran-analyst-doubles-down-on-stock-market-message-ed-yardeni?.tsrc=rss"
@@ -154,39 +164,29 @@
       "link": "https://finance.yahoo.com/markets/stocks/articles/walmart-wmt-among-14-best-020738279.html?.tsrc=rss"
     },
     {
-      "title": "Morgan Stanley Raises Price Target on Arista Networks (ANET). Here is Why",
-      "summary": "Arista Networks, Inc. (NYSE:ANET) is included among the 14 Best S&P 500 Stocks to Buy Now According to Analysts. Arista Networks, Inc. (NYSE:ANET) is an industry leader in data-driven, client-to-cloud networking for large data center/AI, campus, and routing environments. On June 12, Morgan Stanley lifted its price target on Arista Networks, Inc. (NYSE:ANET) from $180 […]",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/morgan-stanley-raises-price-target-020648491.html?.tsrc=rss"
+      "title": "SpaceX set to surpass Amazon's market cap as post-IPO rally continues",
+      "summary": "Shares of Elon Musk's SpaceX rose ‌more than 10% ‌in premarket trading on Tuesday, putting ​the company on course to overtake Amazon.com in market value to become the ‌world's fifth‑largest ⁠company, as it extended a post-IPO rally. The ⁠stock, which surged more than 19% on Monday, ​was last ​up ​10.1% at $211.8, giving ‌the company a market capitalization of nearly $2.8 trillion if gains hold. Am",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/spacex-set-surpass-amazons-market-082853728.html?.tsrc=rss"
     },
     {
-      "title": "Bernstein Initiates Coverage of Parker-Hannifin (PH) with a Bullish View",
-      "summary": "Parker-Hannifin Corporation (NYSE:PH) is included among the 14 Best S&P 500 Stocks to Buy Now According to Analysts. Parker-Hannifin Corporation (NYSE:PH) is a Fortune 250 global leader in motion and control technologies. The company helps customers solve complex challenges through expertise in electromechanical systems, filtration, fluid and gas handling, hydraulics, pneumatics, and process contr",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/bernstein-initiates-coverage-parker-hannifin-020633406.html?.tsrc=rss"
+      "title": "4 Stocks That Can Fund Decades of Passive Income -- Buy Them While They're Down",
+      "summary": "When stock prices go down, dividend yields go up.",
+      "link": "https://www.fool.com/investing/2026/06/16/4-stocks-that-can-fund-decades-of-passive-income-b/?.tsrc=rss"
+    },
+    {
+      "title": "Should You Buy SpaceX After Its IPO? Here Are 3 Lessons to Heed from Warren Buffett",
+      "summary": "The \"Oracle of Omaha\" knows a thing or two about buying IPO stocks.",
+      "link": "https://www.fool.com/investing/2026/06/16/should-you-buy-spacex-after-its-ipo-here-are-3-les/?.tsrc=rss"
+    },
+    {
+      "title": "3 Under-the-Radar Stocks to Buy and Hold for a Decade",
+      "summary": "All three could become highly prominent biotech companies within 10 years.",
+      "link": "https://www.fool.com/investing/2026/06/16/3-under-the-radar-stocks-to-buy-and-hold-for-a-dec/?.tsrc=rss"
     },
     {
       "title": "CVS Health's Comeback Is Just Getting Started -- and Its Valuation Still Looks Shockingly Cheap",
       "summary": "It's not too late to jump on the bandwagon.",
       "link": "https://www.fool.com/investing/2026/06/16/cvs-healths-comeback-is-just-getting-started-and-i/?.tsrc=rss"
-    },
-    {
-      "title": "This Top Oil Stock Expects an Unlikely Source to Help It Double Its Free Cash Flow by 2029.",
-      "summary": "ConocoPhillips is looking north for its next big exploration opportunity.",
-      "link": "https://www.fool.com/investing/2026/06/16/this-top-oil-stock-expects-an-unlikely-source-to-h/?.tsrc=rss"
-    },
-    {
-      "title": "Nebius Group N.V. (NBIS) a Moderate Buy, Per Wall Street",
-      "summary": "Nebius Group N.V. (NASDAQ:NBIS) is among the 10 Stocks ChatGPT Predicts Could Make You Wealthy in 3 Years. On June 8, BofA analyst Tal Liani lifted the firm’s price target on the stock to $280 from $240 and maintained a Buy rating. The adjustment came after the company announced it would spend £1.7 billion on […]",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/nebius-group-n-v-nbis-062748509.html?.tsrc=rss"
-    },
-    {
-      "title": "SMCZ vs. SMCX: Betting Against or All-In on Super Micro?",
-      "summary": "The choice between Defiance Daily Target 2X Short SMCI ETF (NASDAQ:SMCZ) and Defiance Daily Target 2X Long SMCI ETF (NASDAQ:SMCX) is the cleanest bull-versus-bear mirror trade available in the AI server complex. Both products from Defiance ETFs track the same underlying, Super Micro Computer (NASDAQ:SMCI), with opposing 2x daily leverage. They look like polar opposites ... SMCZ vs. SMCX: Betting A",
-      "link": "https://247wallst.com/investing/2026/06/16/smcz-vs-smcx-betting-against-or-all-in-on-super-micro/?.tsrc=rss"
-    },
-    {
-      "title": "NVDA Reclaims $5 Trillion Market Cap After Best Day In Two Weeks: Retail Traders Stay On Sidelines",
-      "summary": "Joining Amazon and Alphabet, Nvidia announced that it is tapping the debt market with a $25 billion bond issue.",
-      "link": "https://stocktwits.com/news-articles/markets/equity/nvda-reclaims-5-trillion-market-cap-after-best-day-in-two-weeks-retail-traders-stay-on-sidelines/cZKWOlcR7EE?.tsrc=rss"
     },
     {
       "title": "Legacy global automakers falter in ambition despite momentum in the EV transition",
@@ -207,11 +207,6 @@
       "title": "TSLA Stock Slides Overnight: Ross Gerber Calls Tesla 'Worthless' Without SpaceX Merger As Retail Bets Rise",
       "summary": "Gerber also said Tesla does not own the \"brains\" behind its self-driving and robotics ambitions.",
       "link": "https://stocktwits.com/news-articles/markets/equity/tsla-ross-gerber-worthless-spacex-merger-retail-bets-rise/cZKWXZiR7EJ?.tsrc=rss"
-    },
-    {
-      "title": "S&P 500, Nasdaq, Dow Futures Retreat After Rally Fueled By SpaceX, US-Iran Deal As Fed Meeting Looms: TSLA, PLAY, FISV In Focus",
-      "summary": "The Dow index jumped to a new all-time intraday high on Monday, while the Nasdaq jumped to its best close since the end of March.",
-      "link": "https://stocktwits.com/news-articles/markets/equity/sp500-nasdaq-dow-futures-retreat-after-rally-fueled-by-spacex-us-iran-deal-as-fed-meeting-looms/cZKW76IR7ER?.tsrc=rss"
     },
     {
       "title": "Why Did AMD, WULF, AMAT Stocks Jump To 52-Week Highs?",
@@ -249,6 +244,11 @@
       "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5zbDM0VGZuUjNaUlp2czRlcU5ibmRvS1RMZ2hMUTctUEZ4bVZiaXhBLUZWenFLTnd0bi00WF9la2dCODNNcnpidUFya2ZfeXp0TktqSHJUc01aWUtBd3JnTUduZUQ5UktWWjBJVXpyQVRlWld4V0lr0gF8QVVfeXFMTVp6RkV3aEQ2WGpyR1VPaGhOcmdnakRaZnFxVkROc3BhN2VzazhiRW5kNWIyNmtiSmhJMEotbWJHT3IxUHlYMFg3aGpadHJMbTdRbjJ2OTNqTkkyTHBnTllaVUNyZ0Y1UldVQTdiX21aYmxQaXFrcUlIU2FYdA?oc=5"
     },
     {
+      "title": "US Stock Market Today: S&P 500 Futures Climb On Lower Yields And Easing Geopolitics - Yahoo Finance",
+      "summary": "US Stock Market Today: S&P 500 Futures Climb On Lower Yields And Easing Geopolitics Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNMmRQbDZpU2NKSEtIbVFYcVlVaFcxbm5qY2FENzd1TFExSnBOVXZXUm1kcW04NU1scHNJd1NER0ViMGw3TG9XaEltNmZ6bFBSS3hZOThMMVF5ajJqUTVCQ05CYTgwdlZOeWhBQWhhUktSYXB4eERUblRtZXlWNHhjY0xYU2dSQk11UHEyUENpV2dPQQ?oc=5"
+    },
+    {
       "title": "Dow Jones Futures: Trump, Iran Deal Spark Stock Market Surge; Nvidia, Micron, Sandisk SpaceX Are Big Winners - Investor's Business Daily",
       "summary": "Dow Jones Futures: Trump, Iran Deal Spark Stock Market Surge; Nvidia, Micron, Sandisk SpaceX Are Big Winners Investor's Business Daily",
       "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNSGQtV2h3ZzdnWHVES3hfd3ZGbjRTWFBMZ1hoZ2Y3UGJMWFhyZkVKOTBFbkVxX0NYV0Y3a0JNNHBBMVZJNlhrN2oteTlfWFdMbEdjMWVIaVdTZ2ptLWtkOG1uOGpHR3dSV2tBOVNvbkQxUV9pZ3ZLa0tCTjk2NW5walA0NXFuSG13ejQ0ZlRWQzJCeS1sd2hhVUYzVHNQUWstaGpLallzT3V3LS1UZTJ2TFZfbGZBU3JzTmI2WGVhMkV3aWFMOTAxdg?oc=5"
@@ -259,10 +259,10 @@
       "link": "https://news.google.com/rss/articles/CBMiZEFVX3lxTFBnd0hfa0czY0dYZFR0N1BDUUx5ZGlOY25jWkZyLU1IM3BZcFVIcEJsSVJiMXlWc0FaV0l4UXluaG4tOGFtX0w0MUgxZm9JUkVKb29aMUlSWXRDMl9fbnNneGNHRzM?oc=5"
     },
     {
-      "title": "Stock market today: Dow, S&P 500, Nasdaq futures drift ahead of Warsh's first Fed meeting as chair - Yahoo Finance",
-      "summary": "Stock market today: Dow, S&P 500, Nasdaq futures drift ahead of Warsh's first Fed meeting as chair Yahoo Finance",
-      "link": "https://news.google.com/rss/articles/CBMi4AFBVV95cUxNSTJ2YXFtWUpXME5PWGUzekpCV2gxS29QNUs0cVBDT0l5MmtZY29XcVkxSFgxV2t4YjF2OUk2NE5nYW41Ykg1anl4MHhJRHFTV3FZZU5NTFdWTGxBVWxiaE5DUXNyRmhaVWwtOG9CRHlCdmd6QkwxMkVXcVFPeXI1UkRXSk15cnhwX3hOYjlOTS00U3FsZ1VBOHFkRXNYTlpGOHpMVF9MSlM4T25tYklpSk9xdWExbnd3a24tZzA4QVlUdXh3bFk5VHpIbFA2ZXRONFprVS0wRWhQY2pxZEgwQg?oc=5"
+      "title": "Wall Street rallies, Dow ends with record on US-Iran deal, oil price slide - Reuters",
+      "summary": "Wall Street rallies, Dow ends with record on US-Iran deal, oil price slide Reuters",
+      "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNajR4UzdaSXRuUjREVE5uZDBySzllNTdibzhobEdmbXJaMDNBX2ZmTFBnUUxzRy04WkZ3RUZCSEJkSURNcE5vUERPbGlBdVNwNDEzU3FwUWZmTnhreGRVeU9EeEpCTVZQT05fNk5scUZ5Z2RGY09idlFCRTY1T3NkQ2wySllpNXlSZmg4MUI3MUNIbGgzalRFUlNZV08tTktl?oc=5"
     }
   ],
-  "generated_at": "2026-06-16T16:53:15.250502+09:00"
+  "generated_at": "2026-06-16T17:40:32.641376+09:00"
 }
