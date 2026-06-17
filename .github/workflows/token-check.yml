@@ -1,0 +1,29 @@
+name: token checker
+
+on:
+  schedule:
+    # 미국 장 마감 후 KST 08:00 발행 (UTC 23:00 전날)
+    # 나스닥 마감 ~05:00 KST → 08:00 발행으로 여유 확보
+    - cron: '0 23 * * 1-5'   # 평일(월~금)만 실행
+  workflow_dispatch:           # 수동 실행 허용
+    inputs:
+      dry_run:
+        description: '발행 없이 HTML만 생성 (true/false)'
+        required: false
+        default: 'false'
+
+jobs:
+  market-report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    timeout-minutes: 20        # 시세 수집 + LLM 여유 시간
+
+    steps:
+      - name: Debug token
+        run: python scripts/debug_token.py
+        env:
+          BLOGGER_BLOG_ID:       ${{ secrets.BLOGGER_BLOG_ID }}
+          BLOGGER_CLIENT_ID:     ${{ secrets.BLOGGER_CLIENT_ID }}
+          BLOGGER_CLIENT_SECRET: ${{ secrets.BLOGGER_CLIENT_SECRET }}
+          BLOGGER_REFRESH_TOKEN_2: ${{ secrets.BLOGGER_REFRESH_TOKEN_2 }}
