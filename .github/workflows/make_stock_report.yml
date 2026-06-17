@@ -2,7 +2,7 @@ name: Market Report Auto Publisher
 
 on:
   schedule:
-    - cron: '0 23 * * 1-5'   # 평일(월~금) KST 08:00 발행
+    - cron: '30 22 * * 0-4'   # 평일(월~금) KST 08:00 발행
   workflow_dispatch:
     inputs:
       dry_run:
