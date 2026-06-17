@@ -32,7 +32,7 @@ jobs:
         run: pip install feedparser
 
       - name: Check env vars
-        run: python scripts/debug-token.py
+        run: python scripts/debug-tokken.py
         env:
           BLOGGER_BLOG_ID:         ${{ secrets.BLOGGER_BLOG_ID }}
           BLOGGER_REFRESH_TOKEN_2: ${{ secrets.BLOGGER_REFRESH_TOKEN_2 }}
