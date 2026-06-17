@@ -2,11 +2,13 @@
 03_generate_post.py
 OpenRouter Free API로 블로그 포스팅 본문을 생성하고 HTML로 변환한다.
 
-개선사항:
-- 숫자 누락 버그 수정: 출처 없는 수치는 제거 대신 경고만 출력
-- 섹션 라벨 수정: MARKET → KPE, 헤딩 띄어쓰기 수정
-- 대표 이미지: Unsplash API 연동
-- 섹션 접두어 렌더링 개선 (배지 + 제목 사이 공백)
+이번 수정 — 디자인 시스템 통일:
+- 렌더링 로직을 it_html_builder.py 로 분리.
+  market_html_builder.py(Stock)와 동일한 토큰(여백/라운드/헤딩 바+배지/리드박스/요약박스 구조)을
+  공유하면서 포인트 컬러만 시안 계열로 분기.
+- 기존 콘텐츠 생성 로직(call_ai, generate_body, generate_diagram, refine_title,
+  fetch_unsplash_image)은 그대로 유지.
+- 출처 미태깅 수치는 제거하지 않고 경고만 출력 (이전 수정 유지).
 """
 
 import json
@@ -17,7 +19,15 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import base64
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+from it_html_builder import (
+    md_to_html,
+    build_meta_bar,
+    render_hero_image,
+    render_diagram,
+    render_references,
+)
 
 TOPIC_FILE = "data/selected_topic.json"
 POST_FILE  = "data/blog_post.json"
@@ -25,11 +35,16 @@ POST_FILE  = "data/blog_post.json"
 OPENROUTER_API_KEY   = os.environ.get("OPENROUTER_API_KEY")
 UNSPLASH_ACCESS_KEY  = os.environ.get("UNSPLASH_ACCESS_KEY")
 
+KST = timezone(timedelta(hours=9))
+
 MODELS = [
     "openai/gpt-oss-120b:free",
-    "google/gemma-4-31b:free",
+    "google/gemma-4-26b-a4b:free",
+    "qwen/qwen3-next-80b-a3b-instruct:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "nousresearch/hermes-3-405b-instruct:free",
     "openai/gpt-oss-20b:free",
-    "nvidia/nemotron-3-super:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
 ]
 
 
@@ -87,14 +102,10 @@ def call_ai(prompt: str, max_tokens: int = 4096) -> str:
 # 대표 이미지 — Unsplash
 # ──────────────────────────────────────────
 
-def fetch_unsplash_image(topic: str) -> dict | None:
-    """Unsplash에서 토픽 관련 이미지 검색. 없으면 None 반환."""
+def fetch_unsplash_image(topic: str):
     if not UNSPLASH_ACCESS_KEY:
         print("[WARN] UNSPLASH_ACCESS_KEY 없음 → 대표 이미지 스킵")
         return None
-
-    # 영어 검색어로 변환 (토픽이 한글이면 AI가 변환)
-    query = topic.replace(" ", "+")
 
     url = (
         f"https://api.unsplash.com/search/photos"
@@ -118,11 +129,11 @@ def fetch_unsplash_image(topic: str) -> dict | None:
             return None
         photo = results[0]
         return {
-            "url":      photo["urls"]["regular"],
-            "thumb":    photo["urls"]["small"],
-            "alt":      photo.get("alt_description") or topic,
-            "author":   photo["user"]["name"],
-            "author_url": photo["user"]["links"]["html"],
+            "url":          photo["urls"]["regular"],
+            "thumb":        photo["urls"]["small"],
+            "alt":          photo.get("alt_description") or topic,
+            "author":       photo["user"]["name"],
+            "author_url":   photo["user"]["links"]["html"],
             "unsplash_url": photo["links"]["html"],
         }
     except Exception as e:
@@ -130,31 +141,11 @@ def fetch_unsplash_image(topic: str) -> dict | None:
         return None
 
 
-def build_hero_image_html(image: dict, topic: str) -> str:
-    """대표 이미지 HTML 생성 (Unsplash 저작권 표기 포함)"""
-    return f"""
-<div style="margin:0 0 2em;border-radius:12px;overflow:hidden;position:relative;">
-  <img
-    src="{image['url']}"
-    alt="{image['alt']}"
-    style="width:100%;max-height:400px;object-fit:cover;display:block;"
-    loading="lazy"
-  />
-  <p style="font-size:0.75em;color:#aaa;margin:6px 0 0;text-align:right;">
-    Photo by <a href="{image['author_url']}?utm_source=mystacklog&utm_medium=referral"
-    target="_blank" rel="noopener noreferrer" style="color:#aaa;">{image['author']}</a>
-    on <a href="https://unsplash.com?utm_source=mystacklog&utm_medium=referral"
-    target="_blank" rel="noopener noreferrer" style="color:#aaa;">Unsplash</a>
-  </p>
-</div>
-"""
-
-
 # ──────────────────────────────────────────
 # 기사 컨텍스트 빌더
 # ──────────────────────────────────────────
 
-def build_article_context(articles: list[dict], topic: str) -> str:
+def build_article_context(articles: list, topic: str) -> str:
     topic_lower = topic.lower()
     relevant = [
         a for a in articles
@@ -174,7 +165,7 @@ def build_article_context(articles: list[dict], topic: str) -> str:
 
 
 # ──────────────────────────────────────────
-# ✅ 수치 후처리 — 제거 대신 경고만 출력
+# 수치 후처리 — 제거 대신 경고만 출력
 # ──────────────────────────────────────────
 
 NUMERIC_PATTERN = re.compile(
@@ -187,26 +178,21 @@ SOURCE_TAG_PATTERN = re.compile(r'\[출처\s*:\s*.+?\]')
 
 
 def sanitize_untagged_numerics(text: str) -> str:
-    """
-    ✅ 수정: 출처 없는 수치는 제거하지 않고 경고만 출력.
-    기존 코드가 수치를 삭제해서 '효율을 이상 끌어올린' 같은 문장이 만들어졌음.
-    """
     lines = text.split("\n")
     for line in lines:
         stripped = line.strip()
         if NUMERIC_PATTERN.search(stripped) and not SOURCE_TAG_PATTERN.search(stripped):
             print(f"  [경고] 출처 미태깅 수치 발견: {stripped[:80]}...")
-    return text  # 원문 그대로 반환
+    return text
 
 
 def enforce_three_line_summary(text: str) -> str:
-    match = re.search(r'(## 8[^\n]*\n)(.*?)(\Z|## \d)', text, re.DOTALL)
+    match = re.search(r'(## 7[^\n]*\n)(.*?)(\Z|## \d)', text, re.DOTALL)
     if not match:
         return text
 
-    section_header = match.group(1)
-    section_body   = match.group(2)
-    after          = match.group(3)
+    section_body = match.group(2)
+    after        = match.group(3)
 
     bullets = [l for l in section_body.split("\n") if l.strip().startswith("- ")]
 
@@ -223,36 +209,6 @@ def enforce_three_line_summary(text: str) -> str:
         return text[:match.start(2)] + fixed_body + after
 
     return text
-
-
-# ──────────────────────────────────────────
-# 출처 태그 → HTML 각주 변환
-# ──────────────────────────────────────────
-
-def convert_source_tags_to_html(text: str, articles: list[dict]) -> str:
-    title_to_url = {}
-    for a in articles:
-        title_to_url[a["title"].strip()] = a.get("link", "")
-
-    def replace_tag(match):
-        tag_content = match.group(0)
-        inner = re.sub(r'^\[출처\s*:\s*', '', tag_content).rstrip(']').strip()
-        url = title_to_url.get(inner, "")
-        if not url:
-            for title, u in title_to_url.items():
-                if inner[:20] in title or title[:20] in inner:
-                    url = u
-                    break
-        if url:
-            return (
-                f'<sup style="font-size:0.75em;color:#1a73e8;">'
-                f'[<a href="{url}" target="_blank" rel="noopener noreferrer" '
-                f'style="color:#1a73e8;text-decoration:none;">{inner[:30]}</a>]</sup>'
-            )
-        else:
-            return f'<sup style="font-size:0.75em;color:#888;">[{inner[:30]}]</sup>'
-
-    return SOURCE_TAG_PATTERN.sub(replace_tag, text)
 
 
 # ──────────────────────────────────────────
@@ -313,7 +269,7 @@ def generate_body(topic_data: dict) -> str:
 - [출처: ] 없는 수치 단정 표현 절대 금지
 
 【작성 규칙】
-- 반드시 아래 8개 섹션 구조로 작성
+- 반드시 아래 7개 섹션 구조로 작성
 - 각 섹션은 ## 헤딩 사용
 - 전체 분량: 2000~3000자
 - 이모지, 아이콘, 화살표 기호 사용 금지
@@ -368,223 +324,6 @@ JSON만 출력:
 
 
 # ──────────────────────────────────────────
-# ✅ 섹션 라벨 수정 — MARKET → KPE, 헤딩 렌더링 개선
-# ──────────────────────────────────────────
-
-SECTION_LABELS = {
-    "1": ("TECH",   "#1a73e8"),
-    "2": ("TREND",  "#0f9d58"),
-    "3": ("CORE",   "#f57c00"),
-    "4": ("IMPACT", "#7b1fa2"),
-    "5": ("CASE",   "#c62828"),
-    "6": ("KPE",    "#00838f"),   # ✅ MARKET → KPE (정보관리기술사)
-    "7": ("AHEAD",  "#37474f"),
-    "8": ("SUMMARY","#1a73e8"),
-}
-
-
-def render_heading(text: str) -> str:
-    match = re.match(r"^(\d+)\.\s*(.+)$", text.strip())
-    if not match:
-        return (
-            f'<h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;'
-            f'margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #333;">'
-            f'{text}</h2>'
-        )
-
-    num, title_text = match.group(1), match.group(2)
-    label_info = SECTION_LABELS.get(num)
-
-    if label_info:
-        label, color = label_info
-        badge = (
-            f'<span style="display:inline-block;background:{color};color:#fff;'
-            f'font-size:0.7em;font-weight:700;padding:3px 9px;border-radius:4px;'
-            f'margin-right:10px;vertical-align:middle;letter-spacing:0.5px;">'
-            f'{label}</span>'
-        )
-    else:
-        badge = ""
-
-    return (
-        f'<h2 style="font-size:1.3em;font-weight:700;color:#1a1a1a;'
-        f'margin:2.2em 0 0.8em;padding-bottom:8px;border-bottom:2px solid #eee;">'
-        f'{badge}{title_text}</h2>'  # ✅ 배지와 제목 사이 공백 자연스럽게
-    )
-
-
-def render_core_elements_cards(bullet_lines: list[str]) -> str:
-    cards = []
-    for line in bullet_lines:
-        text = line[2:].strip()
-        m = re.match(r"^\*\*(.+?)\*\*\s*[:：]\s*(.+)$", text)
-        if m:
-            term, desc = m.group(1), m.group(2)
-        else:
-            term, desc = "", text
-
-        if term:
-            cards.append(
-                '<div style="background:#f8f9fa;border-radius:10px;padding:14px 16px;">'
-                f'<strong style="color:#1a73e8;font-size:0.98em;">{term}</strong>'
-                f'<p style="margin:6px 0 0;font-size:0.92em;color:#555;line-height:1.6;">{desc}</p>'
-                '</div>'
-            )
-        else:
-            cards.append(
-                '<div style="background:#f8f9fa;border-radius:10px;padding:14px 16px;">'
-                f'<p style="margin:0;font-size:0.92em;color:#555;line-height:1.6;">{desc}</p>'
-                '</div>'
-            )
-
-    return (
-        '<div style="display:flex;flex-wrap:wrap;gap:12px;margin:1em 0;">'
-        + "".join(
-            f'<div style="flex:1 1 calc(50% - 6px);min-width:220px;">{c}</div>'
-            for c in cards
-        )
-        + "</div>"
-    )
-
-
-def render_summary_box(bullet_lines: list[str]) -> str:
-    items = "".join(
-        f'<li style="margin-bottom:8px;line-height:1.7;color:#333;">{line[2:].strip()}</li>'
-        for line in bullet_lines
-    )
-    return (
-        '<div style="background:#eef4ff;border-radius:10px;padding:18px 20px;margin:1.5em 0;">'
-        '<p style="font-weight:700;color:#1a73e8;margin:0 0 10px;font-size:1.02em;">한눈에 보기</p>'
-        f'<ul style="padding-left:1.3em;margin:0;">{items}</ul>'
-        '</div>'
-    )
-
-
-def md_to_html(md: str, title: str, articles: list[dict] = None) -> str:
-    md = sanitize_untagged_numerics(md)
-    if articles:
-        md = convert_source_tags_to_html(md, articles)
-
-    lines = md.split("\n")
-    html_lines = []
-    in_ul = False
-    ul_buffer = []
-    current_section = None
-
-    def flush_ul():
-        nonlocal in_ul, ul_buffer
-        if not ul_buffer:
-            in_ul = False
-            return
-
-        if current_section == "3":
-            html_lines.append(render_core_elements_cards(ul_buffer))
-        elif current_section == "8":
-            html_lines.append(render_summary_box(ul_buffer))
-        else:
-            html_lines.append('<ul style="padding-left:1.5em;line-height:2.0;margin:0.5em 0;">')
-            for l in ul_buffer:
-                text = l[2:].strip()
-                text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
-                html_lines.append(f'  <li style="margin-bottom:6px;">{text}</li>')
-            html_lines.append("</ul>")
-
-        ul_buffer.clear()
-        in_ul = False
-
-    is_first_content_line = True
-
-    for line in lines:
-        stripped = line.strip()
-
-        if re.fullmatch(r"-{3,}|\*{3,}", stripped):
-            continue
-
-        if line.startswith("## "):
-            if in_ul:
-                flush_ul()
-            heading_text = line[3:].strip()
-            html_lines.append(render_heading(heading_text))
-            m = re.match(r"^(\d+)\.", heading_text)
-            current_section = m.group(1) if m else None
-            is_first_content_line = False
-
-        elif line.startswith("- ") or line.startswith("* "):
-            is_first_content_line = False
-            in_ul = True
-            ul_buffer.append(line.strip())
-
-        else:
-            if in_ul and stripped:
-                flush_ul()
-
-            if stripped:
-                text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", stripped)
-                text = re.sub(
-                    r"`(.+?)`",
-                    r'<code style="background:#f1f1f1;padding:2px 6px;border-radius:3px;font-size:0.9em;">\1</code>',
-                    text
-                )
-                if is_first_content_line and current_section is None:
-                    html_lines.append(
-                        f'<p style="line-height:1.9;margin:0 0 1.5em;color:#444;'
-                        f'font-size:1.05em;border-left:3px solid #1a73e8;'
-                        f'padding-left:14px;">{text}</p>'
-                    )
-                    is_first_content_line = False
-                else:
-                    html_lines.append(
-                        f'<p style="line-height:1.95;margin:0.9em 0;color:#333;font-size:1em;">{text}</p>'
-                    )
-            else:
-                if in_ul:
-                    flush_ul()
-
-    if in_ul:
-        flush_ul()
-
-    body = "\n".join(html_lines)
-
-    references_html = ""
-    if articles:
-        ref_items = []
-        for a in articles[:8]:
-            src_label = {
-                "google_news":   "Google News",
-                "yahoo_finance": "Yahoo Finance",
-                "hacker_news":   "Hacker News",
-            }.get(a.get("source", ""), a.get("source", ""))
-            ref_items.append(
-                f'<li style="margin-bottom:6px;line-height:1.6;">'
-                f'<a href="{a["link"]}" target="_blank" rel="noopener noreferrer" '
-                f'style="color:#5a8fd6;text-decoration:none;">{a["title"]}</a>'
-                f'<span style="color:#aaa;font-size:0.85em;"> — {src_label}</span></li>'
-            )
-        references_html = f"""
-<div style="margin-top:2.5em;padding:16px 20px;background:#fcfcfc;border:1px solid #eee;border-radius:8px;">
-<p style="font-size:0.85em;font-weight:700;color:#999;margin:0 0 10px;letter-spacing:0.5px;">참고 기사</p>
-<ul style="padding-left:1.3em;margin:0;font-size:0.92em;">
-{chr(10).join(ref_items)}
-</ul>
-</div>
-"""
-
-    return f"""<div style="font-family:'Noto Sans KR','Malgun Gothic',sans-serif;max-width:720px;margin:0 auto;color:#333;word-break:keep-all;">
-
-{{HERO_IMAGE}}
-
-{body}
-
-{references_html}
-
-<div style="margin-top:1.5em;padding:18px 20px;background:#fafafa;border:1px solid #e8e8e8;border-radius:8px;font-size:0.85em;color:#999;line-height:1.8;">
-본 콘텐츠는 IT 기술 정보 제공 목적으로 작성되었습니다. 투자 판단의 근거로 사용하지 마시기 바랍니다.
-</div>
-
-</div>"""
-
-
-# ──────────────────────────────────────────
 # 메인
 # ──────────────────────────────────────────
 
@@ -593,6 +332,8 @@ def main():
         print(f"[ERROR] {TOPIC_FILE} 파일이 없습니다.")
         print("       02_select_topic.py를 먼저 실행하세요.")
         sys.exit(1)
+
+    now_kst = datetime.now(KST)
 
     with open(TOPIC_FILE, encoding="utf-8") as f:
         topic_data = json.load(f)
@@ -618,44 +359,53 @@ def main():
     body_md = generate_body(topic_data)
     print(f"\n[본문 생성 완료] {len(body_md)}자")
 
+    body_md = sanitize_untagged_numerics(body_md)
     body_md = enforce_three_line_summary(body_md)
 
     # 3. 구성도 생성
     print("\n[구성도 생성 중...]")
-    diagram_html = ""
+    diagram_url = ""
     try:
         diagram_code = generate_diagram(topic_data)
         diagram_url  = mermaid_to_image_url(diagram_code)
-        diagram_html = f'''
-<div style="text-align:center;margin:2em 0;">
-  <img src="{diagram_url}" alt="{topic} 구조도" style="max-width:100%;border-radius:8px;border:1px solid #eee;" loading="lazy" />
-  <p style="font-size:0.85em;color:#999;margin-top:8px;">{topic} 핵심 구조도</p>
-</div>
-'''
         print(f"[구성도 URL] {diagram_url[:80]}...")
     except Exception as e:
         print(f"[WARN] 구성도 생성 실패: {e}")
 
-    # 4. HTML 변환
+    # 4. HTML 변환 (디자인 시스템 통일된 it_html_builder 사용)
     relevant_articles = articles[:8] if articles else []
-    body_html = md_to_html(body_md, title, relevant_articles)
+    content_html = md_to_html(body_md, relevant_articles)
 
-    # 5. 대표 이미지 삽입
-    hero_html = build_hero_image_html(hero_image, topic) if hero_image else ""
-    body_html = body_html.replace("{HERO_IMAGE}", hero_html)
+    # 5. 메타바 삽입 (Stock의 {DASHBOARD}와 동일한 패턴)
+    meta_bar_html = build_meta_bar(topic, tags, now_kst)
+    content_html  = content_html.replace("{META_BAR}", meta_bar_html)
 
-    # 6. 구성도 삽입 (CORE 섹션 앞)
-    if diagram_html:
+    # 6. 대표 이미지 삽입 (메타바 바로 다음)
+    if hero_image:
+        hero_html = render_hero_image(hero_image)
+        content_html = content_html.replace(meta_bar_html, meta_bar_html + hero_html, 1)
+
+    # 7. 구성도 삽입 (CORE 섹션 앞)
+    if diagram_url:
+        diagram_html = render_diagram(diagram_url, topic)
         marker = '>CORE</span>'
-        idx = body_html.find(marker)
+        idx = content_html.find(marker)
         if idx != -1:
-            h2_start = body_html.rfind('<h2', 0, idx)
+            h2_start = content_html.rfind('<h2', 0, idx)
             if h2_start != -1:
-                body_html = body_html[:h2_start] + diagram_html + body_html[h2_start:]
+                content_html = content_html[:h2_start] + diagram_html + content_html[h2_start:]
         else:
-            body_html += diagram_html
+            content_html += diagram_html
 
-    # 7. 제목 추천
+    # 8. 참고 기사 삽입 (면책 박스 앞)
+    if relevant_articles:
+        references_html = render_references(relevant_articles)
+        marker = '<div style="margin-top:2em;'
+        idx = content_html.rfind(marker)
+        if idx != -1:
+            content_html = content_html[:idx] + references_html + content_html[idx:]
+
+    # 9. 제목 추천
     print("\n[제목/카테고리 추천 중...]")
     refined          = refine_title(topic_data)
     title_candidates = refined.get("titles", [title])
@@ -670,10 +420,10 @@ def main():
         "title_candidates": title_candidates,
         "category":         category,
         "topic":            topic,
-        "content_html":     body_html,
+        "content_html":     content_html,
         "content_md":       body_md,
         "tags":             ",".join(tags),
-        "created_at":       datetime.now().isoformat(),
+        "created_at":       now_kst.isoformat(),
         "hero_image":       hero_image,
     }
 
@@ -683,7 +433,7 @@ def main():
         json.dump(post, f, ensure_ascii=False, indent=2)
 
     with open("data/blog_post.html", "w", encoding="utf-8") as f:
-        f.write(body_html)
+        f.write(content_html)
 
     with open("data/blog_post.md", "w", encoding="utf-8") as f:
         f.write(f"# {final_title}\n\n")
