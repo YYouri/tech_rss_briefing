@@ -492,6 +492,8 @@ def get_access_token() -> str:
 
 def post_to_blogger(title: str, content: str, labels: list) -> dict:
     access_token = get_access_token()
+    print(f"   [access token]:{access_token}")
+    print(f"   [blog id]:{BLOGGER_BLOG_ID}")
     payload = {"title": title, "content": content, "labels": labels}
     data    = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req     = urllib.request.Request(
