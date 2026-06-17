@@ -1,0 +1,268 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26021.66,
+      "prev": 26683.94,
+      "chg_pct": -2.48
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7420.1,
+      "prev": 7554.29,
+      "chg_pct": -1.78
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 51492.55,
+      "prev": 51671.03,
+      "chg_pct": -0.35
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 18.44,
+      "prev": 16.41,
+      "chg_pct": 12.37
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 100.39,
+      "prev": 99.54,
+      "chg_pct": 0.85
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 75.36,
+      "prev": 76.05,
+      "chg_pct": -0.91
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4284.1,
+      "prev": 4330.9,
+      "chg_pct": -1.08
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 204.65,
+      "prev": 212.45,
+      "chg_pct": -3.67
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 512.48,
+      "prev": 547.26,
+      "chg_pct": -6.36
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 121.1,
+      "prev": 127.86,
+      "chg_pct": -5.29
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 432.15,
+      "prev": 441.4,
+      "chg_pct": -2.1
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 295.95,
+      "prev": 296.42,
+      "chg_pct": -0.16
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 378.91,
+      "prev": 399.76,
+      "chg_pct": -5.22
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 396.38,
+      "prev": 411.15,
+      "chg_pct": -3.59
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 237.5,
+      "prev": 246.02,
+      "chg_pct": -3.46
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 363.79,
+      "prev": 369.35,
+      "chg_pct": -1.51
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 567.58,
+      "prev": 593.48,
+      "chg_pct": -4.36
+    }
+  },
+  "news": [
+    {
+      "title": "Dow Jones Futures Rise After Fed Rate Hike Bets Hit Stocks; SpaceX Falls As Robinhood Jumps",
+      "summary": "Stocks suffered broad, sharp losses on rate hike bets after the first Warsh Fed meeting. SpaceX fell for the first time while Robinhood jumped.",
+      "link": "https://finance.yahoo.com/m/d2bdbf77-f3c4-3751-a3c0-3b4699fc0ef9/dow-jones-futures-rise-after.html?.tsrc=rss"
+    },
+    {
+      "title": "Which S&P 500 ETF Is the Better Buy: iShares' IVV or State Street's SPY?",
+      "summary": "Subtle differences in structure and returns can impact long-term ETF performance for investors seeking S&P 500 exposure. Explore how these giants stack up.",
+      "link": "https://www.fool.com/coverage/etfs/2026/06/17/which-s-and-p-500-etf-is-the-better-buy-ishares-ivv-or-state-street-s-spy/?.tsrc=rss"
+    },
+    {
+      "title": "Wall Street closes lower on Fed rate hike bets",
+      "summary": "STORY: U.S. stocks ended lower on Wednesday, as the Dow dropped about 1%, the S&P 500 shed 1.2% and the Nasdaq slid about one-and-a-third percent. Kevin Warsh held his first press conference as Federal Reserve Chair on Wednesday after the central bank wrapped its June policy meeting. The Fed left interest rates unchanged, as expected, but new projections showed nine central bank officials expect a",
+      "link": "https://finance.yahoo.com/video/wall-street-closes-lower-fed-222319794.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, June 17: Nu Holdings Rises as AI Credit Models Lift Lending Outlook",
+      "summary": "Nu Holdings’ AI models are moving deeper into credit decisions, raising the stakes for whether lending growth can stay profitable.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/06/17/stock-market-today-june-17-nu-holdings-rises-as-ai-credit-models-lift-lending-outlook/?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, June 17: Eos Energy Enterprises Jumps After Announcing New Battery Storage Partnership",
+      "summary": "Today, June 17, 2026, investors responded to Eos Energy Enterprises' new European agreement with heightened optimism.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/06/17/stock-market-today-june-17-eos-energy-enterprises-jumps-after-announcing-new-battery-storage-partnership/?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, June 17: Marvell Rises as AI Bookings Build on Nvidia-Linked Momentum",
+      "summary": "Marvell’s custom AI chips and optical-networking exposure give investors a clearer data-center growth angle, with the next test tied to whether demand for custom chips and optical networking will translate into sales and profit growth.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/06/17/stock-market-today-june-17-marvell-rises-as-ai-bookings-build-on-nvidia-linked-momentum/?.tsrc=rss"
+    },
+    {
+      "title": "Why Meta Platforms Stock Plummeted by Over 5% on Wednesday",
+      "summary": "According to a media report, the leader of its internal AI initiative is leaving the company.",
+      "link": "https://www.fool.com/investing/2026/06/17/why-meta-platforms-stock-plummeted-by-over-5-on-we/?.tsrc=rss"
+    },
+    {
+      "title": "Why Microsoft Stock Slumped Today",
+      "summary": "It apparently fell short in an attempt to lease cloud capacity from a peer.",
+      "link": "https://www.fool.com/investing/2026/06/17/why-microsoft-stock-slumped-today/?.tsrc=rss"
+    },
+    {
+      "title": "Rumble rebrands to RUM Group after Northern Data buyout",
+      "summary": "Rumble, which hosts U.S. President Donald Trump's Truth Social platform, ‌said it would begin operating ‌as 'RUM Group' and oversee a new AI-focused business unit ​in addition to its existing video platform. The move, announced on Wednesday and effective from June 18, comes after the company closed ‌its acquisition of ⁠German AI cloud company Northern Data. Here are some details: • Rumble shares ⁠",
+      "link": "https://finance.yahoo.com/technology/ai/articles/rumble-rebrands-rum-group-northern-213744220.html?.tsrc=rss"
+    },
+    {
+      "title": "The SpaceX IPO Is Finally Here: This Is When It Might Be Coming to Your S&P 500 ETF",
+      "summary": "S&P Dow Jones indexes said it won't make any special rule changes to allow SpaceX into the S&P 500.",
+      "link": "https://www.fool.com/investing/2026/06/17/spacex-ipo-is-here-when-it-comes-to-sp-500/?.tsrc=rss"
+    },
+    {
+      "title": "Qualcomm eyes $10 billion AI shortcut as smartphone growth slows",
+      "summary": "Qualcomm (QCOM) helped define the smartphone era. Now the chip giant is striving to prove it can play a far bigger role in the artificial intelligence boom. That may take a lot. Qualcomm is in talks to buy AI chip firm Tenstorrent in a transaction valued at $8 billion to $10 billion, according to ...",
+      "link": "https://www.thestreet.com/investing/qualcomm-eyes-tenstorrent-10-billion-ai-acquisition?.tsrc=rss"
+    },
+    {
+      "title": "SpaceX vs. Tesla Stock: Which Elon Musk Company Is the Better Investment?",
+      "summary": "Both companies are led by Elon Musk, the world's first potential trillionaire, and are disrupting massive industries while creating substantial shareholder value.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/spacex-vs-tesla-stock-elon-204700473.html?.tsrc=rss"
+    },
+    {
+      "title": "Uber and Lucid team up to bring robotaxis to Houston",
+      "summary": "Yahoo Finance Senior Autos Reporter Pras Subramanian joins the show to discuss why Uber (UBER) and Lucid (LCID) chose Houston, Texas, as their next robotaxi market, what makes the city an attractive testing ground for autonomous ride-hailing and why there's so much riding on this launch for both companies.",
+      "link": "https://finance.yahoo.com/video/uber-and-lucid-team-up-to-bring-robotaxis-to-houston-202636078.html?.tsrc=rss"
+    },
+    {
+      "title": "Uber Robo-Taxis Move Step Closer as Self-Driving War Revs Up",
+      "summary": "On Wednesday, ride-hailing giant Uber EV maker Lucid and self-driving technology start-up Nuro announced plans to launch robo-taxis in Houston in 2027. Uber operates the network, Lucid builds the cars, and Nuro provides the autonomous driving technology. The move is yet another example that the long-promised era of driverless cars has arrived.",
+      "link": "https://finance.yahoo.com/m/c56e2017-0cfd-3c72-9046-aef9041ac6c3/uber-robo-taxis-move-step.html?.tsrc=rss"
+    },
+    {
+      "title": "SpaceX Shares Fall for First Time Since Blockbuster Debut",
+      "summary": "(Bloomberg) -- SpaceX shares declined for the first time since its record initial public offering, snapping a three-day rally that had reached nearly 50%. Most Read from BloombergRead the 14-Point Draft Memorandum Between the US and IranModi Warns of ‘Shortage of Trust’ Ahead of Trump MeetingIran’s Deputy Foreign Minister Confirms Deal Reached With USNetanyahu Pays a Political Price for Trump’s Ir",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/spacex-heads-toward-fourth-day-082223913.html?.tsrc=rss"
+    },
+    {
+      "title": "Is Micron Stock's Record-Breaking Run A Cyclical Peak Or A New AI Reality?",
+      "summary": "The chip giant's AI-fueled success is undeniable, but its soaring valuation is a stark reminder of the industry's notoriously cyclical past.",
+      "link": "https://www.trefis.com/articles/603334/is-micron-stocks-record-breaking-run-a-cyclical-peak-or-a-new-ai-reality/2026-06-17?.tsrc=rss"
+    },
+    {
+      "title": "What A Patient Holder Is Really Paying For Broadcom Stock",
+      "summary": "The chipmaker's premium price tag melts away when you look a few years out, but that discount depends on a major acceleration in growth.",
+      "link": "https://www.trefis.com/articles/603361/what-a-patient-holder-is-really-paying-for-broadcom-stock/2026-06-17?.tsrc=rss"
+    },
+    {
+      "title": "AMD, Arm, Intel Get Price-Target Hikes On 'CPU Renaissance'",
+      "summary": "Research firm Bernstein raised its price targets on three chip stocks — AMD, Arm and Intel — citing a \"CPU renaissance.\"",
+      "link": "https://finance.yahoo.com/m/22e2f8be-1a0d-358b-a6e9-a8a6ac54d07f/amd%2C-arm%2C-intel-get.html?.tsrc=rss"
+    },
+    {
+      "title": "Intel, SpaceX, Robinhood, Carvana, and More Stocks That Explain Today’s Market",
+      "summary": "FEATURE Stocks declined Wednesday—although some tech and artificial-intelligence plays mounted a comeback—after the Federal Reserve opted to keep interest rates steady during Kevin Warsh’s first meeting as central bank chairman.",
+      "link": "https://finance.yahoo.com/m/d8681c3a-fbe8-38bc-a7e2-fa62055cf7b8/intel%2C-spacex%2C-robinhood%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "RXT Stock Surges To 4-Year Highs — Wall Street Highlights Multi-Industry Growth Potential After AMD Deal",
+      "summary": "RBC Capital said the partnership with AMD could help Rackspace gain market share across healthcare, financial services, energy, and government sectors.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/rxt-stock-gains-as-amd-deal-opens-up-growth-opportunities/cZKKdToR7eE?.tsrc=rss"
+    },
+    {
+      "title": "Dow closes 500 points lower as Warsh’s first Fed meeting sets off surge in bond yields: Live updates - CNBC",
+      "summary": "Dow closes 500 points lower as Warsh’s first Fed meeting sets off surge in bond yields: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9uTFFzUE5SblgwaXNYcjl5R1BNd0dVd3NELUZMRFVkNkpqOV96MUZqNTBQWkZNTzE0Um56VGNRTno4SEJybHRwRnpLTG9nRjJ2ZE0xRTR0ZFNMcXV6UWNNNlk2Y2hFUGRWcnd6V1BNLVhqUGZabUZZ0gF8QVVfeXFMTlV5eGVzUzFGN01QSGRBZHljQkNPeGJyYzIyYVFnMFA4Rk5SN081cXVnNzBZREhtYnVZUU5oSmVfeWtsWGNZX3JxaW5scWMxSzVZMmh5YnBLbmlSeUNwRHloT1JjWGtRWEs1ZDM0NXRmQ2UtTlpXTklRekFudA?oc=5"
+    },
+    {
+      "title": "Dow climbs above 52,000 for first time as oil prices fall, but tech sell-off knocks down S&P 500: Live updates - CNBC",
+      "summary": "Dow climbs above 52,000 for first time as oil prices fall, but tech sell-off knocks down S&P 500: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1jdXJkOFJXSFdYdlY4SWhBWjI3SDRSX29fSkdQYktfMFl3WjJCU2NxR1hISTVqQ2J2ZFlQQzc5Smh1Q292T0cyMWF2c2U0NjVHbVBuVXFGTThLZGFDYnlaVmpISzJwMFR4WU9oOE05aERRMGI4Q2lR0gF8QVVfeXFMTkh4UzZmNzg5Y0JSa0pMSjlpREJNZ2xtdWw5eExlenMzeUl6NnBsek5SR0dvRmlkZEMzbllvWGNhMjBGX054aldxRXpDeFZ4ZmFSUHFTZmZEbGo1Q1VZam96YU5oUHk5LW9DOTN1UXpJZjU2ckZhRnBsazJpbg?oc=5"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq slide as Warsh's Fed edges closer to rate hike - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq slide as Warsh's Fed edges closer to rate hike Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxNZHFNQUNwblhwVGpGSVZDaUdPenRBaV9KYUZPV2VDc2JES3hoYmJZRUROVzloaGtTcmxEcHZTLThZb1liSkpkQVFzYVRFci1jMWlpVWhjMGY0RWNjZTJVci1YeXVDRHlGOGR0aXRaWkc5WTFXWmt5bnpwNzJ3Q0pUUkN6U3lmY1k3Vi0zdnh0Rmprd3ZJVngwRVBjMHQ5WXNmdzV6TThjcTQwZVJ5ODVacTlaS3RhRTd6aVVpeS0zdHFYVllGdW9yc0NhWHQ?oc=5"
+    },
+    {
+      "title": "Stock Market News, June 16, 2026: SpaceX Rally Pushes It Past Amazon in Market Value - WSJ",
+      "summary": "Stock Market News, June 16, 2026: SpaceX Rally Pushes It Past Amazon in Market Value WSJ",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQT3JuWE5sSFptVEZmYnZBejVQUExGc0NHWEp4SXhGQmtSRTdIQkZob1JLM3NFSVVoRkZ3dWlVU3lpRjVSMzN3ZmpCWEZzLWxRZFFyWUdFdVNTNUo2QTBocmtEaFJUaUU4emhZbnZodFhRcDR5alJ5UzBwekpEb2stMU1NSjFBaE0?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Dow Slapped As Fed Chair Warsh Stresses Price Stability; SpaceX Falls 5% (Live Coverage) - Investor's Business Daily",
+      "summary": "Stock Market Today: Dow Slapped As Fed Chair Warsh Stresses Price Stability; SpaceX Falls 5% (Live Coverage) Investor's Business Daily",
+      "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxNal9xTUk0MXFqX0JwaElHWUJINGlxMlN6bFhFVExhenZ6VEU5ekFNa0tJU0xKMnlyMnBpX1NKajl5Z2hhN19aejcyOTNjR0ViSU9ncC1OeXg2YWdHX3BNaW0yZWJ2eHBLR2VmaV93VHhiWlRsWGMyUnU2ZjNlYmk5cGFaWHJ3RUhqN1E1TjV4YVhGWTktamI4THlzUWVMeFNWSzZJMGVXRHJ1cENGWHhJd3M4YXNvMTlnaFE?oc=5"
+    }
+  ],
+  "generated_at": "2026-06-18T07:55:46.752338+09:00"
+}
