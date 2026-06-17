@@ -33,13 +33,19 @@ jobs:
       - name: Install dependencies
         run: pip install feedparser
         
-      - name: Debug token
-        run: python scripts/debug-tokken.py
-        env:
-          BLOGGER_BLOG_ID:       ${{ secrets.BLOGGER_BLOG_ID }}
-          BLOGGER_CLIENT_ID:     ${{ secrets.BLOGGER_CLIENT_ID }}
-          BLOGGER_CLIENT_SECRET: ${{ secrets.BLOGGER_CLIENT_SECRET }}
-          BLOGGER_REFRESH_TOKEN_2: ${{ secrets.BLOGGER_REFRESH_TOKEN_2 }}
+- name: Run market report
+  run: |
+    echo "BLOG_ID length: ${#BLOGGER_BLOG_ID}"
+    echo "TOKEN length: ${#BLOGGER_REFRESH_TOKEN_2}"
+    python scripts/07_make_stock_report.py
+  env:
+    OPENROUTER_API_KEY:      ${{ secrets.OPENROUTER_API_KEY }}
+    BLOGGER_BLOG_ID:         ${{ secrets.BLOGGER_BLOG_ID }}
+    BLOGGER_CLIENT_ID:       ${{ secrets.BLOGGER_CLIENT_ID }}
+    BLOGGER_CLIENT_SECRET:   ${{ secrets.BLOGGER_CLIENT_SECRET }}
+    BLOGGER_REFRESH_TOKEN_2: ${{ secrets.BLOGGER_REFRESH_TOKEN_2 }}
+    DRY_RUN:                 ${{ github.event.inputs.dry_run || 'false' }}
+    
       - name: Run market report (collect + analyze + publish)
         run: python scripts/07_make_stock_report.py
         env:
