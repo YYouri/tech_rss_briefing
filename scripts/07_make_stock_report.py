@@ -1,19 +1,16 @@
 """
 07_market_report.py
-무료 데이터로 미국 증시를 수집·분석하고
-기존 블로그 포스팅과 동일한 HTML 스타일로 Blogger에 발행한다.
+미국 증시 수집·분석 → Blogger 자동 발행
 
-데이터 소스 (전부 무료·무인증):
-  - Yahoo Finance JSON API  → 나스닥/S&P500/다우/VIX/유가/금/달러
-  - Yahoo Finance RSS       → 핵심 종목 뉴스
-  - Google News RSS         → 미국 시장 뉴스
-
-수정 사항:
-  - DRY_RUN 환경변수 지원 (Blogger 발행 없이 HTML만 생성)
-  - bytes | None → Optional[bytes] (Python 3.9 호환)
-  - dict | None  → Optional[dict]  (Python 3.9 호환)
-  - render_summary_box 정규식 버그 수정 (f-string 내 백슬래시 제거)
-  - Blogger 발행 전 필수 환경변수 사전 검증으로 이동
+개선 사항:
+  - 제목에 KST 발행일 날짜 반영
+  - 데이터 기준: 미국 정규장 마감 종가 (previousClose 기반으로 정확도 개선)
+  - 기준 시각 명시: 미국 현지 날짜 + "NYSE/NASDAQ 정규장 마감 기준"
+  - 원/달러 환율 추가 (USDKRW=X)
+  - 거래량 추가 (regularMarketVolume)
+  - QQQ, SOX 대용 SOXX, XLF 섹터 ETF 추가
+  - max_tokens 5000으로 확대 (분석 길이 확보)
+  - LLM 프롬프트에 환율·거래량·섹터ETF 반영
 """
 
 from __future__ import annotations
@@ -34,38 +31,46 @@ from typing import Optional
 import feedparser
 
 # ── 환경변수 ──────────────────────────────────────────────────────────────────
-OPENROUTER_API_KEY    = os.environ.get("OPENROUTER_API_KEY")
-BLOGGER_BLOG_ID       = os.environ.get("BLOGGER_BLOG_ID")
-BLOGGER_CLIENT_ID     = os.environ.get("BLOGGER_CLIENT_ID")
-BLOGGER_CLIENT_SECRET = os.environ.get("BLOGGER_CLIENT_SECRET")
+OPENROUTER_API_KEY      = os.environ.get("OPENROUTER_API_KEY")
+BLOGGER_BLOG_ID         = os.environ.get("BLOGGER_BLOG_ID")
+BLOGGER_CLIENT_ID       = os.environ.get("BLOGGER_CLIENT_ID")
+BLOGGER_CLIENT_SECRET   = os.environ.get("BLOGGER_CLIENT_SECRET")
 BLOGGER_REFRESH_TOKEN_2 = os.environ.get("BLOGGER_REFRESH_TOKEN_2")
-
-# ✅ DRY_RUN: "true" 이면 Blogger 발행 없이 HTML 파일만 저장
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
 
-# ── 상수 ─────────────────────────────────────────────────────────────────────
-KST      = timezone(timedelta(hours=9))
+# ── 시간대 ───────────────────────────────────────────────────────────────────
+KST = timezone(timedelta(hours=9))
+EST = timezone(timedelta(hours=-5))   # 미국 동부 (겨울: EST, 여름: EDT=-4)
 DATA_DIR = "data"
 
-# 2026-06-16 기준 OpenRouter 무료 모델 (PDF 확인)
+# ── 모델 목록 ─────────────────────────────────────────────────────────────────
 MODELS = [
-    "openai/gpt-oss-120b:free",           # gpt-oss 계열, 안정적
-    "google/gemma-4-26b-a4b:free",        # 262K context, MoE 고품질
-    "qwen/qwen3-next-80b-a3b-instruct:free",  # 262K context, 멀티링궐 강점
-    "meta-llama/llama-3.3-70b-instruct:free", # 131K, 검증된 70B
-    "nousresearch/hermes-3-405b-instruct:free", # 131K, 고품질 파인튠
-    "openai/gpt-oss-20b:free",            # 소형 폴백
-    "meta-llama/llama-3.2-3b-instruct:free",  # 최후 폴백
+    "openai/gpt-oss-120b:free",
+    "google/gemma-4-26b-a4b:free",
+    "qwen/qwen3-next-80b-a3b-instruct:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "nousresearch/hermes-3-405b-instruct:free",
+    "openai/gpt-oss-20b:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
 ]
 
+# ── 티커 정의 ─────────────────────────────────────────────────────────────────
 TICKERS = {
+    # 지수
     "^IXIC":    ("나스닥",        "index"),
     "^GSPC":    ("S&P500",       "index"),
     "^DJI":     ("다우존스",      "index"),
     "^VIX":     ("VIX",          "index"),
+    # 매크로
     "DX-Y.NYB": ("달러인덱스",    "macro"),
     "CL=F":     ("WTI유가",       "macro"),
     "GC=F":     ("금선물",        "macro"),
+    "USDKRW=X": ("원달러환율",    "macro"),   # ✅ 추가
+    # 섹터 ETF
+    "QQQ":      ("나스닥100 ETF", "etf"),     # ✅ 추가
+    "SOXX":     ("반도체 ETF",    "etf"),     # ✅ 추가
+    "XLF":      ("금융 ETF",      "etf"),     # ✅ 추가
+    # 핵심 종목
     "NVDA":     ("엔비디아",      "stock"),
     "AMD":      ("AMD",          "stock"),
     "INTC":     ("인텔",         "stock"),
@@ -89,6 +94,7 @@ KR_MAP = {
     "META":  ["카카오"],
     "AMZN":  ["쿠팡"],
     "GOOGL": ["카카오", "NAVER"],
+    "SOXX":  ["삼성전자", "SK하이닉스", "한미반도체"],
 }
 
 SECTION_LABELS = {
@@ -110,7 +116,6 @@ def clean(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-# ✅ bytes | None → Optional[bytes] (Python 3.9 호환)
 def fetch(url: str, timeout: int = 15) -> Optional[bytes]:
     try:
         req = urllib.request.Request(url, headers={
@@ -123,33 +128,51 @@ def fetch(url: str, timeout: int = 15) -> Optional[bytes]:
         return None
 
 
-# ── 1. 시세 수집 ──────────────────────────────────────────────────────────────
+# ── 1. 시세 수집 (종가 정확도 개선) ──────────────────────────────────────────
 
-# ✅ dict | None → Optional[dict] (Python 3.9 호환)
 def get_quote(symbol: str) -> Optional[dict]:
     url = (
         f"https://query1.finance.yahoo.com/v8/finance/chart/"
-        f"{urllib.parse.quote(symbol)}?interval=1d&range=2d"
+        f"{urllib.parse.quote(symbol)}?interval=1d&range=5d"  # 5일치로 안정적 종가 확보
     )
     raw = fetch(url, timeout=10)
     if not raw:
         return None
     try:
-        data       = json.loads(raw)
-        meta       = data["chart"]["result"][0]["meta"]
-        prev_close = meta.get("chartPreviousClose") or meta.get("previousClose")
+        data = json.loads(raw)
+        result = data["chart"]["result"][0]
+        meta   = result["meta"]
+
+        # ✅ 종가 정확도 개선: regularMarketPrice(현재가) vs previousClose(전일종가)
         curr_price = meta.get("regularMarketPrice")
+        prev_close = meta.get("previousClose") or meta.get("chartPreviousClose")
+
         if not curr_price or not prev_close:
             return None
+
         chg_pct = (curr_price - prev_close) / prev_close * 100
+
+        # ✅ 거래량 추가
+        volume = meta.get("regularMarketVolume", 0)
+
+        # ✅ 미국 현지 마감 날짜 추출
+        ts = meta.get("regularMarketTime", 0)
+        if ts:
+            market_dt = datetime.fromtimestamp(ts, tz=EST)
+            market_date_us = market_dt.strftime("%m/%d")
+        else:
+            market_date_us = ""
+
         name, kind = TICKERS.get(symbol, (symbol, "stock"))
         return {
-            "symbol":  symbol,
-            "name":    name,
-            "kind":    kind,
-            "price":   round(curr_price, 2),
-            "prev":    round(prev_close, 2),
-            "chg_pct": round(chg_pct, 2),
+            "symbol":         symbol,
+            "name":           name,
+            "kind":           kind,
+            "price":          round(curr_price, 2),
+            "prev":           round(prev_close, 2),
+            "chg_pct":        round(chg_pct, 2),
+            "volume":         volume,
+            "market_date_us": market_date_us,
         }
     except Exception as e:
         print(f"  [WARN] 파싱 실패 {symbol}: {e}")
@@ -164,9 +187,20 @@ def collect_quotes() -> dict:
         if q:
             quotes[sym] = q
             arrow = "▲" if q["chg_pct"] >= 0 else "▼"
-            print(f"  {q['name']:14s} {arrow}{abs(q['chg_pct']):.2f}%")
+            print(f"  {q['name']:14s} {arrow}{abs(q['chg_pct']):.2f}%  "
+                  f"(US {q['market_date_us']})")
         time.sleep(0.3)
     return quotes
+
+
+def get_us_market_date(quotes: dict) -> str:
+    """나스닥 기준 미국 현지 마감 날짜 반환"""
+    q = quotes.get("^IXIC") or quotes.get("^GSPC")
+    if q and q.get("market_date_us"):
+        return q["market_date_us"]
+    # 폴백: KST 기준 전날
+    now_est = datetime.now(EST)
+    return now_est.strftime("%m/%d")
 
 
 # ── 2. 뉴스 수집 ─────────────────────────────────────────────────────────────
@@ -204,7 +238,7 @@ def collect_news() -> list:
 
 # ── 3. LLM 호출 ──────────────────────────────────────────────────────────────
 
-def call_ai(prompt: str, max_tokens: int = 3500) -> str:
+def call_ai(prompt: str, max_tokens: int = 5000) -> str:  # ✅ 5000으로 확대
     if not OPENROUTER_API_KEY:
         print("[ERROR] OPENROUTER_API_KEY 없음")
         sys.exit(1)
@@ -231,10 +265,9 @@ def call_ai(prompt: str, max_tokens: int = 3500) -> str:
             with urllib.request.urlopen(req, timeout=120) as r:
                 result = json.loads(r.read().decode("utf-8"))
             content = result.get("choices", [{}])[0].get("message", {}).get("content")
-            # max_tokens 200 이하(제목 등 단답)는 최소 5자, 그 외 100자 기준
             min_len = 5 if max_tokens <= 200 else 100
             if content and len(content.strip()) >= min_len:
-                print(f"  [OK] 모델: {model}")
+                print(f"  [OK] 모델: {model} / {len(content.strip())}자")
                 return content.strip()
             print(f"  [WARN] {model} 응답 부실 ({len((content or '').strip())}자)")
         except urllib.error.HTTPError as e:
@@ -250,46 +283,72 @@ def call_ai(prompt: str, max_tokens: int = 3500) -> str:
 
 # ── 4. 프롬프트 생성 ──────────────────────────────────────────────────────────
 
-def build_prompt(quotes: dict, news: list, now_kst: datetime) -> str:
-    idx_lines = ["=== 주요 지수 ==="]
+def fmt_vol(v: int) -> str:
+    """거래량 포맷: 1.2억, 34.5M 등"""
+    if v >= 100_000_000:
+        return f"{v/100_000_000:.1f}억주"
+    if v >= 1_000_000:
+        return f"{v/1_000_000:.1f}M"
+    return str(v)
+
+
+def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> str:
+    # 지수
+    idx_lines = [f"=== 주요 지수 (미국 현지 {us_date} 정규장 마감 기준) ==="]
     for sym in ["^IXIC", "^GSPC", "^DJI", "^VIX"]:
         q = quotes.get(sym)
         if q:
             sign = "+" if q["chg_pct"] >= 0 else ""
-            idx_lines.append(f"{q['name']}: {q['price']} ({sign}{q['chg_pct']}%)")
+            vol  = f" / 거래량:{fmt_vol(q['volume'])}" if q["volume"] else ""
+            idx_lines.append(f"{q['name']}: {q['price']} ({sign}{q['chg_pct']}%){vol}")
 
+    # 섹터 ETF
+    etf_lines = ["\n=== 섹터 ETF ==="]
+    for sym in ["QQQ", "SOXX", "XLF"]:
+        q = quotes.get(sym)
+        if q:
+            sign = "+" if q["chg_pct"] >= 0 else ""
+            etf_lines.append(f"{q['name']}({sym}): {q['price']} ({sign}{q['chg_pct']}%)")
+
+    # 매크로
     macro_lines = ["\n=== 매크로 ==="]
-    for sym in ["DX-Y.NYB", "CL=F", "GC=F"]:
+    for sym in ["DX-Y.NYB", "CL=F", "GC=F", "USDKRW=X"]:
         q = quotes.get(sym)
         if q:
             sign = "+" if q["chg_pct"] >= 0 else ""
             macro_lines.append(f"{q['name']}: {q['price']} ({sign}{q['chg_pct']}%)")
 
-    stock_lines = ["\n=== 핵심 종목 ==="]
-    for sym in ["NVDA", "AMD", "INTC", "TSM", "AAPL", "MSFT", "TSLA", "AMZN", "GOOGL", "META"]:
+    # 핵심 종목 (거래량 포함)
+    stock_lines = ["\n=== 핵심 종목 (거래량 포함) ==="]
+    for sym in ["NVDA","AMD","INTC","TSM","AAPL","MSFT","TSLA","AMZN","GOOGL","META"]:
         q = quotes.get(sym)
         if q:
             sign = "+" if q["chg_pct"] >= 0 else ""
             kr   = ", ".join(KR_MAP.get(sym, []))
-            line = f"{q['name']}({sym}): {q['price']} ({sign}{q['chg_pct']}%)"
+            vol  = fmt_vol(q["volume"]) if q["volume"] else "-"
+            line = f"{q['name']}({sym}): {q['price']} ({sign}{q['chg_pct']}%) / 거래량:{vol}"
             if kr:
                 line += f"  → KR연관: {kr}"
             stock_lines.append(line)
 
+    # 뉴스
     news_lines = ["\n=== 주요 헤드라인 ==="]
     for i, n in enumerate(news[:18], 1):
         news_lines.append(f"{i}. {n['title']}")
         if n.get("summary"):
             news_lines.append(f"   {n['summary'][:180]}")
 
-    market_text = "\n".join(idx_lines + macro_lines + stock_lines + news_lines)
-    date_str    = now_kst.strftime("%Y년 %m월 %d일")
+    market_text = "\n".join(idx_lines + etf_lines + macro_lines + stock_lines + news_lines)
+
+    # 날짜: KST 발행일 기준, 미국 마감일도 병기
+    kst_date = now_kst.strftime("%Y년 %m월 %d일")
 
     return f"""당신은 20년 경력의 매크로 애널리스트이자 현업 펀드매니저다.
 독자는 AI가 작성한 뻔한 글을 극도로 싫어한다.
 아래 실제 시장 데이터를 바탕으로 오늘 아침 한국 증시 대응 리포트를 작성하라.
 
-【분석일】{date_str}
+【KST 발행일】{kst_date} (한국 투자자 기준 오늘 아침)
+【데이터 기준】미국 현지 {us_date} NYSE/NASDAQ 정규장 마감 (오후 4시 ET)
 【데이터】
 {market_text}
 
@@ -298,130 +357,54 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime) -> str:
 - "다양한", "혁신적인", "중요한", "주목할 만한" 절대 금지
 - "또한", "한편", "따라서", "즉" 문장 연결 금지
 - 수치는 위 데이터에 있는 것만 사용. 없으면 정성적으로만 서술
-- 수치 사용 시 반드시 문장 끝에 [출처: 데이터] 태깅
 - 문장은 짧고 밀도 있게. 한 문장 하나의 정보
 - 현장에서 직접 보고 판단한 것처럼 구체적으로 서술
 - 투자 권유 절대 금지. 시황 분석 관점 유지
-- 한국 시장 연결: 미국 시장의 움직임이 한국의 어떤 종목(반도체, 2차전지 등)과 어떤 논리로 연결되는지 반드시 짚어주십시오. 
+- 거래량이 평소보다 급증/급감한 종목은 반드시 언급할 것
+- 원/달러 환율 변화가 한국 수출주·반도체에 미치는 영향 반드시 언급
+- 섹터 ETF(QQQ, SOXX, XLF) 흐름을 섹터 분석에 활용할 것
+- 각 섹션 최소 3~4문장 이상 충분히 서술할 것 (총 3000자 이상 목표)
 
 【섹션 구조 — 반드시 준수】
 
-(리드 문단: 헤딩 없이 2~3문장. 오늘 시장의 핵심을 한 방에 요약)
+(리드 문단: 헤딩 없이 2~3문장. 오늘 시장의 핵심을 한 방에 요약. 미국 현지 날짜와 KST 발행일 병기)
 
 ## 1. 간밤 미국 증시 요약
-(나스닥/S&P/다우 방향과 핵심 원인. 구체적 수치와 종목 언급)
+(나스닥/S&P/다우 방향·수치·핵심 원인. VIX 변화 해석. 정규장 마감 기준임을 명시)
 
 ## 2. 핵심 드라이버
-(오늘 시장을 실제로 움직인 1~2가지 요인 심층 분석. 뉴스 헤드라인 기반)
+(시장을 실제로 움직인 1~2가지 요인 심층 분석. 거래량 급변 종목 언급. 뉴스 헤드라인 기반)
 
 ## 3. 섹터별 흐름
-- **섹터명**: 주요 종목 등락과 원인 (bullet 형식, 3~5개)
+- **섹터명**: QQQ/SOXX/XLF ETF 흐름 + 주요 종목 등락과 원인 (bullet 형식, 4~5개)
 
 ## 4. 오늘 코스피·코스닥 영향 예측
-(코스피와 코스닥를 각각 분석. 방향 판단 + 근거 + 주목 섹터)
+(코스피·코스닥 각각 분석. 원/달러 환율 영향 반드시 포함. 방향 판단 + 근거 + 주목 섹터)
 
 ## 5. 한국 연관 종목 체크
-- **종목명**: 미국 모종목 등락 → 한국 영향 (bullet 형식)
+- **종목명**: 미국 모종목 등락 + 거래량 → 한국 영향 (bullet 형식, 6개 이상)
 
 ## 6. 오늘의 리스크 & 체크리스트
-(예상을 뒤집을 변수 2개 + 장 시작 전 확인할 것 3개. bullet 형식)
+- 리스크: 예상을 뒤집을 변수 2개
+- 체크리스트: 장 시작 전 반드시 확인할 것 4개 (VIX, 환율, 선물, 주요 발표 포함)
 
 ## 7. 3줄 요약
-- bullet 정확히 3개
+- bullet 정확히 3개. 각 bullet 2문장 이상으로 충분히 서술
 """
 
 
-# ── 5. HTML 변환 ──────────────────────────────────────────────────────────────
+# ── 5. 사용하지 않는 렌더 함수 (market_html_builder로 이관됨) ──────────────
+# render_heading, render_sector_cards, render_summary_box 는
+# market_html_builder.py 에서 처리
 
-SOURCE_TAG_PATTERN = re.compile(r'\[출처\s*:\s*.+?\]')
-
-
-def render_heading(text: str) -> str:
-    m = re.match(r"^(\d+)\.\s*(.+)$", text.strip())
-    if not m:
-        return (
-            f'<h2 style="font-size:1.15em;font-weight:700;color:#0f172a;'
-            f'margin:2.4em 0 0.9em;padding-left:14px;'
-            f'border-left:4px solid #cbd5e1;">'
-            f'{text}</h2>'
-        )
-    num, title_text = m.group(1), m.group(2)
-    label_info = SECTION_LABELS.get(num)
-    badge = ""
-    bar_color = "#cbd5e1"
-    if label_info:
-        label, color = label_info
-        bar_color = color
-        badge = (
-            f'<span style="display:inline-block;background:{color};color:#fff;'
-            f'font-size:0.68em;font-weight:800;padding:2px 8px;border-radius:3px;'
-            f'margin-right:10px;vertical-align:middle;letter-spacing:1px;'
-            f'font-family:monospace;">'
-            f'{label}</span>'
-        )
-    return (
-        f'<h2 style="font-size:1.15em;font-weight:700;color:#0f172a;'
-        f'margin:2.4em 0 0.9em;padding-left:14px;'
-        f'border-left:4px solid {bar_color};">'
-        f'{badge}{title_text}</h2>'
-    )
-
-
-def render_sector_cards(bullet_lines: list) -> str:
-    cards = []
-    accent_colors = ["#0052cc", "#057a55", "#b45309", "#6d28d9", "#b91c1c"]
-    for i, line in enumerate(bullet_lines):
-        text = re.sub(r"^[-*]\s*", "", line.strip())
-        m = re.match(r"^\*\*(.+?)\*\*\s*[:：]\s*(.+)$", text)
-        accent = accent_colors[i % len(accent_colors)]
-        if m:
-            term, desc = m.group(1), m.group(2)
-            cards.append(
-                f'<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;'
-                f'padding:14px 16px;border-left:3px solid {accent};">'
-                f'<strong style="color:{accent};font-size:0.9em;letter-spacing:0.3px;">{term}</strong>'
-                f'<p style="margin:6px 0 0;font-size:0.88em;color:#475569;line-height:1.65;">{desc}</p>'
-                '</div>'
-            )
-        else:
-            cards.append(
-                f'<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;'
-                f'padding:14px 16px;border-left:3px solid {accent};">'
-                f'<p style="margin:0;font-size:0.88em;color:#475569;line-height:1.65;">{text}</p>'
-                '</div>'
-            )
-    return (
-        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:1em 0;">'
-        + "".join(f'<div>{c}</div>' for c in cards)
-        + "</div>"
-    )
-
-
-def _strip_bullet(line: str) -> str:
-    """bullet 기호(- *) 제거 — f-string 안에서 백슬래시 사용 불가 문제 회피"""
-    return re.sub(r"^[-*]\s*", "", line.strip())
-
-
-def render_summary_box(bullet_lines: list) -> str:
-    items = "".join(
-        f'<li style="margin-bottom:10px;line-height:1.75;color:#e2e8f0;font-size:0.95em;">'
-        f'{_strip_bullet(l)}</li>'
-        for l in bullet_lines
-    )
-    return (
-        '<div style="background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);'
-        'border-radius:12px;padding:20px 24px;margin:1.8em 0;">'
-        '<p style="font-weight:700;color:#94a3b8;margin:0 0 12px;font-size:0.75em;'
-        'letter-spacing:2px;text-transform:uppercase;font-family:monospace;">SUMMARY</p>'
-        f'<ul style="padding-left:1.3em;margin:0;">{items}</ul>'
-        '</div>'
-    )
 
 # ── 6. 제목 생성 ──────────────────────────────────────────────────────────────
 
-def generate_title(quotes: dict, now_kst: datetime):
-    date_str = now_kst.strftime("%m월 %d일")
-    nasdaq   = quotes.get("^IXIC")
+def generate_title(quotes: dict, now_kst: datetime, us_date: str):
+    # ✅ KST 발행일 기준 날짜
+    kst_date_str = now_kst.strftime("%m월 %d일")
+
+    nasdaq = quotes.get("^IXIC")
     if nasdaq:
         direction = (
             "급등" if nasdaq["chg_pct"] >= 2 else
@@ -433,16 +416,27 @@ def generate_title(quotes: dict, now_kst: datetime):
     else:
         nasdaq_line = "미국 증시 마감"
 
+    # 원달러 환율 정보 추가
+    krw = quotes.get("USDKRW=X")
+    krw_line = f"원달러 {krw['price']:.0f}원" if krw else ""
+
     prompt = f"""아래 조건으로 블로그 제목 3개를 추천하라.
 
-오늘 날짜: {date_str}
+오늘 날짜(KST): {kst_date_str}
+미국 마감일(현지): {us_date}
 시장 상황: {nasdaq_line}
+{krw_line}
 
 조건:
 - 30자 이내
+- 제목에 반드시 날짜({kst_date_str}) 포함
 - 숫자로 개수 암시 금지 ("3가지", "5포인트" 등)
 - 클릭을 유도하되 낚시성 금지
 - 한국 투자자 관점
+
+좋은 예시:
+- "{kst_date_str} 나스닥 {direction}, 코스피 전망은"
+- "미국 증시 {us_date} 마감 — {kst_date_str} 한국 시장 대응"
 
 JSON만 출력:
 {{"titles": ["제목1", "제목2", "제목3"]}}
@@ -458,7 +452,7 @@ JSON만 출력:
         except Exception:
             pass
 
-    fallback = f"{date_str} 미국 증시 마감 & 오늘 코스피 전망"
+    fallback = f"{kst_date_str} 미국 증시({us_date}) 마감 & 코스피 전망"
     return fallback, [fallback]
 
 
@@ -492,8 +486,6 @@ def get_access_token() -> str:
 
 def post_to_blogger(title: str, content: str, labels: list) -> dict:
     access_token = get_access_token()
-    print(f"   [access token]:{access_token}")
-    print(f"   [blog id]:{BLOGGER_BLOG_ID}")
     payload = {"title": title, "content": content, "labels": labels}
     data    = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req     = urllib.request.Request(
@@ -524,11 +516,9 @@ def main():
 
     os.makedirs(DATA_DIR, exist_ok=True)
 
-    # ✅ DRY_RUN 모드 안내
     if DRY_RUN:
         print("[DRY_RUN] Blogger 발행 없이 HTML 파일만 생성합니다.")
 
-    # ✅ Blogger 환경변수 사전 검증 (DRY_RUN 아닐 때만)
     if not DRY_RUN:
         missing = [
             name for name, val in [
@@ -549,20 +539,25 @@ def main():
         print("[ERROR] 시세 수집 실패")
         sys.exit(1)
 
+    # ✅ 미국 현지 마감 날짜 추출
+    us_date = get_us_market_date(quotes)
+    print(f"  미국 마감일(현지): {us_date}")
+
     # 2) 뉴스 수집
     news = collect_news()
 
     # 3) 원본 데이터 저장
     with open(f"{DATA_DIR}/market_{date_str}.json", "w", encoding="utf-8") as f:
         json.dump(
-            {"quotes": quotes, "news": news, "generated_at": now_kst.isoformat()},
+            {"quotes": quotes, "news": news,
+             "us_date": us_date, "generated_at": now_kst.isoformat()},
             f, ensure_ascii=False, indent=2,
         )
 
     # 4) AI 분석
     print("[3] AI 분석 중...")
-    prompt   = build_prompt(quotes, news, now_kst)
-    analysis = call_ai(prompt)
+    prompt   = build_prompt(quotes, news, now_kst, us_date)
+    analysis = call_ai(prompt)  # max_tokens=5000 기본값
     print(f"  분석 완료: {len(analysis)}자")
 
     # 5) HTML 변환
@@ -570,53 +565,48 @@ def main():
     content_html = md_to_html(analysis, quotes)
     content_html = content_html.replace("{DASHBOARD}", dashboard)
 
-    # 6) 제목 생성
+    # 6) 제목 생성 (KST 날짜 + 미국 마감일 반영)
     print("[4] 제목 생성 중...")
-    final_title, title_candidates = generate_title(quotes, now_kst)
+    final_title, title_candidates = generate_title(quotes, now_kst, us_date)
     print(f"  제목: {final_title}")
 
     tags = ["미국증시", "코스피전망", "주식시황", "나스닥", "한국증시"]
 
-    # 7) HTML 파일 저장 (DRY_RUN 포함 항상 저장)
+    # 7) 파일 저장
     market_post = {
         "title":            final_title,
         "title_candidates": title_candidates,
         "category":         "미국증시-한국전망",
         "content_html":     content_html,
         "tags":             ",".join(tags),
+        "us_date":          us_date,
         "created_at":       now_kst.isoformat(),
     }
-    post_json_path = f"{DATA_DIR}/market_post_{date_str}.json"
-    with open(post_json_path, "w", encoding="utf-8") as f:
+    with open(f"{DATA_DIR}/market_post_{date_str}.json", "w", encoding="utf-8") as f:
         json.dump(market_post, f, ensure_ascii=False, indent=2)
 
     html_path = f"{DATA_DIR}/market_post_{date_str}.html"
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(content_html)
-
     print(f"  HTML 저장 → {html_path}")
 
-    # 8) Blogger 발행 (DRY_RUN 이면 스킵)
     if DRY_RUN:
         print(f"[DRY_RUN] 발행 스킵. 생성 파일: {html_path}")
         return
 
+    # 8) Blogger 발행
     print("[5] Blogger 발행 중...")
     result   = post_to_blogger(final_title, content_html, tags)
     post_url = result.get("url", "")
     post_id  = result.get("id", "")
-
     print(f"[OK] 발행 성공!")
     print(f"     URL: {post_url}")
 
     with open(f"{DATA_DIR}/market_result_{date_str}.json", "w", encoding="utf-8") as f:
         json.dump(
-            {
-                "title":      final_title,
-                "url":        post_url,
-                "post_id":    post_id,
-                "created_at": now_kst.isoformat(),
-            },
+            {"title": final_title, "url": post_url,
+             "post_id": post_id, "us_date": us_date,
+             "created_at": now_kst.isoformat()},
             f, ensure_ascii=False, indent=2,
         )
 
