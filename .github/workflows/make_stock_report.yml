@@ -31,13 +31,13 @@ jobs:
       - name: Install dependencies
         run: pip install feedparser
 
-      - name: Check env vars
-        run: python scripts/debug-tokken.py
-        env:
-          BLOGGER_BLOG_ID:         ${{ secrets.BLOGGER_BLOG_ID }}
-          BLOGGER_CLIENT_ID:       ${{ secrets.BLOGGER_CLIENT_ID }}
-          BLOGGER_CLIENT_SECRET:   ${{ secrets.BLOGGER_CLIENT_SECRET }}
-          BLOGGER_REFRESH_TOKEN_2: ${{ secrets.BLOGGER_REFRESH_TOKEN_2 }}
+#      - name: Check env vars
+#       run: python scripts/debug-tokken.py
+#        env:
+#          BLOGGER_BLOG_ID:         ${{ secrets.BLOGGER_BLOG_ID }}
+#          BLOGGER_CLIENT_ID:       ${{ secrets.BLOGGER_CLIENT_ID }}
+#          BLOGGER_CLIENT_SECRET:   ${{ secrets.BLOGGER_CLIENT_SECRET }}
+#          BLOGGER_REFRESH_TOKEN_2: ${{ secrets.BLOGGER_REFRESH_TOKEN_2 }}
           
       - name: Run market report
         run: python scripts/07_make_stock_report.py
