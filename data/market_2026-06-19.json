@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26517.93,
+      "prev": 26021.66,
+      "chg_pct": 1.91,
+      "volume": 17780101000,
+      "market_date_us": "06/18"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7500.58,
+      "prev": 7420.1,
+      "chg_pct": 1.08,
+      "volume": 6324161000,
+      "market_date_us": "06/18"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 51564.7,
+      "prev": 51492.55,
+      "chg_pct": 0.14,
+      "volume": 985372653,
+      "market_date_us": "06/18"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 16.4,
+      "prev": 18.44,
+      "chg_pct": -11.06,
+      "volume": 0,
+      "market_date_us": "06/18"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 100.81,
+      "prev": 100.09,
+      "chg_pct": 0.72,
+      "volume": 0,
+      "market_date_us": "06/18"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 75.21,
+      "prev": 76.79,
+      "chg_pct": -2.06,
+      "volume": 1486,
+      "market_date_us": "06/18"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4214.3,
+      "prev": 4358.9,
+      "chg_pct": -3.32,
+      "volume": 1829,
+      "market_date_us": "06/18"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1536.42,
+      "prev": 1510.96,
+      "chg_pct": 1.69,
+      "volume": 0,
+      "market_date_us": "06/18"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 740.62,
+      "prev": 722.51,
+      "chg_pct": 2.51,
+      "volume": 49291407,
+      "market_date_us": "06/18"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 639.45,
+      "prev": 599.73,
+      "chg_pct": 6.62,
+      "volume": 9499491,
+      "market_date_us": "06/18"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 53.57,
+      "prev": 54.05,
+      "chg_pct": -0.89,
+      "volume": 37399585,
+      "market_date_us": "06/18"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 210.69,
+      "prev": 204.65,
+      "chg_pct": 2.95,
+      "volume": 238264530,
+      "market_date_us": "06/18"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 537.37,
+      "prev": 512.48,
+      "chg_pct": 4.86,
+      "volume": 42879327,
+      "market_date_us": "06/18"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 133.99,
+      "prev": 121.1,
+      "chg_pct": 10.64,
+      "volume": 211357342,
+      "market_date_us": "06/18"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 462.12,
+      "prev": 432.15,
+      "chg_pct": 6.94,
+      "volume": 16178928,
+      "market_date_us": "06/18"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 298.01,
+      "prev": 295.95,
+      "chg_pct": 0.7,
+      "volume": 76701676,
+      "market_date_us": "06/18"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 379.4,
+      "prev": 378.91,
+      "chg_pct": 0.13,
+      "volume": 58466440,
+      "market_date_us": "06/18"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 400.49,
+      "prev": 396.38,
+      "chg_pct": 1.04,
+      "volume": 54706416,
+      "market_date_us": "06/18"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 244.39,
+      "prev": 237.5,
+      "chg_pct": 2.9,
+      "volume": 66532506,
+      "market_date_us": "06/18"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 368.03,
+      "prev": 363.79,
+      "chg_pct": 1.17,
+      "volume": 44359380,
+      "market_date_us": "06/18"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 577.22,
+      "prev": 567.58,
+      "chg_pct": 1.7,
+      "volume": 26843593,
+      "market_date_us": "06/18"
+    }
+  },
+  "news": [
+    {
+      "title": "Dow Jones Futures: Nvidia Leads 5 Chips Near Buy Points; SpaceX Stock Needs This",
+      "summary": "The stock market rose in a wild week, led by AI. Nvidia leads five chips near buy points. SpaceX stock needs this.",
+      "link": "https://finance.yahoo.com/m/aa0411a1-2ba1-3057-bff9-1381bd5225f7/dow-jones-futures%3A-nvidia.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, June 18: Comcast Falls as Cable Pressure Builds Before July Earnings",
+      "summary": "Comcast’s cash returns remain a key support, with July earnings set to test whether cable trends and Peacock losses are moving in the right direction.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/06/18/stock-market-today-june-18-comcast-falls-as-cable-pressure-builds-before-july-earnings/?.tsrc=rss"
+    },
+    {
+      "title": "Wall Street ends higher on boost from chips, Iran optimism",
+      "summary": "STORY: Wall Street's main indexes closed higher on Thursday, with the Dow ticking up more than a tenth of a percent, the S&P 500 adding more than 1% and the Nasdaq gaining nearly 2%.The session began with oil prices sliding to their lowest levels since early March after the U.S. and Iran signed an interim agreement that extends the April ceasefire by another 60 days.But Alexander Morris, CEO and c",
+      "link": "https://finance.yahoo.com/video/wall-street-ends-higher-boost-223205315.html?.tsrc=rss"
+    },
+    {
+      "title": "VirTra, Inc. (VTSI) Stock Sinks As Market Gains: Here's Why",
+      "summary": "In the closing of the recent trading day, VirTra, Inc. (VTSI) stood at $3.35, denoting a -1.33% move from the preceding trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/virtra-inc-vtsi-stock-sinks-221504504.html?.tsrc=rss"
+    },
+    {
+      "title": "Astrazeneca (AZN) Stock Drops Despite Market Gains: Important Facts to Note",
+      "summary": "Astrazeneca (AZN) concluded the recent trading session at $174.93, signifying a -1.66% move from its prior day's close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/astrazeneca-azn-stock-drops-despite-221504289.html?.tsrc=rss"
+    },
+    {
+      "title": "SpaceX Just Identified a $22.7 Trillion Enterprise AI Market. These 2 AI Stocks Are Already Inside the Empire.",
+      "summary": "There are lots of ways to invest in enterprise artificial intelligence (AI) without getting caught up in the SpaceX hype.",
+      "link": "https://www.fool.com/investing/2026/06/18/spacex-just-identified-a-227-trillion-enterprise-a/?.tsrc=rss"
+    },
+    {
+      "title": "Should You Buy NuScale While It's Below $15?",
+      "summary": "NuScale's headwinds are real, but with global interest in nuclear energy heating up, the stock could have real upside in the next decade.",
+      "link": "https://www.fool.com/investing/2026/06/18/should-you-buy-nuscale-while-its-below-15/?.tsrc=rss"
+    },
+    {
+      "title": "2 Reasons Investors Should Not Short SpaceX Stock",
+      "summary": "Betting against Elon Musk can burn investors.",
+      "link": "https://www.fool.com/investing/2026/06/18/2-reasons-investors-should-not-short-spacex-stock/?.tsrc=rss"
+    },
+    {
+      "title": "Prediction: This Will Be Micron's Next Big Move",
+      "summary": "Micron stock has soared during this AI boom.",
+      "link": "https://www.fool.com/investing/2026/06/18/prediction-this-will-be-microns-next-big-move/?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk's Robotaxi Goals Get A Boost As Texas DOT Official Hails Tesla Cybercab",
+      "summary": "A Texas Department of Transportation (DOT) executive has backed Tesla Inc.‘s robotaxi efforts, in what could be a boost for Elon Musk‘s self-driving goals. A Significant Shift In Mobility Marc Williams, the Executive Director of the Texas DOT, took to...",
+      "link": "https://finance.yahoo.com/technology/articles/elon-musks-robotaxi-goals-boost-213205974.html?.tsrc=rss"
+    },
+    {
+      "title": "SpaceX Shares Are Hot. This Looming Event Could Derail Them.",
+      "summary": "The aftermath of SpaceX’s public offering saw the shows soar, in part because of demand outstripping supply. But that could soon end as a staggered release of lockups makes more shares available.",
+      "link": "https://finance.yahoo.com/m/d11aae23-96b2-3dd3-8482-abfc24f738fd/spacex-shares-are-hot.-this.html?.tsrc=rss"
+    },
+    {
+      "title": "Heavy SpaceX Options Trading Driven by New Weekly Contracts",
+      "summary": "Trading in SpaceX options remained heavy Thursday, their third day since the options launch. As of 1 p.m. ET, 1.26 million SpaceX options had traded, about equally divided between calls and puts. SpaceX ranked third among all stocks for options trading, behind only Nvidia and Tesla according to data from Susquehanna Investment Group.",
+      "link": "https://finance.yahoo.com/m/12e579d5-94fa-3f66-8c64-a3a9cf96429a/heavy-spacex-options-trading.html?.tsrc=rss"
+    },
+    {
+      "title": "TSLA Stock: Major Roadblock For Tesla FSD As Sweden Reportedly Opposes EU-Wide Approval",
+      "summary": "The Swedish Transport Administration (TRV) sent a letter dated April 30 to the EU’s Technical Committee on Motor Vehicles (TCMV), urging rejection of FSD in its current form, reported Reuters.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tsla-stock-major-roadblock-for-tesla-fsd-as-sweden-reportedly-opposes-eu-wide-approval/cZKkLTnR77u?.tsrc=rss"
+    },
+    {
+      "title": "Your Tesla Drives Better Than You Do—and That’s Good News for the Stock",
+      "summary": "BofA analyst Alexander Perry recently analyzed safety y data for Waymo and Tesla. Serious incidents are very rare.",
+      "link": "https://finance.yahoo.com/m/9a1e4aa1-6ad2-3cb9-b301-9944decf8ba4/your-tesla-drives-better-than.html?.tsrc=rss"
+    },
+    {
+      "title": "Is Advanced Micro Devices, Inc. (AMD) One of the Best Growth Stocks to Buy, According to Billionaire Ray Dalio’s Bridgewater Associates?",
+      "summary": "Advanced Micro Devices, Inc. (NASDAQ:AMD) is one of the best growth stocks to buy, according to billionaire Ray Dalio’s Bridgewater Associates. On June 16, Advanced Micro Devices, Inc. (NASDAQ:AMD) and Rackspace Technology (NASDAQ:RXT) finalized a binding agreement for the phased deployment of 30 MW of AMD‑based compute across Rackspace’s global data centers, beginning in late 2026 […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/advanced-micro-devices-inc-amd-211950859.html?.tsrc=rss"
+    },
+    {
+      "title": "The Gross Margin Silence That Reshapes The Advanced Micro Stock Bull Case",
+      "summary": "As AMD chases a multi-billion dollar AI future, it has stopped celebrating a key profitability metric, a quiet signal that the company's next wave of growth will be a different, lower-margin bet.",
+      "link": "https://www.trefis.com/articles/603593/the-gross-margin-silence-that-reshapes-the-advanced-micro-stock-bull-case/2026-06-18?.tsrc=rss"
+    },
+    {
+      "title": "One Warning Signal AMD Investors Can't Miss",
+      "summary": "AMD has likely risen too far, too fast.",
+      "link": "https://www.fool.com/investing/2026/06/18/one-warning-signal-amd-investors-cant-miss/?.tsrc=rss"
+    },
+    {
+      "title": "AMD (AMD) Buys MEXT To Tackle AI Data Center Memory Bottlenecks",
+      "summary": "Advanced Micro Devices (NasdaqGS:AMD) has agreed to acquire MEXT, an AI native memory optimization company focused on data center workloads. The deal targets memory bottlenecks in enterprise and cloud AI environments, with MEXT's technology expected to be integrated into AMD's data center portfolio. The acquisition supports AMD's push to build a more complete AI infrastructure stack across both ha",
+      "link": "https://finance.yahoo.com/technology/ai/articles/amd-amd-buys-mext-tackle-190622796.html?.tsrc=rss"
+    },
+    {
+      "title": "The Real Price Tag On Broadcom Stock Is Not What It Seems",
+      "summary": "The chipmaker looks expensive on today's numbers, but a patient investor is buying into a much more reasonable valuation three years from now.",
+      "link": "https://www.trefis.com/articles/603595/the-real-price-tag-on-broadcom-stock-is-not-what-it-seems/2026-06-18?.tsrc=rss"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq rally as Iran deal optimism offsets Fed hike worries - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq rally as Iran deal optimism offsets Fed hike worries Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxOYkRHUGF1b0hMYTROMXo0Q0pfLVpJSVNlSXFvSllmYUh0WnNwSGIwLVZVbnN5OEtrTFJXMXpQTWtWR3JUUkk2OUxlUHBuRDQ2LWxpUjBkYmdqM2duMHRZZEtfRDdKLVBZd3VNS3kwRUJGT0R2bVJNVy1MRHhIdm9mSlJ5bkZ6MjJKdFJRbUdUakZ3MV9MYzl6OHkzQ1JISDFlNzVDalJMSkxRejh2V2tfdmN3b042ZzUzelFRQWNxbVNqUzgtX3dhSEN2MU13amhWMGdDYUhEVkZBRUU?oc=5"
+    },
+    {
+      "title": "S&P 500 closes higher, Nasdaq climbs nearly 2% as chips fuel comeback from Fed sell-off: Live updates - CNBC",
+      "summary": "S&P 500 closes higher, Nasdaq climbs nearly 2% as chips fuel comeback from Fed sell-off: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9KTnpsQTRpT1dTMHotblVRbHFZVUlWcmd4MXloSEZIaWRJQXllTXFsWDVWT1V0UW9KQWpmbDk5X1d5TVBIUks1ZF9BbGNCZl9UOVpFd0NVQmRjV1pKUGJkR0R5aW5ZeUJXd2RtWmVlMzBJUU1pWEZV0gF8QVVfeXFMTW9TUTNfSWR6N3NuNVI0TGc0eUMzOExVOGdWVkdPQ25NLUVuYnVMM2ZFWW5Xck1FMWpTdGhnNzdISHY5R3ZIWG9Td1lYa0ZlcmFaanBCTHZUd2VYLUx1M2xTTlJ4ZzVabHJsWWpyVmExY3c5dkNMODF1Vzg3TA?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Nasdaq Jumps, Oil Is Now Close to Pre-Iran War Prices — Live Updates - WSJ",
+      "summary": "Stock Market Today: Nasdaq Jumps, Oil Is Now Close to Pre-Iran War Prices — Live Updates WSJ",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPcDBTaDlqZUNST2dKNFlReWV0NWg2bk1QeXgtM0dDVVEyM1lNQkVZdFFmSTV0a0hpTXZZZndsdUtObHJ5UHpwemplRW9SNUNCWUZSWDliTmRDWENTSlBGZHZlTDk1ejlGT1MwMW40ZVVDMEk0RGtwTC1OZWlJLVlDRURvV0lQY3M?oc=5"
+    },
+    {
+      "title": "Markets News, June 18, 2026: Stocks Rise to Finish Winning Week; Intel Leads Chip, Memory Stocks Higher; SpaceX Continues Slide - Investopedia",
+      "summary": "Markets News, June 18, 2026: Stocks Rise to Finish Winning Week; Intel Leads Chip, Memory Stocks Higher; SpaceX Continues Slide Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPb1A3UkJZZUk4RExiWDlxQW9tVG5EWUpNS2RHZWo5QldtT20yMzRnYVdRbGFIdlJ3RHRqTjMzNVdSZmZGb0pwTjJwU29EQlZfNEw3YWVNTGpEd3huZ0Z4bW5vSnhTbFd4RTRfblJIc29UcHZfNmN2N1V1Yy1zMmxhRWFNVFliUG54Z2pqSXhGZm0?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Nasdaq, Russell 2000 Pace Rebound; SpaceX Slumps 24% Off Its Peak - Investor's Business Daily",
+      "summary": "Stock Market Today: Nasdaq, Russell 2000 Pace Rebound; SpaceX Slumps 24% Off Its Peak Investor's Business Daily",
+      "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxQaTZzYVctMFhaakhiSDhBM3ViWF9Da3dGN3lKeFpqNW5FNnlQNDdwLWRsel9pVDR5NU9kZzk2ZFNpV0dyZXJBM1VUbGQ5UV9fdFd1OWdJX0s5cXdKYzJRVmJ2THo0MV9XbHQxNWVhYlZiajZYeDdiS0FKb1N0cjZBSTdMcF9hbno3RTNOTzhydHotOVZHMEFtNjg0SDZXckw5LThETVNYbXFwT3ZGa3Y4eFV0Z1p3d2VNT3Fv?oc=5"
+    },
+    {
+      "title": "Nasdaq, S&P 500 Futures Surge As Wall Street Cheers US-Iran Deal, Brushes Off Hawkish Fed For Now: INTC, AAPL, MU, SPCX, RUM In Focus - Yahoo Finance",
+      "summary": "Nasdaq, S&P 500 Futures Surge As Wall Street Cheers US-Iran Deal, Brushes Off Hawkish Fed For Now: INTC, AAPL, MU, SPCX, RUM In Focus Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxNNEJXOWRUQ1RabThMSkJGRnN6aTgyRUpsenhEcnFNWWFUbG1NUVd2MVNGZFpJVUxXRjFjNldyalZUU0p1ZDUxcHpOdy16T3d3Mm02WkFXVE9rUExyUmdlcHBOb3BORUZ2eEFmNHZFUE1VbDF5c2hTMDFjR2RXekJvTl91RzlhYUJTSl9HcmFCY2YwWGFMT1E?oc=5"
+    }
+  ],
+  "us_date": "06/18",
+  "generated_at": "2026-06-19T08:32:15.914521+09:00"
+}
