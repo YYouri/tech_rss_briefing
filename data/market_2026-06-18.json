@@ -5,178 +5,267 @@
       "name": "나스닥",
       "kind": "index",
       "price": 26021.66,
-      "prev": 26683.94,
-      "chg_pct": -2.48
+      "prev": 25169.5,
+      "chg_pct": 3.39,
+      "volume": 10605787000,
+      "market_date_us": "06/17"
     },
     "^GSPC": {
       "symbol": "^GSPC",
       "name": "S&P500",
       "kind": "index",
       "price": 7420.1,
-      "prev": 7554.29,
-      "chg_pct": -1.78
+      "prev": 7266.99,
+      "chg_pct": 2.11,
+      "volume": 3339473000,
+      "market_date_us": "06/17"
     },
     "^DJI": {
       "symbol": "^DJI",
       "name": "다우존스",
       "kind": "index",
       "price": 51492.55,
-      "prev": 51671.03,
-      "chg_pct": -0.35
+      "prev": 49918.78,
+      "chg_pct": 3.15,
+      "volume": 496041891,
+      "market_date_us": "06/17"
     },
     "^VIX": {
       "symbol": "^VIX",
       "name": "VIX",
       "kind": "index",
       "price": 18.44,
-      "prev": 16.41,
-      "chg_pct": 12.37
+      "prev": 19.44,
+      "chg_pct": -5.14,
+      "volume": 0,
+      "market_date_us": "06/17"
     },
     "DX-Y.NYB": {
       "symbol": "DX-Y.NYB",
       "name": "달러인덱스",
       "kind": "macro",
-      "price": 100.35,
-      "prev": 99.54,
-      "chg_pct": 0.82
+      "price": 100.24,
+      "prev": 99.63,
+      "chg_pct": 0.61,
+      "volume": 0,
+      "market_date_us": "06/18"
     },
     "CL=F": {
       "symbol": "CL=F",
       "name": "WTI유가",
       "kind": "macro",
-      "price": 75.22,
-      "prev": 76.05,
-      "chg_pct": -1.09
+      "price": 74.12,
+      "prev": 80.75,
+      "chg_pct": -8.21,
+      "volume": 15576,
+      "market_date_us": "06/18"
     },
     "GC=F": {
       "symbol": "GC=F",
       "name": "금선물",
       "kind": "macro",
-      "price": 4294.0,
-      "prev": 4330.9,
-      "chg_pct": -0.85
+      "price": 4334.8,
+      "prev": 4328.0,
+      "chg_pct": 0.16,
+      "volume": 26768,
+      "market_date_us": "06/18"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1520.57,
+      "prev": 1517.38,
+      "chg_pct": 0.21,
+      "volume": 0,
+      "market_date_us": "06/18"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 722.51,
+      "prev": 693.69,
+      "chg_pct": 4.15,
+      "volume": 45864874,
+      "market_date_us": "06/17"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 599.73,
+      "prev": 541.51,
+      "chg_pct": 10.75,
+      "volume": 8755782,
+      "market_date_us": "06/17"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 54.05,
+      "prev": 52.23,
+      "chg_pct": 3.48,
+      "volume": 46765459,
+      "market_date_us": "06/17"
     },
     "NVDA": {
       "symbol": "NVDA",
       "name": "엔비디아",
       "kind": "stock",
       "price": 204.65,
-      "prev": 212.45,
-      "chg_pct": -3.67
+      "prev": 200.42,
+      "chg_pct": 2.11,
+      "volume": 118585112,
+      "market_date_us": "06/17"
     },
     "AMD": {
       "symbol": "AMD",
       "name": "AMD",
       "kind": "stock",
       "price": 512.48,
-      "prev": 547.26,
-      "chg_pct": -6.36
+      "prev": 452.4,
+      "chg_pct": 13.28,
+      "volume": 26052016,
+      "market_date_us": "06/17"
     },
     "INTC": {
       "symbol": "INTC",
       "name": "인텔",
       "kind": "stock",
       "price": 121.1,
-      "prev": 127.86,
-      "chg_pct": -5.29
+      "prev": 107.04,
+      "chg_pct": 13.14,
+      "volume": 111050903,
+      "market_date_us": "06/17"
     },
     "TSM": {
       "symbol": "TSM",
       "name": "TSMC",
       "kind": "stock",
       "price": 432.15,
-      "prev": 441.4,
-      "chg_pct": -2.1
+      "prev": 408.75,
+      "chg_pct": 5.72,
+      "volume": 10883883,
+      "market_date_us": "06/17"
     },
     "AAPL": {
       "symbol": "AAPL",
       "name": "애플",
       "kind": "stock",
       "price": 295.95,
-      "prev": 296.42,
-      "chg_pct": -0.16
+      "prev": 291.58,
+      "chg_pct": 1.5,
+      "volume": 42329351,
+      "market_date_us": "06/17"
     },
     "MSFT": {
       "symbol": "MSFT",
       "name": "마이크로소프트",
       "kind": "stock",
       "price": 378.91,
-      "prev": 399.76,
-      "chg_pct": -5.22
+      "prev": 397.36,
+      "chg_pct": -4.64,
+      "volume": 41193950,
+      "market_date_us": "06/17"
     },
     "TSLA": {
       "symbol": "TSLA",
       "name": "테슬라",
       "kind": "stock",
       "price": 396.38,
-      "prev": 411.15,
-      "chg_pct": -3.59
+      "prev": 381.59,
+      "chg_pct": 3.88,
+      "volume": 41080667,
+      "market_date_us": "06/17"
     },
     "AMZN": {
       "symbol": "AMZN",
       "name": "아마존",
       "kind": "stock",
       "price": 237.5,
-      "prev": 246.02,
-      "chg_pct": -3.46
+      "prev": 238.0,
+      "chg_pct": -0.21,
+      "volume": 42359945,
+      "market_date_us": "06/17"
     },
     "GOOGL": {
       "symbol": "GOOGL",
       "name": "알파벳",
       "kind": "stock",
       "price": 363.79,
-      "prev": 369.35,
-      "chg_pct": -1.51
+      "prev": 356.38,
+      "chg_pct": 2.08,
+      "volume": 24169091,
+      "market_date_us": "06/17"
     },
     "META": {
       "symbol": "META",
       "name": "메타",
       "kind": "stock",
       "price": 567.58,
-      "prev": 593.48,
-      "chg_pct": -4.36
+      "prev": 570.98,
+      "chg_pct": -0.6,
+      "volume": 19852778,
+      "market_date_us": "06/17"
     }
   },
   "news": [
+    {
+      "title": "Investing in ETFs? This Sneaky Expense Could Cost You Thousands of Dollars.",
+      "summary": "It's easy to believe that fees are the only sneaky expense you'll encounter. However, that's not quite true.",
+      "link": "https://www.fool.com/investing/2026/06/18/investing-in-etfs-this-sneaky-expense-could-cost-y/?.tsrc=rss"
+    },
+    {
+      "title": "The Financial Markets Are Flashing an Alarm Right Now, and New Fed Chairman Kevin Warsh Could Make Things Worse",
+      "summary": "The risk/reward ratio on stocks doesn't look as good as it used to.",
+      "link": "https://www.fool.com/investing/2026/06/18/the-financial-markets-are-flashing-an-alarm-right/?.tsrc=rss"
+    },
     {
       "title": "Dow Jones Futures Rise After Fed Rate Hike Bets Hit Stocks; SpaceX Falls As Robinhood Jumps",
       "summary": "Stocks suffered broad, sharp losses on rate hike bets after the first Warsh Fed meeting. SpaceX fell for the first time while Robinhood jumped.",
       "link": "https://finance.yahoo.com/m/d2bdbf77-f3c4-3751-a3c0-3b4699fc0ef9/dow-jones-futures-rise-after.html?.tsrc=rss"
     },
     {
-      "title": "Why CarMax Stock Plummeted Today",
-      "summary": "CarMax delivered better-than-expected quarterly results, but the stock still sank.",
-      "link": "https://www.fool.com/investing/2026/06/17/why-carmax-stock-plummeted-today/?.tsrc=rss"
+      "title": "Dow, S&P 500, Nasdaq Futures Climb On US-Iran Agreement Despite Hawkish Fed Outlook: RUM, INTC, NFLX, RXT In Focus",
+      "summary": "The U.S. and Iran electronically signed a 14-point Memorandum of Understanding on Wednesday, extending their ceasefire and establishing a framework for a peace agreement.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/dow-sp500-nasdaq-futures-climb-on-us-iran-agreement-despite-hawkish-fed-outlook/cZKjFzPR7e0?.tsrc=rss"
     },
     {
-      "title": "VOO vs. IVV: Which Popular S&P 500 ETF Is the Better Buy for Investors?",
-      "summary": "Both ETFs mirror each other in cost, yield, and performance, but differ in issuer and scale. See what else sets these S&P 500 giants apart.",
-      "link": "https://www.fool.com/coverage/etfs/2026/06/17/voo-vs-ivv-which-popular-s-and-p-500-etf-is-the-better-buy-for-investors/?.tsrc=rss"
+      "title": "Booking Stock Is Running Hot, But Its Real Value Is How It Runs Alone",
+      "summary": "The travel giant's recent surge is grabbing headlines, yet its long-term behavior offers a more compelling reason for investors to pay attention.",
+      "link": "https://www.trefis.com/articles/603348/booking-stock-is-running-hot-but-its-real-value-is-how-it-runs-alone/2026-06-17?.tsrc=rss"
     },
     {
-      "title": "Why GE Vernova Stock Leaped Nearly 7% Higher Today",
-      "summary": "An analyst initiated coverage of the high-profile engineering company.",
-      "link": "https://www.fool.com/investing/2026/06/17/why-ge-vernova-stock-leaped-nearly-7-higher-today/?.tsrc=rss"
+      "title": "Trump says Apple to work with Intel to manufacture chips in US",
+      "summary": "U.S. President Donald Trump said in a ‌Truth Social post on ‌Thursday that Apple had agreed to ​work with Intel to design and build its chips in the United States. Intel had reached a ‌preliminary deal ⁠to make some chips for Apple, following discussions ⁠that went on for more than a year, the ​Wall Street ​Journal reported ​in May. Apple and ‌Intel did not immediately respond to a Reuters request",
+      "link": "https://finance.yahoo.com/technology/articles/trump-says-apple-intel-manufacture-044440199.html?.tsrc=rss"
     },
     {
-      "title": "Which Energy ETF Is the Better Buy: Global X's MLPX or iShares' Clean Energy Fund ICLN?",
-      "summary": "Compare concentrated energy infrastructure with diversified clean power as these two ETFs reveal sharply different risk and income profiles.",
-      "link": "https://www.fool.com/coverage/etfs/2026/06/17/which-energy-etf-is-the-better-buy-global-x-s-mlpx-or-ishares-clean-energy-fund-icln/?.tsrc=rss"
+      "title": "Why Is NIO Stock Spiking Nearly 4% In Overnight Trading?",
+      "summary": "Nio says it is the first automaker to synchronize driver-assist software releases across third-party and in-house chip platforms.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/why-is-nio-spiking-overnight-trading/cZKjAVIR7en?.tsrc=rss"
     },
     {
-      "title": "Why United States Antimony Stock Was a big Winner on Wednesday",
-      "summary": "A director at the company made a five-figure purchase of its shares.",
-      "link": "https://www.fool.com/investing/2026/06/17/why-united-states-antimony-stock-was-a-big-winner/?.tsrc=rss"
+      "title": "Should You Buy SpaceX Stock This Week or Wait for the Hype to Die Down?",
+      "summary": "The stock is taking off, and some investors fear they are missing out.",
+      "link": "https://www.fool.com/investing/2026/06/17/should-you-buy-spacex-stock-this-week-or-wait/?.tsrc=rss"
     },
     {
-      "title": "Nvidia supplier SK Hynix ships samples of next-generation chips to major customers",
-      "summary": "SK Hynix said on Thursday ‌it has shipped samples ‌of its latest high-bandwidth memory (HBM) ​chips to major customers, as the South Korean chipmaker seeks to strengthen its position ‌in the ⁠fast-growing AI semiconductor market. The next-generation 12-layer HBM4E ⁠chip reaches speeds of up to 16 gigabits per ​second per ​pin ​and offers over ‌20% better power efficiency than previous models, the ",
-      "link": "https://finance.yahoo.com/technology/ai/articles/sk-hynix-says-ships-samples-233341539.html?.tsrc=rss"
+      "title": "SpaceX Has Successfully Completed Its IPO. Here Are All of the Key Dates Investors Should Be Aware of Over the Next 180 Days.",
+      "summary": "SpaceX's IPO is just the beginning of what will be a closely monitored stock, with many important events over the next six months that investors will want to be aware of.",
+      "link": "https://www.fool.com/investing/2026/06/17/spacex-has-successfully-completed-its-ipo-here-are/?.tsrc=rss"
     },
     {
-      "title": "Forget SpaceX at $200. Buy This Space ETF Instead for Just $34.",
-      "summary": "The SpaceX IPO is in the books, but there's another way to gain exposure to the much-hyped stock.",
-      "link": "https://www.fool.com/investing/2026/06/17/forget-spacex-at-200-buy-this-space-etf-instead-fo/?.tsrc=rss"
+      "title": "TSLA Stock Rises Overnight: Analyst Sees Q2 Delivery Beat, Says SPCX Merger Buzz Is Limiting Downside Risk",
+      "summary": "Wolfe expects Tesla to deliver 420,000 vehicles in Q2, above the 400,000-unit consensus.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tsla-analyst-q2-beat-spcx-merger-buzz-limiting-downside-risk/cZKj80UR7eS?.tsrc=rss"
+    },
+    {
+      "title": "TSLA Stock: Elon Musk Exercises 2018 Stock Options Award, Boosts Stake In EV Giant",
+      "summary": "No cash changed hands, and no shares were sold into the open market in the process, a filing shows.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tsla-stock-elon-musk-exercises-2018-stock-options-award-boosts-stake-in-ev-giant/cZKKXg9R7eX?.tsrc=rss"
     },
     {
       "title": "Qualcomm eyes $10 billion AI shortcut as smartphone growth slows",
@@ -189,19 +278,19 @@
       "link": "https://finance.yahoo.com/markets/stocks/articles/spacex-vs-tesla-stock-elon-204700473.html?.tsrc=rss"
     },
     {
-      "title": "Uber and Lucid team up to bring robotaxis to Houston",
-      "summary": "Yahoo Finance Senior Autos Reporter Pras Subramanian joins the show to discuss why Uber (UBER) and Lucid (LCID) chose Houston, Texas, as their next robotaxi market, what makes the city an attractive testing ground for autonomous ride-hailing and why there's so much riding on this launch for both companies.",
-      "link": "https://finance.yahoo.com/video/uber-and-lucid-team-up-to-bring-robotaxis-to-houston-202636078.html?.tsrc=rss"
+      "title": "Stocks Retreat as Fed Signals Possible Higher Interest Rates",
+      "summary": "The S&P 500 Index ($SPX ) (SPY ) on Wednesday closed down -1.21%, the Dow Jones Industrial Average ($DOWI ) (DIA ) closed down -0.98%, and the Nasdaq 100 Index ($IUXX ) (QQQ ) closed down -0.99%. June E-mini S&P futures (ESM26 ) fell -1.19%, and June E-mini Nasdaq futures...",
+      "link": "https://www.barchart.com/story/news/2523544/stocks-retreat-as-fed-signals-possible-higher-interest-rates?.tsrc=rss"
     },
     {
-      "title": "Uber Robo-Taxis Move Step Closer as Self-Driving War Revs Up",
-      "summary": "On Wednesday, ride-hailing giant Uber EV maker Lucid and self-driving technology start-up Nuro announced plans to launch robo-taxis in Houston in 2027. Uber operates the network, Lucid builds the cars, and Nuro provides the autonomous driving technology. The move is yet another example that the long-promised era of driverless cars has arrived.",
-      "link": "https://finance.yahoo.com/m/c56e2017-0cfd-3c72-9046-aef9041ac6c3/uber-robo-taxis-move-step.html?.tsrc=rss"
+      "title": "Why Did RXT, NBIS, ARM Stocks Surge To 52-Week Highs?",
+      "summary": "Rackspace Technology, Nebius Group, and Arm Holdings surged to 52-week highs amid growing Wall Street optimism and growth plans.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/why-did-rxt-nbis-arm-stocks-surge-to-52-week-highs/cZKjpJiR7em?.tsrc=rss"
     },
     {
-      "title": "SpaceX Shares Fall for First Time Since Blockbuster Debut",
-      "summary": "(Bloomberg) -- SpaceX shares declined for the first time since its record initial public offering, snapping a three-day rally that had reached nearly 50%. Most Read from BloombergRead the 14-Point Draft Memorandum Between the US and IranModi Warns of ‘Shortage of Trust’ Ahead of Trump MeetingIran’s Deputy Foreign Minister Confirms Deal Reached With USNetanyahu Pays a Political Price for Trump’s Ir",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/spacex-heads-toward-fourth-day-082223913.html?.tsrc=rss"
+      "title": "Rackspace Technology (RXT) Hits 4-Year High on AMD Compute Deal",
+      "summary": "Rackspace Technology Inc. (NASDAQ:RXT) is one of the 10 Stocks Making Investors Richer. Rackspace Technology soared to a four-year high on Wednesday, extending a winning streak to a third consecutive day, as investors gobbled up shares after clinching a new 30 MW cloud computing deal with Advanced Micro Devices (AMD). In intra-day trading, Rackspace Technology […]",
+      "link": "https://finance.yahoo.com/technology/ai/articles/rackspace-technology-rxt-hits-4-000529991.html?.tsrc=rss"
     },
     {
       "title": "Is Micron Stock's Record-Breaking Run A Cyclical Peak Or A New AI Reality?",
@@ -214,29 +303,14 @@
       "link": "https://www.trefis.com/articles/603361/what-a-patient-holder-is-really-paying-for-broadcom-stock/2026-06-17?.tsrc=rss"
     },
     {
-      "title": "AMD, Arm, Intel Get Price-Target Hikes On 'CPU Renaissance'",
-      "summary": "Research firm Bernstein raised its price targets on three chip stocks — AMD, Arm and Intel — citing a \"CPU renaissance.\"",
-      "link": "https://finance.yahoo.com/m/22e2f8be-1a0d-358b-a6e9-a8a6ac54d07f/amd%2C-arm%2C-intel-get.html?.tsrc=rss"
-    },
-    {
-      "title": "Intel, SpaceX, Robinhood, Carvana, and More Stocks That Explain Today’s Market",
-      "summary": "FEATURE Stocks declined Wednesday—although some tech and artificial-intelligence plays mounted a comeback—after the Federal Reserve opted to keep interest rates steady during Kevin Warsh’s first meeting as central bank chairman.",
-      "link": "https://finance.yahoo.com/m/d8681c3a-fbe8-38bc-a7e2-fa62055cf7b8/intel%2C-spacex%2C-robinhood%2C.html?.tsrc=rss"
-    },
-    {
-      "title": "RXT Stock Surges To 4-Year Highs — Wall Street Highlights Multi-Industry Growth Potential After AMD Deal",
-      "summary": "RBC Capital said the partnership with AMD could help Rackspace gain market share across healthcare, financial services, energy, and government sectors.",
-      "link": "https://stocktwits.com/news-articles/markets/equity/rxt-stock-gains-as-amd-deal-opens-up-growth-opportunities/cZKKdToR7eE?.tsrc=rss"
+      "title": "Stock futures rise as Fed hints at possible rate hike in 2026; Kospi hits over 9,000 for the first time: Live updates - CNBC",
+      "summary": "Stock futures rise as Fed hints at possible rate hike in 2026; Kospi hits over 9,000 for the first time: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9KTnpsQTRpT1dTMHotblVRbHFZVUlWcmd4MXloSEZIaWRJQXllTXFsWDVWT1V0UW9KQWpmbDk5X1d5TVBIUks1ZF9BbGNCZl9UOVpFd0NVQmRjV1pKUGJkR0R5aW5ZeUJXd2RtWmVlMzBJUU1pWEZV0gF8QVVfeXFMTW9TUTNfSWR6N3NuNVI0TGc0eUMzOExVOGdWVkdPQ25NLUVuYnVMM2ZFWW5Xck1FMWpTdGhnNzdISHY5R3ZIWG9Td1lYa0ZlcmFaanBCTHZUd2VYLUx1M2xTTlJ4ZzVabHJsWWpyVmExY3c5dkNMODF1Vzg3TA?oc=5"
     },
     {
       "title": "Dow closes 500 points lower as Warsh’s first Fed meeting sets off surge in bond yields: Live updates - CNBC",
       "summary": "Dow closes 500 points lower as Warsh’s first Fed meeting sets off surge in bond yields: Live updates CNBC",
       "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9uTFFzUE5SblgwaXNYcjl5R1BNd0dVd3NELUZMRFVkNkpqOV96MUZqNTBQWkZNTzE0Um56VGNRTno4SEJybHRwRnpLTG9nRjJ2ZE0xRTR0ZFNMcXV6UWNNNlk2Y2hFUGRWcnd6V1BNLVhqUGZabUZZ0gF8QVVfeXFMTlV5eGVzUzFGN01QSGRBZHljQkNPeGJyYzIyYVFnMFA4Rk5SN081cXVnNzBZREhtYnVZUU5oSmVfeWtsWGNZX3JxaW5scWMxSzVZMmh5YnBLbmlSeUNwRHloT1JjWGtRWEs1ZDM0NXRmQ2UtTlpXTklRekFudA?oc=5"
-    },
-    {
-      "title": "Stock Market News, June 16, 2026: SpaceX Rally Pushes It Past Amazon in Market Value - WSJ",
-      "summary": "Stock Market News, June 16, 2026: SpaceX Rally Pushes It Past Amazon in Market Value WSJ",
-      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQT3JuWE5sSFptVEZmYnZBejVQUExGc0NHWEp4SXhGQmtSRTdIQkZob1JLM3NFSVVoRkZ3dWlVU3lpRjVSMzN3ZmpCWEZzLWxRZFFyWUdFdVNTNUo2QTBocmtEaFJUaUU4emhZbnZodFhRcDR5alJ5UzBwekpEb2stMU1NSjFBaE0?oc=5"
     },
     {
       "title": "Stock market today: Dow, S&P 500, Nasdaq slide as Warsh's Fed edges closer to rate hike - Yahoo Finance",
@@ -249,9 +323,9 @@
       "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxNal9xTUk0MXFqX0JwaElHWUJINGlxMlN6bFhFVExhenZ6VEU5ekFNa0tJU0xKMnlyMnBpX1NKajl5Z2hhN19aejcyOTNjR0ViSU9ncC1OeXg2YWdHX3BNaW0yZWJ2eHBLR2VmaV93VHhiWlRsWGMyUnU2ZjNlYmk5cGFaWHJ3RUhqN1E1TjV4YVhGWTktamI4THlzUWVMeFNWSzZJMGVXRHJ1cENGWHhJd3M4YXNvMTlnaFE?oc=5"
     },
     {
-      "title": "Markets News, June 16, 2026: Dow Hits Record as Chip Stocks Lead Tech Lower; SpaceX Stock Soars on Cursor Deal - Investopedia",
-      "summary": "Markets News, June 16, 2026: Dow Hits Record as Chip Stocks Lead Tech Lower; SpaceX Stock Soars on Cursor Deal Investopedia",
-      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxQMG5EYjJQMUVIeWc0bHFsWWZ3eDdQTVB1b1E1NEV1UVlrR2YzekVQWndrSHk3TTBaSlJJOG9WTjNVQXY0YUlac3JMd3o3WXFYZmtpdy1uajM1VWtybFlVN2VINVVwaEREODFlRTV0Z0ZYV21WRUlFMmZBYjdkbWRZN2FNUVhRU0pjUjVvaUhQemc?oc=5"
+      "title": "Warsh experiences worst 'Fed day' S&P 500 performance for a new chair since 1994 - CNBC",
+      "summary": "Warsh experiences worst 'Fed day' S&P 500 performance for a new chair since 1994 CNBC",
+      "link": "https://news.google.com/rss/articles/CBMidkFVX3lxTE00ODdOSGsxSnVTeE9JOEo2b2JPdFo3R0kxa0paLVlZblA0aEw2XzhXMlNzTHhYSHRtSFJrRU05bzNycUFNRVFJR3R4bTZEYTM0ZmplYnNqeFMxaXNsekNwTHBPZHpZR0ZNN1dHVWNpamtLR1NaSUHSAXtBVV95cUxNTUZXN0ZiQ0RnZWM1S0p3SDc4LWRYc1NrY3czalp1TVNrZGNBQzBSMl9aR0tENkVoM1QxRnJnR1pYRmZ3bGJFWXI5cDJqcF9YVGtFWlRMdHRwaUtlTXp2bm93MVJwSENWckdFcG9EcDkwSzk2SnJ5ZUhUNUU?oc=5"
     },
     {
       "title": "Wall Street sinks on bets Fed will hike rates this year - Reuters",
@@ -259,10 +333,11 @@
       "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNUklQakNqNVVPRDVvUllkUHFYYVB4SXZTX3VkWml5eXJBRlJsZU4tclpReXJYc0dMTXhHaV9ySEtvTUpqbWhUcmI2YWM3THlWV1ZuUFpraFBTRldqUGJnZUN4ckRTV1BFc0NoZ0MwcDlPM1FQNE9sOVlyWjZLUFpDd0NxX1dYel9DMXltRmxjLTBvX2c?oc=5"
     },
     {
-      "title": "US Stock Market Today: S&P 500 Futures Slip As Fed Rate Uncertainty Lingers - simplywall.st",
-      "summary": "US Stock Market Today: S&P 500 Futures Slip As Fed Rate Uncertainty Lingers simplywall.st",
-      "link": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxOaE44U0JKU1FVNm1KTG5xSmVqa2lxU0hfWW44aHFzcDVzMFNHZnRseW0tVFpSVHJDX3NyaGVId1UyaHBDTm1ad1h0Ul84MDU5Q0FXTnJTZTQ1b1p1Z1JVNHlvYlpwdkpTVWFRbTdrdThSLVhLMlNzSlVDN2dBMThEZzY5dm9ORFRTTTE2cTBuMFp1aHVzX2pEdzhGVlZINzREODFBUDRpeXZWMUVGU01RRHhyTTRXMGpRRGV0eDVnVE56RzFybGo0MkF4V2RxcmxRRmFyTURaMkdTZjVKZGM1MWEtMNIB6AFBVV95cUxQUFphZXV2ejRXcWRRY3IwTXFJeFZDOVhqWFJrTUp4TnFVNHlZRVBiOXMyYWxFYWxGZHdBX29HYXRCXzBxM2NVOWdKUUhGbC1kTU9BM0o3SHZYNG50dHY4N2I1UFpYOVBTUFQ3YV8zWnB2a0Jzd1RreFBkR1V5RmdBSGNnbU9iZ1h5SGhWdFhKSTVMS1l2Ty1UNzRQV1U3dlhEeG9acFpZNzVTcUZsMzVjOThGZ0lxeWpWNDBYcVhoYjQyWXZyQmNjcUJXcGlvRERLV3RPWElhRkhudG51UC1ndWVFdmZwc0p6?oc=5"
+      "title": "Stock market today: Dow, S&P 500, Nasdaq futures edge up after US and Iran sign interim deal - Yahoo! Finance Canada",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq futures edge up after US and Iran sign interim deal Yahoo! Finance Canada",
+      "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxOOXZ4ZFd1NEU2NzBWODYtN0dYdVFVN25SN1JBMUhxcWI4dDg4SGRDQ0x4SG1HZGdtRU5wa1V4eW84QUF6M0thOXFsREJySVYtTWVHT3A4bThVSm5JTUVRNWJLSVFqTWNjNktWMWVEQUpmR3pVTHNNZW5hem9HWEpjazBsZ2lpMlkyRTF4RWFSYjRoeVNJb2JOZ3B6ZE1ZdUdJZTFGUkFJR0lCUWFybEI5dWowRFhRZ3JsNkcxOUVyYkpOenVPTnJhYjdicDRMNDZ0cTN3?oc=5"
     }
   ],
-  "generated_at": "2026-06-18T08:59:11.574818+09:00"
+  "us_date": "06/17",
+  "generated_at": "2026-06-18T14:12:03.288269+09:00"
 }
