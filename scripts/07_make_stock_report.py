@@ -3,10 +3,10 @@
 미국 증시 수집·분석 → Blogger 자동 발행
 it_html_builder.py 의 build_ticker_dashboard + md_to_html_market 사용
 """
-
+ 
 from __future__ import annotations
 from it_html_builder import build_ticker_dashboard, md_to_html_market
-
+ 
 import json
 import os
 import re
@@ -18,9 +18,9 @@ import urllib.error
 import urllib.parse
 from datetime import datetime, timezone, timedelta
 from typing import Optional
-
+ 
 import feedparser
-
+ 
 # ── 환경변수 ──────────────────────────────────────────────────────────────────
 OPENROUTER_API_KEY      = os.environ.get("OPENROUTER_API_KEY")
 BLOGGER_BLOG_ID         = os.environ.get("BLOGGER_BLOG_ID")
@@ -28,11 +28,11 @@ BLOGGER_CLIENT_ID       = os.environ.get("BLOGGER_CLIENT_ID")
 BLOGGER_CLIENT_SECRET   = os.environ.get("BLOGGER_CLIENT_SECRET")
 BLOGGER_REFRESH_TOKEN_2 = os.environ.get("BLOGGER_REFRESH_TOKEN_2")
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
-
+ 
 KST = timezone(timedelta(hours=9))
 EST = timezone(timedelta(hours=-5))
 DATA_DIR = "data"
-
+ 
 MODELS = [
     "openai/gpt-oss-120b:free",
     "google/gemma-4-26b-a4b:free",
@@ -42,7 +42,7 @@ MODELS = [
     "openai/gpt-oss-20b:free",
     "meta-llama/llama-3.2-3b-instruct:free",
 ]
-
+ 
 TICKERS = {
     "^IXIC":    ("나스닥",        "index"),
     "^GSPC":    ("S&P500",       "index"),
@@ -66,7 +66,7 @@ TICKERS = {
     "GOOGL":    ("알파벳",        "stock"),
     "META":     ("메타",          "stock"),
 }
-
+ 
 KR_MAP = {
     "NVDA":  ["삼성전자", "SK하이닉스", "한미반도체"],
     "AMD":   ["삼성전자", "SK하이닉스"],
@@ -80,16 +80,16 @@ KR_MAP = {
     "GOOGL": ["카카오", "NAVER"],
     "SOXX":  ["삼성전자", "SK하이닉스", "한미반도체"],
 }
-
-
+ 
+ 
 # ── 유틸 ─────────────────────────────────────────────────────────────────────
-
+ 
 def clean(text: str) -> str:
     text = html_lib.unescape(text or "")
     text = re.sub(r"<[^>]+>", "", text)
     return re.sub(r"\s+", " ", text).strip()
-
-
+ 
+ 
 def fetch(url: str, timeout: int = 15) -> Optional[bytes]:
     try:
         req = urllib.request.Request(url, headers={
@@ -100,10 +100,10 @@ def fetch(url: str, timeout: int = 15) -> Optional[bytes]:
     except Exception as e:
         print(f"  [WARN] fetch 실패: {url[:60]} → {e}")
         return None
-
-
+ 
+ 
 # ── 1. 시세 수집 ──────────────────────────────────────────────────────────────
-
+ 
 def get_quote(symbol: str) -> Optional[dict]:
     url = (
         f"https://query1.finance.yahoo.com/v8/finance/chart/"
@@ -113,17 +113,41 @@ def get_quote(symbol: str) -> Optional[dict]:
     if not raw:
         return None
     try:
-        data       = json.loads(raw)
-        result     = data["chart"]["result"][0]
-        meta       = result["meta"]
+        data   = json.loads(raw)
+        result = data["chart"]["result"][0]
+        meta   = result["meta"]
+ 
         curr_price = meta.get("regularMarketPrice")
-        prev_close = meta.get("previousClose") or meta.get("chartPreviousClose")
+ 
+        # ✅ 핵심 수정: closes 배열에서 직전 거래일 종가 직접 추출
+        # meta의 previousClose는 종종 전전일 기준이라 등락률이 틀림
+        closes = (
+            result
+            .get("indicators", {})
+            .get("quote", [{}])[0]
+            .get("close", [])
+        )
+        closes = [c for c in closes if c is not None]
+ 
+        if len(closes) >= 2:
+            prev_close = closes[-2]   # 직전 거래일 종가
+        elif len(closes) == 1:
+            prev_close = closes[0]
+        else:
+            # 폴백: meta 값 사용
+            prev_close = meta.get("previousClose") or meta.get("chartPreviousClose")
+ 
         if not curr_price or not prev_close:
             return None
+ 
         chg_pct = (curr_price - prev_close) / prev_close * 100
         volume  = meta.get("regularMarketVolume", 0)
-        ts      = meta.get("regularMarketTime", 0)
-        market_date_us = datetime.fromtimestamp(ts, tz=EST).strftime("%m/%d") if ts else ""
+ 
+        ts = meta.get("regularMarketTime", 0)
+        market_date_us = (
+            datetime.fromtimestamp(ts, tz=EST).strftime("%m/%d") if ts else ""
+        )
+ 
         name, kind = TICKERS.get(symbol, (symbol, "stock"))
         return {
             "symbol":         symbol,
@@ -138,8 +162,8 @@ def get_quote(symbol: str) -> Optional[dict]:
     except Exception as e:
         print(f"  [WARN] 파싱 실패 {symbol}: {e}")
         return None
-
-
+ 
+ 
 def collect_quotes() -> dict:
     print("[1] 시세 수집...")
     quotes = {}
@@ -151,17 +175,17 @@ def collect_quotes() -> dict:
             print(f"  {q['name']:14s} {arrow}{abs(q['chg_pct']):.2f}%")
         time.sleep(0.3)
     return quotes
-
-
+ 
+ 
 def get_us_market_date(quotes: dict) -> str:
     q = quotes.get("^IXIC") or quotes.get("^GSPC")
     if q and q.get("market_date_us"):
         return q["market_date_us"]
     return datetime.now(EST).strftime("%m/%d")
-
-
+ 
+ 
 # ── 2. 뉴스 수집 ─────────────────────────────────────────────────────────────
-
+ 
 NEWS_FEEDS = [
     "https://feeds.finance.yahoo.com/rss/2.0/headline?s=^GSPC&region=US&lang=en-US",
     "https://feeds.finance.yahoo.com/rss/2.0/headline?s=NVDA&region=US&lang=en-US",
@@ -171,8 +195,8 @@ NEWS_FEEDS = [
     "https://news.google.com/rss/search?q=nasdaq+SP500+wall+street&hl=en-US&gl=US&ceid=US:en",
     "https://news.google.com/rss/search?q=Federal+Reserve+economy+2026&hl=en-US&gl=US&ceid=US:en",
 ]
-
-
+ 
+ 
 def collect_news() -> list:
     print("[2] 뉴스 수집...")
     seen, articles = set(), []
@@ -191,15 +215,15 @@ def collect_news() -> list:
         time.sleep(0.4)
     print(f"  뉴스 {len(articles)}건")
     return articles[:25]
-
-
+ 
+ 
 # ── 3. LLM 호출 ──────────────────────────────────────────────────────────────
-
+ 
 def call_ai(prompt: str, max_tokens: int = 5000) -> str:
     if not OPENROUTER_API_KEY:
         print("[ERROR] OPENROUTER_API_KEY 없음")
         sys.exit(1)
-
+ 
     for model in MODELS:
         payload = {
             "model":       model,
@@ -233,21 +257,21 @@ def call_ai(prompt: str, max_tokens: int = 5000) -> str:
         except Exception as e:
             print(f"  [WARN] {model}: {e}")
         time.sleep(2)
-
+ 
     print("[ERROR] 모든 모델 실패")
     sys.exit(1)
-
-
+ 
+ 
 # ── 4. 프롬프트 생성 ──────────────────────────────────────────────────────────
-
+ 
 def fmt_vol(v: int) -> str:
     if v >= 100_000_000:
         return f"{v/100_000_000:.1f}억주"
     if v >= 1_000_000:
         return f"{v/1_000_000:.1f}M"
     return str(v)
-
-
+ 
+ 
 def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> str:
     idx_lines = [f"=== 주요 지수 (미국 현지 {us_date} 정규장 마감 기준) ==="]
     for sym in ["^IXIC", "^GSPC", "^DJI", "^VIX"]:
@@ -256,21 +280,21 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
             sign = "+" if q["chg_pct"] >= 0 else ""
             vol  = f" / 거래량:{fmt_vol(q['volume'])}" if q["volume"] else ""
             idx_lines.append(f"{q['name']}: {q['price']} ({sign}{q['chg_pct']}%){vol}")
-
+ 
     etf_lines = ["\n=== 섹터 ETF ==="]
     for sym in ["QQQ", "SOXX", "XLF"]:
         q = quotes.get(sym)
         if q:
             sign = "+" if q["chg_pct"] >= 0 else ""
             etf_lines.append(f"{q['name']}({sym}): {q['price']} ({sign}{q['chg_pct']}%)")
-
+ 
     macro_lines = ["\n=== 매크로 ==="]
     for sym in ["DX-Y.NYB", "CL=F", "GC=F", "USDKRW=X"]:
         q = quotes.get(sym)
         if q:
             sign = "+" if q["chg_pct"] >= 0 else ""
             macro_lines.append(f"{q['name']}: {q['price']} ({sign}{q['chg_pct']}%)")
-
+ 
     stock_lines = ["\n=== 핵심 종목 ==="]
     for sym in ["NVDA","AMD","INTC","TSM","AAPL","MSFT","TSLA","AMZN","GOOGL","META"]:
         q = quotes.get(sym)
@@ -282,25 +306,25 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
             if kr:
                 line += f"  → KR연관: {kr}"
             stock_lines.append(line)
-
+ 
     news_lines = ["\n=== 주요 헤드라인 ==="]
     for i, n in enumerate(news[:18], 1):
         news_lines.append(f"{i}. {n['title']}")
         if n.get("summary"):
             news_lines.append(f"   {n['summary'][:180]}")
-
+ 
     market_text = "\n".join(idx_lines + etf_lines + macro_lines + stock_lines + news_lines)
     kst_date    = now_kst.strftime("%Y년 %m월 %d일")
-
+ 
     return f"""당신은 20년 경력의 매크로 애널리스트이자 현업 펀드매니저다.
 독자는 AI가 작성한 뻔한 글을 극도로 싫어한다.
 아래 실제 시장 데이터를 바탕으로 오늘 아침 한국 증시 대응 리포트를 작성하라.
-
+ 
 【KST 발행일】{kst_date}
 【데이터 기준】미국 현지 {us_date} NYSE/NASDAQ 정규장 마감 (오후 4시 ET)
 【데이터】
 {market_text}
-
+ 
 【작성 원칙】
 - "알아보겠습니다", "살펴보겠습니다" 절대 금지
 - "다양한", "혁신적인", "중요한" 절대 금지
@@ -311,11 +335,11 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
 - 원/달러 환율 변화가 한국 수출주에 미치는 영향 반드시 언급
 - 섹터 ETF(QQQ, SOXX, XLF) 흐름 활용
 - 각 섹션 최소 3~4문장 이상 (총 3000자 이상 목표)
-
+ 
 【섹션 구조】
-
+ 
 (리드 문단: 헤딩 없이 2~3문장. 오늘 시장 핵심 요약)
-
+ 
 ## 1. 간밤 미국 증시 요약
 ## 2. 핵심 드라이버
 ## 3. 섹터별 흐름
@@ -328,10 +352,10 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
 ## 7. 3줄 요약
 - bullet 정확히 3개
 """
-
-
+ 
+ 
 # ── 5. 제목 생성 ──────────────────────────────────────────────────────────────
-
+ 
 def generate_title(quotes: dict, now_kst: datetime, us_date: str):
     kst_date_str = now_kst.strftime("%m월 %d일")
     nasdaq = quotes.get("^IXIC")
@@ -345,17 +369,17 @@ def generate_title(quotes: dict, now_kst: datetime, us_date: str):
         nasdaq_line = f"나스닥 {direction}({nasdaq['chg_pct']:+.2f}%)"
     else:
         nasdaq_line = "미국 증시 마감"
-
+ 
     prompt = f"""아래 조건으로 블로그 제목 3개를 추천하라.
-
+ 
 날짜(KST): {kst_date_str}
 시장: {nasdaq_line}
-
+ 
 조건:
 - 30자 이내, 날짜 포함
 - 숫자로 개수 암시 금지
 - 한국 투자자 관점
-
+ 
 JSON만 출력:
 {{"titles": ["제목1", "제목2", "제목3"]}}
 """
@@ -371,10 +395,10 @@ JSON만 출력:
             pass
     fallback = f"{kst_date_str} 미국 증시 마감 & 코스피 전망"
     return fallback, [fallback]
-
-
+ 
+ 
 # ── 6. Blogger 발행 ───────────────────────────────────────────────────────────
-
+ 
 def get_access_token() -> str:
     payload = {
         "client_id":     BLOGGER_CLIENT_ID,
@@ -399,8 +423,8 @@ def get_access_token() -> str:
     except Exception as e:
         print(f"[ERROR] Access Token 발급 실패: {e}")
         sys.exit(1)
-
-
+ 
+ 
 def post_to_blogger(title: str, content: str, labels: list) -> dict:
     access_token = get_access_token()
     payload = {"title": title, "content": content, "labels": labels}
@@ -423,18 +447,18 @@ def post_to_blogger(title: str, content: str, labels: list) -> dict:
     except Exception as e:
         print(f"[ERROR] Blogger API 실패: {e}")
         sys.exit(1)
-
-
+ 
+ 
 # ── 메인 ─────────────────────────────────────────────────────────────────────
-
+ 
 def main():
     now_kst  = datetime.now(KST)
     date_str = now_kst.strftime("%Y-%m-%d")
     os.makedirs(DATA_DIR, exist_ok=True)
-
+ 
     if DRY_RUN:
         print("[DRY_RUN] Blogger 발행 없이 HTML 파일만 생성합니다.")
-
+ 
     if not DRY_RUN:
         missing = [
             name for name, val in [
@@ -447,69 +471,70 @@ def main():
         if missing:
             print(f"[ERROR] 필수 환경변수 누락: {', '.join(missing)}")
             sys.exit(1)
-
+ 
     # 1) 시세 수집
     quotes = collect_quotes()
     if not quotes:
         print("[ERROR] 시세 수집 실패")
         sys.exit(1)
-
+ 
     us_date = get_us_market_date(quotes)
     print(f"  미국 마감일: {us_date}")
-
+ 
     # 2) 뉴스 수집
     news = collect_news()
-
+ 
     # 3) 원본 데이터 저장
     with open(f"{DATA_DIR}/market_{date_str}.json", "w", encoding="utf-8") as f:
         json.dump({"quotes": quotes, "news": news,
                    "us_date": us_date, "generated_at": now_kst.isoformat()},
                   f, ensure_ascii=False, indent=2)
-
+ 
     # 4) AI 분석
     print("[3] AI 분석 중...")
     analysis = call_ai(build_prompt(quotes, news, now_kst, us_date))
     print(f"  분석 완료: {len(analysis)}자")
-
+ 
     # 5) HTML 변환 (it_html_builder 사용)
     dashboard    = build_ticker_dashboard(quotes, now_kst)
     content_html = md_to_html_market(analysis, quotes)
     content_html = content_html.replace("{DASHBOARD}", dashboard)
-
+ 
     # 6) 제목 생성
     print("[4] 제목 생성 중...")
     final_title, title_candidates = generate_title(quotes, now_kst, us_date)
     print(f"  제목: {final_title}")
-
+ 
     tags = ["미국증시", "코스피전망", "주식시황", "나스닥", "한국증시"]
-
+ 
     # 7) 파일 저장
     with open(f"{DATA_DIR}/market_post_{date_str}.json", "w", encoding="utf-8") as f:
         json.dump({"title": final_title, "title_candidates": title_candidates,
                    "content_html": content_html, "tags": ",".join(tags),
                    "us_date": us_date, "created_at": now_kst.isoformat()},
                   f, ensure_ascii=False, indent=2)
-
+ 
     html_path = f"{DATA_DIR}/market_post_{date_str}.html"
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(content_html)
     print(f"  HTML 저장 → {html_path}")
-
+ 
     if DRY_RUN:
         print(f"[DRY_RUN] 발행 스킵.")
         return
-
+ 
     # 8) Blogger 발행
     print("[5] Blogger 발행 중...")
     result = post_to_blogger(final_title, content_html, tags)
     print(f"[OK] 발행 성공! URL: {result.get('url', '')}")
-
+ 
     with open(f"{DATA_DIR}/market_result_{date_str}.json", "w", encoding="utf-8") as f:
         json.dump({"title": final_title, "url": result.get("url", ""),
                    "post_id": result.get("id", ""), "us_date": us_date,
                    "created_at": now_kst.isoformat()},
                   f, ensure_ascii=False, indent=2)
-
-
+ 
+ 
 if __name__ == "__main__":
     main()
+ 
