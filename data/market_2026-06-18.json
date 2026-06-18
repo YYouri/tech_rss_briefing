@@ -36,25 +36,25 @@
       "symbol": "DX-Y.NYB",
       "name": "달러인덱스",
       "kind": "macro",
-      "price": 100.39,
+      "price": 100.35,
       "prev": 99.54,
-      "chg_pct": 0.85
+      "chg_pct": 0.82
     },
     "CL=F": {
       "symbol": "CL=F",
       "name": "WTI유가",
       "kind": "macro",
-      "price": 75.36,
+      "price": 75.22,
       "prev": 76.05,
-      "chg_pct": -0.91
+      "chg_pct": -1.09
     },
     "GC=F": {
       "symbol": "GC=F",
       "name": "금선물",
       "kind": "macro",
-      "price": 4284.1,
+      "price": 4294.0,
       "prev": 4330.9,
-      "chg_pct": -1.08
+      "chg_pct": -0.85
     },
     "NVDA": {
       "symbol": "NVDA",
@@ -144,49 +144,39 @@
       "link": "https://finance.yahoo.com/m/d2bdbf77-f3c4-3751-a3c0-3b4699fc0ef9/dow-jones-futures-rise-after.html?.tsrc=rss"
     },
     {
-      "title": "Which S&P 500 ETF Is the Better Buy: iShares' IVV or State Street's SPY?",
-      "summary": "Subtle differences in structure and returns can impact long-term ETF performance for investors seeking S&P 500 exposure. Explore how these giants stack up.",
-      "link": "https://www.fool.com/coverage/etfs/2026/06/17/which-s-and-p-500-etf-is-the-better-buy-ishares-ivv-or-state-street-s-spy/?.tsrc=rss"
+      "title": "Why CarMax Stock Plummeted Today",
+      "summary": "CarMax delivered better-than-expected quarterly results, but the stock still sank.",
+      "link": "https://www.fool.com/investing/2026/06/17/why-carmax-stock-plummeted-today/?.tsrc=rss"
     },
     {
-      "title": "Wall Street closes lower on Fed rate hike bets",
-      "summary": "STORY: U.S. stocks ended lower on Wednesday, as the Dow dropped about 1%, the S&P 500 shed 1.2% and the Nasdaq slid about one-and-a-third percent. Kevin Warsh held his first press conference as Federal Reserve Chair on Wednesday after the central bank wrapped its June policy meeting. The Fed left interest rates unchanged, as expected, but new projections showed nine central bank officials expect a",
-      "link": "https://finance.yahoo.com/video/wall-street-closes-lower-fed-222319794.html?.tsrc=rss"
+      "title": "VOO vs. IVV: Which Popular S&P 500 ETF Is the Better Buy for Investors?",
+      "summary": "Both ETFs mirror each other in cost, yield, and performance, but differ in issuer and scale. See what else sets these S&P 500 giants apart.",
+      "link": "https://www.fool.com/coverage/etfs/2026/06/17/voo-vs-ivv-which-popular-s-and-p-500-etf-is-the-better-buy-for-investors/?.tsrc=rss"
     },
     {
-      "title": "Stock Market Today, June 17: Nu Holdings Rises as AI Credit Models Lift Lending Outlook",
-      "summary": "Nu Holdings’ AI models are moving deeper into credit decisions, raising the stakes for whether lending growth can stay profitable.",
-      "link": "https://www.fool.com/coverage/stock-market-today/2026/06/17/stock-market-today-june-17-nu-holdings-rises-as-ai-credit-models-lift-lending-outlook/?.tsrc=rss"
+      "title": "Why GE Vernova Stock Leaped Nearly 7% Higher Today",
+      "summary": "An analyst initiated coverage of the high-profile engineering company.",
+      "link": "https://www.fool.com/investing/2026/06/17/why-ge-vernova-stock-leaped-nearly-7-higher-today/?.tsrc=rss"
     },
     {
-      "title": "Stock Market Today, June 17: Eos Energy Enterprises Jumps After Announcing New Battery Storage Partnership",
-      "summary": "Today, June 17, 2026, investors responded to Eos Energy Enterprises' new European agreement with heightened optimism.",
-      "link": "https://www.fool.com/coverage/stock-market-today/2026/06/17/stock-market-today-june-17-eos-energy-enterprises-jumps-after-announcing-new-battery-storage-partnership/?.tsrc=rss"
+      "title": "Which Energy ETF Is the Better Buy: Global X's MLPX or iShares' Clean Energy Fund ICLN?",
+      "summary": "Compare concentrated energy infrastructure with diversified clean power as these two ETFs reveal sharply different risk and income profiles.",
+      "link": "https://www.fool.com/coverage/etfs/2026/06/17/which-energy-etf-is-the-better-buy-global-x-s-mlpx-or-ishares-clean-energy-fund-icln/?.tsrc=rss"
     },
     {
-      "title": "Stock Market Today, June 17: Marvell Rises as AI Bookings Build on Nvidia-Linked Momentum",
-      "summary": "Marvell’s custom AI chips and optical-networking exposure give investors a clearer data-center growth angle, with the next test tied to whether demand for custom chips and optical networking will translate into sales and profit growth.",
-      "link": "https://www.fool.com/coverage/stock-market-today/2026/06/17/stock-market-today-june-17-marvell-rises-as-ai-bookings-build-on-nvidia-linked-momentum/?.tsrc=rss"
+      "title": "Why United States Antimony Stock Was a big Winner on Wednesday",
+      "summary": "A director at the company made a five-figure purchase of its shares.",
+      "link": "https://www.fool.com/investing/2026/06/17/why-united-states-antimony-stock-was-a-big-winner/?.tsrc=rss"
     },
     {
-      "title": "Why Meta Platforms Stock Plummeted by Over 5% on Wednesday",
-      "summary": "According to a media report, the leader of its internal AI initiative is leaving the company.",
-      "link": "https://www.fool.com/investing/2026/06/17/why-meta-platforms-stock-plummeted-by-over-5-on-we/?.tsrc=rss"
+      "title": "Nvidia supplier SK Hynix ships samples of next-generation chips to major customers",
+      "summary": "SK Hynix said on Thursday ‌it has shipped samples ‌of its latest high-bandwidth memory (HBM) ​chips to major customers, as the South Korean chipmaker seeks to strengthen its position ‌in the ⁠fast-growing AI semiconductor market. The next-generation 12-layer HBM4E ⁠chip reaches speeds of up to 16 gigabits per ​second per ​pin ​and offers over ‌20% better power efficiency than previous models, the ",
+      "link": "https://finance.yahoo.com/technology/ai/articles/sk-hynix-says-ships-samples-233341539.html?.tsrc=rss"
     },
     {
-      "title": "Why Microsoft Stock Slumped Today",
-      "summary": "It apparently fell short in an attempt to lease cloud capacity from a peer.",
-      "link": "https://www.fool.com/investing/2026/06/17/why-microsoft-stock-slumped-today/?.tsrc=rss"
-    },
-    {
-      "title": "Rumble rebrands to RUM Group after Northern Data buyout",
-      "summary": "Rumble, which hosts U.S. President Donald Trump's Truth Social platform, ‌said it would begin operating ‌as 'RUM Group' and oversee a new AI-focused business unit ​in addition to its existing video platform. The move, announced on Wednesday and effective from June 18, comes after the company closed ‌its acquisition of ⁠German AI cloud company Northern Data. Here are some details: • Rumble shares ⁠",
-      "link": "https://finance.yahoo.com/technology/ai/articles/rumble-rebrands-rum-group-northern-213744220.html?.tsrc=rss"
-    },
-    {
-      "title": "The SpaceX IPO Is Finally Here: This Is When It Might Be Coming to Your S&P 500 ETF",
-      "summary": "S&P Dow Jones indexes said it won't make any special rule changes to allow SpaceX into the S&P 500.",
-      "link": "https://www.fool.com/investing/2026/06/17/spacex-ipo-is-here-when-it-comes-to-sp-500/?.tsrc=rss"
+      "title": "Forget SpaceX at $200. Buy This Space ETF Instead for Just $34.",
+      "summary": "The SpaceX IPO is in the books, but there's another way to gain exposure to the much-hyped stock.",
+      "link": "https://www.fool.com/investing/2026/06/17/forget-spacex-at-200-buy-this-space-etf-instead-fo/?.tsrc=rss"
     },
     {
       "title": "Qualcomm eyes $10 billion AI shortcut as smartphone growth slows",
@@ -244,9 +234,9 @@
       "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9uTFFzUE5SblgwaXNYcjl5R1BNd0dVd3NELUZMRFVkNkpqOV96MUZqNTBQWkZNTzE0Um56VGNRTno4SEJybHRwRnpLTG9nRjJ2ZE0xRTR0ZFNMcXV6UWNNNlk2Y2hFUGRWcnd6V1BNLVhqUGZabUZZ0gF8QVVfeXFMTlV5eGVzUzFGN01QSGRBZHljQkNPeGJyYzIyYVFnMFA4Rk5SN081cXVnNzBZREhtYnVZUU5oSmVfeWtsWGNZX3JxaW5scWMxSzVZMmh5YnBLbmlSeUNwRHloT1JjWGtRWEs1ZDM0NXRmQ2UtTlpXTklRekFudA?oc=5"
     },
     {
-      "title": "Dow climbs above 52,000 for first time as oil prices fall, but tech sell-off knocks down S&P 500: Live updates - CNBC",
-      "summary": "Dow climbs above 52,000 for first time as oil prices fall, but tech sell-off knocks down S&P 500: Live updates CNBC",
-      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1jdXJkOFJXSFdYdlY4SWhBWjI3SDRSX29fSkdQYktfMFl3WjJCU2NxR1hISTVqQ2J2ZFlQQzc5Smh1Q292T0cyMWF2c2U0NjVHbVBuVXFGTThLZGFDYnlaVmpISzJwMFR4WU9oOE05aERRMGI4Q2lR0gF8QVVfeXFMTkh4UzZmNzg5Y0JSa0pMSjlpREJNZ2xtdWw5eExlenMzeUl6NnBsek5SR0dvRmlkZEMzbllvWGNhMjBGX054aldxRXpDeFZ4ZmFSUHFTZmZEbGo1Q1VZam96YU5oUHk5LW9DOTN1UXpJZjU2ckZhRnBsazJpbg?oc=5"
+      "title": "Stock Market News, June 16, 2026: SpaceX Rally Pushes It Past Amazon in Market Value - WSJ",
+      "summary": "Stock Market News, June 16, 2026: SpaceX Rally Pushes It Past Amazon in Market Value WSJ",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQT3JuWE5sSFptVEZmYnZBejVQUExGc0NHWEp4SXhGQmtSRTdIQkZob1JLM3NFSVVoRkZ3dWlVU3lpRjVSMzN3ZmpCWEZzLWxRZFFyWUdFdVNTNUo2QTBocmtEaFJUaUU4emhZbnZodFhRcDR5alJ5UzBwekpEb2stMU1NSjFBaE0?oc=5"
     },
     {
       "title": "Stock market today: Dow, S&P 500, Nasdaq slide as Warsh's Fed edges closer to rate hike - Yahoo Finance",
@@ -254,15 +244,25 @@
       "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxNZHFNQUNwblhwVGpGSVZDaUdPenRBaV9KYUZPV2VDc2JES3hoYmJZRUROVzloaGtTcmxEcHZTLThZb1liSkpkQVFzYVRFci1jMWlpVWhjMGY0RWNjZTJVci1YeXVDRHlGOGR0aXRaWkc5WTFXWmt5bnpwNzJ3Q0pUUkN6U3lmY1k3Vi0zdnh0Rmprd3ZJVngwRVBjMHQ5WXNmdzV6TThjcTQwZVJ5ODVacTlaS3RhRTd6aVVpeS0zdHFYVllGdW9yc0NhWHQ?oc=5"
     },
     {
-      "title": "Stock Market News, June 16, 2026: SpaceX Rally Pushes It Past Amazon in Market Value - WSJ",
-      "summary": "Stock Market News, June 16, 2026: SpaceX Rally Pushes It Past Amazon in Market Value WSJ",
-      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQT3JuWE5sSFptVEZmYnZBejVQUExGc0NHWEp4SXhGQmtSRTdIQkZob1JLM3NFSVVoRkZ3dWlVU3lpRjVSMzN3ZmpCWEZzLWxRZFFyWUdFdVNTNUo2QTBocmtEaFJUaUU4emhZbnZodFhRcDR5alJ5UzBwekpEb2stMU1NSjFBaE0?oc=5"
-    },
-    {
       "title": "Stock Market Today: Dow Slapped As Fed Chair Warsh Stresses Price Stability; SpaceX Falls 5% (Live Coverage) - Investor's Business Daily",
       "summary": "Stock Market Today: Dow Slapped As Fed Chair Warsh Stresses Price Stability; SpaceX Falls 5% (Live Coverage) Investor's Business Daily",
       "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxNal9xTUk0MXFqX0JwaElHWUJINGlxMlN6bFhFVExhenZ6VEU5ekFNa0tJU0xKMnlyMnBpX1NKajl5Z2hhN19aejcyOTNjR0ViSU9ncC1OeXg2YWdHX3BNaW0yZWJ2eHBLR2VmaV93VHhiWlRsWGMyUnU2ZjNlYmk5cGFaWHJ3RUhqN1E1TjV4YVhGWTktamI4THlzUWVMeFNWSzZJMGVXRHJ1cENGWHhJd3M4YXNvMTlnaFE?oc=5"
+    },
+    {
+      "title": "Markets News, June 16, 2026: Dow Hits Record as Chip Stocks Lead Tech Lower; SpaceX Stock Soars on Cursor Deal - Investopedia",
+      "summary": "Markets News, June 16, 2026: Dow Hits Record as Chip Stocks Lead Tech Lower; SpaceX Stock Soars on Cursor Deal Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxQMG5EYjJQMUVIeWc0bHFsWWZ3eDdQTVB1b1E1NEV1UVlrR2YzekVQWndrSHk3TTBaSlJJOG9WTjNVQXY0YUlac3JMd3o3WXFYZmtpdy1uajM1VWtybFlVN2VINVVwaEREODFlRTV0Z0ZYV21WRUlFMmZBYjdkbWRZN2FNUVhRU0pjUjVvaUhQemc?oc=5"
+    },
+    {
+      "title": "Wall Street sinks on bets Fed will hike rates this year - Reuters",
+      "summary": "Wall Street sinks on bets Fed will hike rates this year Reuters",
+      "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNUklQakNqNVVPRDVvUllkUHFYYVB4SXZTX3VkWml5eXJBRlJsZU4tclpReXJYc0dMTXhHaV9ySEtvTUpqbWhUcmI2YWM3THlWV1ZuUFpraFBTRldqUGJnZUN4ckRTV1BFc0NoZ0MwcDlPM1FQNE9sOVlyWjZLUFpDd0NxX1dYel9DMXltRmxjLTBvX2c?oc=5"
+    },
+    {
+      "title": "US Stock Market Today: S&P 500 Futures Slip As Fed Rate Uncertainty Lingers - simplywall.st",
+      "summary": "US Stock Market Today: S&P 500 Futures Slip As Fed Rate Uncertainty Lingers simplywall.st",
+      "link": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxOaE44U0JKU1FVNm1KTG5xSmVqa2lxU0hfWW44aHFzcDVzMFNHZnRseW0tVFpSVHJDX3NyaGVId1UyaHBDTm1ad1h0Ul84MDU5Q0FXTnJTZTQ1b1p1Z1JVNHlvYlpwdkpTVWFRbTdrdThSLVhLMlNzSlVDN2dBMThEZzY5dm9ORFRTTTE2cTBuMFp1aHVzX2pEdzhGVlZINzREODFBUDRpeXZWMUVGU01RRHhyTTRXMGpRRGV0eDVnVE56RzFybGo0MkF4V2RxcmxRRmFyTURaMkdTZjVKZGM1MWEtMNIB6AFBVV95cUxQUFphZXV2ejRXcWRRY3IwTXFJeFZDOVhqWFJrTUp4TnFVNHlZRVBiOXMyYWxFYWxGZHdBX29HYXRCXzBxM2NVOWdKUUhGbC1kTU9BM0o3SHZYNG50dHY4N2I1UFpYOVBTUFQ3YV8zWnB2a0Jzd1RreFBkR1V5RmdBSGNnbU9iZ1h5SGhWdFhKSTVMS1l2Ty1UNzRQV1U3dlhEeG9acFpZNzVTcUZsMzVjOThGZ0lxeWpWNDBYcVhoYjQyWXZyQmNjcUJXcGlvRERLV3RPWElhRkhudG51UC1ndWVFdmZwc0p6?oc=5"
     }
   ],
-  "generated_at": "2026-06-18T07:55:46.752338+09:00"
+  "generated_at": "2026-06-18T08:59:11.574818+09:00"
 }
