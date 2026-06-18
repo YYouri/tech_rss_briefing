@@ -5,8 +5,8 @@
       "name": "나스닥",
       "kind": "index",
       "price": 26021.66,
-      "prev": 25169.5,
-      "chg_pct": 3.39,
+      "prev": 26376.34,
+      "chg_pct": -1.34,
       "volume": 10605787000,
       "market_date_us": "06/17"
     },
@@ -15,8 +15,8 @@
       "name": "S&P500",
       "kind": "index",
       "price": 7420.1,
-      "prev": 7266.99,
-      "chg_pct": 2.11,
+      "prev": 7511.35,
+      "chg_pct": -1.21,
       "volume": 3339473000,
       "market_date_us": "06/17"
     },
@@ -25,8 +25,8 @@
       "name": "다우존스",
       "kind": "index",
       "price": 51492.55,
-      "prev": 49918.78,
-      "chg_pct": 3.15,
+      "prev": 51999.67,
+      "chg_pct": -0.98,
       "volume": 496041891,
       "market_date_us": "06/17"
     },
@@ -35,8 +35,8 @@
       "name": "VIX",
       "kind": "index",
       "price": 18.44,
-      "prev": 19.44,
-      "chg_pct": -5.14,
+      "prev": 16.41,
+      "chg_pct": 12.37,
       "volume": 0,
       "market_date_us": "06/17"
     },
@@ -45,8 +45,8 @@
       "name": "달러인덱스",
       "kind": "macro",
       "price": 100.24,
-      "prev": 99.63,
-      "chg_pct": 0.61,
+      "prev": 100.09,
+      "chg_pct": 0.15,
       "volume": 0,
       "market_date_us": "06/18"
     },
@@ -54,29 +54,29 @@
       "symbol": "CL=F",
       "name": "WTI유가",
       "kind": "macro",
-      "price": 74.12,
-      "prev": 80.75,
-      "chg_pct": -8.21,
-      "volume": 15576,
+      "price": 74.15,
+      "prev": 76.79,
+      "chg_pct": -3.44,
+      "volume": 16008,
       "market_date_us": "06/18"
     },
     "GC=F": {
       "symbol": "GC=F",
       "name": "금선물",
       "kind": "macro",
-      "price": 4334.8,
-      "prev": 4328.0,
-      "chg_pct": 0.16,
-      "volume": 26768,
+      "price": 4338.2,
+      "prev": 4358.9,
+      "chg_pct": -0.47,
+      "volume": 26991,
       "market_date_us": "06/18"
     },
     "USDKRW=X": {
       "symbol": "USDKRW=X",
       "name": "원달러환율",
       "kind": "macro",
-      "price": 1520.57,
-      "prev": 1517.38,
-      "chg_pct": 0.21,
+      "price": 1520.64,
+      "prev": 1510.96,
+      "chg_pct": 0.64,
       "volume": 0,
       "market_date_us": "06/18"
     },
@@ -85,8 +85,8 @@
       "name": "나스닥100 ETF",
       "kind": "etf",
       "price": 722.51,
-      "prev": 693.69,
-      "chg_pct": 4.15,
+      "prev": 729.86,
+      "chg_pct": -1.01,
       "volume": 45864874,
       "market_date_us": "06/17"
     },
@@ -95,8 +95,8 @@
       "name": "반도체 ETF",
       "kind": "etf",
       "price": 599.73,
-      "prev": 541.51,
-      "chg_pct": 10.75,
+      "prev": 591.24,
+      "chg_pct": 1.44,
       "volume": 8755782,
       "market_date_us": "06/17"
     },
@@ -105,8 +105,8 @@
       "name": "금융 ETF",
       "kind": "etf",
       "price": 54.05,
-      "prev": 52.23,
-      "chg_pct": 3.48,
+      "prev": 54.35,
+      "chg_pct": -0.55,
       "volume": 46765459,
       "market_date_us": "06/17"
     },
@@ -115,8 +115,8 @@
       "name": "엔비디아",
       "kind": "stock",
       "price": 204.65,
-      "prev": 200.42,
-      "chg_pct": 2.11,
+      "prev": 207.41,
+      "chg_pct": -1.33,
       "volume": 118585112,
       "market_date_us": "06/17"
     },
@@ -125,8 +125,8 @@
       "name": "AMD",
       "kind": "stock",
       "price": 512.48,
-      "prev": 452.4,
-      "chg_pct": 13.28,
+      "prev": 507.29,
+      "chg_pct": 1.02,
       "volume": 26052016,
       "market_date_us": "06/17"
     },
@@ -135,8 +135,8 @@
       "name": "인텔",
       "kind": "stock",
       "price": 121.1,
-      "prev": 107.04,
-      "chg_pct": 13.14,
+      "prev": 117.05,
+      "chg_pct": 3.46,
       "volume": 111050903,
       "market_date_us": "06/17"
     },
@@ -145,8 +145,8 @@
       "name": "TSMC",
       "kind": "stock",
       "price": 432.15,
-      "prev": 408.75,
-      "chg_pct": 5.72,
+      "prev": 425.83,
+      "chg_pct": 1.48,
       "volume": 10883883,
       "market_date_us": "06/17"
     },
@@ -155,8 +155,8 @@
       "name": "애플",
       "kind": "stock",
       "price": 295.95,
-      "prev": 291.58,
-      "chg_pct": 1.5,
+      "prev": 299.24,
+      "chg_pct": -1.1,
       "volume": 42329351,
       "market_date_us": "06/17"
     },
@@ -165,8 +165,8 @@
       "name": "마이크로소프트",
       "kind": "stock",
       "price": 378.91,
-      "prev": 397.36,
-      "chg_pct": -4.64,
+      "prev": 393.83,
+      "chg_pct": -3.79,
       "volume": 41193950,
       "market_date_us": "06/17"
     },
@@ -175,8 +175,8 @@
       "name": "테슬라",
       "kind": "stock",
       "price": 396.38,
-      "prev": 381.59,
-      "chg_pct": 3.88,
+      "prev": 404.66,
+      "chg_pct": -2.05,
       "volume": 41080667,
       "market_date_us": "06/17"
     },
@@ -185,8 +185,8 @@
       "name": "아마존",
       "kind": "stock",
       "price": 237.5,
-      "prev": 238.0,
-      "chg_pct": -0.21,
+      "prev": 246.0,
+      "chg_pct": -3.46,
       "volume": 42359945,
       "market_date_us": "06/17"
     },
@@ -195,8 +195,8 @@
       "name": "알파벳",
       "kind": "stock",
       "price": 363.79,
-      "prev": 356.38,
-      "chg_pct": 2.08,
+      "prev": 373.25,
+      "chg_pct": -2.53,
       "volume": 24169091,
       "market_date_us": "06/17"
     },
@@ -205,8 +205,8 @@
       "name": "메타",
       "kind": "stock",
       "price": 567.58,
-      "prev": 570.98,
-      "chg_pct": -0.6,
+      "prev": 600.21,
+      "chg_pct": -5.44,
       "volume": 19852778,
       "market_date_us": "06/17"
     }
@@ -238,6 +238,11 @@
       "link": "https://www.trefis.com/articles/603348/booking-stock-is-running-hot-but-its-real-value-is-how-it-runs-alone/2026-06-17?.tsrc=rss"
     },
     {
+      "title": "Tesla's $25 Billion Capex Plan Is No Longer About Cars. Here's Why Tesla Could Be the Most Undervalued AI and Robotics Stock of 2026.",
+      "summary": "Tesla's embodiment of artificial intelligence (AI) makes it one of the best ways to capitalize on the revolutionary changes driven by AI development.",
+      "link": "https://www.fool.com/investing/2026/06/18/teslas-25-billion-capex-plan-is-no-longer-about-ca/?.tsrc=rss"
+    },
+    {
       "title": "Trump says Apple to work with Intel to manufacture chips in US",
       "summary": "U.S. President Donald Trump said in a ‌Truth Social post on ‌Thursday that Apple had agreed to ​work with Intel to design and build its chips in the United States. Intel had reached a ‌preliminary deal ⁠to make some chips for Apple, following discussions ⁠that went on for more than a year, the ​Wall Street ​Journal reported ​in May. Apple and ‌Intel did not immediately respond to a Reuters request",
       "link": "https://finance.yahoo.com/technology/articles/trump-says-apple-intel-manufacture-044440199.html?.tsrc=rss"
@@ -251,11 +256,6 @@
       "title": "Should You Buy SpaceX Stock This Week or Wait for the Hype to Die Down?",
       "summary": "The stock is taking off, and some investors fear they are missing out.",
       "link": "https://www.fool.com/investing/2026/06/17/should-you-buy-spacex-stock-this-week-or-wait/?.tsrc=rss"
-    },
-    {
-      "title": "SpaceX Has Successfully Completed Its IPO. Here Are All of the Key Dates Investors Should Be Aware of Over the Next 180 Days.",
-      "summary": "SpaceX's IPO is just the beginning of what will be a closely monitored stock, with many important events over the next six months that investors will want to be aware of.",
-      "link": "https://www.fool.com/investing/2026/06/17/spacex-has-successfully-completed-its-ipo-here-are/?.tsrc=rss"
     },
     {
       "title": "TSLA Stock Rises Overnight: Analyst Sees Q2 Delivery Beat, Says SPCX Merger Buzz Is Limiting Downside Risk",
@@ -276,11 +276,6 @@
       "title": "SpaceX vs. Tesla Stock: Which Elon Musk Company Is the Better Investment?",
       "summary": "Both companies are led by Elon Musk, the world's first potential trillionaire, and are disrupting massive industries while creating substantial shareholder value.",
       "link": "https://finance.yahoo.com/markets/stocks/articles/spacex-vs-tesla-stock-elon-204700473.html?.tsrc=rss"
-    },
-    {
-      "title": "Stocks Retreat as Fed Signals Possible Higher Interest Rates",
-      "summary": "The S&P 500 Index ($SPX ) (SPY ) on Wednesday closed down -1.21%, the Dow Jones Industrial Average ($DOWI ) (DIA ) closed down -0.98%, and the Nasdaq 100 Index ($IUXX ) (QQQ ) closed down -0.99%. June E-mini S&P futures (ESM26 ) fell -1.19%, and June E-mini Nasdaq futures...",
-      "link": "https://www.barchart.com/story/news/2523544/stocks-retreat-as-fed-signals-possible-higher-interest-rates?.tsrc=rss"
     },
     {
       "title": "Why Did RXT, NBIS, ARM Stocks Surge To 52-Week Highs?",
@@ -333,11 +328,16 @@
       "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNUklQakNqNVVPRDVvUllkUHFYYVB4SXZTX3VkWml5eXJBRlJsZU4tclpReXJYc0dMTXhHaV9ySEtvTUpqbWhUcmI2YWM3THlWV1ZuUFpraFBTRldqUGJnZUN4ckRTV1BFc0NoZ0MwcDlPM1FQNE9sOVlyWjZLUFpDd0NxX1dYel9DMXltRmxjLTBvX2c?oc=5"
     },
     {
-      "title": "Stock market today: Dow, S&P 500, Nasdaq futures edge up after US and Iran sign interim deal - Yahoo! Finance Canada",
-      "summary": "Stock market today: Dow, S&P 500, Nasdaq futures edge up after US and Iran sign interim deal Yahoo! Finance Canada",
-      "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxOOXZ4ZFd1NEU2NzBWODYtN0dYdVFVN25SN1JBMUhxcWI4dDg4SGRDQ0x4SG1HZGdtRU5wa1V4eW84QUF6M0thOXFsREJySVYtTWVHT3A4bThVSm5JTUVRNWJLSVFqTWNjNktWMWVEQUpmR3pVTHNNZW5hem9HWEpjazBsZ2lpMlkyRTF4RWFSYjRoeVNJb2JOZ3B6ZE1ZdUdJZTFGUkFJR0lCUWFybEI5dWowRFhRZ3JsNkcxOUVyYkpOenVPTnJhYjdicDRMNDZ0cTN3?oc=5"
+      "title": "Wall Street Analyst Calls for S&P 500 Soaring to 9000. Here’s Why the Stock Market Melt Up Could Be Just Beginning. - Yahoo Finance",
+      "summary": "Wall Street Analyst Calls for S&P 500 Soaring to 9000. Here’s Why the Stock Market Melt Up Could Be Just Beginning. Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxNVzVXamFjMWo1azRZbkY5bWZ5NjFNTmN5OXIwN1VMbXpfMTZ2ZGpISmx4cFNCcXM0MThqWFlsODdvRU94TDFnZ013U1oybU95WGRzcUpiQXk1WkhMV0JBdXl5YVJpRFRaeHBobVVNTm5XXzdlNnl0clVSd1pkbjlZd2RFdm1OTmk2R2NoSTNXOHR2U2FTc3pr?oc=5"
+    },
+    {
+      "title": "Dow Drops 507, Nasdaq Sinks 355, S&P 500 Loses 91 - TV News Check",
+      "summary": "Dow Drops 507, Nasdaq Sinks 355, S&P 500 Loses 91 TV News Check",
+      "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxPTmxBaGVCc1hvdTRLd2Rua09FVzVZV01iTktGZ2ZSRnA1bW5vbnBBbmI4dlFrMW5JZVVITndPNTlkWFU5NGh1ZUV5X0JCRm9ieDltVncwbHNsQ2F5ckJFWU5OdFFpNVNLVXR0MnRfcWx6RlB6SDFaMU14ZThoYl9pUFp3N0dGQ2dvTU5aQ1A0QmZjUQ?oc=5"
     }
   ],
   "us_date": "06/17",
-  "generated_at": "2026-06-18T14:12:03.288269+09:00"
+  "generated_at": "2026-06-18T14:21:59.646206+09:00"
 }
