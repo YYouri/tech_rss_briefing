@@ -127,11 +127,12 @@ def render_heading(text: str) -> str:
             f'margin-right:9px;vertical-align:middle;letter-spacing:0.8px;'
             f'font-family:monospace;">{label}</span>'
         )
+    sep = " " if badge else ""
     return (
         f'<h2 style="font-size:1.08em;font-weight:700;color:{TEXT_MAIN};'
         f'margin:2.2em 0 0.8em;padding:10px 14px;display:flex;align-items:center;'
         f'background:{BG_HEADER};border-left:4px solid {bar_color};border-radius:0 6px 6px 0;">'
-        f'{badge}{title_text}</h2>'
+        f'{badge}{sep}{title_text}</h2>'
     )
 
 
@@ -269,6 +270,37 @@ def convert_source_tags(text: str, articles: list) -> str:
         return f'<sup style="font-size:0.74em;color:{TEXT_MUTED};">[{inner[:30]}]</sup>'
 
     return SOURCE_TAG_PATTERN.sub(replace_tag, text)
+
+
+def extract_meta_description(md: str, max_len: int = 150) -> str:
+    """
+    포스팅 본문(md)에서 리드 문단(첫 ## 헤딩 이전의 첫 본문 줄)을 뽑아
+    Blogger 검색 설명(searchDescription) / og:description 용으로 가공한다.
+
+    [중요] 이 함수의 반환값은 발행 스크립트에서 Blogger API 호출 시
+    post body의 'searchDescription' 필드에 명시적으로 채워 넣어야 효과가 있다.
+    searchDescription을 비워두면 Blogger/구글이 본문 텍스트를 앞에서부터
+    그대로 긁어가는데, md_to_html()의 출력은 {META_BAR}(기술 분석 리포트
+    날짜·태그 등)가 항상 가장 먼저 오기 때문에 그게 그대로 스니펫으로
+    노출되는 문제가 있었다.
+    """
+    for line in md.split("\n"):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("##") or re.match(r"^[-*]\s", stripped):
+            continue
+        if re.fullmatch(r"-{3,}|\*{3,}", stripped):
+            continue
+        text = re.sub(r"\*\*(.+?)\*\*", r"\1", stripped)
+        text = re.sub(r"`(.+?)`", r"\1", text)
+        text = SOURCE_TAG_PATTERN.sub("", text).strip()
+        if not text:
+            continue
+        if len(text) > max_len:
+            text = text[:max_len].rstrip() + "…"
+        return text
+    return ""
 
 
 def md_to_html(md: str, articles: list = None) -> str:
@@ -497,7 +529,7 @@ def md_to_html_market(md: str, quotes: dict) -> str:
             f'<h2 style="font-size:1.08em;font-weight:700;color:{TEXT_MAIN};'
             f'margin:2.2em 0 0.8em;padding:10px 14px;display:flex;align-items:center;'
             f'background:{STOCK_BG_HEADER};border-left:4px solid {bar_color};border-radius:0 6px 6px 0;">'
-            f'{badge}{title_text}</h2>'
+            f'{badge}{" " if badge else ""}{title_text}</h2>'
         )
 
     def _sector_cards(bullet_lines: list) -> str:
