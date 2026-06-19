@@ -1,14 +1,5 @@
 """
 03_generate_post.py
-OpenRouter Free API로 블로그 포스팅 본문을 생성하고 HTML로 변환한다.
-
-이번 수정 — 디자인 시스템 통일:
-- 렌더링 로직을 it_html_builder.py 로 분리.
-  market_html_builder.py(Stock)와 동일한 토큰(여백/라운드/헤딩 바+배지/리드박스/요약박스 구조)을
-  공유하면서 포인트 컬러만 시안 계열로 분기.
-- 기존 콘텐츠 생성 로직(call_ai, generate_body, generate_diagram, refine_title,
-  fetch_unsplash_image)은 그대로 유지.
-- 출처 미태깅 수치는 제거하지 않고 경고만 출력 (이전 수정 유지).
 """
 
 import json
@@ -47,10 +38,31 @@ MODELS = [
     "meta-llama/llama-3.2-3b-instruct:free",
 ]
 
+# ── 카테고리별 CTA 설정 ───────────────────────────────────────────────────────
+# 카테고리 문자열이 키에 포함되면 해당 CTA 자동 적용.
+# CTA가 필요 없는 카테고리는 매핑에 넣지 않으면 됨.
+CTA_MAP = {
+    "커리어": {
+        "label":       "KPC 정보관리기술사 정기 설명회",
+        "url":         "https://www.kpc.or.kr",   # ← 실제 URL로 교체
+        "description": "등록 전에 설명회를 먼저 들어보는 게 맞다. KPC는 정기적으로 설명회를 운영한다.",
+        "button_text": "설명회 일정 확인하기 →",
+    },
+    # 필요하면 추가
+    # "보안": { "label": "...", "url": "...", ... },
+}
 
-# ──────────────────────────────────────────
-# 유틸
-# ──────────────────────────────────────────
+def get_cta(category: str) -> dict | None:
+    """카테고리 문자열로 CTA 딕셔너리를 반환. 매칭 없으면 None."""
+    for key, cta in CTA_MAP.items():
+        if key in category:
+            return cta
+    return None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 이하 기존 코드 그대로
+# ─────────────────────────────────────────────────────────────────────────────
 
 def mermaid_to_image_url(mermaid_code: str) -> str:
     graphbytes = mermaid_code.encode("utf8")
@@ -62,7 +74,6 @@ def call_ai(prompt: str, max_tokens: int = 4096) -> str:
     if not OPENROUTER_API_KEY:
         print("[ERROR] OPENROUTER_API_KEY 없음")
         sys.exit(1)
-
     for model in MODELS:
         payload = {
             "model": model,
@@ -93,47 +104,36 @@ def call_ai(prompt: str, max_tokens: int = 4096) -> str:
             print(f"[WARN] {model} 실패: {e.code} - {body[:200]}")
         except Exception as e:
             print(f"[WARN] {model} 예외: {e}")
-
     print("[ERROR] 모든 모델 실패")
     sys.exit(1)
 
-
-# ──────────────────────────────────────────
-# 대표 이미지 — Unsplash
-# ──────────────────────────────────────────
 
 def fetch_unsplash_image(topic: str):
     if not UNSPLASH_ACCESS_KEY:
         print("[WARN] UNSPLASH_ACCESS_KEY 없음 → 대표 이미지 스킵")
         return None
-
     url = (
         f"https://api.unsplash.com/search/photos"
         f"?query={urllib.parse.quote(topic)}"
-        f"&per_page=1&orientation=landscape"
-        f"&content_filter=high"
+        f"&per_page=1&orientation=landscape&content_filter=high"
     )
     req = urllib.request.Request(
         url,
-        headers={
-            "Authorization": f"Client-ID {UNSPLASH_ACCESS_KEY}",
-            "Accept-Version": "v1",
-        },
+        headers={"Authorization": f"Client-ID {UNSPLASH_ACCESS_KEY}", "Accept-Version": "v1"},
     )
     try:
         with urllib.request.urlopen(req, timeout=15) as r:
             data = json.loads(r.read().decode("utf-8"))
         results = data.get("results", [])
         if not results:
-            print(f"[WARN] Unsplash 검색 결과 없음: {topic}")
             return None
         photo = results[0]
         return {
-            "url":          photo["urls"]["regular"],
-            "thumb":        photo["urls"]["small"],
-            "alt":          photo.get("alt_description") or topic,
-            "author":       photo["user"]["name"],
-            "author_url":   photo["user"]["links"]["html"],
+            "url":        photo["urls"]["regular"],
+            "thumb":      photo["urls"]["small"],
+            "alt":        photo.get("alt_description") or topic,
+            "author":     photo["user"]["name"],
+            "author_url": photo["user"]["links"]["html"],
             "unsplash_url": photo["links"]["html"],
         }
     except Exception as e:
@@ -141,19 +141,12 @@ def fetch_unsplash_image(topic: str):
         return None
 
 
-# ──────────────────────────────────────────
-# 기사 컨텍스트 빌더
-# ──────────────────────────────────────────
-
 def build_article_context(articles: list, topic: str) -> str:
     topic_lower = topic.lower()
     relevant = [
         a for a in articles
         if topic_lower in a["title"].lower() or topic_lower in a.get("summary", "").lower()
-    ][:10]
-    if not relevant:
-        relevant = articles[:10]
-
+    ][:10] or articles[:10]
     lines = []
     for i, a in enumerate(relevant, 1):
         lines.append(f"[기사{i}] 제목: {a['title']}")
@@ -164,25 +157,15 @@ def build_article_context(articles: list, topic: str) -> str:
     return "\n".join(lines)
 
 
-# ──────────────────────────────────────────
-# 수치 후처리 — 제거 대신 경고만 출력
-# ──────────────────────────────────────────
-
-NUMERIC_PATTERN = re.compile(
-    r'\d+(\.\d+)?'
-    r'\s*'
-    r'(%|퍼센트|억|만|천|조|배|달러|원|배출량|감소|증가|단축|절감|향상|성장률|상승)',
-    re.UNICODE
-)
+NUMERIC_PATTERN    = re.compile(r'\d+(\.\d+)?\s*(%|퍼센트|억|만|천|조|배|달러|원|배출량|감소|증가|단축|절감|향상|성장률|상승)', re.UNICODE)
 SOURCE_TAG_PATTERN = re.compile(r'\[출처\s*:\s*.+?\]')
 
 
 def sanitize_untagged_numerics(text: str) -> str:
-    lines = text.split("\n")
-    for line in lines:
-        stripped = line.strip()
-        if NUMERIC_PATTERN.search(stripped) and not SOURCE_TAG_PATTERN.search(stripped):
-            print(f"  [경고] 출처 미태깅 수치 발견: {stripped[:80]}...")
+    for line in text.split("\n"):
+        s = line.strip()
+        if NUMERIC_PATTERN.search(s) and not SOURCE_TAG_PATTERN.search(s):
+            print(f"  [경고] 출처 미태깅 수치 발견: {s[:80]}...")
     return text
 
 
@@ -190,36 +173,22 @@ def enforce_three_line_summary(text: str) -> str:
     match = re.search(r'(## 7[^\n]*\n)(.*?)(\Z|## \d)', text, re.DOTALL)
     if not match:
         return text
-
     section_body = match.group(2)
     after        = match.group(3)
-
     bullets = [l for l in section_body.split("\n") if l.strip().startswith("- ")]
-
     if len(bullets) < 3:
-        print(f"  [후처리 경고] 3줄 요약 bullet {len(bullets)}개 — 3개 미만")
         while len(bullets) < 3:
             bullets.append("- (요약 항목 생성 필요)")
-        fixed_body = "\n".join(bullets) + "\n"
-        return text[:match.start(2)] + fixed_body + after
-
+        return text[:match.start(2)] + "\n".join(bullets) + "\n" + after
     if len(bullets) > 3:
-        print(f"  [후처리] 3줄 요약 bullet {len(bullets)}개 → 3개로 축소")
-        fixed_body = "\n".join(bullets[:3]) + "\n"
-        return text[:match.start(2)] + fixed_body + after
-
+        return text[:match.start(2)] + "\n".join(bullets[:3]) + "\n" + after
     return text
 
-
-# ──────────────────────────────────────────
-# 다이어그램 생성
-# ──────────────────────────────────────────
 
 def generate_diagram(topic_data: dict) -> str:
     topic = topic_data["topic"]
     prompt = f"""'{topic}' 기술의 핵심 구조나 작동 흐름을 보여주는
 간단한 Mermaid 다이어그램 코드를 작성하세요.
-
 규칙:
 - graph TD 또는 graph LR 형식
 - 노드는 5~8개 이내, 한국어 라벨 사용
@@ -228,13 +197,8 @@ def generate_diagram(topic_data: dict) -> str:
 - 설명 없이 mermaid 코드만 출력 (코드블록 없이 순수 코드만)
 """
     raw = call_ai(prompt, max_tokens=300)
-    raw = re.sub(r"```mermaid|```", "", raw).strip()
-    return raw
+    return re.sub(r"```mermaid|```", "", raw).strip()
 
-
-# ──────────────────────────────────────────
-# 본문 생성
-# ──────────────────────────────────────────
 
 def generate_body(topic_data: dict) -> str:
     topic    = topic_data["topic"]
@@ -287,16 +251,11 @@ def generate_body(topic_data: dict) -> str:
 ## 5. 엔지니어가 봐야 할 포인트
 ## 6. 앞으로 볼 포인트
 - bullet 정확히 3개
-
 ## 7. 3줄 요약
 - bullet 정확히 3개
 """
     return call_ai(prompt, max_tokens=4096)
 
-
-# ──────────────────────────────────────────
-# 제목 추천
-# ──────────────────────────────────────────
 
 def refine_title(topic_data: dict) -> dict:
     prompt = f"""아래 블로그 제목을 검색 유입에 최적화해서 3개 추천해주세요.
@@ -313,7 +272,7 @@ def refine_title(topic_data: dict) -> dict:
 JSON만 출력:
 {{"titles": ["제목1", "제목2", "제목3"], "category": "추천 카테고리"}}
 """
-    raw = call_ai(prompt, max_tokens=300)
+    raw   = call_ai(prompt, max_tokens=300)
     match = re.search(r"\{.*\}", raw, re.DOTALL)
     if match:
         try:
@@ -323,14 +282,9 @@ JSON만 출력:
     return {"titles": [topic_data["korean_title"]], "category": "IT/테크"}
 
 
-# ──────────────────────────────────────────
-# 메인
-# ──────────────────────────────────────────
-
 def main():
     if not os.path.exists(TOPIC_FILE):
         print(f"[ERROR] {TOPIC_FILE} 파일이 없습니다.")
-        print("       02_select_topic.py를 먼저 실행하세요.")
         sys.exit(1)
 
     now_kst = datetime.now(KST)
@@ -345,76 +299,72 @@ def main():
 
     print(f"[포스팅 생성] 주제: {topic}")
     print(f"[포스팅 생성] 제목: {title}")
-    print(f"[포스팅 생성] 관련 기사: {len(articles)}개")
 
-    # 1. 대표 이미지 검색
+    # 1. 대표 이미지
     print("\n[대표 이미지 검색 중...]")
     hero_image = fetch_unsplash_image(topic)
-    if hero_image:
-        print(f"[대표 이미지 OK] {hero_image['url'][:60]}...")
-    else:
-        print("[대표 이미지 없음] 스킵")
 
     # 2. 본문 생성
     body_md = generate_body(topic_data)
-    print(f"\n[본문 생성 완료] {len(body_md)}자")
-
     body_md = sanitize_untagged_numerics(body_md)
     body_md = enforce_three_line_summary(body_md)
 
-    # 3. 구성도 생성
-    print("\n[구성도 생성 중...]")
+    # 3. 구성도
     diagram_url = ""
     try:
-        diagram_code = generate_diagram(topic_data)
-        diagram_url  = mermaid_to_image_url(diagram_code)
-        print(f"[구성도 URL] {diagram_url[:80]}...")
+        diagram_url = mermaid_to_image_url(generate_diagram(topic_data))
     except Exception as e:
         print(f"[WARN] 구성도 생성 실패: {e}")
 
-    # 4. HTML 변환 (디자인 시스템 통일된 it_html_builder 사용)
-    relevant_articles = articles[:8] if articles else []
-    content_html = md_to_html(body_md, relevant_articles)
-
-    # 5. 메타바 삽입 (Stock의 {DASHBOARD}와 동일한 패턴)
-    meta_bar_html = build_meta_bar(topic, tags, now_kst)
-    content_html  = content_html.replace("{META_BAR}", meta_bar_html)
-
-    # 6. 대표 이미지 삽입 (메타바 바로 다음)
-    if hero_image:
-        hero_html = render_hero_image(hero_image)
-        content_html = content_html.replace(meta_bar_html, meta_bar_html + hero_html, 1)
-
-    # 7. 구성도 삽입 (CORE 섹션 앞)
-    if diagram_url:
-        diagram_html = render_diagram(diagram_url, topic)
-        marker = '>CORE</span>'
-        idx = content_html.find(marker)
-        if idx != -1:
-            h2_start = content_html.rfind('<h2', 0, idx)
-            if h2_start != -1:
-                content_html = content_html[:h2_start] + diagram_html + content_html[h2_start:]
-        else:
-            content_html += diagram_html
-
-    # 8. 참고 기사 삽입 (면책 박스 앞)
-    if relevant_articles:
-        references_html = render_references(relevant_articles)
-        marker = '<div style="margin-top:2em;'
-        idx = content_html.rfind(marker)
-        if idx != -1:
-            content_html = content_html[:idx] + references_html + content_html[idx:]
-
-    # 9. 제목 추천
+    # 4. 제목·카테고리 추천
     print("\n[제목/카테고리 추천 중...]")
     refined          = refine_title(topic_data)
     title_candidates = refined.get("titles", [title])
     category         = refined.get("category", "IT/테크")
     final_title      = title_candidates[0] if title_candidates else title
+    print(f"[제목] {title_candidates}  [카테고리] {category}")
 
-    print(f"[제목 추천] {title_candidates}")
-    print(f"[카테고리] {category}")
+    # 5. CTA 자동 선택 ─────────────────────────────────────────────────────────
+    cta = get_cta(category)
+    if cta:
+        print(f"[CTA] '{category}' 카테고리 → CTA 자동 삽입: {cta['label']}")
+    else:
+        print(f"[CTA] '{category}' 카테고리 → CTA 없음")
 
+    # 6. HTML 변환 (cta는 md_to_html에 한 번만 전달)
+    relevant_articles = articles[:8]
+    content_html = md_to_html(body_md, relevant_articles, cta=cta)
+
+    # 7. 메타바 삽입
+    meta_bar_html = build_meta_bar(topic, tags, now_kst)
+    content_html  = content_html.replace("{META_BAR}", meta_bar_html)
+
+    # 8. 대표 이미지 삽입
+    if hero_image:
+        hero_html    = render_hero_image(hero_image)
+        content_html = content_html.replace(meta_bar_html, meta_bar_html + hero_html, 1)
+
+    # 9. 구성도 삽입
+    if diagram_url:
+        diagram_html = render_diagram(diagram_url, topic)
+        marker       = '>CORE</span>'
+        idx          = content_html.find(marker)
+        if idx != -1:
+            h2_start     = content_html.rfind('<h2', 0, idx)
+            if h2_start != -1:
+                content_html = content_html[:h2_start] + diagram_html + content_html[h2_start:]
+        else:
+            content_html += diagram_html
+
+    # 10. 참고 기사 삽입
+    if relevant_articles:
+        references_html = render_references(relevant_articles)
+        marker          = '<div style="margin-top:2em;'
+        idx             = content_html.rfind(marker)
+        if idx != -1:
+            content_html = content_html[:idx] + references_html + content_html[idx:]
+
+    # 11. 저장
     post = {
         "title":            final_title,
         "title_candidates": title_candidates,
@@ -428,16 +378,12 @@ def main():
     }
 
     os.makedirs("data", exist_ok=True)
-
     with open(POST_FILE, "w", encoding="utf-8") as f:
         json.dump(post, f, ensure_ascii=False, indent=2)
-
     with open("data/blog_post.html", "w", encoding="utf-8") as f:
         f.write(content_html)
-
     with open("data/blog_post.md", "w", encoding="utf-8") as f:
-        f.write(f"# {final_title}\n\n")
-        f.write(body_md)
+        f.write(f"# {final_title}\n\n{body_md}")
 
     print(f"\n포스팅 저장 완료 → {POST_FILE}")
 
