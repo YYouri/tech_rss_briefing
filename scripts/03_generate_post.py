@@ -45,7 +45,7 @@ CTA_MAP = {
     "커리어": {
         "label":       "기술사 시험 준비, 토픽 토론은 네이버 카페에서!",
         "url":         "https://m.cafe.naver.com/ca-fe/kpcitpe?tc=section_home_my_cafe",   # ← 실제 URL로 교체
-        "description": "등록 전에 설명회를 먼저 들어보는 게 맞다. KPC는 정기적으로 설명회를 운영한다.",
+        "description": "",
         "button_text": "KPC 정보관리기술사 카페 바로가기 →",
     },
     # 필요하면 추가
