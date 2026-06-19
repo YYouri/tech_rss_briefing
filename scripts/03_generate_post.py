@@ -43,10 +43,10 @@ MODELS = [
 # CTA가 필요 없는 카테고리는 매핑에 넣지 않으면 됨.
 CTA_MAP = {
     "커리어": {
-        "label":       "KPC 정보관리기술사 정기 설명회",
-        "url":         "https://www.kpc.or.kr",   # ← 실제 URL로 교체
+        "label":       "기술사 시험 준비, 토픽 토론은 네이버 카페에서!",
+        "url":         "https://m.cafe.naver.com/ca-fe/kpcitpe?tc=section_home_my_cafe",   # ← 실제 URL로 교체
         "description": "등록 전에 설명회를 먼저 들어보는 게 맞다. KPC는 정기적으로 설명회를 운영한다.",
-        "button_text": "설명회 일정 확인하기 →",
+        "button_text": "KPC 정보관리기술사 카페 바로가기 →",
     },
     # 필요하면 추가
     # "보안": { "label": "...", "url": "...", ... },
