@@ -18,6 +18,7 @@ from it_html_builder import (
     render_hero_image,
     render_diagram,
     render_references,
+    render_cta_button,
 )
 
 TOPIC_FILE = "data/selected_topic.json"
@@ -325,15 +326,12 @@ def main():
     print(f"[제목] {title_candidates}  [카테고리] {category}")
 
     # 5. CTA 자동 선택 ─────────────────────────────────────────────────────────
-    cta = get_cta(category)
-    if cta:
-        print(f"[CTA] '{category}' 카테고리 → CTA 자동 삽입: {cta['label']}")
-    else:
-        print(f"[CTA] '{category}' 카테고리 → CTA 없음")
+    cta = CTA_MAP["커리어"]
+    #cta = get_cta(category)
 
     # 6. HTML 변환 (cta는 md_to_html에 한 번만 전달)
     relevant_articles = articles[:8]
-    content_html = md_to_html(body_md, relevant_articles, cta=cta)
+    content_html = md_to_html(body_md, relevant_articles)
 
     # 7. 메타바 삽입
     meta_bar_html = build_meta_bar(topic, tags, now_kst)
@@ -363,6 +361,16 @@ def main():
         idx             = content_html.rfind(marker)
         if idx != -1:
             content_html = content_html[:idx] + references_html + content_html[idx:]
+    if cta:
+        from it_html_builder import render_cta_button
+        cta_html=render_cta_button(**cta)
+        marker  ='<div style="margin-top:2em;'
+        idx =content_html.rfind(marker)
+        if idx!=-1:
+            content_html =content_html[:idx]+cta_html+content_html[idx:]
+        #print(f"[CTA] '{category}' 카테고리 → CTA 자동 삽입: {cta['label']}")
+    else:
+        print(f"[CTA] '{category}' 카테고리 → CTA 없음")
 
     # 11. 저장
     post = {
