@@ -73,6 +73,49 @@ SOURCE_TAG_PATTERN = re.compile(r'\[출처\s*:\s*.+?\]')
 
 
 # ════════════════════════════════════════════════════════════════════════════════
+# CTA 버튼 블록
+# ════════════════════════════════════════════════════════════════════════════════
+
+def render_cta_button(
+    label: str,
+    url: str,
+    description: str = "",
+    button_text: str = "바로가기 →",
+    color: str = None,
+) -> str:
+    """
+    포스트 하단(면책 박스 앞)에 삽입할 CTA 버튼 블록.
+
+    Parameters
+    ----------
+    label       : 상단 강조 텍스트  (예: "KPC 정보관리기술사 설명회")
+    url         : 버튼 링크
+    description : 버튼 위 보조 설명 (생략 가능)
+    button_text : 버튼 라벨         (기본값: "바로가기 →")
+    color       : 포인트 컬러       (기본값: ACCENT_MAIN)
+    """
+    c = color or ACCENT_MAIN
+    desc_html = (
+        f'<p style="font-size:0.85em;color:{TEXT_SUB};margin:0 0 14px;line-height:1.7;">'
+        f'{description}</p>'
+        if description else ""
+    )
+    return (
+        f'<div style="background:{ACCENT_LIGHT};border:1px solid #bfe1e5;'
+        f'border-radius:10px;padding:22px 20px;margin:2em 0;text-align:center;">'
+        f'<p style="font-size:0.82em;font-weight:700;color:{c};'
+        f'letter-spacing:0.4px;margin:0 0 8px;">{label}</p>'
+        f'{desc_html}'
+        f'<a href="{url}" target="_blank" rel="noopener noreferrer" '
+        f'style="display:inline-block;background:{c};color:#fff;'
+        f'font-size:0.88em;font-weight:700;padding:10px 26px;'
+        f'border-radius:6px;text-decoration:none;letter-spacing:0.3px;">'
+        f'{button_text}</a>'
+        f'</div>'
+    )
+
+
+# ════════════════════════════════════════════════════════════════════════════════
 # IT 리포팅 전용
 # ════════════════════════════════════════════════════════════════════════════════
 
@@ -273,17 +316,6 @@ def convert_source_tags(text: str, articles: list) -> str:
 
 
 def extract_meta_description(md: str, max_len: int = 150) -> str:
-    """
-    포스팅 본문(md)에서 리드 문단(첫 ## 헤딩 이전의 첫 본문 줄)을 뽑아
-    Blogger 검색 설명(searchDescription) / og:description 용으로 가공한다.
-
-    [중요] 이 함수의 반환값은 발행 스크립트에서 Blogger API 호출 시
-    post body의 'searchDescription' 필드에 명시적으로 채워 넣어야 효과가 있다.
-    searchDescription을 비워두면 Blogger/구글이 본문 텍스트를 앞에서부터
-    그대로 긁어가는데, md_to_html()의 출력은 {META_BAR}(기술 분석 리포트
-    날짜·태그 등)가 항상 가장 먼저 오기 때문에 그게 그대로 스니펫으로
-    노출되는 문제가 있었다.
-    """
     for line in md.split("\n"):
         stripped = line.strip()
         if not stripped:
@@ -303,8 +335,17 @@ def extract_meta_description(md: str, max_len: int = 150) -> str:
     return ""
 
 
-def md_to_html(md: str, articles: list = None) -> str:
-    """IT 포스팅 전용 md→HTML"""
+def md_to_html(md: str, articles: list = None, cta: dict = None) -> str:
+    """IT 포스팅 전용 md→HTML
+
+    cta 예시 (생략하면 CTA 없이 렌더링):
+        cta = {
+            "label":       "KPC 정보관리기술사 정기 설명회",
+            "url":         "https://www.kpc.or.kr",
+            "description": "등록 전에 설명회를 먼저 들어보는 게 맞다.",
+            "button_text": "설명회 일정 확인하기 →",   # 생략 가능
+        }
+    """
     articles = articles or []
     md = convert_source_tags(md, articles)
 
@@ -377,12 +418,14 @@ def md_to_html(md: str, articles: list = None) -> str:
     if in_ul:
         flush_ul()
 
-    body = "\n".join(html_out)
+    body     = "\n".join(html_out)
+    cta_html = render_cta_button(**cta) if cta else ""
     return (
         f'<div style="font-family:\'Noto Sans KR\',\'Malgun Gothic\',Apple SD Gothic Neo,'
         f'sans-serif;max-width:720px;margin:0 auto;color:{TEXT_MAIN};'
         f'word-break:keep-all;background:#ffffff;padding:4px;">'
         f'{body}'
+        f'{cta_html}'
         f'<div style="margin-top:2em;padding:12px 16px;background:{BG_PAGE};'
         f'border:1px solid {BORDER};border-radius:6px;font-size:0.78em;color:{TEXT_MUTED};line-height:1.7;">'
         f'본 콘텐츠는 IT 기술 정보 제공 목적으로 작성되었습니다. 투자 판단의 근거로 사용하지 마시기 바랍니다.'
@@ -395,7 +438,6 @@ def md_to_html(md: str, articles: list = None) -> str:
 # ════════════════════════════════════════════════════════════════════════════════
 
 def build_ticker_dashboard(quotes: dict, now_kst: datetime) -> str:
-    """증시 시세 대시보드 — IT build_meta_bar() 와 동일한 카드 골격"""
     time_str = now_kst.strftime("%Y.%m.%d %H:%M KST 기준")
 
     def idx_card(q: dict) -> str:
@@ -494,7 +536,7 @@ def build_ticker_dashboard(quotes: dict, now_kst: datetime) -> str:
 
 
 def md_to_html_market(md: str, quotes: dict) -> str:
-    """증시 포스팅 전용 md→HTML (IT md_to_html 과 동일 파이프라인, 증시 컬러 적용)"""
+    """증시 포스팅 전용 md→HTML"""
     md = SOURCE_TAG_PATTERN.sub("", md)
 
     lines    = md.split("\n")
