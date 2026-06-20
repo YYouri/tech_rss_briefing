@@ -33,5 +33,12 @@
     "url": "",
     "tags": "Physical AI, 로봇 자동화, 산업 AI, 스마트 팩토리, 디지털 트윈, KPC정보관리기술사",
     "date": "2026-06-19T02:48:47.630682"
+  },
+  {
+    "topic": "LLM Inference",
+    "title": "LLM 인퍼런스 속도 올리는 핵심 팁",
+    "url": "",
+    "tags": "LLM, Inference, Edge AI, TensorRT, CXL, KPC정보관리기술사",
+    "date": "2026-06-20T02:44:39.533868"
   }
 ]
