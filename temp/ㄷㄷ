@@ -1,97 +1,422 @@
-<div style="font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:17px;line-height:1.9;color:#1a1a1a;max-width:680px;margin:0 auto;padding:20px;">
+package hi.bxm.assist.core.llm;
 
-  <div style="font-size:12px;font-weight:600;letter-spacing:0.15em;color:#888;text-transform:uppercase;margin-bottom:16px;">정보관리기술사 · 04. 나의 공부법</div>
+import java.util.ArrayList;
+import java.util.List;
 
-  <h1 style="font-size:26px;font-weight:800;line-height:1.4;color:#111;margin:0 0 24px 0;">기본반부터 합격까지 — 내가 실제로 공부한 방법</h1>
+import bxm.ui.ide.application.login.LoginConfigurationManager;
+import hi.bxm.assist.core.model.ChatMessage;
+import hi.bxm.assist.core.model.ChatMessage.Role;
+import hi.bxm.assist.core.model.CompletionRequest;
+import hi.bxm.assist.core.model.EditorContext;
 
-  <div style="width:32px;height:3px;background:#111;margin:24px 0;"></div>
+public class PromptBuilder {
 
-  <p style="margin:0 0 18px 0;color:#333;">기술사 공부는 오래 해야 한다는 말, 많이 들으셨을 겁니다.</p>
+    private static final int MAX_CODE_CHARS   = 3000;
+    private static final int MAX_PREFIX_CHARS = 1500;
 
-  <p style="margin:0 0 18px 0;color:#333;">저도 그랬습니다. 근데 오래 하는 것보다 중요한 게 있었습니다. 방향이었습니다. 기본반부터 심화반까지, 제가 실제로 겪은 이야기와 공부법을 자세히 남겨둡니다.</p>
+    // ── 공통 제약 (모든 프롬프트에 적용) ────────────────────────
+    public static final String CONSTRAINTS =
+            "\n\n[공통 제약]\n"
+            + "1. javac 컴파일 가능한 완전한 Java 코드만 제안한다.\n"
+            + "2. LaTeX, 이모지, 특수기호(∙,≥,≤,×,÷,∞,$\rightarrow$), 전각문자 금지.\n"
+            + "3. 모든 문자는 표준 ASCII 범위 내에서 작성하며, 화살표는 반드시 ASCII: ->, =>, > 만 사용한다.\n"
+            + "4. System.out, printStackTrace() 금지 — logError(msg, e) 사용.\n"
+            + "5. SQL 라인 주석(--) 금지 — 블록 주석(/* */) 사용.\n"
+            + "6. 메서드 파라미터 최대 5개.\n"
+            + "7. 인사말 없이 바로 출력.";
+    public static final String CIS_ONLINE_RULES =
+            "\n\n### [CIS 기간계 온라인 개발 표준 가이드 v1.8]"
+            // --- 2. 온라인(Online) 서비스 규칙 (가이드라인 및 샘플 소스 기반) ---
+            + "\n\n#### [RULE A: 온라인(Online) 서비스]"
+            + "\n1. 어플리케이션 실행 및 구조 규칙:"
+            + "\n   - 실행 흐름: UI(X-Internet) XML 요청 -> XInternetGateway(Header 판독/Log) -> ServiceLocator(MainService 탐색) -> RequestVO 생성 -> ServiceContext/AppController 생성 -> MainService.perform(RequestVO) 실행 -> SubService 로직 수행 -> ResponseVO 반환 -> XInternetGateway(결과 XML 변환 및 송신) 흐름을 준수하십시오."
+            + "\n   - 패키지 구조: Main Service와 Sub Service는 'service' 패키지를 사용합니다."
+            + "\n   - VO 패키지: BusinessVO, Rule전용VO, DOVO 등은 'entity' 패키지를 사용합니다."
+            + "\n   - 상수 패키지: 업무팀별 상수는 'hi.[업무팀별].common.const'를, 전체 공통 상수는 'hi.common.const'를 사용합니다."
+            + "\n   - 인터페이스 패키지: 도메인 간 인터페이스용 서비스는 'interfaces' 패키지를 사용합니다."
+            + "\n2. 서비스 클래스 구현 규칙:"
+            + "\n   - Main Service: 'jef.application.services.AbstractMainService'를 상속하며, TranID에 대응하는 'perform<TranID>(BusinessVO)' 메소드를 구현합니다."
+            + "\n   - Sub Service: 'jef.application.services.AbstractSubService'를 상속하며, 실제 비즈니스 로직을 담당합니다."
+            + "\n   - 의존성: @Autowired 사용을 절대 금지하며, 반드시 'ApplicationContextUtils.getBean(대상클래스.class)'을 사용하여 Bean을 호출하십시오."
+			+ "\n	- 기간계 CIS 의 경우 bean 호출 대신 ServiceContext 전달 가능: 모든 서비스는 생성자에서 'ServiceContext'를 받아 상위 클래스에 'super(ctx)'로 전달해야 합니다. 이 객체는 세션, 권한, DB 정보를 담고 있으며 임의 변경이 절대 금지됩니다"
+            + "\n   - 메소드 선언: 모든 수행 메소드(Main/Sub)는 'throws Exception'을 반드시 선언해야 하며, 내부에서 try-catch로 Exception을 직접 처리(consume)하지 않는 것을 원칙으로 합니다."
+            + "\n3. 데이터 및 솔루션 연동 규칙 (Adapter):"
+            + "\n   - BusinessVO: 모든 서비스 입력/출력 VO는 'jef.application.entity.BusinessVO'를 상속해야 합니다. 미상속 시 'ClassCastException'이 발생합니다."
+            + "\n   - Rule 연동: 'RuleAdapter'를 사용하며, 'RuleInputVO' 및 'RuleOutputVO'를 생성하여 전달합니다. (명명규칙: <룰Alias>RIVO / <룰Alias>ROVO)"
+            + "\n   - DBIO 연동: 'DBIOAdapter'를 사용하며, 'hi.dbio.foundation.entity.DOVO'를 상속받은 VO를 입력으로 사용합니다."
+            + "\n   - 대내계(Internal): 'InternalAdapter'를 사용하며, 'InternalHeader' 설정 및 'send()', 'call()' 메소드를 활용합니다."
+            + "\n   - 대외계(External): 'ExternalAdapter'를 사용하며, 'ExternalHeader' 설정 및 'send()', 'call()', 'sendSoap()' 메소드를 활용합니다."
+            + "\n   - BPM 연동: 'BPMAdapter'를 사용하여 'BPMRequestVO'를 전달합니다."
+            + "\n4. 메시지 및 예외 처리 규칙:"
+            + "\n   - 메시지: 성공 시 'addReturnMessage(\"<메시지코드>\", \"파라미터\")'를 사용합니다. 직접 코딩을 지양하고 메시지 관리 시스템 코드를 사용하십시오."
+            + "\n   - 업무 예외: 업무 로직 중 중단이나 롤백이 필요한 경우 'throw new BizException(\"<메시지코드>\", \"파라미터\")'를 사용하여 프레임워크에 예외를 던집니다."
+            + "\n   - 로그: 'logInfo', 'logError', 'logWarn', 'logDebug' 등 제공된 메소드를 사용하며, System.out.println() 사용을 절대 금지합니다."
+            + "\n   - Validation: 화면(JS) 체크를 우선하며, 서버 측 DB/Rule 연동 체크는 Sub Service에서 처리합니다."
+            + "\n5. 온라인 특화 주의사항:"
+            + "\n   - UI 연동: 화면의 그리드(Grid) 처리는 'GridVO'를 상속받은 VO를 사용하고, 페이지 정보는 'PageVO'를 활용합니다."
+            + "\n   - 데이터 타입: BusinessVO 사용 시 지정된 타입(String, int, long, double, Date, BigDecimal, ArrayList 등)을 준수하여 Reflection 오류를 방지하십시오."
+            // --- 3. 공통 사항 ---
+            + "\n\n#### [공통 및 기타 규칙]"
+            + "\n- Java 버전: JDK 8 문법을 준수하십시오."
+            + "\n- 출력 요구사항: 사용자가 기능을 요청하면 해당 유형(Online 또는 Batch)에 맞는 전체 레이어(VO, DBIO, Service, Task, XML 설정파일)를 세트로 제공하십시오. 특히 온라인은 서비스 구조(Main/Sub)가 명확히 드러나야 합니다.";
 
-  <!-- 이미지 1: Unsplash "study notebook writing" -->
-  <!-- 이미지 1: Unsplash "study notebook writing" --><img style="width: 100%; border-radius: 6px; margin: 28px 0;" src="https://images.unsplash.com/photo-1689525970033-948720b0ccf8?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c3R1ZHklMjBub3RlYm9vayUyMHdyaXRpbmclMjAlMkYlMjBVbnNwbGFzaHxlbnwwfHwwfHx8MA%3D%3D" />
+    // 3. 배치(Batch) 특화 규칙 통합
+    private static final String HI2_BATCH_RULES =
+            "\n\n#### [RULE B: 배치(Batch) 서비스]"
+            + "\n1. 아키텍처 및 패키지:"
+            + "\n   - 구조: Job -> Step (Tasklet/Chunk) -> Batch Service (BC/BT) 구조를 따릅니다."
+            + "\n   - 패키지: 'src/hi/[업무팀]/batch/[중분류]/[JOBID]/[step순번]' 구조를 준수하십시오."
+            + "\n   - 명명: Task는 '[JOBID][step순번]BT', TaskEntity는 '[JOBID][step순번]BE', Chunk는 '...BC'를 사용합니다."
+            + "\n   - 설정: config 디렉토리 내 JOB, LAYOUT, SQL, Properties를 엄격히 구분하며, XML 파일에 STEP의 'parent' 속성을 정확히 명시하십시오."
+            + "\n2. DB 및 성능 최적화 (필수):"
+            + "\n   - DB Handling: Loop 내 Connection 생성 금지. 반드시 'addBatch()' 후 'executeBatch()'를 사용하며, 주기적으로 'commit()'과 'clear()'를 수행하십시오."
+            + "\n   - 자원 해제: 'finally' 블록에서 JDBC 객체(ResultSet, Statement, Connection)를 각각 null 체크 후 반드시 'close()' 하십시오."
+            + "\n   - 쿼리: 'select_ ' 사용을 금지하고 필요한 컬럼만 명시하십시오."
+            + "\n3. 파일 및 기타 로직:"
+            + "\n   - File: 'FieldSet'을 사용하며, 'getEmptyFieldSet()'으로 생성합니다. Append 모드는 생성자 인자로 'true'를 전달합니다."
+            + "\n   - File Solution: Unload는 '$Q{}', '$F{}'를, Sort/Merge/Split은 '$F{}'를 사용하십시오."
+            + "\n   - Bean: 배치 Bean 클래스에는 '@BxmBean(\"[BeanID]\")'을 포함하십시오.\n";
 
-  <h2 style="font-size:19px;font-weight:700;color:#111;margin:40px 0 14px 0;border-bottom:2px solid #f0f0f0;padding-bottom:8px;">기본반 — 기술사의 기도 모른 채 시작했다</h2>
+    public static final String CIS_BATCH_RULES =
+    	     "\n\n### [CIS 기간계 배치 개발 표준 가이드 v1.8]"
 
-  <p style="margin:0 0 18px 0;color:#333;">처음 기본반에 들어갔을 때, 저는 기술사 시험이 어떤 시험인지조차 몰랐습니다.</p>
+    	     // --- 2. 배치(Batch) 서비스 규칙 (가이드라인 및 샘플 소스 기반) ---
+    	     + "\n\n#### [RULE B: 배치(Batch) 서비스]"
+    	     + "\n1. 패키지 및 명명 규칙:"
+    	     + "\n   - 패키지 구조: 'src/hi/[업무팀]/batch/[중분류]/[JOBID]/[step순번]' 구조를 준수하십시오."
+    	     + "\n   - Class 명명: Task는 '[JOBID][step순번]BT', TaskEntity는 '[JOBID][step순번]BE' 형식을 따릅니다."
+    	     + "\n   - 설정 파일 위치: config 디렉토리 내 JOB, LAYOUT, SQL, Properties 폴더를 엄격히 구분하여 관리합니다."
+    	     + "\n2. 아키텍처 및 실행 구조:"
+    	     + "\n   - Task는 'AbstractTask'를 상속하며, 'perform(Map params)' 메소드가 진입점입니다."
+    	     + "\n   - 로직 분리: 복잡한 로직은 'AbstractTaskEntity'를 상속받은 클래스로 분리하여 관리하십시오."
+    	     + "\n   - JOB 설정(.xml): 'JOB_ID.xml' 형태이며, STEP 정의 시 'parent' 속성(Java, Unload, Sort, Upload, Group, InternalFtp, ExternalFtp 등)을 대소문자 구분하여 정확히 명시하십시오."
+    	     + "\n   - STEP ID: '[JOBID][step순번]BT' 형식을 권고하며, 001, 002와 같이 순차적 번호를 사용하십시오."
+    	     + "\n3. 배치 특화 로직 및 성능 최적화 (필수 준수):"
+    	     + "\n   - DB Handling:"
+    	     + "\n     * Connection/Statement 생성: Loop 내 생성을 절대 금지하며, BatchConnectionManager를 통해 생성합니다."
+    	     + "\n     * 다건 처리: 반드시 'addBatch()' 후 'executeBatch()'를 사용하며, 메모리 관리를 위해 일정 주기마다 'commit()'과 'clear()'를 수행하십시오."
+    	     + "\n     * 자원 해제: 'finally' 블록에서 JDBC 객체(ResultSet, Statement, Connection)를 각각 try-catch로 감싸 null 체크 후 반드시 'close()' 하십시오."
+    	     + "\n     * 쿼리 최적화: 'select *' 사용을 금지하고 필요한 컬럼만 명시하며, 대량 데이터 정렬은 DB 대신 File Solution을 사용하십시오."
+    	     + "\n   - File Handling:"
+    	     + "\n     * 객체 사용: 'FieldSet' 객체를 사용하며, 'FieldSetWriter' 생성 시 반드시 'getEmptyFieldSet()'을 활용하십시오."
+    	     + "\n     * 파일 모드: 기본은 Overwrite이며, 기존 데이터 뒤에 추가하려면 생성자 인자로 'true'(Append 모드)를 전달하십시오."
+    	     + "\n     * 다중 레이아웃: 하나의 파일에 여러 레이아웃이 존재할 경우 'MultiLayoutFieldSetWriter/Reader'를 사용하십시오."
+    	     + "\n     * 자원 해제: 파일 입출력 시 반드시 'try-catch-finally'를 통해 자원을 해제하십시오."
+    	     + "\n   - File Solution (대량 데이터 처리):"
+    	     + "\n     * Unload (FACT): DB 데이터를 파일로 생성. 스크립트 내 쿼리는 '$Q{}', 파일은 '$F{}'를 사용하십시오."
+    	     + "\n     * Sort/Merge/Split (CoSORT): 파일 정렬/취합/분리. 스크립트 내 파일 지정 시 '$F{}'를 사용하십시오."
+    	     + "\n     * Upload (SQL*Loader): 파일을 DB에 대량 Insert. 스크립트 내 파일 지정 시 '$F{}'를 사용하십시오."
+    	     + "\n   - Rule Engine: 'RuleHandler'를 사용하여 'rh.setRuleCode()' 및 'rh.addReqItem()' 패턴으로 구현하십시오."
+    	     + "\n4. 배치 특화 주의사항:"
+    	     + "\n   - Exception 처리: 'perform' 메소드 내에서 Exception 발생 시 프레임워크가 JOB을 실패 처리합니다. 특정 Exception을 무시하려면 catch 구문에서 Exception을 다시 던지지 않아야 합니다."
+    	     + "\n   - 파라미터: Runtime Parameter는 '$P{index}' 또는 '$P{key}' 형식을 사용하며, Task 내에서는 'params.get()'으로 호출합니다. STEP 간 전달은 'TaskSession'을 사용합니다."
+    	     + "\n   - 성능: Reflection 사용을 지양하고, Type Conversion(예: Double.parseDouble)은 최소화하십시오. 가급적 처음부터 올바른 타입으로 데이터를 읽도록 설계하십시오.";
 
-  <p style="margin:0 0 18px 0;color:#333;">게다가 공부를 너무 오랫동안 안 했습니다. 직장 다니면서 자기 공부를 따로 한다는 게 얼마나 오래된 일인지, 책상에 다시 앉는 것부터가 일이었습니다.</p>
+			 
+    // ── 단일 통합 시스템 프롬프트 ────────────────────────────────
+    public static final String SYSTEM =
+        "당신은 Eclipse IDE에 통합된 Hi Framework 2.0 전문 Java 개발자 어시스턴트입니다.\n"
+        + "사용자의 요청이 '온라인(Online)'인지 '배치(Batch)'인지 판단하여, 해당 규칙에 최적화된 전체 레이어(VO, DBIO, Service, Task, XML 등)를 생성하십시오.\n"
+        + "환경: JDK 8, Spring Framework, Eclipse 4.5 Mars, Hi2 Framework.\n"
+        + "한국어 질문에는 한국어로 답변한다.\n"
+        + "\n"
+        + "질문 유형에 따라 아래 형식으로 자동 판단하여 답변한다:\n"
+        + "\n"
+        + "[코드 작성/리팩토링]\n"
+        + "### 분석\n<현재 코드 의도 1~3줄>\n"
+        + "### 제안\n```java\n<완전한 코드>\n```\n"
+        + "### 설명\n<핵심 설명>\n"
+        + "\n"
+        + "[에러/디버그]\n"
+        + "### 원인\n<에러 원인>\n"
+        + "### 해결\n```java\n<수정 코드>\n```\n"
+        + "\n"
+        + "[설계/아키텍처]\n"
+        + "### 구조 설명\n<설계 원칙>\n"
+        + "### 예시 (필요시)\n```java\n<코드>\n```\n"
+        + "\n"
+        + "[일반 질문]\n"
+        + "<간결한 답변 — 코드 블록 없이>\n"
+        + CONSTRAINTS
+        + ((LoginConfigurationManager.instance().getConfiguration().getLastUrl().getId()!= null&& 
+        LoginConfigurationManager.instance().getConfiguration().getLastUrl().getId().equals("CISDEV"))?
+        	CIS_ONLINE_RULES+CIS_BATCH_RULES:
+        		CIS_ONLINE_RULES+HI2_BATCH_RULES);
 
-  <p style="margin:0 0 18px 0;color:#333;">기본반에서 배우는 건 크게 두 가지입니다. 답안 템플릿에 맞춰 쓰는 법, 그리고 도메인별 서브노트 만들기. 처음엔 이게 뭔지도 몰랐습니다.</p>
+    // ── 인라인 자동완성 전용 (삽입 코드만 출력) ─────────────────
+    public static final String SYSTEM_INLINE =
+        "Java 코드 자동완성 엔진이다.\n"
+        + "커서 위치에 삽입할 코드만 출력한다.\n"
+        + "설명, 마크다운 펜스, 주석 없이 코드만 출력한다.\n"
+        + "논리 단위(문장/블록/메서드) 끝에서 멈춘다."
+        + CONSTRAINTS;
+    
+	public static final String HI2_RULES = ((LoginConfigurationManager.instance().getConfiguration().getLastUrl().getId()!= null&& 
+        LoginConfigurationManager.instance().getConfiguration().getLastUrl().getId().equals("CISDEV"))?
+        	CIS_ONLINE_RULES+CIS_BATCH_RULES:
+        		CIS_ONLINE_RULES+HI2_BATCH_RULES);
+	
 
-  <div style="font-size:17px;font-weight:600;color:#111;border-left:3px solid #111;padding:12px 16px;margin:28px 0;line-height:1.7;background:#f9f9f9;">처음엔 답안을 통째로 외우려고 했습니다. 당연히 안 외워졌습니다.</div>
+    // ── 자유 채팅 ────────────────────────────────────────────────
+    public List<ChatMessage> forChat(List<ChatMessage> history,
+                                     String userMessage,
+                                     EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
 
-  <p style="margin:0 0 18px 0;color:#333;">핵심은 토픽을 이해하고, 키워드 기반으로 답안을 서술해 나가는 것이었습니다. 근데 그게 말처럼 쉽지 않았습니다. 토픽을 어떻게 이해해야 하는지, 키워드를 어떻게 연결해서 논리적인 흐름을 만들어야 하는지 처음엔 감이 전혀 없었습니다.</p>
+        // 에디터 컨텍스트가 있으면 시스템 프롬프트에 추가
+        String system = SYSTEM;
+        if (ctx != null && ctx.getFileName() != null) {
+            StringBuilder sb = new StringBuilder(SYSTEM);
+            sb.append("\n\n[현재 에디터]\n");
+            sb.append("파일: ").append(safe(ctx.getFileName())).append('\n');
+            if (ctx.getPackageName() != null) {
+                sb.append("패키지: ").append(ctx.getPackageName()).append('\n');
+            }
+            if (ctx.getSelection() != null && !ctx.getSelection().isEmpty()) {
+                sb.append("선택 코드:\n```java\n")
+                  .append(sanitize(ctx.getSelection(), 1000))
+                  .append("\n```");
+            }
+            system = sb.toString();
+        }
 
-  <p style="margin:0 0 18px 0;color:#333;">그래서 기본반 멘토님께 계속 물어봤습니다. 제가 만든 서브노트를 보여드리고 피드백을 받고, 다시 수정하고. 이 과정을 토픽 하나하나마다 반복했습니다. 처음엔 너무 막막했는데, 이 반복을 거치면서 조금씩 "이렇게 쓰면 되는구나" 하는 감이 잡히기 시작했고, 나만의 모범답안이라는 게 만들어지기 시작했습니다.</p>
+        msgs.add(new ChatMessage(Role.SYSTEM, system));
+        if (history != null) msgs.addAll(history);
+        msgs.add(new ChatMessage(Role.USER, sanitize(userMessage, 2000)));
+        return msgs;
+    }
 
-  <!-- 이미지 2: Unsplash "mentor student studying together" -->
-  <!-- 이미지 2: Unsplash "mentor student studying together" --><img style="width: 100%; border-radius: 6px; margin: 28px 0;" src="https://images.unsplash.com/photo-1512238972088-8acb84db0771?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fG1lbnRvciUyMHN0dWRlbnQlMjBzdHVkeWluZyUyMHRvZ2V0aGVyfGVufDB8fDB8fHww" />
+    public List<ChatMessage> forChat(List<ChatMessage> history, String userMessage) {
+        return forChat(history, userMessage, null);
+    }
 
-  <h2 style="font-size:19px;font-weight:700;color:#111;margin:40px 0 14px 0;border-bottom:2px solid #f0f0f0;padding-bottom:8px;">중급반 — 부족했던 것들을 채웠다</h2>
 
-  <p style="margin:0 0 18px 0;color:#333;">바로 심화반으로 갈 수도 있었습니다. 근데 기본반을 마치고 나서 솔직히 말하면 아직 부족하다는 느낌이 있었습니다.</p>
+    // ── 코드 설명 ────────────────────────────────────────────────
+    public List<ChatMessage> forExplain(String code,
+                                        String fileName,
+                                        EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM));
+        StringBuilder user = new StringBuilder();
+        user.append("아래 Java 코드를 단계별로 설명해줘.\n")
+            .append("파일: ").append(safe(fileName)).append("\n\n");
+        appendCtx(user, ctx);
+        user.append("```java\n").append(sanitize(code)).append("\n```");
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
+    }
 
-  <p style="margin:0 0 18px 0;color:#333;">토픽 이해도 완전하지 않고, 답안을 쓰는 필력도 더 다듬어야 했습니다. 체계적으로 공부하고 싶다는 마음이 커서 중급반을 선택했습니다.</p>
+    public List<ChatMessage> forExplain(String code, String fileName) {
+        return forExplain(code, fileName, null);
+    }
 
-  <p style="margin:0 0 18px 0;color:#333;">중급반에서는 문제를 해석하는 힘과 목차를 설계하는 훈련을 집중적으로 했습니다. 기본반에서 "아는 것"을 만들었다면, 중급반에서는 "쓸 수 있는 것"으로 바꾸는 과정이었습니다.</p>
 
-  <div style="padding:20px;background:#f7f7f7;border-radius:6px;margin:20px 0;">
-    <p style="margin:0 0 6px 0;color:#111;font-weight:700;">회독 방법이 달라졌다</p>
-    <p style="margin:0 0 8px 0;color:#555;font-size:15px;">1회독 → 개념 이해</p>
-    <p style="margin:0 0 8px 0;color:#555;font-size:15px;">2회독 → 핵심 키워드 정리</p>
-    <p style="margin:0;color:#555;font-size:15px;">3회독 → 직접 꺼내는 연습 (인출)</p>
-  </div>
+    // ── 에러 수정 ────────────────────────────────────────────────
+    public List<ChatMessage> forFixError(String code,
+                                         String errorMessage,
+                                         String fileName,
+                                         EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM));
+        StringBuilder user = new StringBuilder();
+        user.append("아래 Java 코드에서 에러가 발생했어.\n\n")
+            .append("파일: ").append(safe(fileName)).append("\n\n");
+        appendCtx(user, ctx);
+        user.append("에러:\n```\n")
+            .append(sanitize(errorMessage, 1000))
+            .append("\n```\n\n")
+            .append("코드:\n```java\n")
+            .append(sanitize(code))
+            .append("\n```");
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
+    }
 
-  <p style="margin:0 0 18px 0;color:#333;">읽는 게 아니라 꺼내는 연습. 이게 달라진 핵심이었습니다. 그냥 눈으로 보고 "아 이거 알지"라고 생각하는 거랑, 실제로 백지에 써내려가는 건 완전히 다른 능력이라는 걸 이때 알았습니다.</p>
+    public List<ChatMessage> forFixError(String code,
+                                          String errorMessage,
+                                          String fileName) {
+        return forFixError(code, errorMessage, fileName, null);
+    }
 
-  <h2 style="font-size:19px;font-weight:700;color:#111;margin:40px 0 14px 0;border-bottom:2px solid #f0f0f0;padding-bottom:8px;">심화반 — 터널을 지나는 것 같은 시간</h2>
 
-  <!-- 이미지 3: Unsplash "long tunnel light end" -->
-  <!-- 이미지 3: Unsplash "long tunnel light end" --><img style="width: 100%; border-radius: 6px; margin: 28px 0;" src="https://images.unsplash.com/photo-1592620361408-9a6acd17ba49?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bG9uZyUyMHR1bm5lbCUyMGxpZ2h0JTIwZW5kfGVufDB8fDB8fHww" />
+    // ── 리팩토링 ─────────────────────────────────────────────────
+    public List<ChatMessage> forRefactor(String code,
+                                          String fileName,
+                                          EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM));
+        StringBuilder user = new StringBuilder();
+        user.append("아래 Java 코드의 리팩토링 안을 제안해줘.\n")
+            .append("파일: ").append(safe(fileName)).append("\n\n");
+        appendCtx(user, ctx);
+        user.append("```java\n").append(sanitize(code)).append("\n```");
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
+    }
 
-  <p style="margin:0 0 18px 0;color:#333;">심화반은 달랐습니다. 서브노트도 완성됐고, 회독도 수없이 했습니다. 그런데 합격이 언제 올지 감이 안 잡혔습니다.</p>
+    public List<ChatMessage> forRefactor(String code, String fileName) {
+        return forRefactor(code, fileName, null);
+    }
 
-  <div style="font-size:17px;font-weight:600;color:#111;border-left:3px solid #111;padding:12px 16px;margin:28px 0;line-height:1.7;background:#f9f9f9;">터널을 지나는 것 같았습니다. 출구가 보이지 않는 느낌.</div>
 
-  <p style="margin:0 0 18px 0;color:#333;">솔직히 우울했습니다. 이렇게 해도 합격이 안 되면 어쩌나 싶은 생각도 계속 들었습니다. 심화반에서 가장 중요한 건 더 이상 실력이 아니라 멘탈 관리였습니다.</p>
+    // ── 주석 생성 ────────────────────────────────────────────────
+    public List<ChatMessage> forComment(String code, String fileName) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM,
+            SYSTEM + "\nJavadoc과 인라인 주석을 추가한 전체 코드만 반환한다. 설명 텍스트 없음."));
+        msgs.add(new ChatMessage(Role.USER,
+            "아래 Java 코드에 Javadoc과 주석을 추가해줘.\n"
+            + "파일: " + safe(fileName) + "\n\n"
+            + "```java\n" + sanitize(code) + "\n```"));
+        return msgs;
+    }
 
-  <p style="margin:0 0 18px 0;color:#333;">그때마다 멘토님의 열정이 버팀목이 됐습니다. 단순히 "포기하지 말라"는 말이 아니라, 직접 함께 문제를 짚어주고 방향을 잡아주는 태도가 달랐습니다. 그 열정에 의지해서 다시 회독하고, 다시 답안을 써내려갔습니다. 그게 없었다면 중간에 분명 흔들렸을 거라고 생각합니다.</p>
 
-  <p style="margin:0 0 18px 0;color:#333;">결국 심화반 1.5회 만에 합격했습니다.</p>
+    // ── Ctrl+Space → ChatView 표시 ───────────────────────────────
+    public List<ChatMessage> forCtrlSpaceAssist(String prefix,
+                                                String fileName,
+                                                int line) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM));
+        msgs.add(new ChatMessage(Role.USER,
+            "파일: " + fileName + " (" + line + "번째 줄)\n\n"
+            + "## 작성 중인 코드\n"
+            + "```java\n" + sanitize(prefix, MAX_PREFIX_CHARS) + "\n```\n\n"
+            + "커서 이후에 올 코드를 제안해 주세요."));
+        return msgs;
+    }
 
-  <div style="font-size:17px;font-weight:600;color:#111;border-left:3px solid #111;padding:12px 16px;margin:28px 0;line-height:1.7;background:#f9f9f9;">기술사 합격은 노력의 양보다 방향과 멘탈의 싸움이었습니다.</div>
 
-  <h2 style="font-size:19px;font-weight:700;color:#111;margin:40px 0 14px 0;border-bottom:2px solid #f0f0f0;padding-bottom:8px;">진짜 도움이 됐던 것들</h2>
+    // ── 인라인 자동완성 (Ghost Text) ─────────────────────────────
+    public List<ChatMessage> forCompletion(String prefix,
+                                           String fileName,
+                                           int line) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM_INLINE));
+        msgs.add(new ChatMessage(Role.USER,
+            "// File: " + fileName + " (line " + line + ")\n"
+            + sanitize(prefix, MAX_PREFIX_CHARS)));
+        return msgs;
+    }
 
-  <p style="margin:0 0 18px 0;color:#333;">합격하고 나서 돌아보니, 결국 이 네 가지가 합격을 가르는 차이였습니다. 기술사 공부를 고민하는 분이라면 꼭 한 번 점검해보셨으면 좋겠습니다.</p>
+    public List<ChatMessage> forCompletion(String prefix, String fileName, int line,
+                                            List<String> jdtHints,
+                                            List<String> frameworkApi) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM));
+        StringBuilder user = new StringBuilder();
+        user.append("파일: ").append(fileName).append(" (").append(line).append("번째 줄)\n\n");
+        user.append("```java\n").append(sanitize(prefix, MAX_PREFIX_CHARS)).append("\n```\n");
+        if (!jdtHints.isEmpty()) {
+            user.append("\nJDT 후보:\n```\n");
+            for (String h : jdtHints) user.append(h).append('\n');
+            user.append("```\n");
+        }
+        if (!frameworkApi.isEmpty()) {
+            user.append("\n프레임워크 API:\n```\n");
+            for (String a : frameworkApi) user.append(a).append('\n');
+            user.append("```\n");
+        }
+        user.append("\n커서 이후 코드를 제안해 주세요.");
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
+    }
 
-  <div style="padding:20px;background:#f7f7f7;border-radius:6px;margin:20px 0;">
-    <p style="margin:0 0 6px 0;color:#111;font-weight:700;">① 일정 관리 — 루틴이 전부다</p>
-    <p style="margin:0 0 16px 0;color:#555;font-size:15px;">하루 1시간이라도 일정한 시간에 꾸준히 하는 게 무엇보다 중요합니다. 양보다 일정함입니다. 저는 아침 시간이 잘 맞았습니다. 출근 전 조용한 시간에 집중력이 가장 높았기 때문입니다. 지금도 계획해야 할 일이 있으면 새벽 5~6시를 활용합니다. 이 루틴 하나가 1년 가까운 공부 기간을 버티게 해준 가장 큰 힘이었습니다.</p>
+    public List<ChatMessage> forInlineCompletionChat(String prefix,
+                                                      String suffix,
+                                                      EditorContext ctx) {
+        List<ChatMessage> msgs = new ArrayList<ChatMessage>();
+        msgs.add(new ChatMessage(Role.SYSTEM, SYSTEM_INLINE));
+        StringBuilder user = new StringBuilder();
+        if (ctx != null) {
+            if (ctx.getFileName() != null)
+                user.append("// File: ").append(ctx.getFileName()).append('\n');
+            if (ctx.getPackageName() != null && !ctx.getPackageName().isEmpty())
+                user.append("// Package: ").append(ctx.getPackageName()).append('\n');
+            if (ctx.getImports() != null) {
+                for (String imp : ctx.getImports())
+                    user.append("//   ").append(imp).append('\n');
+            }
+            List<String> api = ctx.getFrameworkApi();
+            if (api != null && !api.isEmpty()) {
+                for (String a : api) user.append("//   ").append(a).append('\n');
+            }
+        }
+        user.append(sanitize(prefix, MAX_PREFIX_CHARS))
+            .append("<CURSOR>")
+            .append(sanitize(suffix, 500));
+        msgs.add(new ChatMessage(Role.USER, user.toString()));
+        return msgs;
+    }
 
-    <p style="margin:0 0 6px 0;color:#111;font-weight:700;">② 체력 관리 — 최소 1년을 보는 시험</p>
-    <p style="margin:0 0 16px 0;color:#555;font-size:15px;">단기 합격이 목표가 아니라면, 적어도 1년은 계획해야 하는 시험입니다. 그래서 체력이 정말 중요합니다. 영양제든 한약이든, 꾸준한 운동이든 본인에게 맞는 방법을 찾아야 합니다. 그리고 체력 안에는 멘탈, 즉 정신건강관리도 포함됩니다. "나는 왜 이렇게 못할까", "나 바보인가" 이런 식으로 자신을 괴롭히지 말고, "괜찮아, 뭐 되겠지" 하면서 스스로를 다독이고 학습시키는 태도가 필요합니다. 이게 의외로 굉장히 중요합니다.</p>
+    public String forFimPrompt(String prefix, String suffix, String model) {
+        String p = sanitize(prefix, MAX_PREFIX_CHARS);
+        String s = sanitize(suffix, 500);
+        String m = model == null ? "" : model.toLowerCase();
+        if (m.contains("deepseek"))
+            return "<\uff5cfim\u2581begin\uff5c>" + p
+                 + "<\uff5cfim\u2581hole\uff5c>" + s
+                 + "<\uff5cfim\u2581end\uff5c>";
+        if (m.contains("starcoder") || m.contains("santacoder"))
+            return "<fim_prefix>" + p + "<fim_suffix>" + s + "<fim_middle>";
+        return "<|fim_prefix|>" + p + "<|fim_suffix|>" + s + "<|fim_middle|>";
+    }
 
-    <p style="margin:0 0 6px 0;color:#111;font-weight:700;">③ 서브노트 단권화 — 빨리 만들고 많이 회독</p>
-    <p style="margin:0 0 16px 0;color:#555;font-size:15px;">진짜 합격으로 가는 길은 서브노트를 빨리 단권화해서 많이 회독하는 것입니다. 요즘은 심화반에서 서브노트를 제공해주는 경우도 많아서, 저희 때보다 환경이 훨씬 좋아졌습니다. 그래도 분명한 차이가 있습니다. 직접 만들어본 사람과 다른 사람이 만든 것만 보고 공부한 사람은 이해도와 인출 능력에서 차이가 납니다. 제공받은 자료를 쓰더라도, 한 번은 내 손으로 정리하는 과정을 거치는 게 좋습니다.</p>
 
-    <p style="margin:0 0 6px 0;color:#111;font-weight:700;">④ 환경 — 운도 무시 못한다</p>
-    <p style="margin:0;color:#555;font-size:15px;">마지막으로 운도 무시할 수 없습니다. 주변 환경, 가족의 지원처럼 아무 걱정 없이 공부에만 집중할 수 있는 여건을 만들어주는 것 자체가 큰 도움이었습니다. 이 부분은 본인 혼자 해결할 수 없는 영역이기도 합니다. 주변에 미리 양해를 구하고, 함께 만들어가는 시간이라고 생각하면 좋을 것 같습니다.</p>
-  </div>
+    // ── CompletionRequest 분기 ───────────────────────────────────
+    public List<ChatMessage> build(CompletionRequest req) {
+        switch (req.getRequestType()) {
+            case COMPLETION: return forCompletion(
+                    req.getSelectedCode(), req.getFileName(), req.getCursorLine());
+            case EXPLAIN:    return forExplain(
+                    req.getSelectedCode(), req.getFileName());
+            case COMMENT:    return forComment(
+                    req.getSelectedCode(), req.getFileName());
+            case FIX_ERROR:  return forFixError(
+                    req.getSelectedCode(), req.getErrorMessage(), req.getFileName());
+            case REFACTOR:   return forRefactor(
+                    req.getSelectedCode(), req.getFileName());
+            default: throw new IllegalArgumentException(
+                    "Unsupported RequestType: " + req.getRequestType());
+        }
+    }
 
-  <p style="margin:0 0 18px 0;color:#333;">지금 기술사 공부를 시작하려는 분들께 드리고 싶은 말은 하나입니다. 혼자 방향을 잡으려 하지 마세요. 일정, 체력, 서브노트, 환경. 이 네 가지를 미리 점검해두면 시간을 훨씬 아낄 수 있습니다.</p>
 
-  <div style="margin-top:48px;padding:20px 24px;background:#f7f7f7;border-radius:6px;font-size:15px;color:#555;line-height:1.8;">
-    기술사 공부하면서 가장 힘들었던 순간이 언제였나요? 댓글로 나눠주세요. 😊
-  </div>
+    // ── 헬퍼 ────────────────────────────────────────────────────
+    private String sanitize(String code, int maxChars) {
+        if (code == null || code.isEmpty()) return "";
+        String s = code.replace("\r\n", "\n").replace("\r", "\n");
+        StringBuilder sb = new StringBuilder(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '\n' || c == '\t' || c >= 0x20) sb.append(c);
+        }
+        s = sb.toString();
+        if (s.length() > maxChars)
+            s = "// ... (앞부분 생략)\n" + s.substring(s.length() - maxChars);
+        return s;
+    }
 
-  <div style="margin-top:12px;padding:20px 24px;background:#f0f0f0;border-radius:6px;">
-    <p style="margin:0;font-size:15px;color:#555;">다음 글
-      <strong style="display:block;font-size:16px;color:#111;margin-top:6px;">→ 정보관리기술사 합격, 그 이후</strong>
-    </p>
-  </div>
+    private String sanitize(String code) {
+        return sanitize(code, MAX_CODE_CHARS);
+    }
 
-</div>
+    private void appendCtx(StringBuilder user, EditorContext ctx) {
+        if (ctx == null) return;
+        if (ctx.getPackageName() != null && !ctx.getPackageName().isEmpty())
+            user.append("패키지: ").append(ctx.getPackageName()).append('\n');
+        if (ctx.getImports() != null && !ctx.getImports().isEmpty()) {
+            user.append("Import: ");
+            for (int i = 0; i < ctx.getImports().size(); i++) {
+                if (i > 0) user.append(", ");
+                user.append(ctx.getImports().get(i));
+            }
+            user.append('\n');
+        }
+        user.append('\n');
+    }
+
+    private String safe(String s) {
+        return (s == null || s.isEmpty()) ? "(unknown)" : s;
+    }
+}
