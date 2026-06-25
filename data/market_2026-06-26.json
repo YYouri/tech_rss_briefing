@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 25358.6,
+      "prev": 25476.64,
+      "chg_pct": -0.46,
+      "volume": 8758177000,
+      "market_date_us": "06/25"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7357.49,
+      "prev": 7358.22,
+      "chg_pct": -0.01,
+      "volume": 3563880000,
+      "market_date_us": "06/25"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 51920.62,
+      "prev": 51848.9,
+      "chg_pct": 0.14,
+      "volume": 639230227,
+      "market_date_us": "06/25"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 18.89,
+      "prev": 18.63,
+      "chg_pct": 1.4,
+      "volume": 0,
+      "market_date_us": "06/25"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 101.43,
+      "prev": 101.61,
+      "chg_pct": -0.18,
+      "volume": 0,
+      "market_date_us": "06/25"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 71.55,
+      "prev": 70.34,
+      "chg_pct": 1.72,
+      "volume": 92,
+      "market_date_us": "06/25"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4042.4,
+      "prev": 3990.3,
+      "chg_pct": 1.31,
+      "volume": 102,
+      "market_date_us": "06/25"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1544.27,
+      "prev": 1542.76,
+      "chg_pct": 0.1,
+      "volume": 0,
+      "market_date_us": "06/25"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 716.38,
+      "prev": 710.62,
+      "chg_pct": 0.81,
+      "volume": 48613709,
+      "market_date_us": "06/25"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 625.2,
+      "prev": 601.5,
+      "chg_pct": 3.94,
+      "volume": 12480358,
+      "market_date_us": "06/25"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 53.45,
+      "prev": 53.72,
+      "chg_pct": -0.5,
+      "volume": 30726500,
+      "market_date_us": "06/25"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 195.74,
+      "prev": 199.0,
+      "chg_pct": -1.64,
+      "volume": 138840761,
+      "market_date_us": "06/25"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 532.57,
+      "prev": 519.74,
+      "chg_pct": 2.47,
+      "volume": 26793062,
+      "market_date_us": "06/25"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 132.87,
+      "prev": 131.65,
+      "chg_pct": 0.93,
+      "volume": 122260596,
+      "market_date_us": "06/25"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 434.99,
+      "prev": 440.83,
+      "chg_pct": -1.32,
+      "volume": 14710508,
+      "market_date_us": "06/25"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 275.15,
+      "prev": 293.08,
+      "chg_pct": -6.12,
+      "volume": 102383867,
+      "market_date_us": "06/25"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 352.83,
+      "prev": 365.46,
+      "chg_pct": -3.46,
+      "volume": 62728991,
+      "market_date_us": "06/25"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 375.12,
+      "prev": 375.53,
+      "chg_pct": -0.11,
+      "volume": 28803361,
+      "market_date_us": "06/25"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 227.01,
+      "prev": 234.27,
+      "chg_pct": -3.1,
+      "volume": 76001063,
+      "market_date_us": "06/25"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 343.71,
+      "prev": 345.29,
+      "chg_pct": -0.46,
+      "volume": 42597335,
+      "market_date_us": "06/25"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 542.87,
+      "prev": 557.67,
+      "chg_pct": -2.65,
+      "volume": 16443852,
+      "market_date_us": "06/25"
+    }
+  },
+  "news": [
+    {
+      "title": "Dow Jones Futures: Mixed Market Signals As Micron's Gain Is Apple's Pain",
+      "summary": "The Nasdaq reversed lower again while the Dow came off record highs. Micron soared but Apple led other tech titans lower.",
+      "link": "https://finance.yahoo.com/m/39030516-de91-329d-8d9d-9e91b632c186/dow-jones-futures%3A-mixed.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, June 25: Bio-Techne Surges After Merck KGaA Announces $73-Per-Share Cash Acquisition Offer",
+      "summary": "On June 25, 2026, investors tracked deal progress as Bio-Techne shares responded to the proposed buyout terms.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/06/25/stock-market-today-june-25-bio-techne-surges-after-merck-kgaa-announces-73-per-share-cash-acquisition-offer/?.tsrc=rss"
+    },
+    {
+      "title": "Update: US Equity Indexes Mixed as Micron Rally Fails to Lift Tech, Apple Drops After Product Price-Hike Reports",
+      "summary": "(Updates with index/price moves and geopolitical news from the first paragraph.) US equity indexe",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/us-equity-indexes-mixed-micron-214340719.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, June 25: Micron Surges, Apple Falls, and Inflation Data Weighs on Stocks",
+      "summary": "On June 25, 2026, investors weighed fresh inflation signals and the two sides of high memory chip costs as markets diverged.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/06/25/stock-market-today-june-25-micron-surges-apple-falls-and-inflation-data-weighs-on-stocks/?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, June 25: BlackBerry Surges After Earnings Beat and Revenue Tops Estimates",
+      "summary": "On June 25, 2026, BlackBerry reported impressive earnings, driven by its booming QNX unit.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/06/25/stock-market-today-june-25-blackberry-surges-after-earnings-beat-and-revenue-tops-estimates/?.tsrc=rss"
+    },
+    {
+      "title": "Investors Are Getting Another Great Opportunity to Buy This Incredible Artificial Intelligence (AI) Stock Right Now",
+      "summary": "Short-term price swings offer long-term investors some excellent buying opportunities.",
+      "link": "https://www.fool.com/investing/2026/06/25/investors-are-getting-another-great-opportunity-to/?.tsrc=rss"
+    },
+    {
+      "title": "OpenAI just built a chip to cut Nvidia out of one job",
+      "summary": "The most valuable businesses in the world rarely make their money selling you something once. They make it by collecting a small fee every single time you use the thing they sold you. That is the quiet genius of a toll booth. You can own the car, buy the gas, and drive the open road, and you will ...",
+      "link": "https://www.thestreet.com/technology/openai-built-chip-challenge-nvidia-inference-dominance?.tsrc=rss"
+    },
+    {
+      "title": "Where Will Plug Power Stock Be in 10 Years?",
+      "summary": "This little hydrogen stock still has significant upside potential.",
+      "link": "https://www.fool.com/investing/2026/06/25/where-will-plug-be-in-10-years/?.tsrc=rss"
+    },
+    {
+      "title": "Why Delek Holdings Rallied Today",
+      "summary": "The small refiner is benefiting from a fire at Delta's wholly owned refining facility.",
+      "link": "https://www.fool.com/investing/2026/06/25/why-delek-holdings-rallied-today/?.tsrc=rss"
+    },
+    {
+      "title": "Why CoreWeave Stock Sank 12.4% This Week",
+      "summary": "The stock fell after getting added to a major index this week.",
+      "link": "https://www.fool.com/investing/2026/06/25/why-coreweave-stock-sank-124-this-week/?.tsrc=rss"
+    },
+    {
+      "title": "Down 14%, Is Tesla a Good Buy Now?",
+      "summary": "In a challenging EV market, Tesla's emerging energy division could be its strongest growth engine.",
+      "link": "https://www.fool.com/investing/2026/06/25/down-14-is-tesla-a-good-buy-now/?.tsrc=rss"
+    },
+    {
+      "title": "Is What Trillionaire Elon Musk Said Enough of a Reason to Buy Tesla Stock?",
+      "summary": "The founder and CEO's words are music to the market's ears.",
+      "link": "https://www.fool.com/investing/2026/06/25/trillionaire-elon-musk-said-reason-buy-tesla-stock/?.tsrc=rss"
+    },
+    {
+      "title": "Is Tesla’s (TSLA) Home-Battery Supercoalition Quietly Rewriting Its Core Energy Narrative?",
+      "summary": "Earlier this week, Sunrun, Renew Home and Tesla Energy Operations announced a framework to aggregate more than 16 gigawatts of flexible residential energy capacity across the US into turnkey grid solutions for utilities and hyperscale data centers. This coalition aims to operate what could be the largest distributed power plant in the country, highlighting how Tesla’s home batteries and software c",
+      "link": "https://finance.yahoo.com/energy/articles/tesla-tsla-home-battery-supercoalition-200754563.html?.tsrc=rss"
+    },
+    {
+      "title": "TSLA Stock Dips — Tesla Gears Up To Ramp European Production To 7,500 Vehicles Per Week Amid FSD Push",
+      "summary": "André Thierig, Senior Director of Manufacturing at Giga Berlin, said in a post on X that the German gigafactory will increase weekly vehicle production to 7,500 units starting in October.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tsla-stock-dips-tesla-gears-up-to-ramp-european-production-to-7500-vehicles-per-week-amid-fsd-push/cZ1GpXzR7Xm?.tsrc=rss"
+    },
+    {
+      "title": "Mag 7 Stocks Shed Nearly $3 Trillion This Month",
+      "summary": "A massive rotation at the expense of big AI spenders has the Magnificent Seven on pace to shed $3 trillion this month. Collectively, Tesla, Apple, Microsoft, Meta Platforms, Nvidia, Amazon.com, and Alphabet have lost $2.99 trillion in market cap so far in June, according to Dow Jones Market Data. The Roundhill Magnificent Seven ETF is on pace for its worst month on record.",
+      "link": "https://finance.yahoo.com/m/fad32503-7e87-3417-ab3d-1f260f300201/mag-7-stocks-shed-nearly-%243.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Goldman won't pick Intel over its rivals just yet",
+      "summary": "Goldman Sachs Group Inc. (GS) initiated coverage of Intel Corp. (INTC) this week with a neutral rating and a $150 price target, based on TipRanks' report. That implies only about 12% upside, modest given the stock’s run over the past year. The bigger signal is who wrote it, not the number itself. ...",
+      "link": "https://www.thestreet.com/investing/stocks/why-goldman-wont-pick-intel-over-its-rivals-just-yet-intc?.tsrc=rss"
+    },
+    {
+      "title": "Battle of the Artificial Intelligence (AI) Computing Companies: Is AMD, Broadcom, Nvidia, or Marvell the Best Stock to Buy Now?",
+      "summary": "All four companies have different strengths.",
+      "link": "https://www.fool.com/investing/2026/06/25/battle-of-the-artificial-intelligence-computing-co/?.tsrc=rss"
+    },
+    {
+      "title": "AI Stock Face-Off: Is Nvidia or AMD the Smarter Long-Term Buy?",
+      "summary": "Nvidia and AMD have been two of the best-performing stocks of the last decade and continue to look well-positioned for the next 10 years.",
+      "link": "https://www.fool.com/investing/2026/06/25/ai-stock-face-off-nvidia-amd-smarter-buy/?.tsrc=rss"
+    },
+    {
+      "title": "Melius Research: “Buy the chip dip, skip hyperscalers” until AI payoff becomes clear",
+      "summary": "Melius Research’s head of tech research, Ben Reitzes, told CNBC to lean into chip-stock weakness and stay clear of the cloud giants paying for the buildout. “I’m telling them to buy on the dip. These have been opportunities in the past, and we just don’t really see any change,” Reitzes said. His list of buys ... Melius Research: “Buy the chip dip, skip hyperscalers” until AI payoff becomes clear",
+      "link": "https://247wallst.com/investing/2026/06/25/melius-research-buy-the-chip-dip-skip-hyperscalers-until-ai-payoff-becomes-clear/?.tsrc=rss"
+    },
+    {
+      "title": "Top AI Data Center Stock Pick of Leopold Aschenbrenner’s Situational Awareness Everyone’s Ignoring",
+      "summary": "We just covered Leopold Aschenbrenner’s Situational Awareness Reveals Its 10 Under-The-Radar AI Stock Picks. Riot Platforms (NASDAQ:RIOT) ranks #4 (see Situational Awareness Top 5 Under-The-Radar AI Stock Picks). Situational Awareness Stake Value: $142,166,413 Situational Awareness is apparently a fan of former Bitcoin players transitioning into AI and data centers. Riot Platforms (NASDAQ:RIOT) is",
+      "link": "https://finance.yahoo.com/technology/ai/articles/top-ai-data-center-stock-193822511.html?.tsrc=rss"
+    },
+    {
+      "title": "Nasdaq falls for a fourth day as a drop in Apple overshadows Micron's booming earnings: Live updates - CNBC",
+      "summary": "Nasdaq falls for a fourth day as a drop in Apple overshadows Micron's booming earnings: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTFBybXVXek5NVzgzZUpoRWliLXJTN2FqTElKVWczTV9qa25BZlVVZE5pcFRCbzBKVjFfU0pKc2pkOE43S0R4UFJScFB3MVYwSHN4Y1dKbkRpTWRKc1ZXVFFza1hPbzlCSEZqWG4xRXdYVnlIVzBDRDhZ0gF8QVVfeXFMTzE1RmZFSno3UWtmTF9LU0ZsajUtSUFfWjRVSmVFa3J4VEZpc0VCNDhOUk5hQVhYT2tVNzU2dVFzdVhiQ1dkQlJ3OTJsSjlGRnFSd2x1clNQYzBVZWFwa1Z0X1VLWVJTTzFnSXlRQS1zcnFXNE9vYjZfM2ZrWA?oc=5"
+    },
+    {
+      "title": "Stock market today: S&P 500, Nasdaq eye rebound from tech rout with Micron in focus - Yahoo Finance",
+      "summary": "Stock market today: S&P 500, Nasdaq eye rebound from tech rout with Micron in focus Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOSUlTS3FxMWw0MWpkbW9ZMHlFTERzN1VqTmRTY1Q3dmY3UElsZzFybEtJdmhBalJ0ZkVKUm9uOVQ2TXRGdzAyWUNnR09lRmwxNXphZWp5V2I0TVpMaFlmMHh2NjdoVGJLZy1maEZ4ckZESnZzaWVvZW9HVmRQV04tQ2pHdVRRWnNjOTBPT2JpNnFzb3dfUWt1d0tXelI2Z0NiUFowYy1nMGE5VGZYMncxbmY5TDBWMlhtWDcxd1ZKVTBUWFpoMGZ4dy1sVnBENHM?oc=5"
+    },
+    {
+      "title": "U.S. stocks end the day mixed as Big Tech takes a hit - MarketWatch",
+      "summary": "U.S. stocks end the day mixed as Big Tech takes a hit MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMiwgJBVV95cUxNcm5DOURZN3dRYm54R1pRUUJMbXh0TVo1Vi1zWEhCSXBrZU9pR1VvQXBMM0tKRERDZVk4aXU4aGNPZi0wZ1Nva1RmdmoyZk9hYkhfV3d6WE9yTzBfVEZRSWozcG54RzZKdGhCSmFBQjAzVmRIdDQ5cnBZdWNTeEpTeWw5YWtSWjB5SnFLYmpQZzMyOEVpU3k3bDZmSkxXWGJvWURvY2xPeEw1Rkl3a0JnN01YWWkxcnNoR0pyUWszcFFGVjJxcDFoYWQ2QWo3WjBtcFh6Z1RpbDNxVmdyUklxcnhuZHlaN20xMU5sYkNGSW5KSk5aZVBpSmJMRkVpX213VEtmOWxrNWdPNkxJTzdoQ3V4R0haQllONm51Qi1UUnlrMnJpWjQ0bDByOGI2cTB4UHM1R1YwaUthYlFPRmdZQmpB?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Nasdaq Stumbles Despite Micron Blockbuster Earnings; Wendy's in Focus — Live Updates - WSJ",
+      "summary": "Stock Market Today: Nasdaq Stumbles Despite Micron Blockbuster Earnings; Wendy's in Focus — Live Updates WSJ",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPU2VfV1dnSkNzSUdfSVk0R2JKMm9KVTFWX0Y3aDNoWERZeXFsbWFEUWxmN3BPQ19hSm9SQ2tRNEo4NVo3SmVCVGpWTUhad2JfNk83UkdKVERjNWczV1NxcnU1OEh0cmFCZkJDb3hTU1JSUnVibUlCOVh4dTk5WGdLMnB0eWN0ak0?oc=5"
+    },
+    {
+      "title": "Markets News, June 25, 2026: Nasdaq Slides as Tech Giants' Retreat Outweighs Micron-Led Memory Rally; Oil Rises as Mideast Tensions Flare - Investopedia",
+      "summary": "Markets News, June 25, 2026: Nasdaq Slides as Tech Giants' Retreat Outweighs Micron-Led Memory Rally; Oil Rises as Mideast Tensions Flare Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPWkxtcEkzTlNmMjNMZDZzSktoOHk3UTYtTkFRaEl0NDA2TUFVNnppRi1MWlFVZ0FHSkphdUw0TG9OeTFpdFJ4SEhYaExwVnBRbnI5X2FYZkZrR0o1Vm45bEcxbkE5SENfV0lNNkZRS29JclFlU3lqcVZzdl9zTWlXb1dJdHBRREZTVmFSdjdkSkw?oc=5"
+    }
+  ],
+  "us_date": "06/25",
+  "generated_at": "2026-06-26T07:11:55.426964+09:00"
+}
