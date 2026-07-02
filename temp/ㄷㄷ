@@ -1,632 +1,1529 @@
-package jef.application.parser.xml;
-
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
-import jef.application.entity.BusinessVO;
-import jef.application.interceptor.message.MessageConstants;
-import jef.application.parser.helper.DataParsingException;
-import jef.foundation.configuration.helper.ConfigurationUtils;
-import jef.foundation.util.StringUtils;
-
-/**
- * XML 처리와 관련한 유틸리티 클래스이다.
- *
- * @author Framework Team
- *
- */
-public class XMLUtils {
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\ ] 
+-------------------------------------------------- 
+plugins {
+    id 'eclipse'
+    id 'java'
+    id 'org.springframework.boot' version '3.5.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+    
+// 버전 상수 정의
+ext {
+	javaVersion = JavaVersion.VERSION_21
+	springVersion = "6.2.8"
+	springBatchVersion = "5.2.2"
+	springRetryVersion = "2.0.12"
+	loggerVersion = "2.24.3"
+	springBootVersion = "3.5.1"  // 추가
 	
-//	public final static String XML_DECLARATION = "<?xml version=\"1.0\" encoding=\"%s\"?>";
+}
+ext {
+    jacksonVersion         = '2.19.1'
+    commonsLang3Version    = '3.14.0'
+    commonsCodecVersion    = '1.17.0'
+    commonsIoVersion       = '2.16.1'
+    commonsNetVersion      = '3.11.1'
+    commonsDbcp2Version    = '2.12.0'
+    commonsPool2Version    = '2.12.0'
+    commonsCompressVersion = '1.26.2'
+    commonsValidatorVersion= '1.9.0'
+    commonsExecVersion     = '1.4.0'
+    commonsBeanutilsVersion= '1.9.4'
+    commonsFileupload2Version='2.0.0-M1'
+    commonsDbUtilsVersion  = '1.8.1'
+    commonsVfs2Version     = '2.9.0'
+    httpClient5Version     = '5.3.1'
+    httpCore5Version       = '5.3.4'
+    mybatisVersion         = '3.5.16'
+    mybatisSpringVersion   = '3.0.3'
+    quartzVersion          = '2.5.0'
+    aspectjVersion         = '1.9.22'
+    slf4jVersion           = '2.0.13'
+    log4j2Version          = '2.23.1'   // Logback 대체 (Log4Shell 완전 패치 버전)
+    disruptorVersion       = '3.4.4'    // Async Logger 고성능 처리용 (LMAX)
+    kafkaVersion           = '3.7.1'
+    poiVersion             = '5.2.5'
+    nettyVersion           = '4.1.111.Final'
+    dom4jVersion           = '2.1.4'
+    caffeineVersion        = '3.1.8'
+    jsqlparserVersion      = '4.9'
+    bouncycastleVersion    = '1.78.1'
+    mongodbVersion         = '5.1.0'
+    jeromqVersion          = '0.6.0'
+    jschVersion            = '0.2.17'
+    xstreamVersion         = '1.4.20'
+    xerces2Version         = '2.12.2'
+    axis2Version           = '1.8.2'	//내장되어 선언불필요
+    ehcacheVersion         = '3.10.8'
+    c3p0Version            = '0.9.5.5'
+    springWsVersion        = '4.0.10'
+    trilead2Version        = '2.13'
+    staxUtilsVersion       = '20070216'
+    tilesVersion      	   = '3.0.8'
+    tilesRequestVersion	   = '1.0.7'
+    jaiVersion             = '1.4.0'
+    activationVersion      = '2.1.3'
+    junitVersion           = '5.12.2'
+    servletApiVersion      = '6.0.0'
+    jspApiVersion          = '3.1.1'
+    transactionApiVersion  = '2.0.1'
+    mailApiVersion         = '2.0.1'
+    xmlSoapApiVersion      = '3.0.1'
+    jmsApiVersion          = '3.1.0'
+    xmlBindApiVersion      = '4.0.2'
+    annotationApiVersion   = '2.1.1'
+    validationApiVersion   = '3.0.2'
+    //activationVersion    = '2.1.2'
+    jaxbRuntimeVersion     = '4.0.2'
+    saajImplVersion        = '3.0.3'
+    asmVersion             = '9.6'    
+    axiomVersion           = '9.6'    
+    jtarVersion            = '2.3'    
+    xbeanVersion           = '4.25'    
+    xmlbeansVersion        = '5.2.1'    
+    mathVersion            = '1.2'    
+}
 
-	public final static String INDENT_YES = "yes";
+allprojects {
 
-	public final static String INDENT_NO = "no";
+    repositories {
+        maven {
+            url = uri("${repositoryUrl}/spring7")
+            allowInsecureProtocol = true
+            credentials {
+                username "${repositoryUser}"
+                password "${repositoryPassword}"
+            }
+        } 
+    }
+    configurations.all {
+    	exclude group: 'xml-apis'
+    	exclude group: 'xerces'
+    	exclude group: 'xalan'
+    	exclude group: 'stax'
+    	exclude group: 'javax.xml.stream'
+    	exclude group: 'javax-servlet', module: 'servlet-api'
+    	exclude group: 'commons-logging', module: 'commons-logging'
+    	exclude group: 'commons-dbcp', module: 'commons-dbcp'
+        exclude group: 'commons-pool', module: 'commons-pool'
+    	exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+    	exclude group: 'org.apache.httpcomponents', module: 'httpcore'
+        exclude group: 'log4j',  module: 'log4j'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'        
+        exclude group: 'woodstox', module: 'wstx-asl'        
+    }
+}
 
-	public final static String METHOD = "xml";
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+    apply plugin: 'maven-publish'
 
-	private final static String FQCN_DELIMITER = ".";
-
-	public static String DEFAULT_ENCODING = "EUC-KR";
+    sourceCompatibility = rootProject.javaVersion   
+    targetCompatibility = rootProject.javaVersion
+    
+    // libs 폴더를 비우는 태스크 정의
+    task cleanLibs(type: Delete) {
+        delete "${buildDir}/libs"
+    }
+        // jar 태스크 실행 전에 cleanLibs가 먼저 실행되도록 설정
+    jar.dependsOn cleanLibs
+    dependencies {
+		//implementation platform("org.springframework:spring-framework-bom:${springVersion}")
+	    //implementation platform("org.springframework:spring-framework-bom:${springVersion}")
+	    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+	    
+		implementation 'org.springframework:spring-aspects'
+	    implementation 'org.springframework:spring-context'
+	    implementation 'org.springframework:spring-aop'
+	    implementation 'org.springframework:spring-context-support'
+	    implementation 'org.springframework:spring-jms'
+	    implementation 'org.springframework:spring-oxm'
+	    implementation 'org.springframework:spring-beans'
+	    implementation 'org.springframework:spring-core'
+	    implementation 'org.springframework:spring-jcl'
+	    implementation 'org.springframework:spring-aop'
+	    implementation 'org.springframework:spring-expression'
+	    implementation 'org.springframework:spring-tx'
+		implementation 'org.springframework:spring-orm'
+		implementation 'org.springframework:spring-jdbc'
+		implementation 'org.springframework:spring-messaging'
 	
-	private static final Map<String, String> ENCODING_MAP = new HashMap<String, String>();
-	static{
-		ENCODING_MAP.put("UTF-8", "UTF-8");
-		ENCODING_MAP.put("UTF-16", "UTF-16");
-		ENCODING_MAP.put("UTF-32", "UTF-32");
-		ENCODING_MAP.put("US-ASCII", "US-ASCII");
-		ENCODING_MAP.put("MS949", "MS949");
-	}
-	
-	private static TransformerFactory transformerFactory;
-
-	private static DocumentBuilderFactory domFactory = null;
-
-	private static XPathFactory xpathFactory = null;
-
-	private static XPath xpath = null;
-
-	private volatile static Object syncTransObj = new Object();
-	private volatile static Object syncXpathObj = new Object();
-
-	private static ConcurrentHashMap<String, XPathExpression> xPathCache = new ConcurrentHashMap<String, XPathExpression>();
-
-	static {
+	    implementation 'org.springframework:spring-web'
+	    implementation 'org.springframework:spring-webmvc'
 		
-		String xmlEncoding = ConfigurationUtils.getString("xml.encoding"); 
-		if (xmlEncoding != null) 
-		{
-			if (ENCODING_MAP.containsKey(xmlEncoding.toUpperCase()))
-			{
-				DEFAULT_ENCODING = ENCODING_MAP.get(xmlEncoding.toUpperCase());
-			}
-		}
+		// =========================================================
+		// Spring Batch 5.x (Spring 6 대응)
+		// =========================================================
+		implementation "org.springframework.batch:spring-batch-core:${springBatchVersion}"
+		implementation "org.springframework.batch:spring-batch-infrastructure:${springBatchVersion}"
+		implementation "org.springframework.retry:spring-retry:${springRetryVersion}"
 		
-		//21 에선 불필요할듯.. 확인
-//		String xniParserName = ConfigurationUtils.getString("org.apache.xerces.xni.parser.XMLParserConfiguration");
-//		if (!StringUtils.isEmpty(xniParserName))
-//			System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration", xniParserName);
+		// =========================================================
+		// Spring WS 4.x (Spring 6 대응)
+		// =========================================================
+		implementation "org.springframework.ws:spring-ws-core:${springWsVersion}"
+		implementation "org.springframework.ws:spring-ws-security:${springWsVersion}"
+		implementation "org.springframework.ws:spring-ws-support:${springWsVersion}"
+		implementation "org.springframework.ws:spring-xml:${springWsVersion}"
 
-		String xmlFactoryName = ConfigurationUtils.getString("javax.xml.parsers.DocumentBuilderFactory");
-		if (!StringUtils.isEmpty(xmlFactoryName))
-			System.setProperty("javax.xml.parsers.DocumentBuilderFactory", xmlFactoryName);
-
-		String xpathFactoryName = ConfigurationUtils.getString("javax.xml.xpath.XPathFactory");
-		if (!StringUtils.isEmpty(xpathFactoryName))
-			System.setProperty("javax.xml.xpath.XPathFactory", xpathFactoryName);
-
-		String dTMManagerName = ConfigurationUtils.getString("org.apache.xml.dtm.DTMManager");
-		if (!StringUtils.isEmpty(dTMManagerName))
-			System.setProperty("org.apache.xml.dtm.DTMManager", dTMManagerName);
-
-		domFactory = DocumentBuilderFactory.newInstance();
-		domFactory.setNamespaceAware(false);
-
-		domFactory.setValidating(false);
-		try {
-			domFactory.setFeature("http://xml.org/sax/features/namespaces", false);
-			domFactory.setFeature("http://xml.org/sax/features/validation", false);
-			domFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-			domFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-			domFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-			domFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-			domFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
-		}
-
-		xpathFactory = XPathFactory.newInstance();
-		xpath = xpathFactory.newXPath();
-
-	}
-
-	/**
-	 * XML 문자열을 분석하여 Document 객체로 반환한다.
-	 *
-	 * @param strData XML 문자열
-	 * 
-	 * @return Document
-	 * 
-	 * @throws ParserConfigurationException
-	 * @throws SAXException
-	 * @throws IOException
-	 */
-	public static Document getDocument(String strData) throws ParserConfigurationException, SAXException, IOException {
-		return getDocument(strData, null);
-	}
-	
-	/**
-	 * XML 문자열을 주어진 캐릭터셋으로 변환하고 분석하여 Document 객체로 반환한다.
-	 *
-	 * @param xmlData XML 문자열
-	 * @param charSet 캐릭터셋
-	 * 
-	 * @return Document
-	 * 
-	 * @throws ParserConfigurationException
-	 * @throws SAXException
-	 * @throws IOException
-	 */
-	public static Document getDocument(String xmlData, String charSet) throws ParserConfigurationException, SAXException, IOException {
+		// =========================================================
+		// Jakarta EE (javax.* → jakarta.* 전환)
+		// =========================================================
+		implementation "jakarta.servlet:jakarta.servlet-api:${servletApiVersion}"
+		implementation "jakarta.servlet.jsp:jakarta.servlet.jsp-api:${jspApiVersion}"
+		implementation "jakarta.transaction:jakarta.transaction-api:${transactionApiVersion}"
+		implementation "jakarta.mail:jakarta.mail-api:${mailApiVersion}"
+		implementation "jakarta.xml.soap:jakarta.xml.soap-api:${xmlSoapApiVersion}"
+		implementation "jakarta.jms:jakarta.jms-api:${jmsApiVersion}"
+		implementation "jakarta.xml.bind:jakarta.xml.bind-api:${xmlBindApiVersion}"
+		implementation "jakarta.activation:jakarta.activation-api:${activationVersion}"
+		implementation "org.glassfish.jaxb:jaxb-runtime:${jaxbRuntimeVersion}"
+		implementation "jakarta.annotation:jakarta.annotation-api:${annotationApiVersion}"
+		implementation "jakarta.validation:jakarta.validation-api:${validationApiVersion}"
+		implementation "com.sun.xml.messaging.saaj:saaj-impl:${saajImplVersion}"
 		
-		Document doc = null;
-		InputStream is = null;
+		// =========================================================
+		// Jackson 2.17.x
+		// =========================================================				
+		implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
+		implementation "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
+		implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+		implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
+		implementation "com.fasterxml.jackson.module:jackson-module-parameter-names:${jacksonVersion}"
+
+		// =========================================================
+		// MyBatis 3.5.x + MyBatis-Spring 3.x
+		// =========================================================
+		implementation "org.mybatis:mybatis:${mybatisVersion}"
+		implementation "org.mybatis:mybatis-spring:${mybatisSpringVersion}"
 		
-		if( charSet != null ) {
-			is = new ByteArrayInputStream(xmlData.getBytes(charSet));
-		} else {
-			is = new ByteArrayInputStream(xmlData.getBytes());
-		}
+		// =========================================================
+		// MongoDB Driver 5.x
+		// =========================================================
+		implementation "org.mongodb:mongodb-driver-sync:${mongodbVersion}"
+		implementation "org.mongodb:mongodb-driver-core:${mongodbVersion}"
+		implementation "org.mongodb:bson:${mongodbVersion}"
+		    		
+		// =========================================================
+		// Database Connection Pool
+		// =========================================================
+		implementation "org.apache.commons:commons-dbcp2:${commonsDbcp2Version}"
+		implementation "org.apache.commons:commons-pool2:${commonsPool2Version}"
+		implementation "com.mchange:c3p0:${c3p0Version}"
 		
-		DocumentBuilder builder = domFactory.newDocumentBuilder();
-		doc = builder.parse(is);
+		// =========================================================
+		// Apache Commons
+		// =========================================================
+		implementation "org.apache.commons:commons-lang3:${commonsLang3Version}"
+		implementation "commons-codec:commons-codec:${commonsCodecVersion}"
+		implementation "commons-io:commons-io:${commonsIoVersion}"
+		implementation "commons-net:commons-net:${commonsNetVersion}"
+		implementation "org.apache.commons:commons-compress:${commonsCompressVersion}"
+		implementation "commons-validator:commons-validator:${commonsValidatorVersion}"
+		implementation "org.apache.commons:commons-exec:${commonsExecVersion}"
+		implementation "commons-beanutils:commons-beanutils:${commonsBeanutilsVersion}"
 		
-		return doc;
-	}
-	
-	public static Document getDocumentAddDeclaration(String xmlData, String charSet) throws ParserConfigurationException, SAXException, IOException {
+		implementation "commons-dbutils:commons-dbutils:${commonsDbUtilsVersion}"
+		implementation "org.apache.commons:commons-vfs2:${commonsVfs2Version}"
+		implementation "commons-math:commons-math:${mathVersion}"  // 최신 사용불가시 유지		
 		
-		if (xmlData.startsWith("<?xml")) {
-			xmlData = removeXmlDeclaration(xmlData);
-		}
-		xmlData = addXmlDeclaration(xmlData, charSet);
-		return getDocument(xmlData, charSet);
-	}
-
-	/**
-	 * XML 파일을 분석하여 Document 객체로 반환한다.
-	 *
-	 * @param file XML 파일 객체
-	 * 
-	 * @return Document
-	 * 
-	 * @throws ParserConfigurationException
-	 * @throws SAXException
-	 * @throws IOException
-	 */
-	public static Document getDocument(File file) throws ParserConfigurationException, SAXException, IOException{
-		Document doc = null;
-
-		DocumentBuilder builder = domFactory.newDocumentBuilder();
-		doc = builder.parse(file);
-
-		return doc;
-	}
-
-	/**
-	 * XML 문자열에 XML 선언 정보가 있는지 확인하여 없으면 추가한다.
-	 *
-	 * @param xmlData XML 문자열
-	 * 
-	 * @return String
-	 */
-	public static String addXmlDeclaration(String xmlData) {
-		if (xmlData.startsWith("<?xml")) {
-			return xmlData;
-		} else {
-			StringBuilder builder = new StringBuilder();
-//			builder.append(String.format(XML_DECLARATION, DEFAULT_ENCODING));
-			
-//			<?xml version=\"1.0\" encoding=\"%s\"?>
-			builder.append("<?xml version=\"1.0\" encoding=\"");
-			builder.append(DEFAULT_ENCODING);
-			builder.append("\"?>");
-			builder.append(xmlData);
-			return builder.toString();
-		}
-	}
-
-	
-	/**
-	 * XML 문자열에 XML 선언 정보가 있는지 확인하여 없으면 추가한다.
-	 *
-	 * @param xmlData XML 문자열
-	 * @param encoding Declaration Encoding
-	 * @return String
-	 */
-	public static String addXmlDeclaration(String xmlData, String encoding) {
-		if (xmlData.startsWith("<?xml")) {
-			return xmlData;
-		} else {
-			StringBuilder builder = new StringBuilder();
-			builder.append("<?xml version=\"1.0\" encoding=\"");
-			builder.append(encoding);
-			builder.append("\"?>");
-			builder.append(xmlData);
-			return builder.toString();
-		}
-	}
-	
-	/**
-	 * XML 문자열에 XML 선언 정보가 있는지 확인하여 있으면 제거한다.
-	 *
-	 * @param xml XML 문자열
-	 * 
-	 * @return String
-	 */
-	public static String removeXmlDeclaration(String xml) {
-		xml = StringUtils.ltrim(xml);
-		if (xml.startsWith("<?xml")) {
-			int index = xml.indexOf("?>");
-			return xml.substring(index + 2);
-		}
-		return xml;
-	}
-	
-
-	/**
-	 * XML Document 에서 특정 경로의 값을 반환한다.
-	 *
-	 * @param doc XML Document
-	 * @param expression 경로
-	 * @param returnType 반환 데이터 타입 
-	 * 
-	 * @return Object
-	 * 
-	 * @throws XPathExpressionException
-	 */
-	public static Object getXPathValue(Document doc, String expression, QName returnType)
-			throws XPathExpressionException {
-		XPathExpression expr = null;
-		Object result = null;
-
-		expr = xPathCache.get(expression);
-
-		if (expr == null) {
-			synchronized (syncXpathObj) {
-				if (expr == null) {
-					expr = xpath.compile(expression);
-					xPathCache.put(expression, expr);
-				}
-			}
-		}
-
-		result = (Object) expr.evaluate(doc, returnType);
-
-		return result;
-	}
-
-	/**
-	 * 특정 경로에 대한 XPathExpression 정보를 반환한다.
-	 *
-	 * @param doc XML Document
-	 * @param expression 경로
-	 * @param returnType 반환 데이터 타입
-	 *  
-	 * @return XPathExpression
-	 * 
-	 * @throws XPathExpressionException
-	 */
-	public static XPathExpression getXPathExpression(Document doc, String expression, QName returnType) throws XPathExpressionException {
-		XPathExpression expr = null;
-		expr = xpath.compile(expression);
-		return expr;
-	}
-
-	/**
-	 * 특정 항목에 대한 node 를 생성한 후 index 속성을 추가하여 parent node 에 추가하고 생성한 node 를 반환한다.
-	 *
-	 * @param document XML Document
-	 * @param name 항목명
-	 * @param index index 값
-	 * 
-	 * @return Element
-	 */
-	public static Element createIndexedNode(Document document, String name, int index) {
-		Element node = document.createElement(name);
-		node.setAttribute("index", String.valueOf(index));
-		return node;
-	}
-
-	/**
-	 * 특정 항목에 대한 node 를 생성한 후 index 속성을 추가하여 parent node 에 추가하고 생성한 node 를 반환한다.
-	 *
-	 * @param document XML Document
-	 * @param name 항목명
-	 * @param index index 값
-	 * @param value 항목 데이터
-	 * 
-	 * @return Element
-	 */
-	public static Element createIndexedNode(Document document, String name, int index, String value) {
-		if (value == null) {
-			value = StringUtils.EMPTY;
-		}
-		Element node = document.createElement(name);
-		node.setAttribute("index", String.valueOf(index));
-		node.appendChild(document.createTextNode(value));
-		return node;
-	}
-
-	/**
-	 * 특정 항목에 대한 node 를 생성한 후 index 속성을 추가하여 parent node 에 추가하고 생성한 node 를 반환한다.
-	 *
-	 * @param document XML Document
-	 * @param parent parent node
-	 * @param name 항목명
-	 * @param index index 값
-	 * 
-	 * @return Element
-	 */
-	public static Element createIndexedNode(Document document, Element parent, String name, int index) {
-		Element node = document.createElement(name);
-		node.setAttribute("index", String.valueOf(index));
-		parent.appendChild(node);
-		return node;
-	}
-
-	/**
-	 * 특정 항목에 대한 node 를 생성한 후 index 속성을 추가하여 parent node 에 추가하고 생성한 node 를 반환한다. 
-	 *
-	 * @param document XML Document
-	 * @param parent parent node
-	 * @param name 항목명
-	 * @param index index 값
-	 * @param value 항목 데이터
-	 * 
-	 * @return Element
-	 */
-	public static Element createIndexedNode(Document document, Element parent, String name, int index, String value) {
-		if (value == null) {
-			value = StringUtils.EMPTY;
-		}
-		Element node = document.createElement(name);
-		node.setAttribute("index", String.valueOf(index));
-		node.appendChild(document.createTextNode(value));
-		parent.appendChild(node);
-		return node;
-	}
-
-	/**
-	 * 특정 항목에 대한 node 를 생성한 후 반환한다. 
-	 *
-	 * @param document XML Document
-	 * @param name 항목명
-	 * 
-	 * @return Element
-	 */
-	public static Element createNode(Document document, String name) {
-		Element node = document.createElement(name);
-		return node;
-	}
-
-	/**
-	 * 특정 항목에 대한 node 를 생성한 후 데이터를 설정하고 parent node 에 추가한 후 생성한 node 를 반환한다. 
-	 *
-	 * @param document XML Document
-	 * @param parent parent node
-	 * @param name 항목명
-	 * 
-	 * @return Element
-	 */
-	public static Element createNode(Document document, Element parent, String name) {
-		Element node = document.createElement(name);
-		parent.appendChild(node);
-		return node;
-	}
-
-	/**
-	 * 특정 항목에 대한 node 를 생성한 후 데이터를 설정하고 parent node 에 추가한 후 생성한 node 를 반환한다. 
-	 *
-	 * @param document XML Document
-	 * @param parent parent node
-	 * @param name 항목명
-	 * @param value 데이터
-	 * 
-	 * @return Element
-	 */
-	public static Element createNode(Document document, Element parent, String name, String value) {
-		Element node = document.createElement(name);
-		node.appendChild(document.createTextNode(value));
-		parent.appendChild(node);
-		return node;
-	}
-
-	/**
-	 * 특정 항목에 대한 node 를 생성한 후 데이터를 설정하고 parent node 에 추가한 후 생성한 node 를 반환한다. 
-	 *
-	 * @param document XML Document
-	 * @param parent parent node
-	 * @param value 데이터
-	 */
-	public static void createTextNode(Document document, Element parent, String value) {
-		parent.appendChild(document.createTextNode(value));
-	}
-
-	/**
-	 * parent node 에 속성을 설정한다.
-	 *
-	 * @param parent parent node
-	 * @param name 속성명
-	 * @param value 속성값
-	 */
-	public static void createAttribute(Element parent, String name, String value) {
-		parent.setAttribute(name, value);
-	}
-
-	/**
-	 * 파라미터로 받은 prev, current 값을 이용하여 FQCN 값을 반환한다.<br>
-	 * prev += FQCN_DELIMITER + current
-	 *
-	 * @param prev
-	 * @param current
-	 * 
-	 * @return String
-	 */
-	public static String getFqcn(String prev, String current) {
-		if (StringUtils.isNotEmpty(prev)) {
-			return prev + FQCN_DELIMITER + current;
-		} else {
-			return current;
-		}
-	}
-
-	private static TransformerFactory getTransformerFactory() {
-		if (transformerFactory == null) {
-			synchronized (syncTransObj) {
-				if (transformerFactory == null) {
-					transformerFactory = TransformerFactory.newInstance();
-				}
-			}
-		}
-		return transformerFactory;
-	}
-
-	/**
-	 * XML 처리를 위한 새로운 Transformer 를 생성하여 반환한다.
-	 *
-	 * @return Transformer
-	 * 
-	 * @throws TransformerConfigurationException
-	 */
-	public static Transformer newTransformer() throws TransformerConfigurationException {
-		TransformerFactory factory = getTransformerFactory();
-		if (factory != null) {
-			return factory.newTransformer();
-		}
-		return null;
-	}
-
-	/**
-	 * XML 을 분석하여 문자열로 반환한다.
-	 *
-	 * @param node XML node
-	 * 
-	 * @return String
-	 * 
-	 * @throws TransformerException
-	 * @throws IOException
-	 */
-	public static String toString(Element node) throws TransformerException, IOException {
-		return toString(node, DEFAULT_ENCODING);
-	}
-	
-	/**
-	 * 파라미터로 받은 캐릭터셋을 이용하여 XML 을 분석하여 문자열로 반환한다.
-	 *
-	 * @param node XML node
-	 * @param encoding 캐릭터셋
-	 * 
-	 * @return String
-	 * 
-	 * @throws TransformerException
-	 * @throws IOException
-	 */
-	public static String toString(Element node, String encoding) throws TransformerException, IOException {
-		node.normalize();
-
-		StringWriter sw = new StringWriter();
-		BufferedWriter bw = new BufferedWriter(sw);
-
-		// 분석된 XML을 String으로 변환한다.
-		Transformer transformer = XMLUtils.newTransformer();
-		transformer.setOutputProperty(OutputKeys.INDENT, XMLUtils.INDENT_YES);
-		transformer.setOutputProperty(OutputKeys.METHOD, XMLUtils.METHOD);
-		transformer.setOutputProperty(OutputKeys.ENCODING, encoding);
-		transformer.transform(new DOMSource(node), new StreamResult(bw));
-
-		bw.flush();
-		bw.close();
-		return sw.toString();
-	}
-
-	/**
-	 * XML 문자열에서 유효하지 않은 문자를 삭제한다.
-	 *
-	 * @param s XML 문자열
-	 * 
-	 * @return String
-	 */
-	public static String removeInvalidXMLCharacters(String s) {
-		// Used to hold the output.
-		StringBuilder out = new StringBuilder();
-		// Used to reference the current character.
-		int codePoint;
-		// This is actualy one unicode character, represented by two code
-		// units!!!.
-		// String ss = "\ud801\udc00";
-		// System.out.println(ss.codePointCount(0, ss.length()));// See: 1
-		int i = 0;
-		while (i < s.length()) {
-			// System.out.println("i=" + i);
-			// This is the unicode code of the character.
-			codePoint = s.codePointAt(i);
-			// Consider testing larger ranges first to improve speed.
-			if ((codePoint == 0x9) || (codePoint == 0xA) || (codePoint == 0xD)
-					|| ((codePoint >= 0x20) && (codePoint <= 0xD7FF))
-					|| ((codePoint >= 0xE000) && (codePoint <= 0xFFFD))
-					|| ((codePoint >= 0x10000) && (codePoint <= 0x10FFFF))) {
-				out.append(Character.toChars(codePoint));
-			}
-			// Increment with the number of code units(java chars)
-			// needed to represent a Unicode char.
-			i += Character.charCount(codePoint);
-		}
-		return out.toString();
-	}
-	
-	/**
-	 * BusinessVO 를 XML로 변환한다. 변환시 xml 선언부와 root 태그는 제거한다.
-	 * @param businessVO
-	 * @return XML String
-	 * @throws TransformerException
-	 */
-	public String toStringOnlyBodyXML(BusinessVO businessVO) throws DataParsingException {
-		try {
-			XmlBuilder builder = new XmlBuilder();
-			
-			Document doc = XMLUtils.getDocument(XMLUtils.addXmlDeclaration("<root></root>", DEFAULT_ENCODING));
-			Element responseNode = XMLUtils.createNode(doc, (Element)doc.getFirstChild(), MessageConstants.BODY_RESPONSE_XINTERNET);
-			builder.build(doc, businessVO, responseNode);
-			
-			return XMLUtils.removeXmlDeclaration(XMLUtils.toString((Element) responseNode));
-		} catch (DataParsingException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new DataParsingException(e, "JEF54001", "");
-		}
-	}
-		private void loadData() throws ConfigurationException {
+		implementation "org.apache.commons:commons-fileupload2:${commonsFileupload2Version}"
+		implementation "org.apache.commons:commons-fileupload2-core:${commonsFileupload2Version}"
+		implementation "org.apache.commons:commons-fileupload2-jakarta:${commonsFileupload2Version}"		
 		
-		if (configManager == null || configManager.getURI() == null) {
-			throw new ConfigurationException("JEF38001", CONFIG_NAME, CONFIG_FILE);	
-		}
+		// Log4j2 Core & API (커스텀 Appender/Layout/Filter/Logger 개발 필수)
+		implementation "org.apache.logging.log4j:log4j-api:${log4j2Version}"
+		implementation "org.apache.logging.log4j:log4j-core:${log4j2Version}"
+		
+		// SLF4J → Log4j2 브릿지  (SLF4J를 쓰는 외부 라이브러리 로그를 Log4j2로 수집)
+		implementation "org.slf4j:slf4j-api:${slf4jVersion}"
+		implementation "org.apache.logging.log4j:log4j-slf4j2-impl:${log4j2Version}"
+		
+		// 다른 로깅 프레임워크 → Log4j2 통합 브릿지
+		implementation "org.apache.logging.log4j:log4j-jcl:${log4j2Version}"          // commons-logging 대체
+		implementation "org.apache.logging.log4j:log4j-jul:${log4j2Version}"           // java.util.logging 대체
+		implementation "org.slf4j:jcl-over-slf4j:${slf4jVersion}"                     // commons-logging 완전 차단
+		
+		// ★ 커스텀 플러그인 어노테이션 프로세서 @Plugin, @PluginFactory 등 빌드 시 캐시 생성 → 기동 속도 향상
+		annotationProcessor "org.apache.logging.log4j:log4j-core:${log4j2Version}"
 
-		HashMap<String, JobInfo> _tmpMap = new HashMap<String, JobInfo>();
-		try {
-			
-			File _file = new File(new URI(configManager.getURI()));
-			Document doc = XMLUtils.getDocument(_file);
-			Node node = (Node) XMLUtils.getXPathValue(doc, "/root/jobs", XPathConstants.NODE);
-			NodeList childs = node.getChildNodes();
-			int len = childs.getLength();
-			for (int i=0 ; i<len ; i++) {
-				Node cnode = childs.item(i);
-				if ("job".equals(cnode.getNodeName())) {
-					JobInfo info = new JobInfo();
-					readJobInfo(info, cnode);
-					if (info.getJobName() != null) {
-						_tmpMap.put(info.getJobName(), info);	
-					}
-				}
-			}
-		} catch (Exception e) {
-			ConsoleLogger.fatal(CLASS_NAME + " 초기화 실패. 설정파일:" + CONFIG_FILE, e);
-			Logger.fatal(CLASS_NAME + " 초기화 실패. 설정파일:" + CONFIG_FILE, e);
-			throw new ConfigurationException("JEF38001", CONFIG_NAME, CONFIG_FILE);
-		}
-		schedulerMap = _tmpMap;
+		// =========================================================
+		// HTTP Client 5.x (4.x EOL)
+		// =========================================================
+		implementation "org.apache.httpcomponents.client5:httpclient5:${httpClient5Version}"
+		implementation "org.apache.httpcomponents.core5:httpcore5:${httpCore5Version}"
+		
+		// =========================================================
+		// Apache POI 5.x
+		// =========================================================
+		implementation "org.apache.poi:poi:${poiVersion}"
+		implementation "org.apache.poi:poi-ooxml:${poiVersion}"
+		
+		// =========================================================
+		// dom4j 2.x (JDK21 대응)
+		// =========================================================
+		implementation "org.dom4j:dom4j:${dom4jVersion}"	
+		
+		// =========================================================
+		// AspectJ 1.9.22 (JDK21 대응)
+		// =========================================================
+		implementation "org.aspectj:aspectjrt:${aspectjVersion}"
+		implementation "org.aspectj:aspectjweaver:${aspectjVersion}"
+		
+		// =========================================================
+		// JSqlParser 4.9
+		// =========================================================
+	    implementation "com.github.jsqlparser:jsqlparser:${jsqlparserVersion}"	
+	    
+	    implementation "org.quartz-scheduler:quartz:${quartzVersion}"
+
+		// =========================================================
+		// Ehcache 3.x (Spring 6 대응)
+		// =========================================================
+		implementation "org.ehcache:ehcache:${ehcacheVersion}"
+		implementation 'javax.cache:cache-api:1.1.1'	
+		//NE2E
+		implementation "org.zeromq:jeromq:${jeromqVersion}"
+		implementation "org.apache.kafka:kafka-clients:${kafkaVersion}"
+		implementation "io.netty:netty-all:${nettyVersion}"  
+		
+		implementation "com.thoughtworks.xstream:xstream:${xstreamVersion}"		  							
+		implementation "org.ow2.asm:asm:${asmVersion}"
+		implementation "org.ow2.asm:asm-commons:${asmVersion}"
+		
+		implementation "com.fasterxml.woodstox:woodstox-core:6.5.1"
+		implementation "xerces:xercesImpl:${xerces2Version}"
+		
+		testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+		implementation fileTree(dir: "${rootDir}/common-lib", include: ['*.jar'])
+		
+    }
+        // 서브모듈마다 sourcesJar 태스크 정의
+	task sourcesJar(type: Jar) {
+	    dependsOn cleanLibs // 소스 jar 생성 전에도 비우기
+        // 버전과 source 사이에 하이픈 없이 언더바로 연결
+        archiveFileName = "${project.name}-${project.version}_source.jar"
+        from sourceSets.main.allSource
 	}
+
+
+    // build 태스크 실행 시 sourcesJar가 함께 실행되도록 설정
+    build.dependsOn sourcesJar
+   /* jar {
+    	archiveBaseName = project.name
+    	archiveVersion = ${version}
+    }*/
+}    
+
+// =========================================================
+// 의존성 버전 충돌 해결 전략
+// =========================================================
+configurations.all {
+	    resolutionStrategy {
+	        // Jackson 버전 강제 통일
+	        force "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+	        force "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
+	        force "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
+	
+	        // SLF4J 버전 강제 통일
+	        force "org.slf4j:slf4j-api:${slf4jVersion}"
+	
+	        // Log4j2 버전 강제 통일 (하위 모듈 버전 충돌 방지)
+	        force "org.apache.logging.log4j:log4j-api:${log4j2Version}"
+	        force "org.apache.logging.log4j:log4j-core:${log4j2Version}"
+	        force "org.apache.logging.log4j:log4j-slf4j2-impl:${log4j2Version}"
+	        force "org.apache.logging.log4j:log4j-jcl:${log4j2Version}"
+	        force "org.apache.logging.log4j:log4j-jul:${log4j2Version}"
+	        force "org.apache.logging.log4j:log4j-1.2-api:${log4j2Version}"
+	
+	        // AspectJ 버전 강제 통일
+	        force "org.aspectj:aspectjrt:${aspectjVersion}"
+	        force "org.aspectj:aspectjweaver:${aspectjVersion}"
+	
+	        // Netty 버전 강제 통일
+	        force "io.netty:netty-all:${nettyVersion}"
+	
+	        // commons-codec 버전 충돌 방지
+	        force "commons-codec:commons-codec:${commonsCodecVersion}"
+			force "org.mybatis:mybatis:${mybatisVersion}"
+			force "org.mybatis:mybatis-spring:${mybatisSpringVersion}"
+			        
+	    }
+}
+task copyLibs(type: Copy) {
+    dependsOn subprojects.collect { it.tasks.named('jar') }
+    dependsOn subprojects.collect { it.tasks.named('sourcesJar') }
+    
+    subprojects.each { sub ->
+        if(sub.name != 'EX') {
+            from("${sub.buildDir}/libs") {
+                include "jef*.jar"
+                include "bxm*.jar"
+                include "*_source.jar"
+            }
+            from(sub.configurations.runtimeClasspath) {
+                include "jef*.jar"
+                include "bxm*.jar"
+                include "*_source.jar"
+            }
+        }
+    }
+    
+   // into "${project(':EX').projectDir}/WebContent/WEB-INF/lib"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.batch\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+dependencies {
+    implementation "commons-io:commons-io"
+	
+    implementation 'org.springframework:spring-aspects'
+    implementation 'org.springframework.batch:spring-batch-core'
+    implementation 'org.springframework.batch:spring-batch-infrastructure'
+    implementation 'org.springframework.retry:spring-retry'
+    
+    implementation 'org.aspectj:aspectjrt'
+    implementation 'org.aspectj:aspectjweaver'
+
+	implementation "org.glassfish.jaxb:jaxb-runtime"
+	implementation "jakarta.xml.bind:jakarta.xml.bind-api"
+    implementation "jakarta.xml.soap:jakarta.xml.soap-api"
+    implementation "com.sun.xml.messaging.saaj:saaj-impl"
+    
+	//////////////////////////////////////////////////////
+
+    implementation project(':bxm-common')
+    implementation project(':bxm-omm-common')
+    implementation project(':bxm-omm-marshaller')
+    implementation project(':bxm-container')
+    implementation project(':bxm-context')
+    implementation project(':bxm-das')
+    implementation project(':bxm-service-endpoint')
 	
 }
 
 
 
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.batch.daemon\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+
+	implementation "org.glassfish.jaxb:jaxb-runtime"
+	implementation "jakarta.xml.bind:jakarta.xml.bind-api"
+    implementation "jakarta.xml.soap:jakarta.xml.soap-api"
+    implementation "com.sun.xml.messaging.saaj:saaj-impl"
+    
+	
+	implementation "org.apache.commons:commons-exec"
+	
+	implementation "org.mongodb:mongodb-driver-sync"
+	implementation "org.mongodb:mongodb-driver-core"
+	implementation "org.mongodb:bson"
+	//////////////////////////////////////////////////////
+
+    implementation project(':bxm-common')
+    implementation project(':bxm-container')
+    implementation project(':bxm-batch')
+
+}
+
+
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.batch.extension\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+
+	implementation "org.mongodb:mongodb-driver-sync"
+	implementation "org.mongodb:mongodb-driver-core"
+	implementation "org.mongodb:bson"
+
+	//////////////////////////////////////////////////////
+
+	implementation project(':bxm-common')
+	implementation project(':bxm-omm-common')
+	implementation project(':bxm-omm-marshaller')
+	implementation project(':bxm-container')
+	implementation project(':bxm-context')
+	implementation project(':bxm-batch')
+	implementation project(':bxm-batch-daemon')
+	implementation project(':bxm-default-extension')
+	implementation project(':jef-foundation')
+	implementation project(':jef-application')
+	implementation project(':jef-batch')
+}
+
+
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.centercut_DAO\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+    implementation "org.glassfish.jaxb:jaxb-runtime"
+	implementation "jakarta.activation:jakarta.activation-api"
+
+	//////////////////////////////////////////////////////
+
+	implementation project(':bxm-batch')
+	implementation project(':bxm-common')
+	implementation project(':bxm-omm-common')
+	implementation project(':bxm-omm-marshaller')
+	implementation project(':bxm-container')
+	implementation project(':bxm-default-extension')
+	implementation project(':jef-application')
+	implementation project(':jef-foundation')
+	implementation project(':jef-batch')
+	
+}
+
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.centercut_DBIO\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+
+    implementation "org.glassfish.jaxb:jaxb-runtime"
+	implementation "jakarta.activation:jakarta.activation-api"
+	
+
+	//////////////////////////////////////////////////////
+	
+	implementation project(':bxm-common')
+	implementation project(':bxm-omm-common')
+	implementation project(':bxm-omm-marshaller')
+	implementation project(':bxm-container')
+	implementation project(':bxm-default-extension')
+	implementation project(':jef-foundation')
+	implementation project(':jef-application')
+}
+
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.common\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+dependencies {
+	testImplementation 'org.junit.jupiter:junit-jupiter' 
+	
+	implementation "org.slf4j:slf4j-api"
+	implementation "org.apache.logging.log4j:log4j-api"
+	implementation "org.apache.logging.log4j:log4j-core"
+	implementation "org.apache.logging.log4j:log4j-slf4j2-impl"
+	implementation "org.apache.commons:commons-pool2"
+	
+
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src/main/generated'
+		}
+	}
+}
+
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include 'bxm/common/util/StringUtils.java'
+                    include 'bxm/common/util/TypeUtils.java'
+                    include 'bxm/common/util/CollectionUtils.java'
+                    include 'bxm/common/util/DateUtils.java'
+                    include 'bxm/common/util/ThreadSafeSimpleDateFormat.java'
+             }
+  options.encoding "${javaEncoding}"
+  options.locale 'ko_KR'
+}
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+task genInstanceConfig {
+	doLast{
+	    // println System.properties['java.home']
+	    delete 'src/main/generated'
+	    mkdir 'src/main/generated'
+	    exec {
+	        executable "xjc"
+	        args "-p", "bxm.common.instance.config", "-d", "src/main/generated", "-no-header", "src/main/resources/bxm/common/instance/config/"
+	    }
+	}
+}
+
+test {
+	exclude '**/*'
+}
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.container\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+	testImplementation('org.junit.jupiter:junit-jupiter')
+	
+    compileOnly "jakarta.servlet:jakarta.servlet-api"
+    implementation "jakarta.transaction:jakarta.transaction-api"
+    
+    implementation "org.aspectj:aspectjrt"
+	implementation "org.aspectj:aspectjweaver"
+    
+    implementation 'org.springframework:spring-core'
+    implementation 'org.apache.bcel:bcel:5.2'
+    
+    implementation "org.apache.commons:commons-dbcp2"
+    implementation "commons-validator:commons-validator"
+    implementation "org.apache.httpcomponents.client5:httpclient5"
+	implementation "org.apache.httpcomponents.core5:httpcore5"
+    
+    implementation "com.springsource:com.ibm.websphere.uow:6.0.2.17" 
+    implementation "com.fasterxml.woodstox:woodstox-core"
+    implementation "org.ow2.asm:asm"
+	implementation "org.ow2.asm:asm-commons"
+    
+	//////////////////////////////////////////////////////
+
+	implementation project(':bxm-common')
+	implementation project(':bxm-omm-common')
+	implementation project(':bxm-omm-marshaller')
+}
+
+
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.context\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+	compileOnly "jakarta.servlet:jakarta.servlet-api"
+	implementation "org.apache.commons:commons-dbcp2"
+	implementation "org.mybatis:mybatis"
+	implementation "org.mybatis:mybatis-spring"
+	
+	implementation 'org.springframework:spring-aop'
+	implementation 'org.springframework:spring-beans'
+	implementation 'org.springframework:spring-context'
+	implementation 'org.springframework:spring-core'
+	implementation 'org.springframework:spring-jdbc'
+	implementation 'org.springframework:spring-tx'
+	implementation 'org.springframework:spring-webmvc'
+	implementation 'org.springframework:spring-web'
+	
+	implementation "org.springframework.ws:spring-ws-core"
+	implementation "org.springframework.ws:spring-ws-security"
+	implementation "org.springframework.ws:spring-ws-support"
+	implementation "org.springframework.ws:spring-xml"
+	implementation "org.ow2.asm:asm"
+	implementation "org.ow2.asm:asm-commons"
+
+	//////////////////////////////////////////////////////
+
+	implementation project(':bxm-common')
+	implementation project(':bxm-omm-common')
+	implementation project(':bxm-omm-marshaller')
+	implementation project(':bxm-container')
+}
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.das\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+	testImplementation 'org.junit.jupiter:junit-jupiter' 
+	
+	implementation "org.mybatis:mybatis"
+	implementation "org.mybatis:mybatis-spring"
+	
+    implementation 'org.springframework:spring-context'
+    implementation 'org.springframework:spring-beans'
+    implementation 'org.springframework:spring-core'
+
+	//////////////////////////////////////////////////////
+
+    implementation project(':bxm-common')
+    implementation project(':bxm-omm-common')
+    implementation project(':bxm-omm-marshaller')
+    implementation project(':bxm-container')
+    implementation project(':bxm-context')
+}
+
+sourceSets {
+	test {
+		java {
+			srcDir 'src/test/sample'
+		}
+	}
+}
+
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+    enabled = false
+}
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.default.extension\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	
+	compileOnly "jakarta.servlet:jakarta.servlet-api"
+	implementation "com.fasterxml.woodstox:woodstox-core"
+	//////////////////////////////////////////////////////
+    implementation project(':bxm-common')
+    implementation project(':bxm-omm-common')
+    implementation project(':bxm-omm-marshaller')
+    implementation project(':bxm-container')
+    implementation project(':bxm-context')
+    implementation project(':bxm-service-endpoint')
+}
+
+
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include 'bxm/dft/utils/BusinessDate.java'
+                    include 'bxm/dft/context/DefaultSystemHeader.java'
+                    include 'bxm/dft/context/DefaultApplicationContext.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+//javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.omm.common\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+dependencies {
+	testImplementation ('org.junit.jupiter:junit-jupiter')
+	
+	implementation "org.apache.poi:poi"
+	implementation "org.apache.poi:poi-ooxml"
+	implementation "org.dom4j:dom4j"
+	implementation 'org.apache.xmlbeans:xmlbeans'
+	
+	implementation "org.glassfish.jaxb:jaxb-runtime"
+	implementation "jakarta.xml.bind:jakarta.xml.bind-api"
+	//////////////////////////////////////////////////////
+	
+	implementation project(':bxm-common')
+}
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.omm.marshaller\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+dependencies {
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	
+    implementation 'org.springframework:spring-core'
+    
+    implementation "org.glassfish.jaxb:jaxb-runtime"
+    implementation "jakarta.xml.bind:jakarta.xml.bind-api"
+    implementation "jakarta.xml.soap:jakarta.xml.soap-api"
+	implementation "com.sun.xml.messaging.saaj:saaj-impl"
+
+	implementation "org.ow2.asm:asm"
+	implementation "org.ow2.asm:asm-commons"
+
+	//////////////////////////////////////////////////////
+
+	implementation project(':bxm-common')
+	implementation project(':bxm-omm-common')
+}
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.service.endpoint\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	
+	compileOnly "jakarta.servlet:jakarta.servlet-api"
+    implementation "jakarta.transaction:jakarta.transaction-api"
+    implementation "jakarta.annotation:jakarta.annotation-api"
+    implementation "jakarta.validation:jakarta.validation-api"
+    implementation "jakarta.jms:jakarta.jms-api"
+    
+	implementation "com.fasterxml.woodstox:woodstox-core:6.5.1"
+    
+	//////////////////////////////////////////////////////
+    implementation project(':bxm-common')
+    implementation project(':bxm-omm-common')
+    implementation project(':bxm-omm-marshaller')
+    implementation project(':bxm-container')
+    implementation project(':bxm-context')
+
+}
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\bxm.sql.gsp.parser\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+dependencies {
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	implementation 'gsp:gsp:1.6.3.7'
+
+	//////////////////////////////////////////////////////
+	
+    implementation project(':bxm-common')
+}
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\dbio.foundation\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+    implementation project(':jef-foundation')
+	implementation project(':jef-application')
+}
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+/*uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "$repositoryUrl" + "/spring") {
+                authentication(userName: "$repositoryUser", password: "$repositoryPassword")
+            }
+        }
+    }
+}*/
+    
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\jef-boot-test\ ] 
+-------------------------------------------------- 
+plugins {
+    id 'java'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+configurations.all {
+    exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    exclude group: 'ch.qos.logback'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+	implementation project(':bxm-common')
+	implementation project(':bxm-omm-common')
+	implementation project(':bxm-omm-marshaller')
+	implementation project(':bxm-container')
+	implementation project(':bxm-context')
+	implementation project(':bxm-das')
+	implementation project(':bxm-service-endpoint')
+	implementation project(':bxm-default-extension')
+	implementation project(':bxm-sql-gsp-parser')
+	implementation project(':bxm-batch')
+	implementation project(':bxm-batch-daemon')
+	implementation project(':bxm-batch-extension')
+	implementation project(':jef-logging')
+	implementation project(':jef-foundation')
+	implementation project(':jef-application')
+	implementation project(':jef-batch')
+	//implementation project(':jef-ignite')
+	implementation project(':bxm-centercut-dao')
+	implementation project(':bxm-centercut-dbio')
+	
+	implementation(group: 'hi.security', name: 'hi-security', version: '1.7')
+	//providedCompile "jakarta.servlet:jakarta.servlet-api:${servletApiVersion}"
+	//providedCompile "jakarta.servlet.jsp:jakarta.servlet.jsp-api:${jspApiVersion}"
+} 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\jef.application\ ] 
+-------------------------------------------------- 
+plugins {
+    id 'java'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+project.version = "${version}"
+project.group = "${group}"
+
+configurations.all {
+    exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    exclude group: 'ch.qos.logback'
+}
+
+dependencies {
+    // Boot 스타터 (servlet-api, spring-web 등 자동 포함)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // 기존 compileOnly 서블릿 제거 (Boot starter-web이 포함)
+    // compileOnly 'jakarta.servlet:jakarta.servlet-api'  ← 제거
+    // compileOnly 'jakarta.servlet.jsp:jakarta.servlet.jsp-api' ← 제거
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    implementation "org.apache.commons:commons-fileupload2-core"
+    implementation "org.apache.commons:commons-fileupload2-jakarta"
+    implementation "org.apache.commons:commons-lang3"
+    implementation "commons-net:commons-net"
+    implementation "commons-beanutils:commons-beanutils"
+
+    implementation 'org.ehcache:ehcache'
+    implementation 'javax.cache:cache-api'
+
+    implementation 'org.quartz-scheduler:quartz'
+    implementation 'org.freemarker:freemarker:2.3.33'
+
+    implementation 'org.springframework:spring-context-support'
+    implementation 'org.springframework:spring-orm'
+    implementation 'org.springframework:spring-expression'
+
+    // spring-webflow → Boot와 충돌 가능, 일단 유지하되 문제 시 제거
+    implementation 'org.springframework.webflow:spring-js:2.3.2.RELEASE'
+
+    implementation "com.thoughtworks.xstream:xstream"
+    implementation "org.apache.httpcomponents.client5:httpclient5"
+    implementation "org.apache.httpcomponents.core5:httpcore5"
+    implementation "com.github.jsqlparser:jsqlparser"
+
+    runtimeOnly "org.apache.commons:commons-exec"
+    runtimeOnly "commons-math:commons-math"
+
+    implementation(group: 'sshtools', name: 'j2ssh-core', version: '0.2.9')
+    implementation(group: 'org.json', name: 'json', version: '20080701')
+    implementation(group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '2.9.3')
+    implementation(group: 'com.ispirit', name: 'tslib', version: '1.0')
+
+    compileOnly(group: 'jsr94', name: 'jsr94', version: '1.1')
+    compileOnly(group: 'hi.innorulesj', name: 'configuration-wizard', version: '7.0')
+    compileOnly(group: 'hi.innorulesj', name: 'custom-ruleif', version: '7.0')
+    compileOnly(group: 'hi.innorulesj', name: 'custom-ruleif-api', version: '7.0')
+    compileOnly(group: 'hi.innorulesj', name: 'inno-initializer', version: '7.0')
+    compileOnly(group: 'hi.innorulesj', name: 'innorules-api', version: '7.0')
+    compileOnly(group: 'hi.innorulesj', name: 'innorulesj', version: '7.0')
+    compileOnly(group: 'hi.innorulesj', name: 'innoutils', version: '7.0')
+
+    compileOnly "org.zeromq:jeromq"
+    compileOnly "org.apache.kafka:kafka-clients"
+    compileOnly "io.netty:netty-all"
+
+    implementation(group: 'com.fasoo', name: 'fasoo-jni', version: '3.9.0u')
+    implementation(group: 'fcwpkg_jni', name: 'fcwpkg_jni', version: '1.9.0')
+
+    implementation fileTree(dir: 'lib', include: ['*.jar'])
+
+    implementation project(':bxm-common')
+    implementation project(':bxm-omm-common')
+    implementation project(':bxm-container')
+    implementation project(':bxm-context')
+    implementation project(':bxm-service-endpoint')
+    implementation project(':jef-logging')
+    implementation project(':jef-foundation')
+}
+bootJar {
+    // 위에서 만든 클래스의 전체 경로(패키지 포함)를 반드시 적어줍니다.
+    mainClass = 'jef.application.JefApplication'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE 
+}
+processResources {
+    from('src/main/java') {
+        include '**/*.omm'
+    }
+}
+
+javadoc.enabled = false
+
+test {
+    exclude '**/*'
+}
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\jef.batch\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+dependencies {
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	compileOnly "jakarta.servlet:jakarta.servlet-api"
+	compileOnly "jakarta.servlet.jsp:jakarta.servlet.jsp-api"
+	implementation "com.sun.xml.messaging.saaj:saaj-impl"
+	implementation 'jakarta.xml.soap:jakarta.xml.soap-api'
+	implementation "jakarta.activation:jakarta.activation-api"
+		
+	runtimeOnly(group: 'org.apache.ws.commons.axiom', name: 'axiom-impl', version: '1.4.0', transitive: false)
+	implementation(group: 'org.apache.ws.commons.axiom', name: 'axiom-api', version: '1.4.0', transitive: false)
+	
+	implementation "com.github.jai-imageio:jai-imageio-core:${jaiVersion}"
+	
+	implementation "com.mchange:c3p0"
+	
+	implementation "commons-dbutils:commons-dbutils"
+	implementation "org.apache.commons:commons-vfs2"
+	implementation "org.apache.commons:commons-compress"
+	implementation "org.apache.commons:commons-fileupload2"
+	implementation "org.apache.commons:commons-fileupload2-core"
+	implementation "org.apache.commons:commons-fileupload2-jakarta"
+	implementation "commons-codec:commons-codec"
+	
+	implementation "org.mongodb:mongodb-driver-sync"
+	implementation "org.mongodb:mongodb-driver-core"
+	implementation "org.mongodb:bson"		
+	
+	implementation "org.apache.xbean:xbean-spring:${xbeanVersion}"
+	implementation "org.apache.xmlbeans:xmlbeans:${xmlbeansVersion}"
+	
+	implementation "com.github.mwiede:jsch:${jschVersion}"  // jsch 0.1.x 대체 (포크 버전)
+
+	implementation(group: 'org.apache.axis2', name: 'axis2-adb', version: '1.3', transitive: false)
+	implementation(group: 'org.apache.axis2', name: 'axis2-kernel', version: '1.3', transitive: false)
+	
+	implementation(group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.48')
+	
+	implementation "org.aspectj:aspectjrt"
+	implementation "org.aspectj:aspectjweaver"
+	
+    implementation 'org.springframework.batch:spring-batch-core'
+    implementation 'org.springframework.batch:spring-batch-infrastructure'
+	implementation 'org.springframework:spring-aspects'
+    implementation 'org.springframework:spring-context-support'
+    implementation 'org.springframework:spring-instrument'
+    implementation 'org.springframework:spring-jms'
+    implementation 'org.springframework:spring-oxm'
+	
+	//rule TO-BE (2022)
+	implementation(group: 'jsr94', name: 'jsr94', version: '1.1')
+	implementation(group: 'hi.innorulesj', name: 'configuration-wizard', version: '7.0')
+	implementation(group: 'hi.innorulesj', name: 'custom-ruleif', version: '7.0')
+	implementation(group: 'hi.innorulesj', name: 'custom-ruleif-api', version: '7.0')
+	implementation(group: 'hi.innorulesj', name: 'inno-initializer', version: '7.0')
+	implementation(group: 'hi.innorulesj', name: 'innorules-api', version: '7.0')
+	implementation(group: 'hi.innorulesj', name: 'innorulesj', version: '7.0')
+	implementation(group: 'hi.innorulesj', name: 'innoutils', version: '7.0')
+	
+	
+	//////////////////////////////////////////////////////
+	implementation fileTree(dir: 'lib', include: ['*.jar'])
+	implementation project(':bxm-common')
+    implementation project(':bxm-omm-common')
+	implementation project(':bxm-container')
+    implementation project(':jef-logging')
+    implementation project(':jef-foundation')
+	implementation project(':jef-application')
+
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src/main/core'
+			srcDir 'src/main/bridge'
+		}
+	}
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\jef.foundation\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+	testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+	
+	implementation 'org.springframework:spring-beans'
+	implementation 'org.springframework:spring-core'
+	implementation 'org.springframework:spring-context'
+	implementation 'org.springframework:spring-web'
+	
+	implementation(group: 'com.trilead', name: 'trilead-ssh2', version: '1.0.0-build222')
+	
+	//rule TO-BE (2022)
+	implementation(group: 'jsr94', name: 'jsr94', version: '1.1')
+	implementation(group: 'hi.innorulesj', name: 'configuration-wizard', version: '7.0')
+	implementation(group: 'hi.innorulesj', name: 'custom-ruleif', version: '7.0')
+	implementation(group: 'hi.innorulesj', name: 'custom-ruleif-api', version: '7.0')
+	implementation(group: 'hi.innorulesj', name: 'inno-initializer', version: '7.0')
+	implementation(group: 'hi.innorulesj', name: 'innorules-api', version: '7.0')
+	implementation(group: 'hi.innorulesj', name: 'innorulesj', version: '7.0')
+	implementation(group: 'hi.innorulesj', name: 'innoutils', version: '7.0')
+
+	//BPM TO-BE (2022)
+	//implementation(group: 'hi.bpm', name: 'cis-bpm', version: '20.0')
+
+	implementation(group: 'hi.security', name: 'hi-security', version: '1.7')
+	implementation(group: 'com.kwise', name: 'pharos-loader', version: '1.0')
+	
+	//NE2E
+	//compileOnly "jef.ne2e:jef.ne2e:3.1.0"
+	compileOnly "org.zeromq:jeromq"
+	compileOnly "org.apache.kafka:kafka-clients"
+	compileOnly "io.netty:netty-all"
+	
+	implementation fileTree(dir: 'lib', include: ['*.jar'])
+	//////////////////////////////////////////////////////
+    implementation project(':bxm-common')
+    implementation project(':bxm-omm-common')
+    implementation project(':bxm-container')
+	implementation project(':jef-logging')
+
+}
+
+
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\jef.ignite\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	
+	implementation(group: 'org.gridgain', name: 'ignite-core-lock', version: '8.8.15')
+	implementation(group: 'org.gridgain', name: 'ignite-shmem', version: '8.7.3')
+	
+	implementation(group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '2.9.3')
+	
+    implementation project(':jef-batch')
+    implementation project(':jef-logging')
+    implementation project(':jef-foundation')
+    implementation project(':jef-application')
+
+}
+
+processResources {
+	from ('src/main/java') {
+		include '**/*.omm'
+	}
+}
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+
+ 
+ 
+-------------------------------------------------- 
+[ Folder: D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\jef.logging\ ] 
+-------------------------------------------------- 
+project.version = "${version}"
+project.group = "${group}"
+
+
+dependencies {
+
+	implementation "org.slf4j:slf4j-api"
+	implementation "org.apache.logging.log4j:log4j-api"
+	implementation "org.apache.logging.log4j:log4j-core"
+	implementation "org.apache.logging.log4j:log4j-slf4j2-impl"	
+}
+
+javadoc {
+    source = fileTree('src/main/java') {
+                    include '**/*.java'
+             }
+    options.encoding "${javaEncoding}"
+    options.locale 'ko_KR'
+}
+
+javadoc.enabled = false
+
+artifacts {
+    //archives sourcesJar
+    //archives javadocJar
+}
+
+test {
+	exclude '**/*'
+}
+ 
+
+ 
+ 
