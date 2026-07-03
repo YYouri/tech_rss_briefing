@@ -1,61 +1,367 @@
-Application run failed
-org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'clientHttpRequestFactoryBuilder' defined in class path resource [org/springframework/boot/autoconfigure/http/client/HttpClientAutoConfiguration.class]: Failed to instantiate [org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder]: Factory method 'clientHttpRequestFactoryBuilder' threw exception with message: org/apache/hc/client5/http/ssl/TlsSocketStrategy
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:657) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:645) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1205) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1222) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1188) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1123) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:987) ~[spring-context-6.2.8.jar:6.2.8]
-	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:627) ~[spring-context-6.2.8.jar:6.2.8]
-	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752) [spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439) [spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318) [spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361) [spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1350) [spring-boot-3.5.1.jar:3.5.1]
-	at hi.example.JefBootTestApplication.main(JefBootTestApplication.java:26) [main/:?]
-Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder]: Factory method 'clientHttpRequestFactoryBuilder' threw exception with message: org/apache/hc/client5/http/ssl/TlsSocketStrategy
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:199) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiateWithFactoryMethod(SimpleInstantiationStrategy.java:88) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:168) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653) ~[spring-beans-6.2.8.jar:6.2.8]
-	... 21 more
-Caused by: java.lang.NoClassDefFoundError: org/apache/hc/client5/http/ssl/TlsSocketStrategy
-	at org.springframework.boot.http.client.HttpComponentsHttpClientBuilder.<init>(HttpComponentsHttpClientBuilder.java:60) ~[spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.http.client.HttpComponentsClientHttpRequestFactoryBuilder.<init>(HttpComponentsClientHttpRequestFactoryBuilder.java:52) ~[spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder.httpComponents(ClientHttpRequestFactoryBuilder.java:97) ~[spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder.detect(ClientHttpRequestFactoryBuilder.java:218) ~[spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.autoconfigure.http.client.ClientHttpRequestFactories.builder(ClientHttpRequestFactories.java:55) ~[spring-boot-autoconfigure-3.5.1.jar:3.5.1]
-	at org.springframework.boot.autoconfigure.http.client.HttpClientAutoConfiguration.clientHttpRequestFactoryBuilder(HttpClientAutoConfiguration.java:68) ~[spring-boot-autoconfigure-3.5.1.jar:3.5.1]
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[?:?]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[?:?]
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:171) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiateWithFactoryMethod(SimpleInstantiationStrategy.java:88) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:168) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653) ~[spring-beans-6.2.8.jar:6.2.8]
-	... 21 more
-Caused by: java.lang.ClassNotFoundException: org.apache.hc.client5.http.ssl.TlsSocketStrategy
-	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641) ~[?:?]
-	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188) ~[?:?]
-	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:526) ~[?:?]
-	at org.springframework.boot.http.client.HttpComponentsHttpClientBuilder.<init>(HttpComponentsHttpClientBuilder.java:60) ~[spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.http.client.HttpComponentsClientHttpRequestFactoryBuilder.<init>(HttpComponentsClientHttpRequestFactoryBuilder.java:52) ~[spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder.httpComponents(ClientHttpRequestFactoryBuilder.java:97) ~[spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder.detect(ClientHttpRequestFactoryBuilder.java:218) ~[spring-boot-3.5.1.jar:3.5.1]
-	at org.springframework.boot.autoconfigure.http.client.ClientHttpRequestFactories.builder(ClientHttpRequestFactories.java:55) ~[spring-boot-autoconfigure-3.5.1.jar:3.5.1]
-	at org.springframework.boot.autoconfigure.http.client.HttpClientAutoConfiguration.clientHttpRequestFactoryBuilder(HttpClientAutoConfiguration.java:68) ~[spring-boot-autoconfigure-3.5.1.jar:3.5.1]
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[?:?]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[?:?]
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:171) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiateWithFactoryMethod(SimpleInstantiationStrategy.java:88) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:168) ~[spring-beans-6.2.8.jar:6.2.8]
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653) ~[spring-beans-6.2.8.jar:6.2.8]
-	... 21 more
+[제목: Legacy Spring(web.xml) 프로젝트를 Spring Boot로 마이그레이션하는 작업]
+
+1. 상황 설명 (Context)
+현재 레거시 Spring 프로젝트를 Spring Boot 프로젝트로 전환하고 있습니다. 기존 프로젝트는 web.xml을 통해 Servlet, Filter, Listener를 관리하는 구조이며, 특정 프레임워크(BXM/JEF 계열)를 사용 중입니다.
+
+2. 목표 (Goal)
+web.xml에 정의된 설정을 Spring Boot의 Java Config(@Configuration, FilterRegistrationBean 등) 방식으로 변환하는 것이 목표입니다. 특히 특정 서블릿이 ThreadLocal을 사용하여 요청 정보를 관리하고 있습니다.
+
+3. 제공하는 소스 코드 (Source Code)
+(여기에 아래 내용을 각각 붙여넣으세요)
+
+[대상 1: 기존의 web.xml]
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-api_3_0.xsd"
+	version="3.0">
+
+	<display-name>HI2EX</display-name>
+
+	<!-- spring context load, set jef system info -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/classes/context-application.xml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>jef.application.channel.gateway.servlet.JEFSpringContextListener</listener-class>
+	</listener>
+
+	<!-- bxm context load -->
+	<context-param>
+		<param-name>config-location</param-name>
+		<param-value>online-instance.xml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>jef.application.channel.gateway.servlet.JEFBxmContextListener</listener-class>
+	</listener>
+
+	<!-- Hi2 configs Initialize -->
+	<listener>
+		<listener-class>jef.application.lifecycle.ServletContextInitializer</listener-class>
+	</listener>
+
+	<!-- Hi2 Servlet Configuration -->
+	<servlet>
+		<servlet-name>gateway</servlet-name>
+		<servlet-class>jef.application.channel.gateway.servlet.DispatcherServletGateway</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>/WEB-INF/classes/context-servlet.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>gateway</servlet-name>
+		<url-pattern>*.hi</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>gateway</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>gateway</servlet-name>
+		<url-pattern>*.nhi</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>gateway</servlet-name>
+		<url-pattern>*.download</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>gateway</servlet-name>
+		<url-pattern>*.int</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>gateway</servlet-name>
+		<url-pattern>*.ext</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>gateway</servlet-name>
+		<url-pattern>*.obj</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>gateway</servlet-name>
+		<url-pattern>*.extsoap</url-pattern>
+	</servlet-mapping>
+	<!--// Hi2 Servlet Configuration -->
+
+	<!-- Hi2 Fileter Configuration -->
+	<filter>
+		<filter-name>EncodingFilter</filter-name>
+		<filter-class>jef.application.channel.filter.EncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>responseContentType</param-name>
+			<param-value>application/json</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>EncodingFilter</filter-name>
+		<url-pattern>*.hi</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>EncodingFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>EncodingFilter</filter-name>
+		<url-pattern>*.nhi</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>EncodingFilter</filter-name>
+		<url-pattern>*.obj</url-pattern>
+	</filter-mapping>
+
+	<filter>
+		<filter-name>ExternalEncodingFilter</filter-name>
+		<filter-class>jef.application.channel.filter.EncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>EUC-KR</param-value>
+		</init-param>
+		<init-param>
+			<param-name>responseContentType</param-name>
+			<param-value>text/xml</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>ExternalEncodingFilter</filter-name>
+		<url-pattern>*.ext</url-pattern>
+	</filter-mapping>
+
+	<filter>
+		<filter-name>InternalEncodingFilter</filter-name>
+		<filter-class>jef.application.channel.filter.InternalEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>EUC-KR</param-value>
+		</init-param>
+		<init-param>
+			<param-name>responseContentType</param-name>
+			<param-value>application/json</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>InternalEncodingFilter</filter-name>
+		<url-pattern>*.int</url-pattern>
+	</filter-mapping>
+	<!--// Hi2 Fileter Configuration -->
+
+	<!--XSS Filter -->
+	<filter>
+		<filter-name>XssFilter</filter-name>
+		<filter-class>hi.framework.web.xss.XssFilter</filter-class>
+		<init-param>
+			<param-name>patterns</param-name>
+			<param-value><![CDATA[\<=<|\>=>|'=']]></param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>XssFilter</filter-name>
+		<url-pattern>*.hi</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>XssFilter</filter-name>
+		<url-pattern>*.nhi</url-pattern>
+	</filter-mapping>
+	<!-- XSS Filter -->
+
+	<!-- FMS Configuration -->
+	<servlet>
+		<servlet-name>fmssvc</servlet-name>
+		<servlet-class>jef.application.channel.fms.ServiceInfoServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>fmssvc</servlet-name>
+		<url-pattern>*.fms</url-pattern>
+	</servlet-mapping>
+	<filter>
+		<filter-name>FmsEncodingFilter</filter-name>
+		<filter-class>jef.application.channel.filter.EncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>responseContentType</param-name>
+			<param-value>application/json</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>FmsEncodingFilter</filter-name>
+		<url-pattern>*.fms</url-pattern>
+	</filter-mapping>
+	<!--// FMS Configuration -->
+</web-app>
+[대상 2: 스프링 부트에서 메인 클래스 ]
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.context.annotation.ImportResource;
+@SpringBootApplication(
+	    scanBasePackages = {"jef", "bxm", "hi.example"},
+	    exclude = {
+	        DataSourceAutoConfiguration.class,
+	        DataSourceTransactionManagerAutoConfiguration.class,
+	        HibernateJpaAutoConfiguration.class,
+	        JdbcTemplateAutoConfiguration.class
+	        // DispatcherServletAutoConfiguration은 절대 exclude 하지 마세요!
+	    }
+	)
+	@ImportResource({
+	    "classpath:context-application.xml",
+	    "classpath:context-interceptor.xml",
+	    "classpath:context-servlet.xml"
+	})
+	public class JefBootTestApplication {
+	    public static void main(String[] args) {
+	        SpringApplication.run(JefBootTestApplication.class, args);
+	    }
+	}
+[대상 3: LegacyWebConfig]
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import hi.framework.web.xss.XssFilter;
+import jef.application.channel.filter.EncodingFilter;
+import jef.application.channel.fms.ServiceInfoServlet;
+import jef.application.channel.gateway.servlet.DispatcherServletGateway;
+
+@Configuration
+public class LegacyWebConfig {
+
+    // 1. Gateway Servlet
+    @Bean
+    public ServletRegistrationBean<DispatcherServletGateway> gatewayServletRegistrationBean() {
+        DispatcherServletGateway servlet = new DispatcherServletGateway();
+        servlet.setContextConfigLocation("classpath:context-servlet.xml");
+        
+        ServletRegistrationBean<DispatcherServletGateway> registrationBean = 
+            new ServletRegistrationBean<>(servlet, "*.hi", "*.do", "*.nhi", "*.download", "*.int", "*.ext", "*.obj", "*.extsoap" ,"/EX/*");
+        registrationBean.setName("gateway");
+        registrationBean.setLoadOnStartup(1);
+        return registrationBean;
+    }
+
+    // 2. FMS Servlet
+    @Bean
+    public ServletRegistrationBean<ServiceInfoServlet> fmsServletRegistrationBean() {
+        ServiceInfoServlet servlet = new ServiceInfoServlet();
+        ServletRegistrationBean<ServiceInfoServlet> registrationBean = 
+            new ServletRegistrationBean<>(servlet, "*.fms");
+        registrationBean.setName("fmssvc");
+        return registrationBean;
+    }
+
+    // 3. EncodingFilter (기본)
+    @Bean
+    public FilterRegistrationBean<EncodingFilter> encodingFilter() {
+        EncodingFilter filter = new EncodingFilter();
+        FilterRegistrationBean<EncodingFilter> registrationBean = new FilterRegistrationBean<>(filter);
+        
+        // [중요] filter.setInitParameter 대신 registrationBean.addInitParameter를 사용합니다.
+        // 이것이 web.xml의 <init-param>과 동일한 역할을 합니다.
+        registrationBean.addInitParameter("encoding", "UTF-8");
+        registrationBean.addInitParameter("responseContentType", "application/json");
+        
+        registrationBean.addUrlPatterns("*.hi", "*.do", "*.nhi", "*.obj");
+        registrationBean.setName("EncodingFilter");
+        return registrationBean;
+    }
+
+    // 4. ExternalEncodingFilter
+    @Bean
+    public FilterRegistrationBean<EncodingFilter> externalEncodingFilter() {
+        EncodingFilter filter = new EncodingFilter();
+        FilterRegistrationBean<EncodingFilter> registrationBean = new FilterRegistrationBean<>(filter);
+        
+        registrationBean.addInitParameter("encoding", "EUC-KR");
+        registrationBean.addInitParameter("responseContentType", "text/xml");
+        
+        registrationBean.addUrlPatterns("*.ext");
+        registrationBean.setName("ExternalEncodingFilter");
+        return registrationBean;
+    }
+
+    // 5. InternalEncodingFilter
+    @Bean
+    public FilterRegistrationBean<EncodingFilter> internalEncodingFilter() {
+        EncodingFilter filter = new EncodingFilter();
+        FilterRegistrationBean<EncodingFilter> registrationBean = new FilterRegistrationBean<>(filter);
+        
+        registrationBean.addInitParameter("encoding", "EUC-KR");
+        registrationBean.addInitParameter("responseContentType", "application/json");
+        
+        registrationBean.addUrlPatterns("*.int");
+        registrationBean.setName("InternalEncodingFilter");
+        return registrationBean;
+    }
+
+    // 6. FMS Encoding Filter
+    @Bean
+    public FilterRegistrationBean<EncodingFilter> fmsEncodingFilter() {
+        EncodingFilter filter = new EncodingFilter();
+        FilterRegistrationBean<EncodingFilter> registrationBean = new FilterRegistrationBean<>(filter);
+        
+        registrationBean.addInitParameter("encoding", "UTF-8");
+        registrationBean.addInitParameter("responseContentType", "application/json");
+        
+        registrationBean.addUrlPatterns("*.fms");
+        registrationBean.setName("FmsEncodingFilter");
+        return registrationBean;
+    }
+
+    // 7. XSS Filter
+    @Bean
+    public FilterRegistrationBean<XssFilter> xssFilter() {
+        XssFilter filter = new XssFilter();
+        FilterRegistrationBean<XssFilter> registrationBean = new FilterRegistrationBean<>(filter);
+        
+        // XSS 필터의 patterns 설정
+        registrationBean.addInitParameter("patterns", "<\\<=<|\\>=>|'='");
+        
+        registrationBean.addUrlPatterns("*.hi", "*.nhi");
+        registrationBean.setName("XssFilter");
+        return registrationBean;
+    }
+}	
+4. 구체적인 질문 (Specific Question)
+이상태로 기동해서 로긴 호출을 하게 되면 
+Updating cluster description to  {type=UNKNOWN, servers=[{address=localhost:27017, type=UNKNOWN, state=CONNECTING, exception={com.mongodb.MongoSocketOpenException: Exception opening socket}, caused by {java.net.ConnectException: Connection refused: getsockopt}}]
+POST "/EX/EXOC0001M01S.nhi", parameters={masked}
+GET "/WEB/images/loading.svg", parameters={}
+Mapped to jef.application.channel.gateway.servlet.ServletGatewayController@10820978
+
+<Gateway-Info>
+    params[0] class : hi.framework.web.xss.XssRequestWrapper
+    params[1] class : org.apache.catalina.connector.ResponseFacade
+    request-URI : /EX/EXOC0001M01S.nhi
+    request-ContentType : application/x-www-form-urlencoded;charset=UTF-8
+    request-CharacterEncoding : UTF-8
+    response-CharacterEncoding : UTF-8
+    gatewayType : SERVLET
+    channelType : XINTERNET
+    layerName   : GW_XINTERNET
+    msgCharset  : UTF-8
+    converter   : jef.application.channel.converter.WebSquareHttpMessageConverter
+</Gateway-Info>
+Mapped to ResourceHttpRequestHandler [classpath [META-INF/resources/], classpath [resources/], classpath [static/], classpath [public/], ServletContext [/]]
+TRANID : EXOC0001M01S, GID : F39756000470787006399129265241, DIRECT : false
+exception class : java.lang.RuntimeException
+Resource not found
+Resolved [org.springframework.web.servlet.resource.NoResourceFoundException: No static resource WEB/images/loading.svg.]
+Completed 404 NOT_FOUND
+"ERROR" dispatch for GET "/error", parameters={}
+Mapped to org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#error(HttpServletRequest)
+Completed 200 OK
+Using 'application/json;q=0.8', given [image/avif, image/webp, image/apng, image/svg+xml, image/*, */*;q=0.8] and supported [application/json, application/*+json]
+Writing [{timestamp=Fri Jul 03 09:10:14 KST 2026, status=404, error=Not Found, path=/WEB/images/loading.svg}]
+Exiting from "ERROR" dispatch, status 404
+에러가 나서 어디서 부터 손봐야할지 알고싶고.
