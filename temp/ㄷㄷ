@@ -1,70 +1,262 @@
-Exiting from "ERROR" dispatch, status 404
-Error parsing HTTP request header
-java.io.IOException: 현재 연결은 사용자의 호스트 시스템의 소프트웨어의 의해 중단되었습니다
-	at java.base/sun.nio.ch.SocketDispatcher.read0(Native Method) ~[?:?]
-	at java.base/sun.nio.ch.SocketDispatcher.read(SocketDispatcher.java:46) ~[?:?]
-	at java.base/sun.nio.ch.IOUtil.readIntoNativeBuffer(IOUtil.java:340) ~[?:?]
-	at java.base/sun.nio.ch.IOUtil.read(IOUtil.java:306) ~[?:?]
-	at java.base/sun.nio.ch.IOUtil.read(IOUtil.java:269) ~[?:?]
-	at java.base/sun.nio.ch.SocketChannelImpl.read(SocketChannelImpl.java:425) ~[?:?]
-	at org.apache.tomcat.util.net.NioChannel.read(NioChannel.java:150) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.net.NioEndpoint$NioSocketWrapper.fillReadBuffer(NioEndpoint.java:1329) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.net.NioEndpoint$NioSocketWrapper.read(NioEndpoint.java:1219) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.coyote.http11.Http11InputBuffer.fill(Http11InputBuffer.java:781) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.coyote.http11.Http11InputBuffer.parseRequestLine(Http11InputBuffer.java:345) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:271) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1769) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1189) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:658) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
-<JEF> <INFO> <20260703091823> <SAX Parser [jef.foundation.afc.logging.e2etracing]>
-Error state [CLOSE_CONNECTION_NOW] reported while processing request
-java.io.IOException: 현재 연결은 사용자의 호스트 시스템의 소프트웨어의 의해 중단되었습니다
-	at java.base/sun.nio.ch.SocketDispatcher.read0(Native Method) ~[?:?]
-	at java.base/sun.nio.ch.SocketDispatcher.read(SocketDispatcher.java:46) ~[?:?]
-	at java.base/sun.nio.ch.IOUtil.readIntoNativeBuffer(IOUtil.java:340) ~[?:?]
-	at java.base/sun.nio.ch.IOUtil.read(IOUtil.java:306) ~[?:?]
-	at java.base/sun.nio.ch.IOUtil.read(IOUtil.java:269) ~[?:?]
-	at java.base/sun.nio.ch.SocketChannelImpl.read(SocketChannelImpl.java:425) ~[?:?]
-	at org.apache.tomcat.util.net.NioChannel.read(NioChannel.java:150) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.net.NioEndpoint$NioSocketWrapper.fillReadBuffer(NioEndpoint.java:1329) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.net.NioEndpoint$NioSocketWrapper.read(NioEndpoint.java:1219) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.coyote.http11.Http11InputBuffer.fill(Http11InputBuffer.java:781) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.coyote.http11.Http11InputBuffer.parseRequestLine(Http11InputBuffer.java:345) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:271) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1769) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1189) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:658) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.42.jar:10.1.42]
-	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+package jef.application.channel.converter;
 
-server:
-  port: 8080
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
-spring:
-  application:
-    name: EX
-  batch:
-    job:
-      enabled: false
-  main:
-    allow-bean-definition-overriding: true
-  web:
-    resources:
-      static-locations: classpath:/static/, classpath:/public/, classpath:/WEB/	
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
-logging:
-  config: classpath:log4j2.xml
-  level:
-    org.springframework.web: DEBUG
+import org.apache.commons.fileupload2.core.FileItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jef.application.channel.helper.MultipartRequestWrapper;
+import jef.application.channel.tc.WebSquareJsonVO;
+import jef.application.channel.tc.WebSquareMessageExceptionVO;
+import jef.application.channel.tc.WebSquareMessageVO;
+import jef.application.channel.tc.WebSquareRequestHeader;
+import jef.application.channel.tc.WebSquareResponseHeader;
+import jef.application.converter.HttpMessageConverter;
+import jef.application.entity.BusinessVO;
+import jef.application.entity.MessageVO;
+import jef.application.interceptor.message.HttpRequestMessage;
+import jef.application.interceptor.message.Message;
+import jef.application.interceptor.message.MessageConstants;
+import jef.application.interceptor.message.MessageHeaders;
+import jef.application.interceptor.message.PayloadType;
+import jef.application.locator.ServiceLocator;
+import jef.application.message.header.GeneralHeader;
+import jef.application.resource.internal.InternalDirectConfigurationAdapter;
+import jef.application.util.ExceptionUtils;
+import jef.foundation.afc.entity.TracingVO;
+import jef.foundation.afc.locator.EnvLocator;
+import jef.foundation.exception.FrameworkRuntimeException;
+import jef.foundation.exception.IJEFException;
+import jef.foundation.util.StringUtils;
+
+/**
+ * HTTP를 통하여 WebSquare 화면에서 전송된 메세지를 처리한다.
+ *
+ */
+public class WebSquareHttpMessageConverter extends HttpMessageConverter {
+
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	
+	public Message<?> read(HttpServletRequest request, String charSet, Object... objects) {
+		
+		HttpRequestMessage<Object> requestMessage = null;
+		try {
+			
+			WebSquareRequestHeader webSquareHeader = null;
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+			MultipartRequestWrapper requestWrapper = null;
+			try {
+				requestWrapper = new MultipartRequestWrapper(request);
+			} catch (IOException e) {
+				throw new FrameworkRuntimeException(e, "HIAPP-10001");
+			} /*
+				 * catch (FileUploadException e) { throw new FrameworkRuntimeException(e,
+				 * "HIAPP-10001"); }
+				 */
+
+			requestMessage = new HttpRequestMessage<Object>(null, requestWrapper);
+			
+			String headerData = requestWrapper.getParameter(MessageConstants.HEADER_REQUEST_CHANNEL);
+			if (StringUtils.isEmpty(headerData)) {
+				throw new FrameworkRuntimeException("JEF53002");
+			}
+			
+			String bodyData = requestWrapper.getParameter(MessageConstants.BODY_REQUEST_CHANNEL);
+			requestMessage.getHeaders().put(MessageConstants.HEADER_BODY_STRING, getMessageString(headerData, bodyData));
+
+			if (!requestWrapper.isMultipartContent() && (bodyData == null || "".equals(bodyData))) {
+				BufferedReader reader = requestWrapper.getReader();
+				StringBuilder dataStr = new StringBuilder();
+				String strLine = null;
+				while (true) {
+					strLine = reader.readLine();
+					if (strLine == null)
+						break;
+
+					dataStr.append(strLine);
+				}
+				bodyData = dataStr.toString();
+			}
+
+			webSquareHeader = mapper.readValue(headerData, WebSquareRequestHeader.class);
+			
+			GeneralHeader header = webSquareHeader.toGeneralHeader();
+			requestMessage.getHeaders().put(MessageConstants.HEADER_OBJECT, header);
+			
+			BusinessVO requestVO = null;
+			if (!InternalDirectConfigurationAdapter.getInstance().isInternalDirect(webSquareHeader.getTranId())) {
+				Class<?> classType = ServiceLocator.getRequestVOType(header);
+				if (classType != null)  {
+					if (StringUtils.isEmpty(bodyData)) {
+						requestVO = (BusinessVO) classType.newInstance();
+					} else {
+						requestVO = (BusinessVO) mapper.readValue(bodyData, classType);
+					}
+				}
+			}
+			requestMessage.setPayloadType(PayloadType.OBJECT);
+			requestMessage.setPayload(requestVO);
+			
+			if (requestWrapper.isMultipartContent()) {
+				List<FileItem> fileLst = requestWrapper.getFiles();
+				requestMessage.getHeaders().put(MessageConstants.HEADER_UPLOAD_DATA, fileLst);
+			}
+			
+		} catch (FrameworkRuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return requestMessage;
+	}
+
+	/**
+	 * HttpServletResponse 를 이용하여 서비스 처리 결과를 화면으로 전송한다.
+	 * 
+	 * @param message Message<?> 
+	 * @param charSet 문자열 변환에 사용되는 캐릭터셋
+	 * @param objects objects[0] : HttpServletRequest, objects[1] : HttpServletResponse, objects[2] : GatewayInfo
+	 * 
+	 * @return HttpServletResponse
+	 */
+	@SuppressWarnings("unchecked")
+	public HttpServletResponse write(Message<?> message, String charSet, Object... objects) {
+
+		StringWriter writer = null;
+		ObjectMapper mapper = new ObjectMapper();
+		
+		MessageHeaders msgHeader = message.getHeaders();
+		String responseStr = (String) msgHeader.get(MessageConstants.HEADER_BODY_STRING);
+		Throwable exception = (Throwable) msgHeader.get(MessageConstants.HEADER_EXCEPTION);
+
+		if (responseStr == null) {
+
+			GeneralHeader header = (GeneralHeader) message.getHeaders().get(MessageConstants.HEADER_OBJECT);
+			
+			WebSquareResponseHeader responseHeader = new WebSquareResponseHeader();
+			responseHeader.fromGeneralHeader(header);
+			
+			ArrayList<MessageVO> messages = (ArrayList<MessageVO>) msgHeader.get(MessageConstants.HEADER_MESSAGE);
+			TracingVO tracingVO = (TracingVO) message.getHeaders().get(MessageConstants.HEADER_E2E_TRACE);
+
+			if (exception == null) {
+				
+				responseHeader.setExceptionOccurred(false);
+				
+				WebSquareJsonVO<BusinessVO, WebSquareMessageVO> successJsonVO = new WebSquareJsonVO<BusinessVO, WebSquareMessageVO>();
+				successJsonVO.setMessages(convertToJsonMessages(messages));
+				successJsonVO.setHeader(responseHeader);
+				successJsonVO.setData((BusinessVO) message.getPayload());
+
+				try {
+					writer = new StringWriter();
+					mapper.enable(SerializationFeature.INDENT_OUTPUT);
+					mapper.writeValue(writer, successJsonVO);
+					responseStr = writer.toString();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+				
+			} else {
+				
+				responseHeader.setExceptionOccurred(true);
+				
+				String exceptionMessageId = null;
+				String exceptionMessageType = null;
+				String exceptionMessageShow = "1";
+				String exceptionMessage = null;
+
+				IJEFException je = ExceptionUtils.causedJEFException(exception);
+				if (je == null) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("exception class : {}", exception.getClass().getName());
+					}
+					exceptionMessageId = "HIAPP-00001";
+					exceptionMessageType = "ERROR";
+					exceptionMessage = "요청한 서비스 수행이 실패하였습니다.";
+				} else {
+					exceptionMessageId = je.getErrorId();
+					exceptionMessageType = je.getErrorMessageType();
+					exceptionMessage = je.getMessageForClient();
+				}
+				
+				WebSquareMessageExceptionVO exceptionMessageVO = new WebSquareMessageExceptionVO();
+				exceptionMessageVO.setCode(exceptionMessageId);
+				exceptionMessageVO.setMessage(exceptionMessage);
+				exceptionMessageVO.setServerName(EnvLocator.getServerName());
+				exceptionMessageVO.setShow(exceptionMessageShow);
+				exceptionMessageVO.setTranId(tracingVO.getTransactionCode());
+				exceptionMessageVO.setType(exceptionMessageType);
+				if (ServiceLocator.isDevelopment()) {
+					exceptionMessageVO.setStackTrace(ExceptionUtils.getTraceString(exception));	
+				}
+				
+				ArrayList<WebSquareMessageExceptionVO> exceptionMessages = new ArrayList<WebSquareMessageExceptionVO>();
+				exceptionMessages.add(exceptionMessageVO);
+				
+				WebSquareJsonVO<BusinessVO, WebSquareMessageExceptionVO> failJsonVO = new WebSquareJsonVO<BusinessVO, WebSquareMessageExceptionVO>();
+				failJsonVO.setMessages(exceptionMessages);
+				failJsonVO.setHeader(responseHeader);
+				failJsonVO.setData((BusinessVO) message.getPayload());
+				try {
+					writer = new StringWriter();
+					mapper.enable(SerializationFeature.INDENT_OUTPUT);
+					mapper.writeValue(writer, failJsonVO);
+					responseStr = writer.toString();
+					
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+			message.getHeaders().put(MessageConstants.HEADER_BODY_STRING, responseStr);
+		}
+
+		HttpServletRequest request = (HttpServletRequest) objects[0];
+		HttpServletResponse response = (HttpServletResponse) objects[1];
+		
+		writeHttpServletResponseData(request, response, responseStr, null);
+		
+		return response;
+	}
+ 
+	protected String getMessageString(String headerData, String requestData) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("header : \n");
+		builder.append(headerData);
+		builder.append("\n");
+		builder.append("data : \n");
+		builder.append(requestData);
+		return builder.toString();
+	}
+	
+	private ArrayList<WebSquareMessageVO> convertToJsonMessages(ArrayList<MessageVO> messages) {
+		if (messages == null) return null;
+		
+		ArrayList<WebSquareMessageVO> list = new ArrayList<WebSquareMessageVO>();
+		for (MessageVO message : messages) {
+			WebSquareMessageVO wmessage = new WebSquareMessageVO();
+			wmessage.setCode(message.getCode());
+			wmessage.setMessage(message.getMessage());
+			wmessage.setShow(message.getShow());
+			wmessage.setTranId(message.getTranId());
+			wmessage.setType(message.getType());
+			list.add(wmessage);
+		}
+		return list;
+	}
+	
+}
