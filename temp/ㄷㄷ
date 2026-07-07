@@ -1,646 +1,632 @@
 /**
- * 작성된 날짜: Aug 16, 2011
+ * 작성된 날짜: Jul 27, 2011
  * Copyright 2011 EsCode co. All rights reserved.
  */
 
-package bxm.app;
+package bxm.instance.loader.classloader.internal;
 
-import static bxm.service.ServiceDefinitions.AnnotatedConfig.BEAN_OBJECT_ANNOTATION_CLASSNAME;
-import static bxm.service.ServiceDefinitions.AnnotatedConfig.SUBSERVICE_OBJECT_ANNOTATION_CLASSNAME;
-import static bxm.service.ServiceDefinitions.AnnotatedConfig.MANAGED_OBJECT_ANNOTATION_CLASS;
-import static bxm.service.ServiceDefinitions.AnnotatedConfig.TRANID_ANNOTATION_CLASS;
-import static bxm.service.ServiceDefinitions.AnnotatedConfig.TRANSACTIONALOPERATION_ANNOTATION_CLASS;
-
+import java.io.File;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.instrument.ClassFileTransformer;
+import java.io.InputStream;
+import java.net.JarURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.net.URLConnection;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.Permission;
+import java.security.PrivilegedAction;
+import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.NoSuchElementException;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import bxm.common.util.Assert;
 import bxm.common.util.ClassUtils;
 import bxm.common.util.ResourceUtils;
 import bxm.common.util.StringUtils;
-import bxm.common.util.SystemPropertyUtils;
-import bxm.container.LApplicationContext;
-import bxm.container.annotation.BxmDataAccess;
-import bxm.container.annotation.DataAccess;
-import bxm.instance.ServiceOperationNotFoundException;
-import bxm.instance.filter.AnnotationMemberTypeFilter;
-import bxm.instance.filter.AnnotationTypeFilter;
-import bxm.instance.filter.TypeFilter;
-import bxm.instance.instrument.InstrumentTargetFilter;
-import bxm.instance.loader.classloader.ref.ClassLoaderRef;
-import bxm.instance.loader.classloading.instrument.ClassResourceReader;
-import bxm.instance.loader.classloading.instrument.ManagedBeanTransformer;
-import bxm.instance.loader.classloading.instrument.ManagedServiceOperationTransfomer;
-import bxm.instance.loader.classloading.instrument.TransactionalServiceOperationTransfomer;
-import bxm.instance.loader.resource.Resource;
-import bxm.instance.loader.resource.ResourceLoader;
-import bxm.instance.loader.support.AnnotationMetadata;
-import bxm.instance.loader.support.MetadataReader;
+import bxm.instance.loader.resource.ClassSource;
+import bxm.instance.loader.resource.FileClassSource;
+import bxm.instance.loader.resource.JarClassSource;
+import bxm.instance.loader.resource.ParURLResourceClassSource;
+import bxm.instance.loader.resource.ZipClassSource;
 import bxm.instance.support.DeployedApplicationModel;
-import bxm.request.support.IOmmTypeClassVisitor;
-import bxm.request.support.IOmmTypeUtils;
-import bxm.service.DeployedService;
-import bxm.service.ServiceDefinitions;
-import bxm.service.ServiceDefinitions.AnnotatedConfig;
-import bxm.service.ServiceOperation;
+import bxm.instance.support.ParURLConnection;
+import bxm.instance.support.ParURLStreamHandler;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * @file		bxm.instance.support.DeployedResourceDefinitionScanner.java
+ * @file		bxm.instance.loader.classloader.internal.URLApplicationClassFinder.java
  * @filetype	java source file
- * @brief
+ * @brief			
  * @author		Jong Oh Lee
  * @version		1.0
  * @history
  * 성		명		일			자			근  거  자  료				변  경  내  용
- * ----------------	-------------------		-------------------		--------------------------
- * Jong Oh Lee :	Aug 16, 2011:			product 개발:				신규 작성
+ * ----------------	-------------------		-------------------		--------------------------	
+ * Jong Oh Lee :	Jul 27, 2011:			product 개발:			신규 작성
  *
  */
-//FIXED 1. SubService, TranId annotation 반영.
-public class DeployedResourceDefinitionScanner
+
+public class DefaultApplicationClassFinder implements ApplicationClassFinder
 {
-	private Logger logger= LoggerFactory.getLogger( DeployedResourceDefinitionScanner.class);
+	private Logger logger= LoggerFactory.getLogger( DefaultApplicationClassFinder.class);
+	
+	private static final String PATH_SEPARATOR= System.getProperty( "path.separator");
+	
+	private CopyOnWriteArrayList<URL> classpath= new CopyOnWriteArrayList<URL>();
+	
+	private CopyOnWriteArrayList<URL> localAppclasspath= new CopyOnWriteArrayList<URL>();
 
-//	private String resourcePattern= DeployedApplicationModel.DEFAULT_RESOURCE_PATTERN;
-
-	private final List<TypeFilter> typeFilters= new LinkedList<TypeFilter>();
-
-	private final List<ClassFileTransformer> managedServiceTransformers= new LinkedList<ClassFileTransformer>();
-	private final ClassFileTransformer managedBeanTransformer= new ManagedBeanTransformer();
-
-	private final Set<String> beanCandidateAnnotations= new HashSet<String>();
-
-	private static final Class<? extends Annotation> SERVICEOPERATION_ANNOTATION_CLASS ;
-
-	static
+	private URL[] initialUrls;
+	
+	private AccessControlContext acc;
+	
+	public DefaultApplicationClassFinder( URL[] urls)
 	{
-		boolean useMainService = Boolean.parseBoolean(System.getProperty("bxm.use.mainservice", "true"));
-
-		if (useMainService)
-		{
-			SERVICEOPERATION_ANNOTATION_CLASS = TRANID_ANNOTATION_CLASS;
-		}
-		else
-		{
-			SERVICEOPERATION_ANNOTATION_CLASS = AnnotatedConfig.SERVICEOPERATION_ANNOTATION_CLASS;
-		}
+		this.initialUrls= urls;
+		for( URL url: urls)
+			this.classpath.add( url);
+		
+		this.acc= AccessController.getContext();
 	}
-
-	@SuppressWarnings( "unchecked")
-	public DeployedResourceDefinitionScanner( TransactionalServiceOperationTransfomer transformer)
+	
+	public synchronized void addClassPath( URL[] urls)
 	{
-		beanCandidateAnnotations.add( "org.springframework.stereotype.Component");
-		beanCandidateAnnotations.add( DataAccess.class.getName());
-		beanCandidateAnnotations.add( BxmDataAccess.class.getName());
-
-		typeFilters.add( new AnnotationTypeFilter( MANAGED_OBJECT_ANNOTATION_CLASS, true));
-		typeFilters.add( new AnnotationMemberTypeFilter
-				(
-						transformer!= null ?
-								new Class[]{ TRANSACTIONALOPERATION_ANNOTATION_CLASS, SERVICEOPERATION_ANNOTATION_CLASS} :
-								new Class[]{ SERVICEOPERATION_ANNOTATION_CLASS},
-				false));
-		managedServiceTransformers.add( new ManagedServiceOperationTransfomer());
-		if( transformer!= null)
-			managedServiceTransformers.add( transformer);
+		for( URL url: urls)
+			this.classpath.add( url);
+		this.acc= AccessController.getContext();
 	}
-
-	public static String determineManagedName( Map<String, Object> attributes, String substitueName)
+	
+	public synchronized void removeClassPath( URL[] urls)
 	{
-		if( attributes== null || attributes.size()== 0)	return substitueName;
-		Object value= null;
-		String managedName= null;
-		if( attributes.containsKey( ServiceDefinitions.VALUE_ATTRIBUTE_NAME))
-			value= attributes.get( ServiceDefinitions.VALUE_ATTRIBUTE_NAME);
-		managedName= value!= null && (value instanceof String) && StringUtils.hasText( value.toString()) ?
-				value.toString() : null;
-		if( attributes.containsKey( ServiceDefinitions.NAME_ATTRIBUTE_NAME))
-			value= attributes.get( ServiceDefinitions.NAME_ATTRIBUTE_NAME);
-		managedName= value!= null && (value instanceof String) && StringUtils.hasText( value.toString()) ?
-				value.toString() : managedName;
-
-		managedName= managedName!= null && StringUtils.hasText( managedName) ? managedName : substitueName;
-		return managedName;
+		this.classpath.removeAll( Arrays.asList( urls));
+		this.acc= AccessController.getContext();
 	}
-
-	public void applyResourceManagedTransformer( final ServiceRegistry registry, final ClassLoaderRef loaderRef)
+	
+	public void setLocalApplicationClasspaths( List<URL> localAppClasspath)
 	{
-		loaderRef.getClassLoader().setManagedResourceFilter( new InstrumentTargetFilter(){
-
-			private final Set<String> knownNotInstrumentables= Collections.synchronizedSet( new HashSet<String>());
-
-			private ResourceLoader resourceLoader= loaderRef.getResourceLoader();
-
-			@Override
-			public List<ClassFileTransformer> checkIfInstrumentable( String name)
-			{
-				try
-				{
-					if( this.knownNotInstrumentables.contains( name) || managedServiceTransformers.size()<= 0)
-						return null;
-
-					List<ClassFileTransformer> transformers= new LinkedList<ClassFileTransformer>();
-					DeployedService cdef= null;
-					MetadataReader reader= resourceLoader.readMetadataReaderOnce( name);
-					if( !isCandidateManagedType( reader, resourceLoader)
-							|| !isCandidateManagedType( reader.getAnnotationMetadata()))
-					{
-						this.knownNotInstrumentables.add( name);
-						return null;
-					}
-					else
-					{
-						try{ cdef= AnnotatedDefinitionReader.defineAnnotatedResource( reader, registry);}
-						catch( IOException e)
-						{
-							ApplicationResourceInitializer.logger.warn(
-									"annotated resource [{}] definition reading is failed.", name, e);
-						}
-
-						// not service but managed resource ex) @BxmBean
-						if( cdef== null)
-						{
-//							logger.debug( "not service but managed resource [{}].", name);
-							String managedName= null;
-							if (reader.getAnnotationMetadata().hasAnnotation(BEAN_OBJECT_ANNOTATION_CLASSNAME))
-							{
-								managedName = determineManagedName(
-												reader.getAnnotationMetadata().getAnnotationAttributes( BEAN_OBJECT_ANNOTATION_CLASSNAME), name);
-
-							}
-							else
-							{
-								managedName = determineManagedName(
-										reader.getAnnotationMetadata().getAnnotationAttributes( SUBSERVICE_OBJECT_ANNOTATION_CLASSNAME), name);
-							}
-							( (ManagedBeanTransformer)managedBeanTransformer).setManagedName( managedName);
-							transformers.add( managedBeanTransformer);
-
-//							logger.debug( "resource [{}] is instrumentable using [{}].", name, transformers);
-							return transformers;
-						}
-
-//						logger.debug( "managed resource [{}], data [{}].", name, cdef);
-
-						// managed resources @BxmService, include @TransactionalOperation
-						if( cdef.isInstrumentable() || cdef.isExposed())
-						{
-							for( ClassFileTransformer transformer: managedServiceTransformers)
-							{
-								if( transformer instanceof ManagedServiceOperationTransfomer)
-								{
-									( (ManagedServiceOperationTransfomer)transformer).setServiceOperations( cdef.getOperations());
-									( (ManagedServiceOperationTransfomer)transformer).setManagedName( cdef.getServiceName());
-								}
-								else if( transformer instanceof TransactionalServiceOperationTransfomer)
-									( (TransactionalServiceOperationTransfomer)transformer).setTransactionInstrumentableMethods(
-											cdef.getTransactionInstrumentableMethods());
-								transformers.add( transformer);
-							}
-//							logger.debug( "resource [{}] is instrumentable using [{}].", name, transformers);
-							return transformers;
-						}
-						return null;
-					}
-				}
-				catch( Exception e)
-				{
-//					logger.warn( "[{}] is can not check for instrumentable classloader.", name);
-					this.knownNotInstrumentables.add( name);
-					return null;
-				}
-			}
-		});
+		this.localAppclasspath.clear();
+		this.localAppclasspath.addAll( localAppClasspath);
 	}
-
-	public Set<MetadataReader> scanResources( ServiceRegistry registry, final ClassLoaderRef loaderRef,
-			boolean cacheIOProperties, ResourceLoader legacyLoader, Resource[] resources)
+	
+	public URL[] getLocalApplicationClasspaths()
 	{
-		Assert.notNull( registry, "registry can not be null");
-		Assert.notNull( loaderRef, "loaderRef can not be null");
-
-		Set<MetadataReader> beanCandidates= new LinkedHashSet<MetadataReader>();
-		collectBeanCandidates( registry, loaderRef, resources, beanCandidates, cacheIOProperties, legacyLoader);
-//		for( MetadataReader candidate: beanCandidates)
-//		logger.debug( "{}/{}", ( (ApplicationClassLoader)loaderRef.getClassLoader()).getApplicationName(), candidate.getResourceURI());
-
-		return beanCandidates;
+		return this.localAppclasspath.toArray( new URL[this.localAppclasspath.size()]);
 	}
-
-	public Set<MetadataReader> scanResources( ServiceRegistry registry, final ClassLoaderRef loaderRef,
-			boolean cacheIOProperties, ResourceLoader legacyLoader, String... basePackages)
-			throws IOException
+	
+	public URL[] getInitialUrls()
 	{
-		Assert.notNull( registry, "registry can not be null");
-		Assert.notNull( loaderRef, "loaderRef can not be null");
-
-		Set<MetadataReader> beanCandidates= new LinkedHashSet<MetadataReader>();
-
-		ArrayList<String> postPatterns = getBasePackagePostPatterns();
-
-		for( String basePackage: basePackages)
-		{
-			if (basePackage == null) continue;
-			basePackage = basePackage.trim();
-			if ("".equals(basePackage)) continue;
-
-//			String path= ResourceLoader.CLASSPATH_ALL_URL_PREFIX+ resolveBasePackage( basePackage)+ "/"+ this.resourcePattern;
-
-			for ( String postPattern: postPatterns)
-			{
-				String path= ResourceLoader.CLASSPATH_ALL_URL_PREFIX+ resolveBasePackage( basePackage)+ "/"+ postPattern;
-
-				long now1 = System.currentTimeMillis();
-				Resource[] resources= loaderRef.getResourceLoader().getLocalResources( path);
-				long now2 = System.currentTimeMillis();
-				long findTime = now2 - now1;
-				collectBeanCandidates( registry, loaderRef, resources, beanCandidates, cacheIOProperties, legacyLoader);
-				logger.debug( "scan-beans : path [{}] count[{}] time1 [{}] time2 [{}]", new Object[]{ path, (resources == null ? 0 : resources.length), findTime, (System.currentTimeMillis()-now2) });
-
-			}
-		}
-
-		ArrayList<String> addPackages = getAddPackages();
-		for ( String addPackage: addPackages)
-		{
-			String path= ResourceLoader.CLASSPATH_ALL_URL_PREFIX+ resolveBasePackage( addPackage)+ "/*.class";
-
-			long now1 = System.currentTimeMillis();
-			Resource[] resources= loaderRef.getResourceLoader().getLocalResources( path);
-			long now2 = System.currentTimeMillis();
-			long findTime = now2 - now1;
-			collectBeanCandidates( registry, loaderRef, resources, beanCandidates, cacheIOProperties, legacyLoader);
-			logger.debug( "scan-beans : path [{}] count[{}] time1 [{}] time2 [{}]", new Object[]{ path, (resources == null ? 0 : resources.length), findTime, (System.currentTimeMillis()-now2) });
-		}
-
-//		for( MetadataReader candidate: beanCandidates)
-//			logger.debug( ">>{}", candidate.getResourceURL().toString());
-
-		return beanCandidates;
+		return this.initialUrls;
 	}
-
-	private ArrayList<String> getBasePackagePostPatterns() {
-
-		ArrayList<String> postPatterns = new ArrayList<String>();
-		String postPatternStr = System.getProperty("bxm.system.online.base.packages.post.pattern");
-		if (postPatternStr == null) {
-			postPatterns.add("**/*.class");
-		} else {
-			String[] patterns = postPatternStr.split(",");
-			if (patterns == null || patterns.length == 0) {
-				postPatterns.add("**/*.class");
-			} else {
-				for (String pattern : patterns) {
-					postPatterns.add(pattern);
-				}
-			}
-		}
-		return postPatterns;
-	}
-
-	private ArrayList<String> getAddPackages() {
-
-		ArrayList<String> addPackages = new ArrayList<String>();
-
-		if(!LApplicationContext.isBatchContext())
-		{
-			String addPackagesStr = System.getProperty("bxm.system.online.base.packages.added");
-			if (addPackagesStr == null) {
-			} else {
-				String[] patterns = addPackagesStr.split(",");
-				if (patterns == null || patterns.length == 0) {
-				} else {
-					for (String pattern : patterns) {
-						addPackages.add(pattern);
-					}
-				}
-			}
-		}
-		return addPackages;
-	}
-
-	private void collectBeanCandidates( ServiceRegistry registry, ClassLoaderRef loaderRef, Resource[] resources,
-			Set<MetadataReader> beanCandidates, boolean cacheIOProperties, ResourceLoader legacyLoader)
+	
+	public String getClassPath()
 	{
-		List<Pattern> localPathPatterns= null;
-		URL[] applocalpaths= null;
-		if( legacyLoader!= null && ( applocalpaths= loaderRef.getClassLoader().getLocalApplicationClasspaths())!= null)
-		{
-			localPathPatterns= new ArrayList<Pattern>();
-			for( URL applocalpath: applocalpaths)
-			{
-				if( applocalpath.toExternalForm().endsWith( DeployedApplicationModel.CLASSES_PATH_SUFFIX)
-						|| applocalpath.toExternalForm().endsWith( DeployedApplicationModel.BIN_PATH_SUFFIX))
-				{
-					Pattern pattern= Pattern.compile( "("+ applocalpath.toExternalForm()+ ")(/)(.*)(.class)");
-					localPathPatterns.add( pattern);
-				}
-			}
-		}
-
-		for( Resource resource: resources)
-		{
-//			logger.debug( "resource [{}/{}] scanned.", resource.getFileName(), resource.getClass().getName());
-
-			if( !resource.isReadable()) continue;
-			DeployedService def= null;
-			MetadataReader reader= null;
-			String className= null;
-
-			URL resourceUrl= null;
-			Long lastModified= null;
-			try
-			{
-				resourceUrl= resource.getURL();
-				lastModified= resource.lastModified();
-			}catch( IOException ioe){}
-
-			if( resourceUrl!= null && localPathPatterns!= null)
-			{
-				try
-				{
-					for( Pattern pathPattern: localPathPatterns)
-					{
-						Matcher matcher= pathPattern.matcher( resourceUrl.toExternalForm());
-						if( matcher.matches())
-						{
-							className= ClassUtils.convertResourcePathToClassName( matcher.replaceFirst( "$3"));
-							MetadataReader cached= legacyLoader.removeMetadataReaderCache( className);
-							if( cached!= null && cached.lastModified()!= null && lastModified!= null
-									&& cached.lastModified().equals( lastModified))
-							{
-//								logger.debug(  "cached found {}/{}", lastModified, resourceUrl.toExternalForm());
-								reader= cached;
-								reader.setResourceURL( resource.getURL());
-								loaderRef.getResourceLoader().putMetadataReader( className, reader);
-								break;
-							}
-						}
-					}
-				}
-				catch( Throwable th){}
-			}
-
-			if( reader== null)
-			{
-				try{ reader= loaderRef.getResourceLoader().getMetadataReader( resource);}
-				catch( Throwable th)
-				{
-					ApplicationResourceInitializer.logger.warn( "metadata reading for resource [{}] is failed.",
-							resourceUrl!= null ? resourceUrl : resource.getFileName(), th);
-					continue;
-				}
-			}
-
-			if( registry instanceof Application && IOmmTypeUtils.isOmmType( loaderRef.getResourceLoader(), reader))
-			{
-				loaderRef.getResourceLoader().removeMetadataReaderCache( resource);
-				continue;
-			}
-
-			if( !isCandidateManagedType( reader, loaderRef.getResourceLoader())
-					|| !isCandidateManagedType( reader.getAnnotationMetadata()))
-			{
-				boolean additionalChecked= false;
-				for( String candidateAnnotattion: this.beanCandidateAnnotations)
-				{
-					if( reader.getAnnotationMetadata().hasAnnotation( candidateAnnotattion)
-							|| reader.getAnnotationMetadata().hasMetaAnnotation( candidateAnnotattion))
-					{
-						beanCandidates.add( reader);
-						additionalChecked= true;
-						break;
-					}
-				}
-				if( !additionalChecked)
-					loaderRef.getResourceLoader().removeMetadataReaderCache( resource);
-				continue;
-			}
-
-			beanCandidates.add( reader);
-
-//			logger.debug( "resource [{}] will be defined.", resource.getURL().toExternalForm());
-			try
-			{
-				def= AnnotatedDefinitionReader.defineAnnotatedResource( reader, registry);
-				//[[ 20171109 define동작과 registry에 등록하는 동작을 분리함.
-				//   이유는 AnnotatedDefinitionReader.defineAnnotatedResource를
-				//   collectBeanCandidates와 applyResourceManagedTransformer 메소드에서 호출하는 데
-				//   applyResourceManagedTransformer와 이미 등록된 상태에서 DeployedService객체만 필요하기 때문임..
-				registerService(registry, def, reader.getClassMetadata().getClassName());
-				//]]
-			}
-			catch( IOException e)
-			{
-				ApplicationResourceInitializer.logger.warn( "annotated resource[{}] definition is failed.",
-						new Object[]{ resourceUrl!= null ? resourceUrl : resource.getFileName(), e});
-			}
-
-			if( def!= null)
-			{
-				def.setClassName( reader.getClassMetadata().getClassName());
-//				logger.debug( "cacheiop {}", cacheIOProperties);
-				if( cacheIOProperties)
-				{
-					for( ServiceOperation operation: def.getOperations().values())
-					{
-						if( StringUtils.hasText( operation.getInputTypeName())
-								&& !( (Application)registry).getIommFieldProperties().hasFieldDescriptors(
-										operation.getInputTypeName()))
-						{
-//							logger.debug( "cache IO Properties for [{}].", operation.getInputTypeName());
-							try
-							{
-								String inputTypeName=
-										ResourceUtils.CLASSPATH_URL_PREFIX+
-										ClassUtils.convertClassNameToResourcePath( operation.getInputTypeName())+
-										ClassUtils.CLASS_FILE_SUFFIX;
-								byte[] classbytes= ClassResourceReader.readClassResource(
-										loaderRef.getResourceLoader().getResource( inputTypeName).getInputStream());
-								if( classbytes.length< 8) throw new IOException( "insufficient class bytes length.");
-								ClassReader clsReader= new ClassReader( classbytes);
-								clsReader.accept( new IOmmTypeClassVisitor( loaderRef.getResourceLoader(),
-												( (Application)registry).getIommFieldProperties(), null),
-										ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-							}
-							catch( Throwable th)
-							{
-								/*logger.error( th.getMessage(), th);*/
-								ApplicationResourceInitializer.logger.warn(
-										"invalid input type[{}] resource.", operation.getInputTypeName(), th);
-							}
-						}
-
-						if( StringUtils.hasText( operation.getOutputTypeName()) &&  Type.VOID_TYPE!= operation.getReturnType()
-								&& !( (Application)registry).getIommFieldProperties().hasFieldDescriptors(
-										operation.getOutputTypeName()))
-						{
-//							logger.debug( "cache IO Properties for [{}].", operation.getOutputTypeName());
-							try
-							{
-								String outputTypeName= ResourceUtils.CLASSPATH_URL_PREFIX+
-										ClassUtils.convertClassNameToResourcePath( operation.getOutputTypeName())+
-										ClassUtils.CLASS_FILE_SUFFIX;
-								byte[] classbytes= ClassResourceReader.readClassResource(
-										loaderRef.getResourceLoader().getResource( outputTypeName).getInputStream());
-								if( classbytes.length< 8) throw new IOException( "insufficient class bytes length.");
-								ClassReader clsReader= new ClassReader( classbytes);
-								clsReader.accept( new IOmmTypeClassVisitor( loaderRef.getResourceLoader(),
-												( (Application)registry).getIommFieldProperties(), null),
-										ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-							}
-							catch( Throwable th)
-							{
-								/*logger.error( th.getMessage(), th);*/
-								ApplicationResourceInitializer.logger.warn(
-										"invalid output type[{}] resource.", operation.getOutputTypeName(), th);
-							}
-						}
-					}
-				}
-			}
-		}
+		StringBuffer path= new StringBuffer();
+		URL[] urls= this.classpath.toArray( new URL[this.classpath.size()]);
+		for( URL pathElement: urls)
+			path.append( pathElement+ PATH_SEPARATOR);
+			
+		if( path.lastIndexOf( PATH_SEPARATOR)!= -1)
+			path.deleteCharAt( path.lastIndexOf( PATH_SEPARATOR));
+		return path.toString();
 	}
 
-	/**
-	 * @param registry
-	 * @param def
-	 * @param reader
-	 */
-	private void registerService(ServiceRegistry registry, DeployedService def, String classname) {
-		if( def!= null && def.isExposed() && registry!= null)
-		{
-			registry.registerService( def.getServiceName(), def);
-
-			Map<String, ServiceOperation> operationMap = def.getOperations();
-			for (Entry<String, ServiceOperation> operationEntry : operationMap.entrySet())
+	public URL checkURL( URL url) 
+	{
+		try 
+	    {
+	        check( url);
+	    } 
+	    catch( Exception e) 
+	    {
+	        return null;
+	    }
+	    return url;
+	}
+	  
+	void check( URL url) throws IOException 
+	{
+        SecurityManager security= System.getSecurityManager();
+        if( security!= null) 
+        {
+            URLConnection urlConnection= url.openConnection();
+            Permission perm= urlConnection.getPermission();
+            if( perm!= null) 
+            {
+                try 
+                {
+                    security.checkPermission( perm);
+                } 
+                catch( SecurityException se) 
+                {
+                    // fallback to checkRead/checkConnect for pre 1.2
+                    // security managers
+                    if( (perm instanceof  java.io.FilePermission) && perm.getActions().indexOf( "read")!= -1) 
+                        security.checkRead(perm.getName());
+                    else if( (perm instanceof  java.net.SocketPermission) && perm.getActions().indexOf( "connect")!= -1) 
+                    {
+                        URL locUrl= url;
+                        if( urlConnection instanceof  JarURLConnection) 
+                            locUrl= ( (JarURLConnection)urlConnection).getJarFileURL();
+                        else if( urlConnection instanceof ParURLConnection)
+                        	locUrl= ( (ParURLConnection)urlConnection).getParFileURL();
+                        security.checkConnect( locUrl.getHost(), locUrl.getPort());
+                    }
+                    else 
+                        throw se;
+                }
+            }
+        }
+    }
+	  
+	@Override
+	public boolean existClassSource( final String name)
+	{
+		return AccessController.doPrivileged( new PrivilegedAction<Boolean>(){			
+			public Boolean run()
 			{
-				String operationName = operationEntry.getKey();
-				ServiceOperation serviceOperation = operationEntry.getValue();
-//				logger.debug("Operation-[{}][{}][{}][{}]", new Object[]{serviceOperation.getApplicationName(), serviceOperation.getServiceName(), serviceOperation.getOperationName(), serviceOperation.getInputTypeName()});
-				if (registry.checkIfServiceOperationRegistered(operationName))
+				for( URL url: classpath)
 				{
-					try
-					{
-						ServiceOperation registered = registry.lookupServiceOperation(operationName);
-						String rServiceInfoStr = getServiceInfoStr(registered);
-						String sServiceInfoStr = getServiceInfoStr(serviceOperation);
-						if (rServiceInfoStr.equalsIgnoreCase(sServiceInfoStr))
-						{
-							// 중복 scan하는 경우가 있으므로 application, service, operation이 같으면 무시한다.
-							continue;
-						}
-						logger.warn( "OperationName [{}] is already registered, so this operation is ignored. Already registered operation {}",
-								operationName, registered);
-
-						if (!registry.checkIfServiceOperationDuplicated(operationName))
-							registry.registerDuplicatedServiceOperation(operationName, registered);
-
-						registry.registerDuplicatedServiceOperation(operationName, serviceOperation);
-
-					}
-					catch (ServiceOperationNotFoundException e) {}
-
-					continue;
-				}
-
-				registry.registerServiceOperation(operationName, serviceOperation);
-			}
-
-
-			Map<String, List<ServiceOperation>> duplicatedOperationMap = def.getDuplicatedOperations();
-			if (duplicatedOperationMap != null)
-			{
-
-				for (Entry<String, List<ServiceOperation>> dupOpListEntry : duplicatedOperationMap.entrySet())
-				{
-					String operationName = dupOpListEntry.getKey();
-					List<ServiceOperation> dupOpList =  dupOpListEntry.getValue();
-
-					for (ServiceOperation serviceOperation : dupOpList)
+					if( ResourceUtils.URL_PROTOCOL_FILE.equalsIgnoreCase( url.getProtocol()))
 					{
 						try
 						{
-							ServiceOperation registered = registry.lookupServiceOperation(operationName);
-							String rServiceInfoStr = getServiceInfoStr(registered);
-							String sServiceInfoStr = getServiceInfoStr(serviceOperation);
-							if (rServiceInfoStr.equalsIgnoreCase(sServiceInfoStr))
+							File dir= new File( StringUtils.cleanPath( url.getFile()));
+							if( dir.exists() && dir.isDirectory())
 							{
-								// 중복 scan하는 경우가 있으므로 application, service, operation이 같으면 무시한다.
-								continue;
+								
+								File srcFile= new File( dir.getAbsolutePath()+ 
+										File.separatorChar+ ClassUtils.convertClassNameToResourcePath( name)+ 
+										ClassUtils.CLASS_FILE_SUFFIX);
+								if( srcFile.exists()) return true;
 							}
-							
-							logger.warn( "OperationName [{}] is already registered, so this operation is ignored. Already registered operation {}",
-									operationName, registered);
-
-							if (!registry.checkIfServiceOperationDuplicated(operationName))
-								registry.registerDuplicatedServiceOperation(operationName, registered);
-
-							registry.registerDuplicatedServiceOperation(operationName, serviceOperation);
-
 						}
-						catch (ServiceOperationNotFoundException e) {}
-
+						catch( Exception e)
+						{
+							logger.error( e.getMessage(), e);
+						}
 					}
-
+					else if( ResourceUtils.URL_PROTOCOL_JAR.equalsIgnoreCase( url.getProtocol()))
+					{
+						try
+						{
+							File fs= new File( StringUtils.cleanPath( url.getFile()));
+							if( fs.exists() && fs.isFile())
+							{
+								JarFile jf= new JarFile( fs);
+								if( jf.getJarEntry( ClassUtils.convertClassNameToResourcePath( name)+ 
+										ClassUtils.CLASS_FILE_SUFFIX)!= null)
+									return true;
+							}
+						}
+						catch( Exception e)
+						{
+							logger.error( e.getMessage(), e);
+						}
+					}
+					else if( ResourceUtils.URL_PROTOCOL_ZIP.equalsIgnoreCase( url.getProtocol()))
+					{
+						try
+						{
+							File fs= new File( StringUtils.cleanPath( url.getFile()));
+							if( fs.exists() && fs.isFile())
+							{
+								ZipFile zf= new ZipFile( fs);
+								if( zf.getEntry( ClassUtils.convertClassNameToResourcePath( name)+ 
+										ClassUtils.CLASS_FILE_SUFFIX)!= null)
+									return true;
+							}
+						}
+						catch( Exception e)
+						{
+							logger.error( e.getMessage(), e);
+						}
+					}
+					else if( ResourceUtils.URL_PROTOCOL_PAR.equalsIgnoreCase( url.getProtocol()))
+					{
+						try
+						{
+							ParURLConnection pcon= (ParURLConnection)url.openConnection();
+							JarFile parFile= pcon.getParFile();
+							String respath= ClassUtils.convertClassNameToResourcePath( name)+ ClassUtils.CLASS_FILE_SUFFIX;
+							if( url.getFile().endsWith( DeployedApplicationModel.CLASSES_PATH_SUFFIX))
+							{
+								if( parFile.getEntry( DeployedApplicationModel.CLASSES_PATH_SUFFIX+ "/"+ respath)!= null)
+									return true;
+							}
+							else if( url.getFile().endsWith( DeployedApplicationModel.BIN_PATH_SUFFIX))
+							{
+								if( parFile.getEntry( DeployedApplicationModel.BIN_PATH_SUFFIX+ "/"+ respath)!= null)
+									return true;
+							}
+//							else if( url.getFile().endsWith( DeployedApplicationModel.LIB_PATH_SUFFIX))
+							else if( url.getFile().endsWith( ResourceUtils.URL_PROTOCOL_JAR))
+							{
+//								URL resUrl= new URL( ResourceUtils.URL_PROTOCOL_PAR+ ":"+ url.getFile()+ 
+//										ResourceUtils.JAR_URL_SEPARATOR+ respath);
+//								ParURLConnection resCon= (ParURLConnection)resUrl.openConnection();
+//								InputStream inStream= null;
+//								try
+//								{
+//									if( ( inStream= resCon.getInputStream())!= null) 
+//										return true; 
+//								}catch( IOException ie){}
+//								finally{ if( inStream!= null) try{ inStream.close();}catch( Exception ee){}}
+								URL resUrl= new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, url.getFile()+ 
+										ResourceUtils.JAR_URL_SEPARATOR+ respath, new ParURLStreamHandler());
+								ParURLConnection resCon= (ParURLConnection)resUrl.openConnection();
+								InputStream inStream= null;
+								try
+								{
+									if( ( inStream= resCon.getInputStream())!= null)
+										return true;
+								}catch( IOException ie){}
+								finally{ if( inStream!= null) try{ inStream.close();}catch( Exception ee){}}
+							}
+						}
+						catch( Exception e)
+						{
+							logger.error( e.getMessage(), e);
+						}
+					}
+					else
+						throw new IllegalStateException( "unsupported url protocol. ["+ url.getProtocol()+ "]");
 				}
-			}
-		}
-
-	}
-
-	private String getServiceInfoStr(ServiceOperation operation) {
-		StringBuilder buffer = new StringBuilder();
-		buffer.append(operation.getApplicationName()).append("_");
-		buffer.append(operation.getServiceName()).append("_");
-		buffer.append(operation.getOperationName()).append("_");
-		buffer.append(operation.getInputTypeName()).append("_");
-		return buffer.toString();
-	}
-
-	private boolean isCandidateManagedType( MetadataReader reader, ResourceLoader resourceLoader)
-	{
-		for( TypeFilter filter: this.typeFilters)
-		{
-			try
-			{
-				if( filter.match( reader, resourceLoader))
-					return true;
-			}
-			catch( IOException e)
-			{
 				return false;
 			}
-		}
-		return false;
+		}, acc);
 	}
-
-	private boolean isCandidateManagedType( AnnotationMetadata metadata)
+	
+	@Override
+	public synchronized ClassSource findClassSource( final String name)
 	{
-		return metadata.isConcrete() && metadata.isIndependent();
+		ClassSource clsSource= AccessController.doPrivileged( new PrivilegedAction<ClassSource>(){			
+			public ClassSource run()
+			{
+				for( URL url: classpath)
+				{
+					if( ResourceUtils.URL_PROTOCOL_FILE.equalsIgnoreCase( url.getProtocol()))
+					{
+						try
+						{
+							File dir= new File( StringUtils.cleanPath( url.getFile()));
+							if( dir.exists() && dir.isDirectory())
+							{
+								
+								File srcFile= new File( dir.getAbsolutePath()+ 
+										File.separatorChar+ ClassUtils.convertClassNameToResourcePath( name)+ ClassUtils.CLASS_FILE_SUFFIX);
+								if( srcFile.exists())
+									return new FileClassSource( url, srcFile, name);
+							}							
+						}
+						catch( Exception e)
+						{
+							logger.error( e.getMessage(), e);
+						}
+					}
+					else if( ResourceUtils.URL_PROTOCOL_JAR.equalsIgnoreCase( url.getProtocol()))
+					{
+						try
+						{
+							File fs= new File( StringUtils.cleanPath( url.getFile()));
+							if( fs.exists() && fs.isFile())
+							{
+								JarFile jf= new JarFile( fs);
+								if( jf.getJarEntry( ClassUtils.convertClassNameToResourcePath( name)+ 
+										ClassUtils.CLASS_FILE_SUFFIX)!= null)
+									return new JarClassSource( url, jf, name);
+							}							
+						}
+						catch( Exception e)
+						{
+							logger.error( e.getMessage(), e);
+						}
+					}
+					else if( ResourceUtils.URL_PROTOCOL_ZIP.equalsIgnoreCase( url.getProtocol()))
+					{
+						try
+						{
+							File fs= new File( StringUtils.cleanPath( url.getFile()));
+							if( fs.exists() && fs.isFile())
+							{
+								ZipFile zf= new ZipFile( fs);
+								if( zf.getEntry( ClassUtils.convertClassNameToResourcePath( name)+ 
+										ClassUtils.CLASS_FILE_SUFFIX)!= null)
+									return new ZipClassSource( url, zf, name);
+							}							
+						}
+						catch( Exception e)
+						{
+							logger.error( e.getMessage(), e);
+						}
+					}
+					else if( ResourceUtils.URL_PROTOCOL_PAR.equalsIgnoreCase( url.getProtocol()))
+					{
+						try
+						{
+							ParURLConnection pcon= (ParURLConnection)url.openConnection();
+							JarFile parFile= pcon.getParFile();
+							String respath= ClassUtils.convertClassNameToResourcePath( name)+ ClassUtils.CLASS_FILE_SUFFIX;
+							if( url.getFile().endsWith( DeployedApplicationModel.CLASSES_PATH_SUFFIX))
+							{
+								if( parFile.getEntry( DeployedApplicationModel.CLASSES_PATH_SUFFIX+ "/"+ respath)!= null)
+									return new ParURLResourceClassSource( url, 
+											new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, url.getFile()+ "/"+ respath, 
+													new ParURLStreamHandler()), name);
+							}
+							else if( url.getFile().endsWith( DeployedApplicationModel.BIN_PATH_SUFFIX))
+							{
+								if( parFile.getEntry( DeployedApplicationModel.BIN_PATH_SUFFIX+ "/"+ 
+										ClassUtils.convertClassNameToResourcePath( name)+ 
+										ClassUtils.CLASS_FILE_SUFFIX)!= null)
+									return new ParURLResourceClassSource( url, 
+											new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, url.getFile()+ "/"+ respath, 
+													new ParURLStreamHandler()), name);
+							}
+//							else if( url.getFile().endsWith( DeployedApplicationModel.LIB_PATH_SUFFIX))
+							else if( url.getFile().endsWith( ResourceUtils.URL_PROTOCOL_JAR))
+							{
+								URL resUrl= new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, url.getFile()+ 
+										ResourceUtils.JAR_URL_SEPARATOR+ respath, new ParURLStreamHandler());
+								ParURLConnection resCon= (ParURLConnection)resUrl.openConnection();
+								InputStream inStream= null;
+								try
+								{
+									if( ( inStream= resCon.getInputStream())!= null)
+										return new ParURLResourceClassSource( url, resUrl, name);
+								}catch( IOException ie){}
+								finally{ if( inStream!= null) try{ inStream.close();}catch( Exception ee){}}
+							}
+						}
+						catch( Exception e)
+						{
+							logger.error( e.getMessage(), e);
+						}
+					}
+					else
+						throw new IllegalStateException( "unsupported url protocol. ["+ url.getProtocol()+ "]");
+				}
+				return null;
+			}
+		}, acc);
+		return clsSource;
 	}
 
-	private String resolveBasePackage( String base)
+	@Override
+	public void findClassSources( String name, List<ClassSource> list)
 	{
-		return ClassUtils.convertClassNameToResourcePath( SystemPropertyUtils.resolvePlaceholders( base, true));
+		ClassSource clsSource= null;
+		if( ( clsSource= findClassSource( name))!= null)
+			list.add( clsSource);
 	}
 
+	public URL findResource( final URL url, final String name)
+	{
+		URL resource= AccessController.doPrivileged( new PrivilegedAction<URL>(){
+			public URL run()
+			{
+				if( ResourceUtils.URL_PROTOCOL_FILE.equalsIgnoreCase( url.getProtocol()))
+				{
+					try
+					{
+						File dir= new File( StringUtils.cleanPath( url.getFile()));
+						if( dir.exists() && dir.isDirectory())
+						{
+							File srcFile= new File( dir.getAbsolutePath()+ File.separatorChar+ name);
+							if( srcFile.exists())
+								return new URL( "file:"+ srcFile.getAbsolutePath());
+						}							
+					}
+					catch( Exception e)
+					{
+						return null;
+					}
+				}
+				else if( ResourceUtils.URL_PROTOCOL_JAR.equalsIgnoreCase( url.getProtocol()))
+				{
+					try
+					{
+						if( "".equals( name) || "/".equals( name))	return new URL(  "jar:file:"+ url.getFile()+ "!/");
+						File fs= new File( StringUtils.cleanPath( url.getFile()));
+						if( fs.exists() && fs.isFile())
+						{
+							JarFile jf= new JarFile( fs);
+							JarEntry je= null;
+							if( ( je= jf.getJarEntry( name))!= null)
+							{
+								String rsName= jf.getName().replace( File.separatorChar, '/');
+								rsName= rsName+ "!"+ "/"+ je.getName();
+								return new URL( "jar:file:"+ rsName);
+							}
+						}							
+					}
+					catch( Exception e)
+					{
+						return null;
+					}
+				}
+				else if( ResourceUtils.URL_PROTOCOL_ZIP.equalsIgnoreCase( url.getProtocol()))
+				{
+					try
+					{
+						if( "".equals( name) || "/".equals( name))	return new URL(  "zip:file:"+ url.getFile()+ "!/");
+						File fs= new File( StringUtils.cleanPath( url.getFile()));
+						if( fs.exists() && fs.isFile())
+						{
+							ZipFile zf= new ZipFile( fs);
+							ZipEntry ze= null; 
+							if( ( ze= zf.getEntry( name))!= null)
+							{
+								String rsName= zf.getName().replace( File.separatorChar, '/');
+								rsName= rsName+ "!"+ "/"+ ze.getName();
+								return new URL( "zip:file:"+ rsName);
+							}
+						}							
+					}
+					catch( Exception e)
+					{
+						return null;
+					}
+				}
+				else if( ResourceUtils.URL_PROTOCOL_PAR.equalsIgnoreCase( url.getProtocol()))
+				{
+					try
+					{
+						ParURLConnection pcon= (ParURLConnection)url.openConnection();
+						JarFile parFile= pcon.getParFile();
+						if( url.getFile().endsWith( DeployedApplicationModel.CLASSES_PATH_SUFFIX))
+						{
+							if( "".equals( name) || "/".equals( name)) return url;
+							if( parFile.getEntry( DeployedApplicationModel.CLASSES_PATH_SUFFIX+ "/"+ name)!= null)
+								return new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, url.getFile()+ "/"+ name, 
+										new ParURLStreamHandler());
+						}
+						else if( url.getFile().endsWith( DeployedApplicationModel.BIN_PATH_SUFFIX))
+						{
+							if( "".equals( name) || "/".equals( name)) return url;
+							if( parFile.getEntry( DeployedApplicationModel.BIN_PATH_SUFFIX+ "/"+ name)!= null)
+								return  new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, url.getFile()+ "/"+ name,
+										new ParURLStreamHandler());
+						}
+//						else if( url.getFile().endsWith( DeployedApplicationModel.LIB_PATH_SUFFIX))
+						else if( url.getFile().endsWith( ResourceUtils.URL_PROTOCOL_JAR))
+						{
+							if( "".equals( name) || "/".equals( name)) 
+								return new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, 
+										url.getFile()+ ResourceUtils.JAR_URL_SEPARATOR, new ParURLStreamHandler());
+							URL resUrl= new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, url.getFile()+ 
+									ResourceUtils.JAR_URL_SEPARATOR+ name, new ParURLStreamHandler());
+							ParURLConnection resCon= (ParURLConnection)resUrl.openConnection();
+							InputStream inStream= null;
+							try
+							{
+								if( ( inStream= resCon.getInputStream())!= null)
+									return resUrl;
+							}catch( IOException ie){}
+							finally{ if( inStream!= null) try{ inStream.close();}catch( Exception ee){}}
+						}
+					}
+					catch( Exception e)
+					{
+						return null;
+					}
+				}
+				else
+					throw new IllegalStateException( "unsupported url protocol. ["+ url.getProtocol()+ "]");
+				
+				return null;
+			}
+		});
+		
+		return resource!= null ? checkURL( resource) : null;
+	}
+	
+	@Override
+	public URL findResource( final String name)
+	{
+		URL resource= AccessController.doPrivileged( new PrivilegedAction<URL>(){
+			public URL run()
+			{
+				URL url= null;
+				for( URL path: classpath)
+				{
+					if( ( url=  findResource( path, name))!= null)
+						return url;
+				}
+				return null;
+			}
+		}, acc);
+		
+		return resource;
+	}
+
+	@Override
+	public Enumeration<URL> findApplicationResources( final String name)
+	{
+		final URL[] sources= this.localAppclasspath.toArray( new URL[this.localAppclasspath.size()]);
+		return new Enumeration<URL>(){
+			private URL url= null;
+			int index= 0;
+			private boolean next()
+			{
+				if( url!= null)
+					return true;
+				else
+				{
+					while( index+ 1<= sources.length)
+					{
+						try{ url= findResource( sources[index++], name);}catch( Exception e){}
+						if( url!= null)
+							return true;
+					}
+					return false;
+				}
+			}
+			public boolean hasMoreElements()
+			{
+				return next();
+			}
+
+			public URL nextElement()
+			{
+				if( !next())
+					throw new NoSuchElementException();
+				URL u= url;
+				url= null;
+				return u;
+			}
+		};
+	}
+	
+	@Override
+	public Enumeration<URL> findResources( final String name)
+	{
+		final URL[] sources= this.classpath.toArray( new URL[this.classpath.size()]);
+		
+		return new Enumeration<URL>(){
+			private URL url= null;
+			int index= 0;
+			private boolean next()
+			{
+				if( url!= null)
+					return true;
+				else
+				{
+					while( index+ 1<= sources.length)
+					{
+						try{ url= findResource( sources[index++], name);}catch( Exception e){}
+						if( url!= null)
+							return true;
+					}
+					return false;
+				}
+			}
+			public boolean hasMoreElements()
+			{
+				return next();
+			}
+
+			public URL nextElement()
+			{
+				if( !next())
+					throw new NoSuchElementException();
+				URL u= url;
+				url= null;
+				return u;
+			}
+		};
+	}
+
+	@Override
+	public URL[] getURLs()
+	{
+		return this.classpath.toArray( new URL[this.classpath.size()]);
+	}
+	
 }
