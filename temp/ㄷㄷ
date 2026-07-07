@@ -1,186 +1,169 @@
 /**
- * 작성된 날짜: Aug 18, 2011
+ * 작성된 날짜: Aug 19, 2011
  * Copyright 2011 EsCode co. All rights reserved.
  */
 
 package bxm.context;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.ref.WeakReference;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 
-import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.Aware;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.support.GenericBeanDefinition;
-import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
-import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.beans.factory.xml.DefaultNamespaceHandlerResolver;
-import org.springframework.beans.factory.xml.PluggableSchemaResolver;
-import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.context.LifecycleProcessor;
-import org.springframework.context.ResourceLoaderAware;
-import org.springframework.context.annotation.AnnotationConfigUtils;
-import org.springframework.context.event.ApplicationEventMulticaster;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.ContextStartedEvent;
-import org.springframework.context.event.SimpleApplicationEventMulticaster;
-import org.springframework.core.AliasRegistry;
-import org.springframework.core.OrderComparator;
-import org.springframework.core.Ordered;
-import org.springframework.core.PriorityOrdered;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.UrlResource;
-import org.springframework.util.Assert;
+import org.springframework.context.support.AbstractRefreshableApplicationContext;
+import org.springframework.context.support.AbstractRefreshableConfigApplicationContext;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
-import org.springframework.web.context.ServletConfigAware;
-import org.springframework.web.context.ServletContextAware;
-import org.springframework.web.context.support.ServletContextAwareProcessor;
-import org.springframework.web.context.support.WebApplicationContextUtils;
-import org.springframework.web.context.support.XmlWebApplicationContext;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
+import org.springframework.web.context.WebApplicationContext;
 
 import bxm.app.Application;
-import bxm.app.ApplicationInitializerReference;
 import bxm.app.GetBeanTask;
 import bxm.app.LightweightApplicationContext;
-import bxm.common.util.ResourceUtils;
 import bxm.common.util.StringUtils;
-import bxm.common.util.concurrent.NamedExecutors;
-import bxm.container.ApplicationContainerLoader;
-import bxm.context.das.session.MapperFactoryBean;
-import bxm.context.das.session.SqlSessionFactoryBean;
-import bxm.context.ws.ManagedServiceWsdl;
-import bxm.context.ws.WebServiceMessageDispatcher;
-import bxm.instance.config.ApplicationLoadingMode;
-import bxm.instance.loader.classloader.context.ApplicationClassLoader;
+import bxm.instance.NestedRuntimeException;
 import bxm.instance.loader.classloader.ref.ClassLoaderRef;
-import bxm.instance.loader.support.ClassMetadata;
 import bxm.instance.loader.support.MetadataReader;
-import bxm.instance.support.DeployedApplicationModel;
-import bxm.instance.support.ParURLConnection;
 
 /**
- * @file		bxm.context.WebApplicationContext.java
- * @filetype	java source file
+ * @file				bxm.context.SpringLightweightApplicationContext.java
+ * @filetype		java source file
  * @brief
  * @author		Jong Oh Lee
  * @version		1.0
  * @history
- * 성		명		일			자			근  거  자  료				변  경  내  용
- * ----------------	-------------------		-------------------		--------------------------
- * Jong Oh Lee :	Aug 18, 2011:			product 개발:			신규 작성
+ * 성		명				일			자				근  거  자  료				변  경  내  용
+ * ----------------	-------------------		-------------------			--------------------------
+ * Jong Oh Lee :	Aug 19, 2011:		product 개발:			신규 작성
  *
  */
 
-public class WebApplicationContext extends XmlWebApplicationContext
-	implements ClassLoaderRefAware, ApplicationAware, PredefinedProcessorRegistry
+public class SpringLightweightApplicationContext implements LightweightApplicationContext
 {
-	private final Logger logger= LoggerFactory.getLogger( WebApplicationContext.class);
+	private Logger logger= LoggerFactory.getLogger( LightweightApplicationContext.class);
 
-	protected static final String FS= File.separator;
-	protected static final String JOBS_PATH= "jobs";
-	protected static final String JOBS_SUFFIX_NAME= ".xml";
+	private String applicationId;
 
-	private static final String CUSTOM_WS_BEANS_RESOURCE= "ws-beans.xml";
-	private static final String WS_BEANS_RESOURCE= "bxm/context/ws/ws-beans.xml";
-	private static final String WS_HANDLER_MAPPINGS_LOCATION= "META-INF/ws.handlers";
-	private static final String WS_SCHEMA_MAPPINGS_LOCATION= "META-INF/ws.schemas";
-	private static final String WSDL_SUFFIX_NAME= ".wsdl";
-	private static final String WS_BEANCLASS_NAME= "org.springframework.ws.wsdl.wsdl11.SimpleWsdl11Definition";
+	private volatile AbstractRefreshableApplicationContext context;
 
-	private LifecycleProcessor lifecycleProcessor;
-
-	private ApplicationEventMulticaster applicationEventMulticaster;
-
-	private final Object startupShudownCurrentMonitor= new Object();
+	private volatile ServletContext servletContext;
 
 	private ClassLoaderRef loaderRef;
 
-	private ClassLoader loaderToUse;
-
-	private Application application;
-
-	private boolean active= false;
-
-	private Object singletonLock;
-
-	private Object initializationLock;
-
-	private Set<MetadataReader> beanCandidates;
-
-//	private Set<String> beanDefinitionRegistryPostProcessorNames= new HashSet<String>();
-	private Set<String> beanFactoryPostProcessorNames= new HashSet<String>();
-	private Set<String> beanPostProcessorNames= new HashSet<String>();
-	private Set<String> factoryBeanNames= new HashSet<String>();
-	private Set<String> priorityOrdereds= new HashSet<String>();
-	private Set<String> ordereds= new HashSet<String>();
-	private Set<String> applicationListeners= new HashSet<String>();
-	private Set<String> createdPostProcessors= new HashSet<String>();
-
-	private volatile boolean deferredInitInterrupted;
-	private volatile boolean deferredQueueFinished;
-
-	private LinkedList<GetBeanTask> deferredInitializerQueue;
-	private Object deployerLock;
-
-	public WebApplicationContext( Application application, Object singletonLock, Object initializationLock,
-			Set<MetadataReader> beanCandidates)
+	public SpringLightweightApplicationContext( String applicationId)
 	{
-		super();
-		this.application= application;
-		this.singletonLock= singletonLock;
-		this.initializationLock= initializationLock;
-		this.beanCandidates= beanCandidates;
-
-		AlternativeClassDefiner.alternativeClassLoad();
-
-		logger.debug( "webapplication context created [{}].", application.getApplicationName());
+		this.applicationId= applicationId;
 	}
 
-	public void setClassLoaderRef( ClassLoaderRef ref)
+	public void initializeApplicationContext( ServletContext sc, String configLocation, ClassLoaderRef loaderRef,
+			Application application, Object singletonLock, Object initializationLock, Set<MetadataReader> beanCandidates)
 	{
-		this.loaderRef= ref;
-		this.loaderToUse= ref.getClassLoader();
+		logger.info( "Initializing Spring root ApplicationContext. using classloader [{}]", loaderRef.getClassLoader());
+		AbstractRefreshableApplicationContext ac;
+		this.loaderRef= loaderRef;
+		loaderRef.getClassLoader().setApplicationContextRef( new WeakReference<LightweightApplicationContext>( this));
+		try
+		{
+			if( sc!= null)
+			{
+				this.servletContext= new ServletContextDelegate( sc);
+				ac= new bxm.context.WebApplicationContext( application, singletonLock, initializationLock, beanCandidates);
+				ConfigurableWebApplicationContext wac= (ConfigurableWebApplicationContext)ac;
+
+				if( sc.getMajorVersion()== 2 && sc.getMinorVersion()< 5)
+				{
+					String servletContextName= sc.getServletContextName();
+					wac.setId( ConfigurableWebApplicationContext.APPLICATION_CONTEXT_ID_PREFIX+
+							ObjectUtils.getDisplayString( servletContextName));
+				}
+				else
+				{
+					try
+					{
+						String contextPath= (String)ServletContext.class.getMethod( "getContextPath").invoke(sc);
+						wac.setId( ConfigurableWebApplicationContext.APPLICATION_CONTEXT_ID_PREFIX+
+								ObjectUtils.getDisplayString( contextPath));
+					}
+					catch( Exception ex)
+					{
+						throw new IllegalStateException( "Failed to invoke Servlet 2.5 getContextPath method", ex);
+					}
+				}
+				wac.setServletContext( servletContext);
+				if( StringUtils.hasText( configLocation));
+					wac.setConfigLocation( configLocation);
+				this.context= (AbstractRefreshableApplicationContext)wac;
+				this.servletContext.setAttribute( WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
+			}
+			else
+			{
+				ac= new bxm.context.XmlApplicationContext( application, singletonLock, initializationLock, beanCandidates);
+				ac.setId( applicationId+ ": "+ ObjectUtils.getDisplayString( this));
+				if( StringUtils.hasText( configLocation))
+					( (AbstractRefreshableConfigApplicationContext)ac).setConfigLocation( configLocation);
+				this.context= ac;
+			}
+
+			if( ac instanceof ClassLoaderRefAware)
+				( (ClassLoaderRefAware)ac).setClassLoaderRef( loaderRef);
+			ac.refresh();
+			logger.info( "Spring root ApplicationContext [{}] is initialized.",
+					application!= null ? application.getApplicationName() : "null");
+		}
+		catch( Throwable th)
+		{
+			logger.error( "application context creation is failed.", th);
+			if( this.servletContext!= null)
+				this.servletContext.setAttribute( WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, th);
+			throw new NestedRuntimeException( th.getMessage(), th);
+		}
+	}
+
+	public void postInitialization( LightweightApplicationContext[] refCtxs)
+	{
+		if( this.context instanceof bxm.context.WebApplicationContext)
+			( (bxm.context.WebApplicationContext)this.context).postInitialization( refCtxs);
+		else if( this.context instanceof bxm.context.XmlApplicationContext)
+			( (bxm.context.XmlApplicationContext)this.context).postInitialization( refCtxs);
+	}
+
+	public void preInstantiate()
+	{
+		if( this.context instanceof bxm.context.WebApplicationContext)
+			( (bxm.context.WebApplicationContext)this.context).preInstantiate();
+		else if( this.context instanceof bxm.context.XmlApplicationContext)
+			( (bxm.context.XmlApplicationContext)this.context).preInstantiate();
+	}
+
+	public void deferredInstantiate( LinkedList<GetBeanTask> deferredQueue, Object lock)
+	{
+		if( this.context instanceof bxm.context.WebApplicationContext)
+		{
+			bxm.context.WebApplicationContext wctx= (bxm.context.WebApplicationContext)this.context;
+			wctx.setDeferredInitializerQueue( deferredQueue);
+			wctx.setDeployerLock( lock);
+			wctx.preInstantiate();
+		}
+	}
+
+	public void interruptedDeferredInstantiate()
+	{
+		if( this.context instanceof bxm.context.WebApplicationContext)
+		{
+			bxm.context.WebApplicationContext wctx= (bxm.context.WebApplicationContext)this.context;
+			wctx.setDeferredInitInterrupted( true);
+		}
 	}
 
 	public ClassLoaderRef getClassLoaderRef()
@@ -188,1101 +171,299 @@ public class WebApplicationContext extends XmlWebApplicationContext
 		return this.loaderRef;
 	}
 
-	public ClassLoader getClassLoader()
+	public boolean initialize()
 	{
-		return this.loaderToUse;
-	}
-
-	public Application getApplication()
-	{
-		return application;
-	}
-
-	protected String[] getDefaultConfigLocations()
-	{
-		return null;
-	}
-
-	public void setDeferredInitInterrupted( boolean deferredInitInterrupted)
-	{
-		this.deferredInitInterrupted= deferredInitInterrupted;
-	}
-
-	public void setDeployerLock( Object deployerLock)
-	{
-		this.deployerLock= deployerLock;
-	}
-
-	public void setDeferredInitializerQueue( LinkedList<GetBeanTask> deferredInitializerQueue)
-	{
-		this.deferredInitializerQueue= deferredInitializerQueue;
-	}
-
-	public void refresh() throws BeansException, IllegalStateException
-	{
-//		logger.info( "current WebApplicationContext [{}] will be refreshed.", application.getApplicationName());
-		ClassLoader contextLoader= Thread.currentThread().getContextClassLoader();
-		try
-		{
-			Thread.currentThread().setContextClassLoader( this.loaderRef.getClassLoader());
-			this.loaderRef.getClassLoader().setApplicationContextInitializaing( true);
-			super.refresh();
-			synchronized( this.startupShudownCurrentMonitor)
-			{
-				// do something
-			}
-		}
-		finally
-		{
-			this.loaderRef.getClassLoader().setApplicationContextInitializaing( false);
-			Thread.currentThread().setContextClassLoader( contextLoader);
-		}
-//		logger.info( "current WebApplicationContext [{}] is refreshed.", application.getApplicationName());
-	}
-
-	protected void prepareRefresh()
-	{
-//		logger.info( "current WebApplicationContext [{}] prepare to be refershed.", application.getApplicationName());
-		super.prepareRefresh();
-		this.active= true;
-//		logger.info( "current WebApplicationContext [{}] is prepared to be refreshed.", application.getApplicationName());
-	}
-
-	protected void cancelRefresh( BeansException ex)
-	{
-//		logger.info( "current WebApplicationContext [{}] refreshment is canceled for [{}]",
-//				application.getApplicationName(), ex.getMessage());
-		super.cancelRefresh( ex);
-	}
-
-	protected ConfigurableListableBeanFactory obtainFreshBeanFactory()
-	{
-//		logger.debug( "obtainFreshBeanFactory......[{}].", application.getApplicationName());
-//		logger.info( "current beanfactory will be refreshed. [{}]", application.getApplicationName());
-		final ConfigurableListableBeanFactory beanFactory= super.obtainFreshBeanFactory();
-//		logger.info( "fresh beanfactory of [{}] is obtained.", application.getApplicationName());
-		return beanFactory;
-	}
-
-	protected void customizeBeanFactory( DefaultListableBeanFactory beanFactory)
-	{
-//		logger.info( "customizeBeanFactory..........[{}].", application.getApplicationName());
-		super.customizeBeanFactory( beanFactory);
-		beanFactory.setBeanClassLoader( this.loaderRef.getClassLoader());
-//		logger.info( "customizeBeanFactory with current application classloader [{}/{}].",
-//				application.getApplicationName(), this.loaderRef.getClassLoader());
-	}
-
-	protected DefaultListableBeanFactory createBeanFactory()
-	{
-		SingletonThreadSafeListableBeanFactory createdBeanFactory= new SingletonThreadSafeListableBeanFactory(
-				application, getInternalParentBeanFactory(), this.singletonLock, this.initializationLock);
-		DefaultListableBeanFactory originalBeanFactory= createdBeanFactory;
-		return new ConfigurableListableBeanFactoryDelegate( application, originalBeanFactory);
-	}
-
-	protected void loadBeanDefinitions( XmlBeanDefinitionReader reader) throws IOException
-	{
-		long now= System.currentTimeMillis();
-		logger.debug( "loadBeanDefinitions [{}].", application.getApplicationName());
-		File deployedTaret= application.getDeployedTarget();
-		boolean batch= false;
-		reader.setValidating( false);
-		if( Boolean.valueOf( System.getProperty( ApplicationContainerLoader.CONTAINER_FOR_BATCH)))
-		{
-			batch= true;
-			reader.setNamespaceHandlerResolver(
-					new DefaultNamespaceHandlerResolver( loaderRef.getClassLoader(),
-							XmlApplicationContext.BATCH_HANDLER_MAPPINGS_LOCATION));
-			reader.setEntityResolver( new PluggableSchemaResolver( loaderRef.getClassLoader(),
-				XmlApplicationContext.BATCH_SCHEMA_MAPPINGS_LOCATION));
-		}
-		ResourceLoader resourceLoader=  new DefaultResourceLoader( new ClassLoader(){
-			WeakReference<ClassLoader> delegate= new WeakReference<ClassLoader>( loaderRef.getClassLoader());
-			public Class<?> loadClass(String name) throws ClassNotFoundException
-			{
-				ClassLoader loaderToUse= null;
-				if( ( loaderToUse= delegate.get())!= null)
-					return loaderToUse.loadClass( name);
-				else
-					throw new IllegalStateException( "current class loader is already closed");
-			}
-			public URL getResource( String name)
-			{
-				ClassLoader loaderToUse= null;
-				if( ( loaderToUse= delegate.get())!= null)
-					return loaderToUse.getResource( name);
-				else
-					throw new IllegalStateException( "current class loader is already closed");
-			}
-			// filtering application local resource for scan
-			public Enumeration<URL> getResources( String name) throws IOException
-			{
-				ClassLoader loaderToUse= null;
-				if( ( loaderToUse= delegate.get())!= null)
-					return ( (ApplicationClassLoader)loaderToUse).getApplicationResources( name);
-				else
-					throw new IllegalStateException( "current class loader is already closed");
-			}
-		});
-		reader.setBeanClassLoader( this.loaderRef.getClassLoader());
-		LazyInitFilter lazyInitFilter= null;
-		DeployedResourceScannerConfigurer scanner=
-				new DeployedResourceScannerConfigurer( this.beanCandidates,
-						reader.getRegistry(), application.getContainerDataSource(),
-						application.getDataAccessContext(), application.getDataSources(), getClassLoaderRef(), false,
-						//[[ 20170118 수정.
-						//( application.isLazyInit() && ApplicationLoadingMode.HOT== application.getApplicationLoadingMode()
-						//	|| application.isSessionfactroyLazyinit()), lazyInitFilter);
-						( application.isLazyInit() && application.isSessionfactroyLazyinit()), lazyInitFilter);
-						//]]
-		scanner.setResourceLoader( resourceLoader);
-		scanner.setBeanNameGenerator( new ManagedResourceBeanNameGenerator( getClassLoaderRef().getResourceLoader()));
-
-		int scanned= scanner.scan( "");
-
-		String[] configLocations = getConfigLocations();
-		if( configLocations!= null)
-		{
-			reader.setErrorHandler( new ErrorHandler(){
-				public void warning( SAXParseException exception) throws SAXException{}
-				public void fatalError( SAXParseException exception) throws SAXException{ throw exception;}
-				public void error( SAXParseException exception) throws SAXException{ throw exception;}
-			});
-			for (String configLocation : configLocations)
-			{
-				Resource resource= resourceLoader.getResource( configLocation);
-				logger.debug( "resource [{}/{}/{}].",
-						new Object[]{ application.getApplicationName(), resource.getURL(), resource.exists()});
-				if( resource.exists())
-				{
-					try{ reader.loadBeanDefinitions( resource);}
-					catch( Throwable th)
-					{
-						logger.warn( "loadBeanDefinitions for [{}] using resource [{}] is failed. {}",
-								new Object[]{ application.getApplicationName(), resource, th.getMessage()});
-					}
-				}
-			}
-		}
-
-		if( batch)
-		{
-			bxm.instance.loader.resource.ResourceLoader appLoader= application.getClassLoaderRef().getResourceLoader();
-			bxm.instance.loader.resource.Resource[] appResources= null;
-			File jobsRoot= null;
-			if( deployedTaret.isDirectory()
-					&& ( jobsRoot= new File( deployedTaret, DeployedApplicationModel.META_PATH_SUFFIX+ FS+ JOBS_PATH)).exists()
-					&& jobsRoot.isDirectory() && jobsRoot.canRead())
-				appResources= appLoader.getResources( "file:"+ jobsRoot.getAbsolutePath()+ FS+ "**/*"+ JOBS_SUFFIX_NAME);
-			else if( deployedTaret.isFile() && deployedTaret.getName().endsWith( DeployedApplicationModel.BXM_ARCHIVE_SUFFIX))
-			{
-				appResources= appLoader.getResources( ResourceUtils.URL_PROTOCOL_PAR+ ":"+
-								"file:"+ deployedTaret.getAbsolutePath()+ ParURLConnection.SEPARATOR+
-								DeployedApplicationModel.META_PATH_SUFFIX+ FS+ JOBS_PATH+ FS+ "**/*"+ JOBS_SUFFIX_NAME);
-			}
-
-			if( appResources!= null && appResources.length> 0)
-			{
-				for( bxm.instance.loader.resource.Resource res: appResources)
-				{
-					Resource targetResource= deployedTaret.isDirectory() ?
-							new FileSystemResource( res.getFile()) : new UrlResource( res.getURL());
-					logger.debug( "resource [{}/{}].", application.getApplicationName(), res.getURL());
-					try{ reader.loadBeanDefinitions( targetResource);}
-					catch( Throwable th)
-					{
-						logger.warn( "loadBeanDefinitions for [{}] using resource[{}] is failed. {}",
-						new Object[]{ application.getApplicationName(), res.getURL(), th.getMessage()});
-					}
-				}
-			}
-		}
-		else
-		{
-			List<Resource> wsdlResources= new ArrayList<Resource>();
-			File wsdlRoot= null;
-			if( deployedTaret.isDirectory()
-					&& ( wsdlRoot= new File( deployedTaret, DeployedApplicationModel.META_PATH_SUFFIX+ FS+
-							WebServiceMessageDispatcher.WSDL_PATH)).exists()
-					&& wsdlRoot.isDirectory() && wsdlRoot.canRead())
-			{
-				try
-				{
-					File[] wsdls= wsdlRoot.listFiles( new FilenameFilter(){
-						public boolean accept( File dir, String name)
-						{
-							if( name.endsWith( WSDL_SUFFIX_NAME)) return true;
-							else return false;
-						}
-					});
-
-					for( File wsdl: wsdls)
-						wsdlResources.add( new FileSystemResource( wsdl));
-					registerWsdlDefinitions( reader, wsdlResources);
-				}
-				catch( Throwable th)
-				{
-					logger.warn( "loadBeanDefinitions for [{}] wsdl resource is failed.", application, th);
-				}
-			}
-			else if( deployedTaret.isFile() && deployedTaret.getName().endsWith( DeployedApplicationModel.BXM_ARCHIVE_SUFFIX))
-			{
-				bxm.instance.loader.resource.ResourceLoader appLoader= application.getClassLoaderRef().getResourceLoader();
-				bxm.instance.loader.resource.Resource[] appResources=
-						appLoader.getResources( ResourceUtils.URL_PROTOCOL_PAR+ ":"+
-									"file:"+ deployedTaret.getAbsolutePath()+ ParURLConnection.SEPARATOR+
-									DeployedApplicationModel.META_PATH_SUFFIX+ FS+ WebServiceMessageDispatcher.WSDL_PATH+
-									FS+ "**/*"+ WSDL_SUFFIX_NAME);
-				if( appResources!= null && appResources.length> 0)
-				{
-					try
-					{
-						for( bxm.instance.loader.resource.Resource res: appResources)
-							wsdlResources.add( new UrlResource( res.getURL()));
-						registerWsdlDefinitions( reader, wsdlResources);
-					}
-					catch( Throwable th)
-					{
-						logger.warn( "loadBeanDefinitions for [{}] wsdl resource is failed.", application, th);
-					}
-				}
-			}
-		}
-
-		String[] beanNames= application.isUseOnlyPredefinedBeanProcessors() ?
-				( !batch ? PREDEFINED_ONLINE_PROCESSORS.keySet().toArray( new String[PREDEFINED_ONLINE_PROCESSORS.keySet().size()])
-						: PREDEFINED_BATCH_PROCESSORS.keySet().toArray( new String[PREDEFINED_BATCH_PROCESSORS.keySet().size()]))
-				: reader.getRegistry().getBeanDefinitionNames();
-		for( String beanName: beanNames)
-		{
-			if( !reader.getRegistry().containsBeanDefinition( beanName))
-				continue;
-
-			BeanDefinition bd= reader.getRegistry().getBeanDefinition( beanName);
-			String beanClassName= null;
-			if( ( bd instanceof AbstractBeanDefinition) && ( (AbstractBeanDefinition)bd).hasBeanClass())
-				beanClassName= ( (AbstractBeanDefinition)bd).getBeanClass().getName();
-			else
-				beanClassName= bd.getBeanClassName();
-
-			if( !StringUtils.hasText( beanClassName)) continue;
-//			scanBeanNamesForRegistration( BeanDefinitionRegistryPostProcessor.class.getName(), beanName, beanClassName,
-//					beanDefinitionRegistryPostProcessorNames);
-			scanBeanNamesForRegistration( BeanFactoryPostProcessor.class.getName(), beanName, beanClassName,
-					beanFactoryPostProcessorNames);
-			scanBeanNamesForRegistration( BeanPostProcessor.class.getName(), beanName, beanClassName, beanPostProcessorNames);
-			scanBeanNamesForRegistration( ApplicationListener.class.getName(), beanName, beanClassName, applicationListeners);
-		}
-
-		logger.debug( "scanned deployed resource [{}/{}].", application.getApplicationName(), scanned);
-		logger.debug( "loadBeanDefinitions of [{}] is ended. elapsedtime is [{}].",
-				application.getApplicationName(), System.currentTimeMillis()- now);
-	}
-
-	private void scanBeanNamesForRegistration( String typeName, String beanName, String beanClassName, Set<String> registry)
-	{
-		if( isAssignable( typeName, beanClassName))
-		{
-			registry.add( beanName);
-			if( isAssignable( FactoryBean.class.getName(), beanClassName))
-				factoryBeanNames.add( beanName);
-			if( isAssignable( PriorityOrdered.class.getName(), beanClassName))
-				priorityOrdereds.add( beanName);
-			if( isAssignable( Ordered.class.getName(), beanClassName))
-				ordereds.add( beanName);
-		}
-	}
-
-	private void registerWsdlDefinitions( XmlBeanDefinitionReader reader, List<Resource> resources) throws IOException
-	{
-		Resource wsdefs= new ClassPathResource( CUSTOM_WS_BEANS_RESOURCE);
-		if( wsdefs!= null && wsdefs.exists())
-		{
-			reader.setNamespaceHandlerResolver(
-					new DefaultNamespaceHandlerResolver( loaderRef.getClassLoader(), WS_HANDLER_MAPPINGS_LOCATION));
-			reader.setEntityResolver( new PluggableSchemaResolver( loaderRef.getClassLoader(), WS_SCHEMA_MAPPINGS_LOCATION));
-			reader.loadBeanDefinitions( wsdefs);
-			for( Resource res: resources)
-			{
-				GenericBeanDefinition wsdlBean= new GenericBeanDefinition();
-				wsdlBean.setBeanClassName( WS_BEANCLASS_NAME);
-				wsdlBean.getPropertyValues().add( "wsdl", res);
-				String beanName= StringUtils.getFilename( res.getURL().getFile());
-				reader.getRegistry().registerBeanDefinition( beanName, wsdlBean);
-			}
-			GenericBeanDefinition dispatcherBean= new GenericBeanDefinition();
-			dispatcherBean.setBeanClassName( WebServiceMessageDispatcher.class.getName());
-			reader.getRegistry().registerBeanDefinition( WebServiceMessageDispatcher.MESSAGE_DISPATCHER_BEANNAME, dispatcherBean);
-		}
-		else
-		{
-			wsdefs= new ClassPathResource( WS_BEANS_RESOURCE);
-			GenericBeanDefinition endpDef= new GenericBeanDefinition();
-			endpDef.setBeanClassName( ManagedServiceWsdl.WS_ENDPOINT_CLASSNAME);
-			endpDef.getPropertyValues().add( "application", application);
-			reader.getRegistry().registerBeanDefinition( ManagedServiceWsdl.WS_ENDPOINT_BEANNAME, endpDef);
-			reader.setNamespaceHandlerResolver(
-					new DefaultNamespaceHandlerResolver( loaderRef.getClassLoader(), WS_HANDLER_MAPPINGS_LOCATION));
-			reader.setEntityResolver( new PluggableSchemaResolver( loaderRef.getClassLoader(), WS_SCHEMA_MAPPINGS_LOCATION));
-			reader.loadBeanDefinitions( wsdefs);
-			for( Resource res: resources)
-			{
-				GenericBeanDefinition wsdlBean= new GenericBeanDefinition();
-				wsdlBean.setBeanClassName( WS_BEANCLASS_NAME);
-				wsdlBean.getPropertyValues().add( "wsdl", res);
-				String beanName= StringUtils.getFilename( res.getURL().getFile());
-				reader.getRegistry().registerBeanDefinition( beanName, wsdlBean);
-			}
-			GenericBeanDefinition dispatcherBean= new GenericBeanDefinition();
-			dispatcherBean.setBeanClassName( WebServiceMessageDispatcher.class.getName());
-			reader.getRegistry().registerBeanDefinition( WebServiceMessageDispatcher.MESSAGE_DISPATCHER_BEANNAME, dispatcherBean);
-		}
-
-
-
-	}
-
-	private void rebuildInfrastructureBeanDefinitions( SingletonThreadSafeListableBeanFactory beanF)
-	{
-		beanF.removeBeanDefinition( AnnotationConfigUtils.CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME);
-		Map<String, String> infrastructureBeans= PREDEFINED_ALL_PROCESSORS;
-		ClassLoader cl= Thread.currentThread().getContextClassLoader();
-		for( Map.Entry<String, String> entry: infrastructureBeans.entrySet())
-		{
-			if( !beanF.containsBeanDefinition( entry.getKey()))
-				continue;
-
-			Object processor= null;
-			try{ processor= cl.loadClass( entry.getValue()).newInstance();}
-			catch( Exception ex)
-			{
-				throw new IllegalStateException( "Cannot create infrastructure bean : " + entry.getValue(), ex);
-			}
-			injectAwareRequirement( processor);
-			beanF.registerSingletonConcurrently( entry.getKey(), processor);
-			createdPostProcessors.add( entry.getKey());
-		}
-	}
-
-	private void injectAwareRequirement( Object processor)
-	{
-		if( processor instanceof Aware)
-		{
-			if( processor instanceof BeanFactoryAware)
-				( (BeanFactoryAware)processor).setBeanFactory( getBeanFactory());
-			if( processor instanceof EnvironmentAware)
-				( (EnvironmentAware)processor).setEnvironment( getEnvironment());
-			if( processor instanceof ResourceLoaderAware)
-				( (ResourceLoaderAware)processor).setResourceLoader( this);
-			if( processor instanceof ApplicationContextAware)
-				( (ApplicationContextAware)processor).setApplicationContext( this);
-		}
-	}
-
-	private boolean isAssignable( String lhsType, String rhsType)
-	{
-		Assert.hasText( lhsType, lhsType);
-		Assert.hasText( rhsType, rhsType);
-		try
-		{
-			ClassMetadata classMetadata= loaderRef.getResourceLoader().getMetadataReader( rhsType).getClassMetadata();
-			String superClass= classMetadata.getSuperClassName();
-			Set<String> interfaces= new HashSet<String>();
-			String[] infs= classMetadata.getInterfaceNames();
-			if( infs!= null && infs.length> 0)
-				interfaces.addAll( Arrays.asList( infs));
-
-			if( lhsType.equals( superClass) || interfaces.contains( lhsType))
-				return true;
-			else
-			{
-				if( StringUtils.hasText( superClass)
-						&& !superClass.equals( Object.class.getName()) && isAssignable( lhsType, superClass))
-					return true;
-				for( String interfacen: interfaces)
-				{
-					if( StringUtils.hasText( interfacen)
-							&& !interfacen.equals( Object.class.getName()) && isAssignable( lhsType, interfacen))
-						return true;
-				}
-				return false;
-			}
-		}
-		catch( IOException e){}
-
+		if( this.context instanceof Initialized)
+			return ( (Initialized)this.context).initialized( true);
 		return false;
 	}
 
-	protected void prepareBeanFactory( ConfigurableListableBeanFactory beanFactory)
+	public void destroyApplicationContext()
 	{
-		logger.info( "prepare beanfactory of [{}] for WebApplicationContext refreshment.", application.getApplicationName());
-
-		setClassLoader( this.loaderRef.getClassLoader());
-		ClassLoader classLoader= getClassLoader();
-		logger.info( "classloader [{}/{}] will be used.", application.getApplicationName(), classLoader);
-
-		SingletonThreadSafeListableBeanFactory beanF=
-				(SingletonThreadSafeListableBeanFactory)( (ConfigurableListableBeanFactoryDelegate)beanFactory).getDelegate();
-
-		// Register default environment beans.
-		if( !beanFactory.containsBean( ENVIRONMENT_BEAN_NAME))
-			beanF.registerSingletonConcurrently( ENVIRONMENT_BEAN_NAME, getEnvironment());
-
-		if( !beanFactory.containsBean( SYSTEM_PROPERTIES_BEAN_NAME))
-			beanF.registerSingletonConcurrently( SYSTEM_PROPERTIES_BEAN_NAME, getEnvironment().getSystemProperties());
-
-		if( !beanFactory.containsBean( SYSTEM_ENVIRONMENT_BEAN_NAME))
-			beanF.registerSingletonConcurrently( SYSTEM_ENVIRONMENT_BEAN_NAME, getEnvironment().getSystemEnvironment());
-
-		super.prepareBeanFactory( beanFactory);
-
-		logger.info( "beanfactory of [{}] is prepared for current WebApplicationContext.", application.getApplicationName());
+		if( this.context== null || !this.context.isActive()) return;
+		logger.info( "closing Spring root ApplicationContext [{}].", this.context);
+		try{ this.context.close();}
+		finally
+		{
+			if( this.servletContext!= null)
+			{
+				this.servletContext.removeAttribute( WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+				//[[ 20170518 NCIS08 BXM외의 Spring 사용을 위해 ServletContext를 cleanup하지 않음.
+				//                   이미 ServletContextDelegate를 사용해 원본 ServletContext를 수정하지 않고 있음.
+				//cleanupServletContextAttributes();
+				//]]
+				this.servletContext= null;
+			}
+		}
 	}
 
-	private String[] getBeanNamesForRegister(
-			Class<?> type, SingletonThreadSafeListableBeanFactory beanFactory, Set<String> beanDefinitionNames)
+	public String getApplicationName()
 	{
-		AliasRegistry aliasRegistry= (AliasRegistry)beanFactory;
-		List<String> result= new ArrayList<String>();
-		// Check all bean definitions.
-		for( String beanName : beanDefinitionNames)
-		{
-			// Only consider bean as eligible if the bean name
-			// is not defined as alias for some other bean.
-			if( aliasRegistry.isAlias( beanName)) continue;
-
-			try
-			{
-				RootBeanDefinition mbd= beanFactory.getMergedLocalBeanDefinitionConcurrently( beanName);
-				// Only check bean definition if it is complete.
-				if( mbd.isAbstract()
-						|| SqlSessionFactoryBean.class.getName().equals( mbd.getBeanClassName())
-						|| MapperFactoryBean.class.getName().equals( mbd.getBeanClassName()))
-					continue;
-
-				if( !factoryBeanNames.contains( beanName))
-					result.add( beanName);
-				else if( beanFactory.isTypeMatch( FACTORY_BEAN_PREFIX + beanName, type))
-					result.add( FACTORY_BEAN_PREFIX + beanName);
-			}
-			catch( Exception ex){}
-		}
-		return StringUtils.toStringArray(result);
+		return this.applicationId;
 	}
 
 	@Override
-	protected void postProcessBeanFactory( ConfigurableListableBeanFactory beanFactory)
+	public String getId()
 	{
-		SingletonThreadSafeListableBeanFactory beanF=
-				(SingletonThreadSafeListableBeanFactory)( (ConfigurableListableBeanFactoryDelegate)beanFactory).getDelegate();
-
-		beanFactory.addBeanPostProcessor( new ServletContextAwareProcessor( getServletContext(), getServletConfig()));
-		beanFactory.ignoreDependencyInterface( ServletContextAware.class);
-		beanFactory.ignoreDependencyInterface( ServletConfigAware.class);
-
-		WebApplicationContextUtils.registerWebApplicationScopes( beanFactory, getServletContext());
-		registerEnvironmentBeans( beanF, getServletContext(), getServletConfig());
-
-		rebuildInfrastructureBeanDefinitions( beanF);
-	}
-
-	private void registerEnvironmentBeans( SingletonThreadSafeListableBeanFactory bf, ServletContext sc, ServletConfig config)
-	{
-		if( sc!= null && !bf.containsBean( WebApplicationContext.SERVLET_CONTEXT_BEAN_NAME))
-			bf.registerSingletonConcurrently( WebApplicationContext.SERVLET_CONTEXT_BEAN_NAME, sc);
-
-		if( config!= null && !bf.containsBean( ConfigurableWebApplicationContext.SERVLET_CONFIG_BEAN_NAME))
-			bf.registerSingletonConcurrently( ConfigurableWebApplicationContext.SERVLET_CONFIG_BEAN_NAME, config);
-
-		if( !bf.containsBean( WebApplicationContext.CONTEXT_PARAMETERS_BEAN_NAME))
-		{
-			Map<String, String> parameterMap= new HashMap<String, String>();
-			if( sc!= null)
-			{
-				Enumeration<?> paramNameEnum= sc.getInitParameterNames();
-				while( paramNameEnum.hasMoreElements())
-				{
-					String paramName= (String)paramNameEnum.nextElement();
-					parameterMap.put( paramName, sc.getInitParameter( paramName));
-				}
-			}
-			if( config!= null)
-			{
-				Enumeration<?> paramNameEnum= config.getInitParameterNames();
-				while( paramNameEnum.hasMoreElements())
-				{
-					String paramName= (String)paramNameEnum.nextElement();
-					parameterMap.put( paramName, config.getInitParameter( paramName));
-				}
-			}
-			bf.registerSingletonConcurrently( WebApplicationContext.CONTEXT_PARAMETERS_BEAN_NAME,
-					Collections.unmodifiableMap(parameterMap));
-		}
-
-		if( !bf.containsBean( WebApplicationContext.CONTEXT_ATTRIBUTES_BEAN_NAME))
-		{
-			Map<String, Object> attributeMap= new HashMap<String, Object>();
-			if( sc!= null)
-			{
-				Enumeration<?> attrNameEnum= sc.getAttributeNames();
-				while( attrNameEnum.hasMoreElements())
-				{
-					String attrName= (String)attrNameEnum.nextElement();
-					attributeMap.put( attrName, sc.getAttribute( attrName));
-				}
-			}
-			bf.registerSingletonConcurrently( WebApplicationContext.CONTEXT_ATTRIBUTES_BEAN_NAME,
-					Collections.unmodifiableMap( attributeMap));
-		}
+		return this.context.getId();
 	}
 
 	@Override
-	protected void invokeBeanFactoryPostProcessors( ConfigurableListableBeanFactory beanFactory)
+	public String getDisplayName()
 	{
-		SingletonThreadSafeListableBeanFactory beanF=
-				(SingletonThreadSafeListableBeanFactory)( (ConfigurableListableBeanFactoryDelegate)beanFactory).getDelegate();
+		return this.context.getDisplayName();
+	}
 
-		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
-		// do not BeanDefinitionRegistryPostProcessor processing.
-		Set<String> processedBeans= new HashSet<String>();
-		if( beanFactory instanceof BeanDefinitionRegistry)
+	@Override
+	public long getStartupDate()
+	{
+		return this.getStartupDate();
+	}
+
+	@Override
+	public boolean isRunning()
+	{
+		return this.context.isRunning();
+	}
+
+	@Override
+	public boolean isActive()
+	{
+		return this.context.isActive();
+	}
+
+	@Override
+	public void start()
+	{
+		this.context.start();
+	}
+
+	@Override
+	public void stop()
+	{
+		this.context.stop();
+	}
+
+	@Override
+	public void refresh()
+	{
+		this.context.refresh();
+	}
+
+	public ConfigurableListableBeanFactory getContainingBeanFactory( String name)
+	{
+		return ( (ConfigurableListableBeanFactoryDelegate)this.context.getBeanFactory()).getContainingBeanFactory( name);
+	}
+
+	@Override
+	public boolean containsBeanDefinition( String beanName)
+	{
+		return this.context.containsBeanDefinition( beanName);
+	}
+
+	@Override
+	public int getBeanDefinitionCount()
+	{
+		return this.context.getBeanDefinitionCount();
+	}
+
+	public BeanDefinition getMergedBeanDefinition( String name) throws BeansException
+	{
+		return this.context.getBeanFactory().getMergedBeanDefinition( name);
+	}
+
+	@Override
+	public String[] getBeanDefinitionNames()
+	{
+		return this.context.getBeanDefinitionNames();
+	}
+
+	@Override
+	public String[] getBeanNamesForType( Class<?> type)
+	{
+		return this.context.getBeanNamesForType( type);
+	}
+
+	@Override
+	public String[] getBeanNamesForType( Class<?> type, boolean includeNonSingletons, boolean allowEagerInit)
+	{
+		return this.context.getBeanNamesForType( type, includeNonSingletons, allowEagerInit);
+	}
+
+	public ConfigurableListableBeanFactory getBeanFactory()
+	{
+		return this.context.getBeanFactory();
+	}
+
+	public ConfigurableListableBeanFactory getOriginalBeanFactory()
+	{
+		return ( (ConfigurableListableBeanFactoryDelegate)this.context.getBeanFactory()).getDelegate();
+	}
+
+	@Override
+	public <T> Map<String, T> getBeansOfType( Class<T> type) throws NestedRuntimeException
+	{
+		return this.context.getBeansOfType( type);
+	}
+
+	@Override
+	public <T> Map<String, T> getBeansOfType( Class<T> type, boolean includeNonSingletons, boolean allowEagerInit)
+			throws NestedRuntimeException
+	{
+		return this.context.getBeansOfType( type, includeNonSingletons, allowEagerInit);
+	}
+
+	@Override
+	public Map<String, Object> getBeansWithAnnotation( Class<? extends Annotation> annotationType)
+			throws NestedRuntimeException
+	{
+		return this.context.getBeansWithAnnotation( annotationType);
+	}
+
+	@Override
+	public <A extends Annotation> A findAnnotationOnBean( String beanName, Class<A> annotationType)
+	{
+		return this.context.findAnnotationOnBean( beanName, annotationType);
+	}
+
+	@Override
+	public Object getBean( String name) throws NestedRuntimeException
+	{
+		return this.context.getBean( name);
+	}
+
+	@SuppressWarnings( "unchecked")
+	@Override
+	public <T> T getBeanFromContext( String name) throws NestedRuntimeException
+	{
+		ConfigurableListableBeanFactoryDelegate factory= (ConfigurableListableBeanFactoryDelegate)this.context.getBeanFactory();
+		factory= factory.getContainingBeanFactory( name);
+		if( factory== null)
+			throw new NoSuchBeanDefinitionException( name);
+		return (T)factory.getBean( name);
+	}
+
+	@Override
+	public <T> T getBean( String name, Class<T> requiredType) throws NestedRuntimeException
+	{
+		return this.context.getBean( name, requiredType);
+	}
+
+	@Override
+	public <T> T getBean( Class<T> requiredType) throws NestedRuntimeException
+	{
+		return this.context.getBean( requiredType);
+	}
+
+	@Override
+	public <T> T getBeanFromContext( Class<T> requiredType) throws NestedRuntimeException
+	{
+		ConfigurableListableBeanFactoryDelegate factory= (ConfigurableListableBeanFactoryDelegate)this.context.getBeanFactory();
+		ConfigurableListableBeanFactoryDelegate[] factories= factory.getContainingBeanFactories( requiredType);
+		if( factories== null || factories.length<= 0)
+			throw new NoSuchBeanDefinitionException( requiredType);
+		Map<ConfigurableListableBeanFactoryDelegate, String> beanNames=
+				new HashMap<ConfigurableListableBeanFactoryDelegate, String>();
+		for( ConfigurableListableBeanFactoryDelegate fac: factories)
 		{
-//			BeanDefinitionRegistry registry= (BeanDefinitionRegistry)beanF;
-			List<BeanFactoryPostProcessor> regularPostProcessors= new LinkedList<BeanFactoryPostProcessor>();
-//			List<BeanDefinitionRegistryPostProcessor> registryPostProcessors= new LinkedList<BeanDefinitionRegistryPostProcessor>();
-			for( BeanFactoryPostProcessor postProcessor : getBeanFactoryPostProcessors())
-			{
-				if( postProcessor instanceof BeanDefinitionRegistryPostProcessor)
-				{
-//					BeanDefinitionRegistryPostProcessor registryPostProcessor= (BeanDefinitionRegistryPostProcessor)postProcessor;
-//					registryPostProcessor.postProcessBeanDefinitionRegistry( registry);
-//					registryPostProcessors.add( registryPostProcessor);
-				}
-				else
-					regularPostProcessors.add( postProcessor);
-			}
-
-//			String[] beanNames= getBeanNamesForRegister(
-//					BeanDefinitionRegistryPostProcessor.class, beanF, beanDefinitionRegistryPostProcessorNames);
-//			Map<String, BeanDefinitionRegistryPostProcessor> beanMap= new HashMap<String, BeanDefinitionRegistryPostProcessor>();
-//			for( String beanName: beanNames)
-//				beanMap.put( beanName, (BeanDefinitionRegistryPostProcessor)beanF.getBean( beanName));
-//			List<BeanDefinitionRegistryPostProcessor> registryPostProcessorBeans=
-//					new ArrayList<BeanDefinitionRegistryPostProcessor>(beanMap.values());
-//			OrderComparator.sort( registryPostProcessorBeans);
-//			for( BeanDefinitionRegistryPostProcessor postProcessor : registryPostProcessorBeans)
-//				postProcessor.postProcessBeanDefinitionRegistry( registry);
-//			invokeBeanFactoryPostProcessors( registryPostProcessors, beanFactory);
-//			invokeBeanFactoryPostProcessors( registryPostProcessorBeans, beanFactory);
-			invokeBeanFactoryPostProcessors( regularPostProcessors, beanFactory);
-//			processedBeans.addAll( beanMap.keySet());
+			String[] names= fac.getDelegate().getBeanNamesForType( requiredType);
+			if( names!= null && names.length> 0)
+			for( String name: names)
+				beanNames.put( fac, name);
 		}
+
+		if( beanNames.size()== 1)
+			return beanNames.keySet().iterator().next().getBean( requiredType);
 		else
-		{
-			// Invoke factory processors registered with the context instance.
-			invokeBeanFactoryPostProcessors( getBeanFactoryPostProcessors(), beanFactory);
-		}
-
-		// Do not initialize FactoryBeans here: We need to leave all regular beans
-		// uninitialized to let the bean factory post-processors apply to them!
-		String[] postProcessorNames=
-				getBeanNamesForRegister( BeanFactoryPostProcessor.class, beanF, beanFactoryPostProcessorNames);
-
-		// Separate between BeanFactoryPostProcessors that implement PriorityOrdered,
-		// Ordered, and the rest.
-		List<BeanFactoryPostProcessor> priorityOrderedPostProcessors= new ArrayList<BeanFactoryPostProcessor>();
-		List<String> orderedPostProcessorNames= new ArrayList<String>();
-		List<String> nonOrderedPostProcessorNames= new ArrayList<String>();
-		for( String ppName : postProcessorNames)
-		{
-			if( processedBeans.contains( ppName))
-				continue;
-			else if( priorityOrdereds.contains( ppName))
-				priorityOrderedPostProcessors.add( createdPostProcessors.contains( ppName) ?
-						(BeanFactoryPostProcessor)beanF.getSingletonConcurrently( ppName) :
-						beanFactory.getBean( ppName, BeanFactoryPostProcessor.class));
-			else if( ordereds.contains( ppName))
-				orderedPostProcessorNames.add( ppName);
-			else
-				nonOrderedPostProcessorNames.add( ppName);
-		}
-
-		// First, invoke the BeanFactoryPostProcessors that implement PriorityOrdered.
-		OrderComparator.sort( priorityOrderedPostProcessors);
-		invokeBeanFactoryPostProcessors( priorityOrderedPostProcessors, beanF);
-
-		// Next, invoke the BeanFactoryPostProcessors that implement Ordered.
-		List<BeanFactoryPostProcessor> orderedPostProcessors= new ArrayList<BeanFactoryPostProcessor>();
-		for( String postProcessorName : orderedPostProcessorNames)
-			orderedPostProcessors.add( createdPostProcessors.contains( postProcessorName) ?
-					(BeanFactoryPostProcessor)beanF.getSingletonConcurrently( postProcessorName) :
-					beanFactory.getBean( postProcessorName, BeanFactoryPostProcessor.class));
-		OrderComparator.sort( orderedPostProcessors);
-		invokeBeanFactoryPostProcessors( orderedPostProcessors, beanF);
-
-		// Finally, invoke all other BeanFactoryPostProcessors.
-		List<BeanFactoryPostProcessor> nonOrderedPostProcessors= new ArrayList<BeanFactoryPostProcessor>();
-		for( String postProcessorName : nonOrderedPostProcessorNames)
-			nonOrderedPostProcessors.add( createdPostProcessors.contains( postProcessorName) ?
-					(BeanFactoryPostProcessor)beanF.getSingletonConcurrently( postProcessorName) :
-					beanFactory.getBean( postProcessorName, BeanFactoryPostProcessor.class));
-		invokeBeanFactoryPostProcessors( nonOrderedPostProcessors, beanF);
-	}
-
-	private void invokeBeanFactoryPostProcessors(
-			Collection<? extends BeanFactoryPostProcessor> postProcessors, ConfigurableListableBeanFactory beanFactory)
-	{
-		for( BeanFactoryPostProcessor postProcessor : postProcessors)
-			postProcessor.postProcessBeanFactory(beanFactory);
+			throw new NoSuchBeanDefinitionException(requiredType, "expected single bean but found " +
+					beanNames.size() + ": " + beanNames.values());
 	}
 
 	@Override
-	protected void registerBeanPostProcessors( ConfigurableListableBeanFactory beanFactory)
+	public Object getBean( String name, Object... args) throws NestedRuntimeException
 	{
-		SingletonThreadSafeListableBeanFactory beanF=
-				(SingletonThreadSafeListableBeanFactory)( (ConfigurableListableBeanFactoryDelegate)beanFactory).getDelegate();
-		String[] postProcessorNames= getBeanNamesForRegister( BeanPostProcessor.class, beanF, beanPostProcessorNames);
+		return this.context.getBean( name, args);
+	}
 
-		// Register BeanPostProcessorChecker that logs an info message when
-		// a bean is created during BeanPostProcessor instantiation, i.e. when
-		// a bean is not eligible for getting processed by all BeanPostProcessors.
-		int beanProcessorTargetCount= beanF.getBeanPostProcessorCount()+ 1+ postProcessorNames.length;
-		beanF.addBeanPostProcessor( new BeanPostProcessorChecker( beanF, beanProcessorTargetCount));
+	@Override
+	public boolean containsBean( String name)
+	{
+		return this.context.containsBean( name);
+	}
 
-		// Separate between BeanPostProcessors that implement PriorityOrdered,
-		// Ordered, and the rest.
-		List<BeanPostProcessor> priorityOrderedPostProcessors= new ArrayList<BeanPostProcessor>();
-		List<BeanPostProcessor> internalPostProcessors= new ArrayList<BeanPostProcessor>();
-		List<String> orderedPostProcessorNames= new ArrayList<String>();
-		List<String> nonOrderedPostProcessorNames= new ArrayList<String>();
-		for( String ppName : postProcessorNames)
+	@Override
+	public boolean isFactoryBean( String name) throws NestedRuntimeException
+	{
+		return context.getBeanFactory().isFactoryBean( name);
+	}
+
+	@Override
+	public boolean isSingleton( String name) throws NestedRuntimeException
+	{
+		return this.context.isSingleton( name);
+	}
+
+	@Override
+	public boolean isPrototype( String name) throws NestedRuntimeException
+	{
+		return this.context.isPrototype( name);
+	}
+
+	@Override
+	public boolean isTypeMatch( String name, Class<?> targetType) throws NestedRuntimeException
+	{
+		return this.context.isTypeMatch( name, targetType);
+	}
+
+	@Override
+	public Class<?> getType( String name) throws NestedRuntimeException
+	{
+		return this.context.getType( name);
+	}
+
+	@Override
+	public String[] getAliases( String name)
+	{
+		return this.context.getAliases( name);
+	}
+
+	@SuppressWarnings( "rawtypes")
+	private void cleanupServletContextAttributes()
+	{
+		Enumeration attrNames= this.servletContext.getAttributeNames();
+		while( attrNames.hasMoreElements())
 		{
-			if( priorityOrdereds.contains( ppName))
+			String attrName= (String)attrNames.nextElement();
+			if( attrName.startsWith( "org.springframework."))
 			{
-				BeanPostProcessor pp= createdPostProcessors.contains( ppName) ?
-						(BeanPostProcessor)beanF.getSingletonConcurrently( ppName) :
-						beanFactory.getBean( ppName, BeanPostProcessor.class);
-				priorityOrderedPostProcessors.add( pp);
-				if( pp instanceof MergedBeanDefinitionPostProcessor)
-					internalPostProcessors.add( pp);
-			}
-			else if( ordereds.contains( ppName))
-				orderedPostProcessorNames.add( ppName);
-			else
-				nonOrderedPostProcessorNames.add( ppName);
-		}
-
-		// First, register the BeanPostProcessors that implement PriorityOrdered.
-		OrderComparator.sort( priorityOrderedPostProcessors);
-		registerBeanPostProcessors( beanFactory, priorityOrderedPostProcessors);
-
-		// Next, register the BeanPostProcessors that implement Ordered.
-		List<BeanPostProcessor> orderedPostProcessors = new ArrayList<BeanPostProcessor>();
-		for( String ppName : orderedPostProcessorNames)
-		{
-			BeanPostProcessor pp= createdPostProcessors.contains( ppName) ?
-					(BeanPostProcessor)beanF.getSingletonConcurrently( ppName) :
-					beanFactory.getBean( ppName, BeanPostProcessor.class);
-			orderedPostProcessors.add( pp);
-			if( pp instanceof MergedBeanDefinitionPostProcessor)
-				internalPostProcessors.add( pp);
-		}
-		OrderComparator.sort( orderedPostProcessors);
-		registerBeanPostProcessors( beanFactory, orderedPostProcessors);
-
-		// Now, register all regular BeanPostProcessors.
-		List<BeanPostProcessor> nonOrderedPostProcessors= new ArrayList<BeanPostProcessor>();
-		for( String ppName : nonOrderedPostProcessorNames)
-		{
-			BeanPostProcessor pp= createdPostProcessors.contains( ppName) ?
-					(BeanPostProcessor)beanF.getSingletonConcurrently( ppName) :
-					beanFactory.getBean( ppName, BeanPostProcessor.class);
-			nonOrderedPostProcessors.add( pp);
-			if( pp instanceof MergedBeanDefinitionPostProcessor)
-				internalPostProcessors.add( pp);
-		}
-		registerBeanPostProcessors( beanFactory, nonOrderedPostProcessors);
-
-		// Finally, re-register all internal BeanPostProcessors.
-		OrderComparator.sort( internalPostProcessors);
-		registerBeanPostProcessors( beanFactory, internalPostProcessors);
-		beanF.addBeanPostProcessor( new ApplicationListenerDetector( this));
-	}
-
-	private void registerBeanPostProcessors( ConfigurableListableBeanFactory beanFactory, List<BeanPostProcessor> postProcessors)
-	{
-		for( BeanPostProcessor postProcessor : postProcessors)
-			beanFactory.addBeanPostProcessor(postProcessor);
-	}
-
-	@Override
-	protected void initMessageSource()
-	{
-		// do nothing in this time, it's very important.. do nothing
-	}
-
-	@Override
-	protected void initApplicationEventMulticaster()
-	{
-		ConfigurableListableBeanFactory beanFactory= getBeanFactory();
-		if( beanFactory.containsLocalBean( APPLICATION_EVENT_MULTICASTER_BEAN_NAME))
-		{
-			this.applicationEventMulticaster=
-					beanFactory.getBean( APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
-//			logger.debug("Using ApplicationEventMulticaster [{}].", this.applicationEventMulticaster);
-		}
-		else
-		{
-			this.applicationEventMulticaster= new SimpleApplicationEventMulticaster( beanFactory);
-//			logger.debug("Unable to locate ApplicationEventMulticaster with name '{}': using default [{}]",
-//						APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
-
-			if( beanFactory instanceof ConfigurableListableBeanFactoryDelegate)
-			{
-				SingletonThreadSafeListableBeanFactory beanF=
-						(SingletonThreadSafeListableBeanFactory)( (ConfigurableListableBeanFactoryDelegate)beanFactory).getDelegate();
-				beanF.registerSingletonConcurrently( APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
-			}
-			else
-				beanFactory.registerSingleton( APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
-		}
-	}
-
-	@Override
-	public void publishEvent( ApplicationEvent event)
-	{
-		Assert.notNull(event, "Event must not be null");
-		logger.debug("Publishing event in {}", getDisplayName());
-
-		this.applicationEventMulticaster.multicastEvent(event);
-		if( getParent()!= null)
-			getParent().publishEvent( event);
-	}
-
-	@Override
-	protected void registerListeners()
-	{
-		// Register statically specified listeners first.
-		for( ApplicationListener<?> listener : getApplicationListeners())
-			this.applicationEventMulticaster.addApplicationListener( listener);
-
-		SingletonThreadSafeListableBeanFactory beanF=
-				(SingletonThreadSafeListableBeanFactory)( (ConfigurableListableBeanFactoryDelegate)getBeanFactory()).getDelegate();
-
-		// Do not initialize FactoryBeans here: We need to leave all regular beans
-		// uninitialized to let post-processors apply to them!
-		String[] listenerBeanNames = getBeanNamesForRegister( ApplicationListener.class, beanF, applicationListeners);
-		for (String lisName : listenerBeanNames)
-			this.applicationEventMulticaster.addApplicationListenerBean( lisName);
-	}
-
-	protected void finishRefresh()
-	{
-		// Initialize lifecycle processor for this context.
-		initLifecycleProcessor();
-
-		// Propagate refresh to lifecycle processor first.
-		if( this.lifecycleProcessor!= null) this.lifecycleProcessor.onRefresh();
-
-		// Publish the final event.
-		publishEvent( new ContextRefreshedEvent( this));
-		( (SingletonThreadSafeListableBeanFactory)(
-				(ConfigurableListableBeanFactoryDelegate)getBeanFactory()).getDelegate()).initialized( true);
-		logger.debug( "current WebApplicationContect [{}] refreshment is finished.", application.getApplicationName());
-
-		// do nothing in this time, it's very important.. do nothing
-	}
-
-	@Override
-	protected void finishBeanFactoryInitialization( final ConfigurableListableBeanFactory beanFactory)
-	{
-		// do nothing in this time, it's very important.. do nothing
-	}
-
-	protected void postInitialization( final LightweightApplicationContext[] lctxs)
-	{
-//		logger.debug( "application [{}] postinitialization started with [{}].", application.getApplicationName(), lctxs);
-
-		final ConfigurableListableBeanFactoryDelegate beanFactory= (ConfigurableListableBeanFactoryDelegate)getBeanFactory();
-		List<SpringLightweightApplicationContext> refCtxs= new ArrayList<SpringLightweightApplicationContext>();
-		for( LightweightApplicationContext lctx: lctxs)
-		{
-			if( lctx instanceof SpringLightweightApplicationContext)
-				refCtxs.add( (SpringLightweightApplicationContext)lctx);
-		}
-
-		beanFactory.setReferenceContexts( refCtxs.toArray( new SpringLightweightApplicationContext[refCtxs.size()]));
-
-//		logger.debug( "application [{}] postinitialization ended with [{}].", application.getApplicationName(), lctxs);
-	}
-
-	protected void preInstantiate()
-	{
-		logger.info( "application [{}] preInstantiate started.", application.getApplicationName());
-
-		final ConfigurableListableBeanFactory beanFactory= ( (ConfigurableListableBeanFactoryDelegate)getBeanFactory()).getDelegate();
-		// Initialize conversion service for this context.
-//		if( beanFactory.containsBean( CONVERSION_SERVICE_BEAN_NAME) &&
-//				beanFactory.isTypeMatch( CONVERSION_SERVICE_BEAN_NAME, ConversionService.class))
-//			beanFactory.setConversionService( beanFactory.getBean( CONVERSION_SERVICE_BEAN_NAME, ConversionService.class));
-
-		// Stop using the temporary ClassLoader for type matching.
-		beanFactory.setTempClassLoader( null);
-
-		// Allow for caching all bean definition metadata, not expecting further changes.
-		beanFactory.freezeConfiguration();
-
-		// Instantiate all remaining (non-lazy-init) singletons.
-		if( application.isDeferredInit())
-		{
-			final ConfigurableListableBeanFactoryDelegate dfactory= ( (ConfigurableListableBeanFactoryDelegate)getBeanFactory());
-			final LinkedList<GetBeanTask> tasks= new LinkedList<GetBeanTask>();
-			final ApplicationInitializerReference initReference= application.getApplicationInitailizerReference();
-			final String[] beanNames= initReference!= null ?
-					initReference.getPreInitializableBeanNames( new WeakReference<Application>( application)) :
-					dfactory.getBeanDefinitionNames();
-
-			if( initReference!= null)
-				logger.debug( "use initializerreference[{}] bean name count [{}].", initReference,
-						beanNames!= null && beanNames.length> 0 ? beanNames.length : 0);
-
-			if( beanNames!= null && beanNames.length> 0)
-			{
-				dfactory.setDeployerLock( this.deployerLock);
-				dfactory.setPqueue( this.deferredInitializerQueue);
-				final CountDownLatch started= new CountDownLatch( 1);
-				NamedExecutors.newPrivilegedThread( new Runnable(){
-					boolean dstarted= false;
-					public void run()
+				Object attrValue= this.servletContext.getAttribute( attrName);
+				if( attrValue instanceof DisposableBean)
+				{
+					try{ ( (DisposableBean)attrValue).destroy();}
+					catch( Throwable th)
 					{
-						try
-						{
-							for( String beanName: beanNames)
-							{
-								synchronized( tasks)
-								{
-									GetBeanTask task= new GetBeanTask( application.getApplicationName(),
-											GetBeanTask.DEPLOYER_TASK, beanName, null, (Object[])null);
-									tasks.offer( task);
-//									logger.debug( "offer {}", task);
-								}
-
-								if( !dstarted)
-								{
-									started.countDown();
-									dstarted= true;
-								}
-							}
-						}
-						catch( Throwable th)
-						{
-							logger.error( "application [{}] deferred initializer queuing task is failed.",
-									application.getApplicationName(), th);
-						}
-						finally
-						{
-							deferredQueueFinished= true;
-						}
+						logger.warn( th.getMessage(), th);
 					}
-				}, application.getApplicationName()+ "deferredInitializer-queue", true).start();
-
-				NamedExecutors.newPrivilegedThread( new Runnable(){
-					public void run()
-					{
-						try{ started.await();}
-						catch( InterruptedException ie)
-						{
-							logger.error( "application [{}] deferred initializer create task start failed.",
-									application.getApplicationName(), ie);
-							return;
-						}
-						GetBeanTask task= null;
-
-						try
-						{
-							while( !deferredInitInterrupted)
-							{
-								synchronized( deferredInitializerQueue){ task= deferredInitializerQueue.peekFirst();}
-
-								if( task!= null && GetBeanTask.SERVICE_TASK== task.task)
-								{
-									synchronized( deployerLock){ try{ deployerLock.wait( 500L);}catch( InterruptedException e)
-									{
-										logger.error( "application [{}] deferred initializer create task wait failed.",
-												application.getApplicationName(), e);
-										return;
-									}}
-
-									if( application.getDeferredInitInterval()> 0)
-									{
-										try{ Thread.sleep( application.getDeferredInitInterval());}catch( InterruptedException e)
-										{
-											logger.error( "application [{}] deferred initializer create task wait failed.",
-													application.getApplicationName(), e);
-											return;
-										}
-									}
-									continue;
-								}
-
-								synchronized( tasks)
-								{
-									if( tasks.isEmpty()) break;
-									task= tasks.removeFirst();
-								}
-								if( task== null && deferredQueueFinished)
-									break;
-								dfactory.deferredInstantiateSingletons( application, task);
-//								logger.debug( "getBean from deployer {}", task.beanName);
-							}
-						}
-						catch( Throwable th)
-						{
-							logger.error( "application [{}] deferred initializer create task is failed.",
-									application.getApplicationName(), th);
-						}
-						finally
-						{
-							tasks.clear();
-							dfactory.setPqueue( null);
-							dfactory.setDeployerLock( null);
-							WebApplicationContext.this.deployerLock= null;
-							WebApplicationContext.this.deferredInitializerQueue= null;
-							if( initReference!= null)
-								initReference.preInitializeCompleted( new WeakReference<Application>( application));
-							logger.info( "======================================================");
-							logger.info( "application [{}] deferred initialization is finished.", application.getApplicationName());
-							logger.info( "======================================================");
-						}
-					}
-				}, application.getApplicationName()+ "deferredInitializer-task", true).start();
-			}
-			else
-			{
-				tasks.clear();
-				dfactory.setPqueue( null);
-				dfactory.setDeployerLock( null);
-				WebApplicationContext.this.deployerLock= null;
-				WebApplicationContext.this.deferredInitializerQueue= null;
-				if( initReference!= null)
-					initReference.preInitializeCompleted( new WeakReference<Application>( application));
+				}
 			}
 		}
-		else if( !application.isLazyInit())
-			( (ConfigurableListableBeanFactoryDelegate)getBeanFactory()).preInstantiateSingletons( application);
-
-		logger.info(  "beanfactory of [{}] initialization is finished.", application.getApplicationName());
 	}
 
-	protected void initLifecycleProcessor()
-    {
-		final ConfigurableListableBeanFactory beanFactory= ( (ConfigurableListableBeanFactoryDelegate)getBeanFactory()).getDelegate();
-		if( beanFactory.containsLocalBean( LIFECYCLE_PROCESSOR_BEAN_NAME))
-		{
-			this.lifecycleProcessor= beanFactory.getBean( LIFECYCLE_PROCESSOR_BEAN_NAME, LifecycleProcessor.class);
-			logger.debug("Using LifecycleProcessor [" + this.lifecycleProcessor + "]");
-		}
-
-		// do not use DefaultLifecycleProcessor
+	void checkStatus()
+	{
+		if( this.context== null || !this.context.isActive())
+			throw new IllegalStateException( "current application context is not initialized.");
 	}
 
-	 protected void doClose()
-	 {
-		 logger.info( "current WebApplicationContext [{}] will be closed.", application.getApplicationName());
-//		 super.doClose();
-		 synchronized( this.startupShudownCurrentMonitor)
-		 {
-			 // do something
+	/**
+	 * @generated by CodeSugar http://sourceforge.net/projects/codesugar */
 
-			 logger.info("Closing " + this);
-
-			 try
-			 {
-				 // Publish shutdown event.
-				 publishEvent( new ContextClosedEvent( this));
-			 }
-			 catch (Throwable ex)
-			 {
-				 logger.warn("Exception thrown from ApplicationListener handling ContextClosedEvent", ex);
-			 }
-
-			 // Stop all Lifecycle beans, to avoid delays during individual destruction.
-			 try
-			 {
-				 if( this.lifecycleProcessor!= null) this.lifecycleProcessor.onClose();
-			 }
-			 catch (Throwable ex)
-			 {
-				 logger.warn("Exception thrown from LifecycleProcessor on context close", ex);
-			 }
-
-
-			 // IMPORTANT
-			 // do not destroy for dirty use --. finalize
-
-//			 // Destroy all cached singletons in the context's BeanFactory.
-//			 try{ super.destroyBeans(); }
-//			 catch( Throwable th){ logger.error( "disposable trace destroyBeans", th);}
-//
-//			 // Close the state of this context itself.
-//			 try{ super.closeBeanFactory();}
-//			 catch( Throwable th){ logger.error( "disposable trace closeBeanFactory", th);}
-
-			 // Let subclasses do some final clean-up if they wish...
-			 try{ super.onClose();}
-			 catch( Throwable th){ logger.error( "disposable trace onClose", th);}
-
-			 this.active= false;
-		 }
-		 logger.info( "current WebApplicationContext [{}] is closed.", application.getApplicationName());
-	 }
-
-	 @Override
-	 public void finalize() throws Throwable
-	 {
-		 // Destroy all cached singletons in the context's BeanFactory.
-		 ( (SingletonThreadSafeListableBeanFactory)(
-					(ConfigurableListableBeanFactoryDelegate)getBeanFactory()).getDelegate()).initialized( false);
-		 try{ super.destroyBeans(); }
-		 catch( Throwable th){ logger.error( "disposable trace destroyBeans", th);}
-
-		 // Close the state of this context itself.
-		 try{ super.closeBeanFactory();}
-		 catch( Throwable th){ logger.error( "disposable trace closeBeanFactory", th);}
-	 }
-
-	 public boolean isActive()
-	 {
-		 return this.active;
-	 }
-
-	 protected void destroyBeans()
-	 {
-		 logger.info( "beans of current WebApplicationContext [{}] will be destroyed.", application.getApplicationName());
-		 ( (ConfigurableListableBeanFactoryDelegate)getBeanFactory()).getDelegate().destroySingletons();
-		 logger.info( "beans of current WebApplicationContext [{}] is destroyed.", application.getApplicationName());
-	 }
-
-	 public void start()
-	 {
-		 logger.info( "current WebApplicationContext [{}] will be started.", application.getApplicationName());
-		 if( this.lifecycleProcessor!= null) this.lifecycleProcessor.start();
-		 publishEvent( new ContextStartedEvent( this));
-		 logger.info( "current WebApplicationContext [{}] is started.", application.getApplicationName());
-	 }
-
-	 public void stop()
-	 {
-		 logger.info( "current WebApplicationContext [{}] will be stoped.", application.getApplicationName());
-		 if( this.lifecycleProcessor!= null) this.lifecycleProcessor.stop();
-		 publishEvent( new ContextStartedEvent( this));
-		 logger.info( "current WebApplicationContext [{}] is stopped.", application.getApplicationName());
-	 }
-
-	 public boolean isRunning()
-	 {
-		 return this.lifecycleProcessor!= null ? this.lifecycleProcessor.isRunning() : isActive();
-	 }
-
+	public String toString() {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("[SpringLightweightApplicationContext:");
+		buffer.append(" context: ");
+		buffer.append(context);
+		buffer.append("]");
+		return buffer.toString();
+	}
 }
