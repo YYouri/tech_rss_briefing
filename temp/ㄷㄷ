@@ -1,102 +1,139 @@
+/**
+ * 작성된 날짜: Mar 5, 2012
+ * Copyright 2011 EsCode co. All rights reserved.
+ */
 
-여긴 우리가 사용 하는 클래스 로드 부분이야. 
-package bxm.instance.loader.resource;
-
-import static bxm.service.ServiceDefinitions.AnnotatedConfig.IOMMOBJECT_CLASS;
-import static org.objectweb.asm.ClassReader.SKIP_DEBUG;
-import static org.objectweb.asm.ClassReader.SKIP_FRAMES;
+package bxm.instance.loader.classloader.context;
 
 import java.io.File;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.net.JarURLConnection;
+import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.util.WeakHashMap;
 
-import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import bxm.common.util.Assert;
-import bxm.common.util.ClassUtils;
+import sun.misc.Unsafe;
+
+import bxm.NilRefException;
+import bxm.common.util.CollectionUtils;
 import bxm.common.util.ResourceUtils;
 import bxm.common.util.StringUtils;
-import bxm.container.LApplicationContext;
-import bxm.instance.loader.classloader.context.ApplicationClassLoader;
+import bxm.instance.ApplicationNotFoundException;
+import bxm.instance.CommandResponse;
+import bxm.instance.InvalidCommandException;
+import bxm.instance.instrument.Instrument;
+import bxm.instance.loader.ClassLoaderDelegate;
+import bxm.instance.loader.classloader.ClassLoaderStatus;
+import bxm.instance.loader.classloader.event.ApplicationClassLoaderEvent;
+import bxm.instance.loader.classloader.event.ApplicationClassLoaderListener;
 import bxm.instance.loader.classloader.internal.AbstractApplicationClassLoader;
-import bxm.instance.loader.classloading.instrument.ClassResourceReader;
-import bxm.instance.loader.support.AnnotatedClassVisitor;
-import bxm.instance.loader.support.ClassVisitor;
-import bxm.instance.loader.support.MetadataReader;
-import bxm.instance.support.ParURLConnection;
-import bxm.instance.support.ParURLConnection.ParEnumeration;
+import bxm.instance.loader.classloader.internal.DefaultApplicationClassFinder;
+import bxm.instance.loader.classloader.ref.ApplicationClassLoaderHandleRef;
+import bxm.instance.loader.classloader.ref.ApplicationClassLoaderHandler;
+import bxm.instance.loader.classloader.ref.ClassLoaderRef;
+import bxm.instance.loader.classloader.ref.LoaderHandleReferent;
+import bxm.instance.loader.support.MetadataReaderCache;
 import bxm.instance.support.ParURLStreamHandler;
 
-
 /**
- * @file		bxm.instance.loader.classloader.ApplicationResourceLoader.java
+ * @file		bxm.instance.loader.classloader.context.ApplicationClassLoaderManager.java
  * @filetype	java source file
  * @brief
  * @author		Jong Oh Lee
  * @version		1.0
  * @history
- * 성		명		일			자			근  거  자  료					변  경  내  용
- * ----------------	-------------------		-------------------			--------------------------
- * Jong Oh Lee :	Jul 26, 2011:			product 개발:					신규 작성
+ * 성		명		일			자			근  거  자  료				변  경  내  용
+ * ----------------	-------------------		-------------------		--------------------------
+ * Jong Oh Lee :	Mar 5, 2012:			product 개발:				신규 작성
  *
  */
 
-public class ApplicationResourceLoader implements ResourceLoader
+public class ApplicationClassLoaderManager
 {
-	private Logger logger= LoggerFactory.getLogger( ApplicationResourceLoader.class);
+	private Logger logger= LoggerFactory.getLogger( ApplicationClassLoaderManager.class);
 
-	private final Map<Resource, MetadataReader> metadataReaderCache= new HashMap<Resource, MetadataReader>();
-//			Collections.synchronizedMap( new HashMap<Resource, MetadataReader>());
+	private ClassLoader parentLoader;
 
-	private final Map<String, MetadataReader> metadataReaderCacheByClassName= new HashMap<String, MetadataReader>();
-//			Collections.synchronizedMap( new HashMap<String, MetadataReader>());
+	private Map<String, ApplicationClassLoaderHandleRef> isolatedLoaderRefs=
+			Collections.synchronizedMap( new HashMap<String, ApplicationClassLoaderHandleRef>());
+	private Map<String, ApplicationClassLoaderHandleRef> sharedLoaderRefs=
+			Collections.synchronizedMap( new HashMap<String, ApplicationClassLoaderHandleRef>());
 
-	private final LinkedHashMap<String, MetadataReader> metadataReaderLRUCache=
-			new LinkedHashMap<String, MetadataReader>( 16, 0.75F, true);
+	private WeakHashMap<AbstractApplicationClassLoader, String> weakLoaders=
+			new WeakHashMap<AbstractApplicationClassLoader, String>();
 
+	private Object monitor= new Object();
+	private Object loaderLock= new Object();
 
-	private final LinkedHashMap<String, ClassReader> classReaderLRUCache=
-			new LinkedHashMap<String, ClassReader>( 16, 0.75F, true);
+	private int instrumentableMetadataCachesize= MetadataReaderCache.DEFAULT_INSTRUMENTABLE_METADATA_LRU_SIZE;
+	private int classTransformerMetadataCachesize= MetadataReaderCache.DEFAULT_CLASSTRANSFORMER_METADATA_LRU_SIZE;
 
-	private int instrumentableMetadataCachesize= DEFAULT_INSTRUMENTABLE_METADATA_LRU_SIZE;
+	private boolean nouseSnapshot = true;
 
-	private int classTransformerMetadataCachesize= DEFAULT_CLASSTRANSFORMER_METADATA_LRU_SIZE;
+	private ClassLoaderDelegate classloaderDelegate;
 
-	private WeakReference<ClassLoader> classLoader;
+	private static Unsafe unsafe;
 
-	private PathMatcher patchMatcher= new AntPathMatcher();
-
-	private boolean useInstanceLoader= false;
-
-	public ApplicationResourceLoader( boolean useInstanceLoader)
+	static
 	{
-		this.useInstanceLoader= useInstanceLoader;
+	    try
+	    {
+//	        Field field = Unsafe.class.getDeclaredField("theUnsafe");
+//	        field.setAccessible(true);
+//	        unsafe = (Unsafe)field.get(null);
+
+	        Constructor<Unsafe> unsafeConstructor = Unsafe.class.getDeclaredConstructor();
+	        unsafeConstructor.setAccessible(true);
+	        //Unsafe unsafe = unsafeConstructor.newInstance();
+	        unsafe = unsafeConstructor.newInstance();
+	    }
+	    catch (Exception e)
+	    {
+	        e.printStackTrace();
+	    }
 	}
 
-	public ApplicationResourceLoader()
+	public static long addressOf(Object o)
 	{
-		this.classLoader= new WeakReference<ClassLoader>( Thread.currentThread().getContextClassLoader());
+			    Object[] array = new Object[] {o};
+
+			    long baseOffset = unsafe.arrayBaseOffset(Object[].class);
+			    int addressSize = unsafe.addressSize();
+			    long objectAddress;
+			    switch (addressSize)
+			    {
+			        case 4:
+			            objectAddress = unsafe.getInt(array, baseOffset);
+			            break;
+			        case 8:
+			            objectAddress = unsafe.getLong(array, baseOffset);
+			            break;
+			        default:
+			            throw new Error("unsupported address size: " + addressSize);
+			    }
+
+			    return(objectAddress);
 	}
 
-	public ApplicationResourceLoader( ClassLoader classLoader)
+	public static final ApplicationClassLoaderManager newInstance()
 	{
-		this.classLoader= new WeakReference<ClassLoader>( classLoader);
+		return new ApplicationClassLoaderManager();
+	}
+
+	private ApplicationClassLoaderManager()
+	{
+		this.parentLoader= Thread.currentThread().getContextClassLoader();
 	}
 
 	public void setInstrumentableMetadataCachesize( int instrumentableMetadataCachesize)
@@ -109,595 +146,4429 @@ public class ApplicationResourceLoader implements ResourceLoader
 		this.classTransformerMetadataCachesize= classTransformerMetadataCachesize;
 	}
 
-	public void setClassLoader( ClassLoader classLoader)
+	public void setClassloaderDelegate(ClassLoaderDelegate classloaderDelegate)
 	{
-		this.classLoader= new WeakReference<ClassLoader>( classLoader);
+		this.classloaderDelegate = classloaderDelegate;
 	}
 
-	public ClassLoader getClassLoader()
+	//[[ T#34 patch
+	public void setNouseSnapshot(boolean nouseSnapshot)
 	{
-		if( this.useInstanceLoader)
-			return Thread.currentThread().getContextClassLoader();
-		else
-			return this.classLoader.get();
+		this.nouseSnapshot = nouseSnapshot;
 	}
+	//]] T#34 patch
 
-	public PathMatcher getPathMatcher()
+	public static URL createClassPathEntry( File pathEntry) throws MalformedURLException
 	{
-		return this.patchMatcher;
-	}
-
-	@Override
-	public Resource getResource( String path)
-	{
-		Assert.notNull( path, "requested resource path can not be null.");
-		if( path.startsWith( CLASSPATH_URL_PREFIX))
-			return new ClassPathResource( path.substring( CLASSPATH_URL_PREFIX.length()), getClassLoader());
-		else
+		if( pathEntry.isFile())
 		{
-			try
+			if( pathEntry.getName().toLowerCase().endsWith( ResourceUtils.URL_PROTOCOL_JAR))
+				return new URL( "jar", "", StringUtils.cleanPath( pathEntry.getAbsolutePath()));
+			else if( pathEntry.getName().toLowerCase().endsWith( ResourceUtils.URL_PROTOCOL_ZIP))
+				return new URL( "zip", "", StringUtils.cleanPath( pathEntry.getAbsolutePath()));
+			else if( pathEntry.getName().toLowerCase().endsWith( ResourceUtils.URL_PROTOCOL_PAR))
+				return new URL( "par", "", 0, StringUtils.cleanPath( pathEntry.getAbsolutePath()), new ParURLStreamHandler());
+		}
+		else if( pathEntry.isDirectory())
+			return new URL( "file:"+ pathEntry.getAbsolutePath());
+		throw new MalformedURLException( "not supported classpath url");
+	}
+
+	public ClassLoaderRef getClassLoaderFor( String applicationName) throws ApplicationNotFoundException
+	{
+		synchronized( monitor)
+		{
+			if( this.sharedLoaderRefs.containsKey( applicationName))
+				return this.sharedLoaderRefs.get( applicationName).enref();
+			else if( this.isolatedLoaderRefs.containsKey( applicationName))
+				return this.isolatedLoaderRefs.get( applicationName).enref();
+
+			throw new ApplicationNotFoundException( applicationName);
+		}
+	}
+
+	public void removeApplication( String applicationName) throws InvalidCommandException, ApplicationNotFoundException
+	{
+		synchronized( monitor)
+		{
+			List<String> usedApplications= new ArrayList<String>();
+			ApplicationClassLoaderHandleRef usedRef= this.sharedLoaderRefs.get( applicationName);
+			if( usedRef== null)
+				usedRef= this.isolatedLoaderRefs.get( applicationName);
+
+			if( usedRef== null)
+				throw new ApplicationNotFoundException( applicationName);
+
+			AbstractApplicationClassLoader usedLoader= usedRef.getClassLoader();
+
+			synchronized( loaderLock)
 			{
-				if( path.startsWith( ResourceUtils.URL_PROTOCOL_PAR))
-					return new URLResource( new URL( null, path, new ParURLStreamHandler()));
+				for( Map.Entry<String, ApplicationClassLoaderHandleRef> entry: this.sharedLoaderRefs.entrySet())
+				{
+					ApplicationClassLoaderHandleRef ref= entry.getValue();
+					ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+					ClassLoaderRef[] shRefs= loader.getUsedShared();
+					for( ClassLoaderRef shRef: shRefs)
+					{
+						if( shRef.getClassLoader().getApplicationName().equals( usedLoader.getApplicationName()))
+						{
+							usedApplications.add( loader.getApplicationName());
+							break;
+						}
+					}
+				}
+
+				for( Map.Entry<String, ApplicationClassLoaderHandleRef> entry: this.isolatedLoaderRefs.entrySet())
+				{
+					ApplicationClassLoaderHandleRef ref= entry.getValue();
+					ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+					ClassLoaderRef[] shRefs= loader.getUsedShared();
+					for( ClassLoaderRef shRef: shRefs)
+					{
+						if( shRef.getClassLoader().getApplicationName().equals( usedLoader.getApplicationName()))
+						{
+							usedApplications.add( loader.getApplicationName());
+							break;
+						}
+					}
+				}
+				if( usedApplications.size()> 0)
+					throw new InvalidCommandException(
+							CommandResponse.SHAREDAPPLICATION_REFRESH_OR_REMOVE_NOTSUPPORTED,
+							"current application ["+ applicationName+ "]'s classloader used for ["+ usedApplications+ "].");
+
+				usedRef= this.sharedLoaderRefs.remove( applicationName);
+				if( usedRef== null)	usedRef= this.isolatedLoaderRefs.remove( applicationName);
+				if( usedRef!= null)
+				{
+					usedRef.getClassLoader().setPooled( false);
+					usedRef.getClassLoader().setStatus( ClassLoaderStatus.DIRTY);
+					logger.info( "Current ClassLoader [{}/{}] released from ApplicationClassLoaderManager.",
+							usedRef.getClassLoader().getUUID(), usedRef.getClassLoader());
+					usedRef.release();
+				}
+			}
+		}
+	}
+
+	public String[] registerApplication( String applicationName, URL[] classpath, URL[] localAppPaths, boolean shared,
+			ApplicationClassLoaderListener[] listeners, File deleteTo, String[] referenceTos, Instrument instrument)
+				throws InvalidCommandException
+	{
+		synchronized( monitor)
+		{
+			if( this.sharedLoaderRefs.containsKey( applicationName) || this.isolatedLoaderRefs.containsKey( applicationName))
+			{
+				try
+				{
+					return refreshApplication(
+							applicationName, classpath, localAppPaths, shared, listeners, deleteTo, referenceTos, instrument);
+				}
+				catch( ApplicationNotFoundException e)
+				{
+					throw new InvalidCommandException( CommandResponse.APPLICATION_NOTFOUND,
+							"application ["+ applicationName+ "] is already deployed.");
+				}
+			}
+//				throw new InvalidCommandException( CommandResponse.APPLICATION_ALREADY_DEPLOYED,
+//						"application ["+ applicationName+ "] is already deployed.");
+
+			ApplicationClassLoaderHandleRef nRef= newClassLoader(
+					applicationName, classpath, localAppPaths, deleteTo, instrument, listeners, shared, referenceTos);
+			ApplicationClassLoader nLoader= (ApplicationClassLoader)nRef.getClassLoader();
+			if( shared)	this.sharedLoaderRefs.put( applicationName, nRef);
+			else	this.isolatedLoaderRefs.put( applicationName, nRef);
+
+			synchronized( loaderLock)
+			{
+				if( shared)
+				{
+					for( Map.Entry<String, ApplicationClassLoaderHandleRef> entry: this.sharedLoaderRefs.entrySet())
+					{
+						ApplicationClassLoaderHandleRef ref= entry.getValue();
+						ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+						if( loader.getReferenceTos().contains( applicationName)
+								&& !loader.getApplicationName().equals( applicationName))
+							loader.addSharedClassLoaders( new ClassLoaderRef[]{ nRef.enref()});
+					}
+
+					for( Map.Entry<String, ApplicationClassLoaderHandleRef> entry: this.isolatedLoaderRefs.entrySet())
+					{
+						ApplicationClassLoaderHandleRef ref= entry.getValue();
+						ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+						if( loader.getReferenceTos().contains( applicationName)
+								&& !loader.getApplicationName().equals( applicationName))
+							loader.addSharedClassLoaders( new ClassLoaderRef[]{ nRef.enref()});
+					}
+				}
+				for( String shApp: referenceTos)
+				{
+					ApplicationClassLoaderHandleRef shRef= this.sharedLoaderRefs.get( shApp);
+					if( shRef!= null && !shApp.equals( applicationName))
+						nLoader.addSharedClassLoaders( new ClassLoaderRef[]{ shRef.enref()});
+//					else
+//						logger.warn( "reference application [{}] for application [{}] is not shared. so can not be referenced.",
+//								shApp, applicationName);
+				}
+			}
+			return new String[]{ applicationName};
+		}
+	}
+
+	@SuppressWarnings( "unchecked")
+	public String[] refreshApplication( String applicationName, URL[] classpath, URL[] localAppPaths, boolean shared,
+			ApplicationClassLoaderListener[] listeners, File deleteTo, String[] referenceTos, Instrument instrument)
+				throws ApplicationNotFoundException
+	{
+		Set<String> refreshToApplications= new HashSet<String>();
+		synchronized( monitor)
+		{
+			ApplicationClassLoaderHandleRef usedRef= this.sharedLoaderRefs.get( applicationName);
+			if( usedRef== null)
+				usedRef= this.isolatedLoaderRefs.get( applicationName);
+
+			if( usedRef== null)
+				throw new ApplicationNotFoundException( applicationName);
+
+			ApplicationClassLoaderHandleRef nRef= newClassLoader(
+					applicationName, classpath, localAppPaths, deleteTo, instrument, listeners, shared, referenceTos);
+
+			synchronized( loaderLock)
+			{
+				ApplicationClassLoaderHandleRef[][] context= refreshClassLoaderContext( usedRef, nRef, new HashSet<String>());
+
+				ApplicationClassLoaderHandleRef[] toUses= context[0];
+				ApplicationClassLoaderHandleRef[] toClears= context[1];
+				for( ApplicationClassLoaderHandleRef ref: toClears)
+				{
+					// sequence of statements is very important!!!
+					ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+					if( loader.isShared())	this.sharedLoaderRefs.remove( loader.getApplicationName());
+					else	this.isolatedLoaderRefs.remove( loader.getApplicationName());
+
+					ClassLoaderRef[] shRefs= loader.getSharedClassLoaderRefs();
+					for( ClassLoaderRef shRef: shRefs)
+					{
+						logger.info( "Shared ClassLoader [{}/{}/{}] for application [{}] is released for clearance.",
+								new Object[]{ shRef.getClassLoader().getUUID(), shRef.getClassLoader(),
+								shRef.getClassLoader().getApplicationName(), loader.getApplicationName()});
+						shRef.release();
+					}
+					loader.setPooled( false);
+					loader.setStatus( ClassLoaderStatus.DIRTY);
+
+					logger.info( "Current ClassLoader [{}/{}/{}] released from ApplicationClassLoaderManager.",
+							new Object[]{ loader.getUUID(), loader, loader.getApplicationName()});
+					// last reference will be released in application destroy time.
+					ref.release();
+				}
+
+				for( ApplicationClassLoaderHandleRef ref: toUses)
+				{
+					ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+					if( loader.isShared())	this.sharedLoaderRefs.put( loader.getApplicationName(), ref);
+					else	this.isolatedLoaderRefs.put( loader.getApplicationName(), ref);
+					refreshToApplications.add( loader.getApplicationName());
+					logger.info( "Applicaiton ClassLoader[{}/{}] for application [{}] will be used.",
+							new Object[]{ loader.getUUID(), loader, loader.getApplicationName()});
+				}
+
+				for( ApplicationClassLoaderHandleRef ref: toUses)
+				{
+					ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+					Set<String> refApps= !loader.getApplicationName().equals( applicationName) ? loader.getReferenceTos() : null;
+					if( refApps== null)
+					{
+						refApps= new HashSet<String>();
+						refApps.addAll( CollectionUtils.arrayToList( referenceTos));
+					}
+
+					logger.debug( "{} loader referencetos {}.", loader.getApplicationName(), refApps);
+					for( String shApp: refApps)
+					{
+						ApplicationClassLoaderHandleRef shRef= this.sharedLoaderRefs.get( shApp);
+						if( shRef!= null && !shApp.equals( loader.getApplicationName()))
+						{
+							logger.info( "shared Classloader [{}/{}/{}] is assigned to application [{}].",
+									new Object[]{ shRef.getClassLoader().getUUID(), shRef.getClassLoader(),
+									shRef.getClassLoader().getApplicationName(), loader.getApplicationName()});
+							loader.addSharedClassLoaders( new ClassLoaderRef[]{ shRef.enref()});
+						}
+						else
+							logger.warn( "reference application [{}] for application [{}] is not shared. so can not be referenced.",
+									shApp, loader.getApplicationName());
+					}
+				}
+			}
+			return refreshToApplications.toArray( new String[refreshToApplications.size()]);
+		}
+	}
+
+	public ClassLoaderRef[] getClassLoaderForStaging( String applicationName, URL[] classpath, URL[] localApplicationPaths,
+			boolean shared, ApplicationClassLoaderListener[] listeners, File deleteTo, String[] referenceTos, Instrument instrument)
+				throws ApplicationNotFoundException
+	{
+		Set<ClassLoaderRef> refreshToApplications= new HashSet<ClassLoaderRef>();
+		synchronized( monitor)
+		{
+			ApplicationClassLoaderHandleRef usedRef= this.sharedLoaderRefs.get( applicationName);
+			if( usedRef== null)
+				usedRef= this.isolatedLoaderRefs.get( applicationName);
+
+			if( usedRef== null)
+				throw new ApplicationNotFoundException( applicationName);
+
+			ApplicationClassLoaderHandleRef nRef= newClassLoader(
+					applicationName, classpath, localApplicationPaths, deleteTo, instrument, listeners, shared, referenceTos);
+
+			synchronized( loaderLock)
+			{
+				ApplicationClassLoaderHandleRef[][] context= refreshClassLoaderContext( usedRef, nRef, new HashSet<String>());
+				ApplicationClassLoaderHandleRef[] toUses= context[0];
+
+				Map<String, ApplicationClassLoaderHandleRef> shRefsToUse=
+						new HashMap<String, ApplicationClassLoaderHandleRef>();
+				for( Map.Entry<String, ApplicationClassLoaderHandleRef> entry: this.sharedLoaderRefs.entrySet())
+					shRefsToUse.put( entry.getKey(), entry.getValue());
+
+				for( ApplicationClassLoaderHandleRef ref: toUses)
+				{
+					ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+					if( loader.isShared())	shRefsToUse.put( loader.getApplicationName(), ref);
+					refreshToApplications.add( ref);
+					logger.info( "Application ClassLoader[{}/{}] for application [{}] will be used in staging.",
+							new Object[]{ loader.getUUID(), loader, loader.getApplicationName()});
+				}
+
+				for( ApplicationClassLoaderHandleRef ref: toUses)
+				{
+					ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+					for( String shApp: loader.getReferenceTos())
+					{
+						ApplicationClassLoaderHandleRef shRef= shRefsToUse.get( shApp);
+						if( shRef!= null && !shApp.equals( loader.getApplicationName()))
+							loader.addSharedClassLoaders( new ClassLoaderRef[]{ shRef.enref()});
+						else
+							logger.warn( "reference application [{}] for application [{}] is not shared. so can not be referenced.",
+									shApp, loader.getApplicationName());
+					}
+				}
+			}
+			return refreshToApplications.toArray( new ClassLoaderRef[refreshToApplications.size()]);
+		}
+	}
+
+	public ClassLoaderRef[] getClassLoaderForMultiStaging( ClassLoaderElementsForCreation[] classLoaderElements)
+			throws ApplicationNotFoundException
+	{
+		Set<ClassLoaderRef> refreshToApplications= new HashSet<ClassLoaderRef>();
+		Set<ApplicationClassLoaderHandleRef> newClassLoaders= new HashSet<ApplicationClassLoaderHandleRef>();
+		synchronized( monitor)
+		{
+			// 1. preCheck
+			for( ClassLoaderElementsForCreation element: classLoaderElements)
+			{
+				if( !this.sharedLoaderRefs.containsKey( element.applicationName)
+						&& !this.isolatedLoaderRefs.containsKey( element.applicationName))
+					throw new ApplicationNotFoundException( element.applicationName);
+			}
+
+			// 2. create new classLoaders
+			Set<String> excludes= new HashSet<String>();
+			for( ClassLoaderElementsForCreation element: classLoaderElements)
+			{
+				newClassLoaders.add( newClassLoader(
+						element.applicationName, element.classpath, element.localApplicationPath, element.deleteTo,
+						element.instrument, element.listeners, element.shared, element.referenceTos));
+				excludes.add( element.applicationName);
+			}
+
+			synchronized( loaderLock)
+			{
+				Map<String, ApplicationClassLoaderHandleRef> toUses= new HashMap<String, ApplicationClassLoaderHandleRef>();
+
+				// 3. refresh ClassLoader Context
+				for( ApplicationClassLoaderHandleRef nRef: newClassLoaders)
+				{
+					if( toUses.containsKey( nRef.getClassLoader().getApplicationName()))
+						continue;
+					ApplicationClassLoaderHandleRef usedRef= this.sharedLoaderRefs.get( nRef.getClassLoader().getApplicationName());
+					if( usedRef== null)
+						usedRef= this.isolatedLoaderRefs.get( nRef.getClassLoader().getApplicationName());
+					if( usedRef== null) continue;
+
+					ApplicationClassLoaderHandleRef[] refresheds= refreshClassLoaderContext( usedRef, nRef, excludes)[0];
+					for( ApplicationClassLoaderHandleRef toUse: refresheds)
+					{
+						toUses.put( toUse.getClassLoader().getApplicationName(), toUse);
+						excludes.add( toUse.getClassLoader().getApplicationName());
+					}
+				}
+
+				Map<String, ApplicationClassLoaderHandleRef> shRefsToUse=
+						new HashMap<String, ApplicationClassLoaderHandleRef>();
+				for( Map.Entry<String, ApplicationClassLoaderHandleRef> entry: this.sharedLoaderRefs.entrySet())
+					shRefsToUse.put( entry.getKey(), entry.getValue());
+
+				for( ApplicationClassLoaderHandleRef ref: toUses.values())
+				{
+					ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+					if( loader.isShared()) shRefsToUse.put( loader.getApplicationName(), ref);
+					refreshToApplications.add( ref);
+					logger.info( "Application ClassLoader[{}/{}] for application [{}] will be used in staging.",
+							new Object[]{ loader.getUUID(), loader, loader.getApplicationName()});
+				}
+
+				for( ApplicationClassLoaderHandleRef ref: toUses.values())
+				{
+					ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+					for( String shApp: loader.getReferenceTos())
+					{
+						ApplicationClassLoaderHandleRef shRef= shRefsToUse.get( shApp);
+						if( shRef!= null && !shApp.equals( loader.getApplicationName()))
+							loader.addSharedClassLoaders( new ClassLoaderRef[]{ shRef.enref()});
+						else
+							logger.warn( "reference application [{}] for application [{}] is not shared. so can not be referenced.",
+									shApp, loader.getApplicationName());
+					}
+				}
+			}
+			return refreshToApplications.toArray( new ClassLoaderRef[refreshToApplications.size()]);
+		}
+	}
+
+	public void clearThrowawayedRefs( ClassLoaderRef[] refsToClear)
+	{
+		synchronized( monitor)
+		{
+			for( ClassLoaderRef ref: refsToClear)
+			{
+				// sequence of statements is very important!!!
+				ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+				ClassLoaderRef[] shRefs= loader.getSharedClassLoaderRefs();
+				for( ClassLoaderRef shRef: shRefs)
+				{
+					logger.info( "Shared ClassLoader [{}/{}] for application [{}] is released for clearance.",
+							new Object[]{ shRef.getClassLoader().getUUID(), shRef.getClassLoader(), loader.getApplicationName()});
+					shRef.release();
+				}
+			}
+		}
+	}
+
+	public void applyClassLoaderForStaging( ClassLoaderRef[] refsToUse, ClassLoaderRef[] refsToClear)
+	{
+		synchronized( monitor)
+		{
+			for( ClassLoaderRef ref: refsToClear)
+			{
+				// sequence of statements is very important!!!
+				ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+				ClassLoaderRef refToRelease= null;
+				if( loader.isShared())	refToRelease= this.sharedLoaderRefs.remove( loader.getApplicationName());
+				else	refToRelease= this.isolatedLoaderRefs.remove( loader.getApplicationName());
+
+				ClassLoaderRef[] shRefs= loader.getSharedClassLoaderRefs();
+				for( ClassLoaderRef shRef: shRefs)
+				{
+					logger.info( "Shared ClassLoader [{}/{}] for application [{}] is released for clearance.",
+							new Object[]{ shRef.getClassLoader().getUUID(), shRef.getClassLoader(), loader.getApplicationName()});
+					shRef.release();
+				}
+				loader.setPooled( false);
+				loader.setStatus( ClassLoaderStatus.DIRTY);
+				logger.info( "Current ClassLoader [{}/{}] released from ApplicationClassLoaderManager.", loader.getUUID(), loader);
+
+				// fault last reference will be released in application destroy time. delete below
+				if( refToRelease!= null)
+					refToRelease.release();
+			}
+
+			for( ClassLoaderRef ref: refsToUse)
+			{
+				ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+				if( loader.isShared())
+					this.sharedLoaderRefs.put( loader.getApplicationName(),
+							(ApplicationClassLoaderHandleRef)( (ApplicationClassLoaderHandleRef)ref).enref());
 				else
-					return new URLResource( new URL( path));
-			}
-			catch( MalformedURLException e)
-			{
-				return getResouceByPath( path);
+					this.isolatedLoaderRefs.put( loader.getApplicationName(),
+							(ApplicationClassLoaderHandleRef)( (ApplicationClassLoaderHandleRef)ref).enref());
+				logger.info( "Applicaiton ClassLoader[{}/{}] for application [{}] will be used.",
+						new Object[]{ loader.getUUID(), loader, loader.getApplicationName()});
 			}
 		}
 	}
 
-	protected Resource getResouceByPath( String path)
+	private ApplicationClassLoaderHandleRef[][] refreshClassLoaderContext(
+			ApplicationClassLoaderHandleRef usedRef, ApplicationClassLoaderHandleRef nRef, Set<String> excludes)
 	{
-		return new ClassPathContextResource( path, getClassLoader());
+		ApplicationClassLoaderHandleRef[][] context= new ApplicationClassLoaderHandleRef[2][];
+		Set<ApplicationClassLoaderHandleRef> toUses= new HashSet<ApplicationClassLoaderHandleRef>();
+		Set<ApplicationClassLoaderHandleRef> toClears= new HashSet<ApplicationClassLoaderHandleRef>();
+		if( usedRef!= null)
+		{
+			toClears.add( usedRef);
+
+			Map<String, ApplicationClassLoaderHandleRef> toChecks= new HashMap<String, ApplicationClassLoaderHandleRef>();
+			logger.info( "check sharedLoaders pool.");
+			for( Map.Entry<String, ApplicationClassLoaderHandleRef> entry: this.sharedLoaderRefs.entrySet())
+			{
+				ApplicationClassLoaderHandleRef ref= entry.getValue();
+				ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+				if( nRef.getClassLoader().getApplicationName().equals( loader.getApplicationName()))
+					continue;
+
+				toChecks.clear();
+				toChecks.putAll( this.sharedLoaderRefs);
+				toChecks.putAll( this.isolatedLoaderRefs);
+				traceLoaderReferences( ref, usedRef, toChecks, loader.getReferenceTos(), toUses, toClears, excludes);
+			}
+
+			logger.info( "check isolatedLoaders pool.");
+			for( Map.Entry<String, ApplicationClassLoaderHandleRef> entry: this.isolatedLoaderRefs.entrySet())
+			{
+				ApplicationClassLoaderHandleRef ref= entry.getValue();
+				ApplicationClassLoader loader= (ApplicationClassLoader)ref.getClassLoader();
+				if( nRef.getClassLoader().getApplicationName().equals( loader.getApplicationName()))
+					continue;
+
+				toChecks.clear();
+				toChecks.putAll( this.sharedLoaderRefs);
+				toChecks.putAll( this.isolatedLoaderRefs);
+				traceLoaderReferences( ref, usedRef, toChecks, loader.getReferenceTos(), toUses, toClears, excludes);
+			}
+		}
+
+		if( nRef!= null)
+			toUses.add( nRef);
+
+		context[0]= toUses.toArray( new ApplicationClassLoaderHandleRef[toUses.size()]);
+		context[1]= toClears.toArray( new ApplicationClassLoaderHandleRef[toClears.size()]);
+		return context;
+	}
+
+	private boolean traceLoaderReferences( ApplicationClassLoaderHandleRef usedRef,
+			ApplicationClassLoaderHandleRef checkFor, Map<String, ApplicationClassLoaderHandleRef> toChecks,
+			Set<String> referenceTos, Set<ApplicationClassLoaderHandleRef> toUses,
+			Set<ApplicationClassLoaderHandleRef> toClears, Set<String> excludes)
+	{
+//		logger.info( "loader for check {}/{}/{}/{}",
+//				new Object[]{ usedRef.getClassLoader().getApplicationName(), referenceTos,
+//				checkFor.getClassLoader().getApplicationName(), toChecks.keySet()});
+		ApplicationClassLoader usedLoader= (ApplicationClassLoader)usedRef.getClassLoader();
+
+		if( referenceTos.contains( checkFor.getClassLoader().getApplicationName()))
+		{
+			if( excludes.contains( usedLoader.getApplicationName()))
+				return true;
+
+			toUses.add( newClassLoader( usedLoader.getApplicationName(), usedLoader.getFinder().getInitialUrls(),
+					usedLoader.getLocalApplicationClasspaths(),  usedLoader.getDeleteTo(), usedLoader.getInstrument(),
+					usedLoader.getListeners(), usedLoader.isShared(),
+					usedLoader.getReferenceTos().toArray( new String[usedLoader.getReferenceTos().size()])));
+			usedRef.getClassLoader().setDeleteOnDestroy( false);
+			toClears.add( usedRef);
+			logger.info( "managed ClassLoader [{}/{}] for application [{}] will be refreshed.",
+					new Object[]{  usedLoader.getUUID(), usedLoader, usedLoader.getApplicationName()});
+			return true;
+		}
+		else
+		{
+			for( String referenceTo: referenceTos)
+			{
+				ApplicationClassLoaderHandleRef toCheck= toChecks.remove( referenceTo);
+				if( toCheck!= null)
+				{
+					if( traceLoaderReferences( usedRef, checkFor, toChecks,
+							( (ApplicationClassLoader)toCheck.getClassLoader()).getReferenceTos(), toUses, toClears, excludes))
+						return true;
+				}
+			}
+			return false;
+		}
+	}
+
+
+	private ApplicationClassLoaderHandleRef newClassLoader( String applicationName, URL[] classpath, URL[] localApplicationPaths,
+			File deleteTo, Instrument instrument, ApplicationClassLoaderListener[] listeners, boolean shared, String[] referenceTos)
+	{
+		AbstractApplicationClassLoader loader=
+				new ApplicationClassLoader( applicationName,
+					new DefaultApplicationClassFinder( classpath),
+					shared, deleteTo, referenceTos, instrument, this.parentLoader, this.loaderLock);
+		loader.setInstrument( instrument);
+		loader.setInstrumentableMetadataCachesize( this.instrumentableMetadataCachesize);
+		loader.setClassTransformerMetadataCachesize( this.classTransformerMetadataCachesize);
+		loader.setClassLoaderDelegate(this.classloaderDelegate);
+		//[[ T#34 patch
+		if (this.nouseSnapshot)
+		{
+			loader.setDeleteOnDestroy(false);
+		}
+		else
+		{
+			loader.setDeleteOnDestroy(true);
+		}
+		//]] T#34 patch
+		List<URL> apppaths= new ArrayList<URL>();
+		apppaths.addAll( Arrays.asList( localApplicationPaths));
+		loader.setLocalApplicationClasspaths( apppaths);
+		if( listeners!= null)
+		{
+			for( ApplicationClassLoaderListener listener: listeners)
+				loader.addListener( listener);
+		}
+		loader.setPooled( true);
+		loader.setStatus( ClassLoaderStatus.POOLED);
+		this.weakLoaders.put( loader, loader.toString());
+		ApplicationClassLoaderHandleRef nref=
+				ApplicationClassLoaderHandleRef.refInstance(
+						new LoaderHandleReferent( ApplicationClassLoaderHandler.adapt( loader)));
+		logger.info( "ApplicationClassLoader [{}/{}] for {} application [{}] is created.",
+				new Object[]{ loader.getUUID(), loader, shared ? "shared" : "", applicationName});
+
+		loader.publishPostInitializeEvent( new ApplicationClassLoaderEvent( applicationName, shared, loader));
+		return nref;
+	}
+
+	public void finalize()
+	{
+		destroy( true);
+	}
+
+	public void destroy( boolean forced)
+	{
+		logger.info( "ApplicationClassLoaderManager will be destoyed.");
+		AbstractApplicationClassLoader loader= null;
+
+		String[] names= this.sharedLoaderRefs.keySet().toArray( new String[this.sharedLoaderRefs.keySet().size()]);
+		for( String name: names)
+		{
+			ClassLoaderRef ref= this.sharedLoaderRefs.remove( name);
+			if( ref!= null)
+			{
+				try
+				{
+//					synchronized( loaderLock)
+					{
+						loader= null;
+						try
+						{
+							loader= ref.getClassLoader();
+							loader.setPooled( false);
+							loader.setStatus( ClassLoaderStatus.DIRTY);
+							ref.release();
+							if( forced && !loader.isDestroyed())	loader.destroy();
+						}catch( NilRefException ne){}
+					}
+				}
+				catch( NilRefException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+
+		names= this.isolatedLoaderRefs.keySet().toArray( new String[this.isolatedLoaderRefs.keySet().size()]);
+		for( String name: names)
+		{
+			ClassLoaderRef ref= this.isolatedLoaderRefs.remove( name);
+			if( ref!= null)
+			{
+				try
+				{
+//					synchronized( loaderLock)
+					{
+						loader= null;
+						try
+						{
+							loader= ref.getClassLoader();
+							loader.setPooled( false);
+							loader.setStatus( ClassLoaderStatus.DIRTY);
+							ref.release();
+							if( forced && !loader.isDestroyed())	loader.destroy();
+						}catch( NilRefException ne){}
+					}
+				}
+				catch( NilRefException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	/**
+	 * SELECT OBJECTS inbounds(loader) FROM bxm.instance.loader.classloader.context.ApplicationClassLoader loader
+	 * @return
+	 */
+	public StringBuffer dumpLoaders()
+	{
+        StringBuffer sb= new StringBuffer();
+        AbstractApplicationClassLoader[] ldrs=
+        	(AbstractApplicationClassLoader[])weakLoaders.keySet().toArray(
+        			new AbstractApplicationClassLoader[weakLoaders.keySet().size()]);
+        int cnt= 0;
+        int gcCandidates= 0;
+        sb.append( "\r\n#############################################################\r\n");
+        sb.append( "#\r\n");
+        sb.append( "#                                 dump ApplicationClassLoaders                                      \r\n");
+        sb.append( "#\r\n");
+        sb.append( "#############################################################\r\n");
+
+        for( AbstractApplicationClassLoader ldr: ldrs)
+		{
+        	if( ldr== null)
+        	{
+        		gcCandidates++;
+        		continue;
+        	}
+        	String loaderAddress = Long.toHexString(ApplicationClassLoaderManager.addressOf(ldr));
+        	sb.append( this.weakLoaders.get( ldr)+ ", 0x" + loaderAddress +"\r\n");
+			sb.append( "uuid : "+ ldr.getUUID()+ "\r\n");
+			sb.append( "application : "+ ldr.getApplicationName()+ "\r\n");
+			sb.append( "pooled : "+ ldr.isPooled()+ "\r\n");
+			sb.append( "status : "+ ldr.getStatus().statusName()+ "\r\n");
+			sb.append( "dirty : "+ ldr.isDirty()+ "\r\n");
+			sb.append( "destroyed : "+ ldr.isDestroyed()+ "\r\n");
+			sb.append( "shared : "+ ldr.isShared()+ "\r\n");
+
+			for( File deleteTo: ldr.getDeleteOnDestroy())
+				sb.append( "deleteOnDestroy path root : "+ deleteTo.getAbsolutePath()+ "\r\n");
+
+
+			sb.append( "createdTime : "+ ldr.getCreatedTime() + ", " + new Date(ldr.getCreatedTime()) + "\r\n");
+			if( ldr.isDestroyed())
+				sb.append( "destroyedTime : "+ ldr.getDestroyedTime()+ "\r\n");
+			sb.append( "----------------------------------------------------------------------\r\n");
+			sb.append( "\r\n");
+			cnt++;
+		}
+        sb.append( "----------------------------------------------------------------------\r\n");
+        sb.append( " ApplicationClassLoader count= "+ cnt+  ", gc candidates= "+ gcCandidates+ " \r\n");
+        sb.append( "----------------------------------------------------------------------\r\n");
+        sb.append( "#############################################################\r\n");
+        return sb;
+	}
+
+	public void dumpLoadersToFile( String path, boolean destroyedOnly)
+	{
+		AbstractApplicationClassLoader[] ldrs=
+			(AbstractApplicationClassLoader[])weakLoaders.keySet().toArray(
+					new AbstractApplicationClassLoader[weakLoaders.keySet().size()]);
+		for( AbstractApplicationClassLoader ldr: ldrs)
+		{
+			if( ldr== null)	continue;
+			if( destroyedOnly)
+			{
+				if( ldr.isDestroyed())	ldr.dumpLoadedClasses( path);
+			}
+			else
+				ldr.dumpLoadedClasses( path);
+		}
+	}
+
+	public void dumpLoaderToFIle( String loaderName, String path)
+	{
+		AbstractApplicationClassLoader[] ldrs=
+			(AbstractApplicationClassLoader[])weakLoaders.keySet().toArray(
+					new AbstractApplicationClassLoader[weakLoaders.keySet().size()]);
+		for( AbstractApplicationClassLoader ldr: ldrs)
+		{
+			if( ldr== null)	continue;
+			String ldrName= weakLoaders.get( ldr);
+			if( ldrName.equals( loaderName))
+			{
+				ldr.dumpLoadedClasses( path);
+				return;
+			}
+		}
+	}
+}
+
+
+package bxm.instance;
+
+import static bxm.Configurable.APPLICATION_JAXB_CONTEXT_CLASS;
+import static bxm.common.util.ClassUtils.CLASS_FILE_SUFFIX;
+import static bxm.container.ApplicationContainerLoader.CONTAINER_FOR_BATCH;
+import static bxm.instance.CommandResponse.APPLICATION_ALREADY_DEPLOYED;
+import static bxm.instance.CommandResponse.APPLICATION_ALREADY_UNDEPLOYED;
+import static bxm.instance.CommandResponse.APPLICATION_NOTFOUND;
+import static bxm.instance.CommandResponse.INVALID_APPLICATION_FORMAT;
+import static bxm.instance.CommandResponse.INVALID_APPLICATION_LOADINGMODE;
+import static bxm.instance.CommandResponse.SHAREDAPPLICATION_REFRESH_OR_REMOVE_NOTSUPPORTED;
+import static bxm.instance.config.ApplicationLoadingMode.COLD;
+import static bxm.instance.config.ApplicationLoadingMode.HOT;
+import static bxm.instance.config.ApplicationLoadingMode.TEPID;
+import static bxm.instance.loader.resource.ResourceLoader.CLASSPATH_ALL_URL_PREFIX;
+import static bxm.instance.support.DeployedApplicationModel.APPLICATION_DD_FILE;
+import static bxm.instance.support.DeployedApplicationModel.APPLICATION_DD_FILENAME;
+import static bxm.instance.support.DeployedApplicationModel.BXM_ARCHIVE_SUFFIX;
+import static bxm.instance.support.DeployedApplicationModel.DEFAULT_RESOURCE_PATTERN;
+import static bxm.instance.support.DeployedApplicationModel.EXTRACTED_PATH_SUFFIX;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
+import java.util.zip.ZipEntry;
+
+import jakarta.servlet.ServletContext;
+import javax.sql.DataSource;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.apache.commons.dbcp2.BasicDataSource;
+import org.objectweb.asm.ClassReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
+import bxm.Initializable;
+import bxm.InterceptorDefinition;
+import bxm.SystemPostProcessor;
+import bxm.SystemPreProcessor;
+import bxm.app.Application;
+import bxm.app.DeployedApplication;
+import bxm.app.GetBeanTask;
+import bxm.app.LightweightApplicationContext;
+import bxm.app.config.ApplicationConfigurationException;
+import bxm.app.config.ApplicationConfigurationManager;
+import bxm.common.event.scheduling.CronTrigger;
+import bxm.common.event.scheduling.PeriodicTrigger;
+import bxm.common.event.scheduling.ScheduledTaskRegistrar;
+import bxm.common.instance.config.ApplicationType;
+import bxm.common.instance.config.BxmApplication;
+import bxm.common.util.ClassUtils;
+import bxm.common.util.CollectionUtils;
+import bxm.common.util.DefaultResourceErrorHandler;
+import bxm.common.util.ResourceUtils;
+import bxm.common.util.StringUtils;
+import bxm.common.util.SystemPropertyUtils;
+import bxm.common.util.SystemUtils;
+import bxm.common.util.concurrent.NamedExecutors;
+import bxm.common.util.concurrent.pool.WorkerSourceBuilder;
+import bxm.common.util.task.SimpleSyncTaskExecutor;
+import bxm.common.util.task.TaskExecutor;
+import bxm.container.ApplicationContainerLoader;
+import bxm.container.JobRunner;
+import bxm.container.LApplicationContext;
+import bxm.container.OperationTimeoutManager;
+import bxm.container.RemoteServiceConnectedJmsExecutor;
+import bxm.container.task.AsyncTaskExecutorFactory;
+import bxm.deferred.DeferredContext;
+import bxm.inf.jms.MessageService;
+import bxm.instance.batch.BatchContext;
+import bxm.instance.bb.BlackboxContext;
+import bxm.instance.context.InstanceContext;
+import bxm.instance.context.control.CachedControlParameters;
+import bxm.instance.context.control.ControlParameters;
+import bxm.instance.das.DataAccessContext;
+import bxm.instance.event.InstanceEvent;
+import bxm.instance.event.InstanceListener;
+import bxm.instance.loader.ApplicationLoader;
+import bxm.instance.loader.BeanCandidateScannerSupport;
+import bxm.instance.loader.classloader.ApplicationStage;
+import bxm.instance.loader.classloader.context.ApplicationClassLoader;
+import bxm.instance.loader.classloader.context.ApplicationClassLoaderManager;
+import bxm.instance.loader.classloader.context.ClassLoaderElementsForCreation;
+import bxm.instance.loader.classloader.event.ApplicationClassLoaderListener;
+import bxm.instance.loader.classloader.internal.AbstractApplicationClassLoader;
+import bxm.instance.loader.classloader.internal.ApplicationClassFinder;
+import bxm.instance.loader.classloader.internal.DefaultApplicationClassFinder;
+import bxm.instance.loader.classloader.ref.ClassLoaderRef;
+import bxm.instance.loader.classloading.instrument.ClassResourceReader;
+import bxm.instance.loader.resource.AntPathMatcher;
+import bxm.instance.loader.resource.PathMatcher;
+import bxm.instance.loader.resource.Resource;
+import bxm.instance.loader.resource.ResourceLoader;
+import bxm.instance.loader.resource.URLResource;
+import bxm.instance.loader.support.MetadataReader;
+import bxm.instance.management.ApplicationInfo;
+import bxm.instance.management.InstanceManagement;
+import bxm.instance.management.deployment.ApplicationDeploySessionListener;
+import bxm.instance.management.deployment.DeploySession;
+import bxm.instance.message.DataBaseMessageSource;
+import bxm.instance.message.MessageSource;
+import bxm.instance.message.SystemMessageResolver;
+import bxm.instance.support.BasePackageFilter;
+import bxm.instance.support.DeployedApplicationModel;
+import bxm.instance.support.ParURLConnection;
+import bxm.instance.support.ParURLStreamHandler;
+import bxm.request.ChunkedResponseHandler;
+import bxm.request.ContextHeader;
+import bxm.request.support.IOmmFieldType;
+import bxm.request.support.IOmmTypeClassVisitor;
+import bxm.request.support.ServiceIOmmFieldProperties;
+import bxm.transaction.TransactionManagerFactory;
+import bxm.transaction.jms.JmsConnector;
+import bxm.transaction.support.TransactionSynchronization;
+
+/**
+ * @file		bxm.instance.FrameworkInstance.java
+ * @filetype	java source file
+ * @brief
+ * @author		Jong Oh Lee
+ * @version		1.0
+ * @history
+ * 성		명		일			자			근  거  자  료				변  경  내  용
+ * ----------------	-------------------		-------------------		--------------------------
+ * Jong Oh Lee :	Jul 25, 2011:			product 개발:				신규 작성
+ *
+ */
+public class FrameworkInstance implements Initializable, Runnable
+{
+	private static Logger logger= LoggerFactory.getLogger( FrameworkInstance.class);
+
+	private String uuid;
+	private String domainId;
+	private String name;
+	private String description;
+
+	private ApplicationLoader applicationLoader;
+	private ScheduledTaskRegistrar scheduledApplicationLoader;
+	private BeanCandidateScannerSupport scannerSupport;
+	private InstanceContext instanceContext;
+	private DataSource datasource;
+	private JmsConnector jmsConnector;
+	private RemoteServiceConnectedJmsExecutor<ContextHeader> jmsExecutor;
+
+	private InstanceManagement instanceManager;
+
+	private DataAccessContext dataAccessContext;
+	private MessageSource messageSource;
+	private MessageSource systemMessageSource;
+	private DeferredContext deferredContext;
+	private MessageService messageService;
+	private BlackboxContext blackboxContext;
+
+	private ChunkedResponseHandler chunkedResponseHandler;
+
+	private Map<String, IOmmFieldType> headerProperties= new LinkedHashMap<String, IOmmFieldType>();
+
+	private List<InterceptorDefinition> instanceLifecycleListenes= new LinkedList<InterceptorDefinition>();
+
+	private Map<String, DeployedApplication> deployedApplications=
+			Collections.synchronizedMap( new HashMap<String, DeployedApplication>());
+	private Map<String, DeployedApplication> undeployedApplications=
+			Collections.synchronizedMap( new HashMap<String, DeployedApplication>());
+	private Map<String, DeployedApplication> validatingApplications=
+			Collections.synchronizedMap( new HashMap<String, DeployedApplication>());
+
+	private Set<DeployedApplication> referenceKeeper= Collections.synchronizedSet( new HashSet<DeployedApplication>());
+
+	private Map<URL, Long> jarModTimes= Collections.synchronizedMap( new HashMap<URL, Long>());
+	private Map<URL, Long> dirModTimes= Collections.synchronizedMap( new HashMap<URL, Long>());
+	private Map<URL, Long> commandModTimes= Collections.synchronizedMap( new HashMap<URL, Long>());
+
+	private File appHome;
+	private File deployHome;
+
+	private long createdTime= -1L;
+	private long destroyedTime= -1L;
+
+	private final ApplicationClassLoaderManager classLoaderManager;
+
+	private volatile boolean managed= false;
+
+	private boolean standalone= false;
+
+	private boolean batch= false;
+
+	private ServletContext servletContext;
+
+	private Object singletonLock= new Object();
+
+	private int initWorkerPoolSize= WorkerSourceBuilder.DEFAULT_WORKER_POOL_SIZE;
+	private int maxWorkerPoolSize= WorkerSourceBuilder.DEFAULT_MAX_WORKER_POOL_SIZE;
+	private long workerWaitTimeout= WorkerSourceBuilder.DEFAULT_WORKER_WAIT_TIME;
+
+	private String exclusiveLoggingHome;
+
+	private String nodeName;
+
+	private String containerName;
+
+	private String contextName;
+
+	private String systemMode;
+
+	private JndiDataSourceCache jndiDatasources= new JndiDataSourceCache();
+
+	private static final int BUFFER_SIZE= 16* 1024;
+
+	private Map<String, Long> applicationResourceLastModified= new HashMap<String, Long>();
+
+	private boolean initDeployed= false;
+
+	private Object deferredInitLock= new Object();
+
+	private LinkedList<GetBeanTask> deferredTasks= new LinkedList<GetBeanTask>();
+
+	private List<SystemPreProcessor> preProcessors= new ArrayList<SystemPreProcessor>();
+	private List<SystemPostProcessor> postProcessors= new ArrayList<SystemPostProcessor>();
+
+	private List<TransactionSynchronization> transactionSynchronizations= new ArrayList<TransactionSynchronization>();
+
+	private BatchContext batchContext;
+
+	public FrameworkInstance( String name)
+	{
+		this.name= name;
+		this.uuid= SystemUtils.generateGUID();
+		this.classLoaderManager= ApplicationClassLoaderManager.newInstance();
+		this.createdTime= System.currentTimeMillis();
+		logger.info( "[{}/{}] current framework instance [{}] is created", new Object[]{getUUID(), getName(), this});
+	}
+
+	public void setServletContext( ServletContext sc)
+	{
+		this.servletContext= sc;
 	}
 
 	@Override
-	public Resource[] getLocalResources( String pathPattern) throws IOException
+	public boolean initialize()
 	{
-		Assert.notNull( pathPattern, "pathPattern can not be null.");
-		if( pathPattern.startsWith( CLASSPATH_ALL_URL_PREFIX))
+		// system message resolver use message source of config file
+		if (getSystemMessageSource() != null)
 		{
-			if( getPathMatcher().isPattern( pathPattern.substring( CLASSPATH_ALL_URL_PREFIX.length())))
-				return findPathMatchingLocalResources( pathPattern);
-			else
-				return findLocalResources( pathPattern.substring( CLASSPATH_ALL_URL_PREFIX.length()));
+			logger.debug("SystemMessageResolver use SystemMessageSource.");
+			SystemMessageResolver.setMessageSource(getSystemMessageSource());
 		}
 		else
 		{
-			int prefixEnd= pathPattern.indexOf( ":")+ 1;
-			if( getPathMatcher().isPattern( pathPattern.substring( prefixEnd)))
-				return findPathMatchingLocalResources( pathPattern);
-			else
-				return new Resource[]{ getResource( pathPattern) };
+			logger.debug("SystemMessageResolver use MessageSource.");
+			SystemMessageResolver.setMessageSource(getMessageSource());
 		}
-	}
 
-	@Override
-	public Resource[] getResources( String pathPattern) throws IOException
-	{
-		Assert.notNull( pathPattern, "pathPattern can not be null.");
-		if( pathPattern.startsWith( CLASSPATH_ALL_URL_PREFIX))
+		this.classLoaderManager.setInstrumentableMetadataCachesize(
+				this.applicationLoader.getInstrumentableMetadataCachesizePerApplication());
+		this.classLoaderManager.setClassTransformerMetadataCachesize(
+				this.applicationLoader.getClassTransformerMetadataCachesizePerApplication());
+
+		this.classLoaderManager.setClassloaderDelegate(this.applicationLoader.getClassLoaderDelegate());
+
+		//[[ T#34 patch
+		this.classLoaderManager.setNouseSnapshot(this.applicationLoader.isNouseSnapshot());
+		//]] T#34 patch
+
+		if( !Boolean.valueOf( System.getProperty( CONTAINER_FOR_BATCH)))
 		{
-			if( getPathMatcher().isPattern( pathPattern.substring( CLASSPATH_ALL_URL_PREFIX.length())))
-				return findPathMatchingResources( pathPattern);
-			else
-				return findAllClassPathResources( pathPattern.substring( CLASSPATH_ALL_URL_PREFIX.length()));
-		}
-		else
-		{
-			int prefixEnd= pathPattern.indexOf( ":")+ 1;
-			if( getPathMatcher().isPattern( pathPattern.substring( prefixEnd)))
-				return findPathMatchingResources( pathPattern);
-			else
-				return new Resource[]{ getResource( pathPattern) };
-		}
-	}
-
-	protected Resource[] findPathMatchingLocalResources( String pathPattern) throws IOException
-	{
-		String rootDirPath= determineRootDir( pathPattern);
-		String subPattern= pathPattern.substring( rootDirPath.length());
-		Resource[] rootDirResources= getLocalResources( rootDirPath);
-		Set<Resource> result= new LinkedHashSet<Resource>( 16);
-
-		for( int i= 0; i< rootDirResources.length; i++)
-		{
-			if(  isJarResource( rootDirResources[i]) || isParResource( rootDirResources[i]))
-				result.addAll( doFindPathMatchingJarResources( rootDirResources[i], subPattern));
-			else
-				result.addAll( doFindPathMatchingFileResources( rootDirResources[i], subPattern));
-		}
-//		logger.debug( "Resolved pattern [{}] to resources {}", new Object[]{pathPattern, result.size()});
-		return (Resource[])result.toArray( new Resource[result.size()]);
-	}
-
-	protected Resource[] findPathMatchingResources( String pathPattern) throws IOException
-	{
-		String rootDirPath= determineRootDir( pathPattern);
-		String subPattern= pathPattern.substring( rootDirPath.length());
-		Resource[] rootDirResources= getResources( rootDirPath);
-		Set<Resource> result= new LinkedHashSet<Resource>( 16);
-
-		for( int i= 0; i< rootDirResources.length; i++)
-		{
-			if( isJarResource( rootDirResources[i]) || isParResource( rootDirResources[i]))
-				result.addAll( doFindPathMatchingJarResources( rootDirResources[i], subPattern));
-			else
-				result.addAll( doFindPathMatchingFileResources( rootDirResources[i], subPattern));
-		}
-//		logger.debug( "Resolved pattern [{}] to resources {}", new Object[]{pathPattern, result.size()});
-		return (Resource[])result.toArray( new Resource[result.size()]);
-	}
-
-	protected Resource[] findLocalResources( String path) throws IOException
-	{
-		if( path.startsWith( "/")) path= path.substring( 1);
-		Enumeration<URL> urls= null;
-		ClassLoader loader= getClassLoader();
-		if( loader instanceof AbstractApplicationClassLoader)
-			urls= ( (AbstractApplicationClassLoader)loader).getApplicationResources( path);
-		else
-			urls= loader.getResources( path);
-
-		Set<Resource> results= new LinkedHashSet<Resource>( 16);
-		while( urls.hasMoreElements())
-		{
-			URL url= urls.nextElement();
-			results.add( convertClassLoaderURL( url));
-		}
-		return (Resource[])results.toArray( new Resource[results.size()]);
-	}
-
-	protected Resource[] findAllClassPathResources( String path) throws IOException
-	{
-		if( path.startsWith( "/")) path= path.substring( 1);
-		Enumeration<URL> urls= null;
-		ClassLoader loader= getClassLoader();
-
-		if( loader instanceof ApplicationClassLoader)
-			urls= ( (ApplicationClassLoader)loader).getCurrentLoaderResources( path);
-		else
-			urls= loader.getResources( path);
-
-		Set<Resource> results= new LinkedHashSet<Resource>( 16);
-		while( urls.hasMoreElements())
-		{
-			URL url= urls.nextElement();
-			results.add( convertClassLoaderURL( url));
-		}
-		return (Resource[])results.toArray( new Resource[results.size()]);
-	}
-
-	protected Set<Resource> doFindPathMatchingJarResources( Resource rootDirResource, String subPattern) throws IOException
-	{
-		URLConnection con= rootDirResource.getURL().openConnection();
-		JarFile jarFile= null;
-		String jarFileUrl= null;
-		String rootEntryPath= null;
-		Enumeration<JarEntry> jarEntries= null;
-		boolean newJarFile=false;
-
-		if( con instanceof JarURLConnection)
-		{
-			JarURLConnection jarCon= (JarURLConnection)con;
-			jarCon.setUseCaches( false);
-			jarFile= jarCon.getJarFile();
-			jarEntries= jarFile.entries();
-			jarFileUrl= jarCon.getJarFileURL().toExternalForm();
-			JarEntry jarEntry= jarCon.getJarEntry();
-			rootEntryPath= (jarEntry!= null ? jarEntry.getName() : "");
-		}
-		else if( con instanceof ParURLConnection)
-		{
-			ParURLConnection parCon= (ParURLConnection)con;
-			parCon.setUseCaches( false);
-			jarFile= parCon.getParFile();
-			jarEntries= parCon.entries();
-			jarFileUrl= parCon.getParFileURL().toExternalForm();
-
-			if( parCon.getParFileURL().getFile().endsWith( ResourceUtils.URL_PROTOCOL_JAR))
+			if( !( this.appHome= new File( this.applicationLoader.getApplicationHome())).exists() || !this.appHome.isDirectory())
 			{
-				rootEntryPath= rootDirResource.getURL().getFile().substring( parCon.getParFileURL().getFile().length());
-				rootEntryPath= rootEntryPath.startsWith( "!") ? rootEntryPath.substring( 1) : rootEntryPath;
-				rootEntryPath= rootEntryPath.startsWith( "/") ? rootEntryPath.substring( 1) : rootEntryPath;
+				logger.error( "configured application-home dir [{}] is not exist.", this.applicationLoader.getApplicationHome());
+				return false;
 			}
-			else
-				rootEntryPath= ( parCon.getParEntry()!= null ? parCon.getParEntry().getName() : "");
+			AsyncTaskExecutorFactory.getAsyncTaskExecutor();
+			try{ TransactionManagerFactory.getPlatformJtaTransactionManager();}catch( Exception e){}
+			OperationTimeoutManager.getOperationTimeOutManager();
 		}
 		else
+			batch= true;
+
+		if( !StringUtils.hasText( this.applicationLoader.getDeployedHome()))
 		{
-			String urlFile= rootDirResource.getURL().getFile();
-			int separatorIdx= urlFile.indexOf( ResourceUtils.JAR_URL_SEPARATOR);
-			if( separatorIdx!= -1)
+			logger.error( "configured deploy-home dir [{}] is not exist.", this.applicationLoader.getDeployedHome());
+			return false;
+		}
+
+		this.deployHome= new File( this.applicationLoader.getDeployedHome());
+//		if( !deployHome.exists() && !( this.batch && this.applicationLoader.isNouseSnapshot()))
+		if( !deployHome.exists() && !( this.applicationLoader.isNouseSnapshot()))
+			this.deployHome.mkdirs();
+		this.deployHome.deleteOnExit();
+
+
+		// for legacy extractedHome clearance
+		File extractedHome= new File( applicationLoader.getApplicationHome()+ File.separator+ EXTRACTED_PATH_SUFFIX);
+		File[] entries= null;
+		if( extractedHome.exists() && extractedHome.isDirectory())
+		{
+			entries= extractedHome.listFiles();
+			for( File entry: entries)
 			{
-				jarFileUrl= urlFile.substring( 0, separatorIdx);
-				rootEntryPath= urlFile.substring( separatorIdx+ ResourceUtils.JAR_URL_SEPARATOR.length());
-				jarFile= getJarFile( jarFileUrl);
-				jarEntries= jarFile.entries();
+				if( entry.getName().endsWith( ".svn")) continue;
+				ResourceUtils.deleteFile( entry);
 			}
-			else
+		}
+		ResourceUtils.deleteFile( extractedHome);
+
+		entries= this.deployHome.listFiles();
+		if( entries!= null)
+		{
+			for( File entry: entries)
 			{
-				jarFile= new JarFile( urlFile);
-				jarEntries= jarFile.entries();
-				jarFileUrl= urlFile;
-				rootEntryPath= "";
+				if( entry.getName().endsWith( ".svn")) continue;
+				ResourceUtils.deleteFile( entry);
 			}
-			newJarFile= true;
 		}
 
 		try
 		{
-			if( !"".equals( rootEntryPath) && !rootEntryPath.endsWith( "/"))
-				rootEntryPath= rootEntryPath+ "/";
-			Set<Resource> results= new LinkedHashSet<Resource>(8);
-			for( Enumeration<JarEntry> entries= jarEntries; entries.hasMoreElements();)
+			String headerClassName= this.instanceContext.getRequestType().getHeaderClassName();
+			URL resourceUrl= Thread.currentThread().getContextClassLoader().getResource(
+					ClassUtils.convertClassNameToResourcePath( headerClassName)+ ClassUtils.CLASS_FILE_SUFFIX);
+
+			if( resourceUrl!= null)
 			{
-				JarEntry entry= entries.nextElement();
-				String entryPath= entry.getName();
-				if( entryPath.startsWith( rootEntryPath))
+				URLResource resource= new URLResource( resourceUrl);
+//				ClassReader clsReader= new ClassReader( resource.getInputStream());
+				byte[] classbytes= ClassResourceReader.readClassResource( resource.getInputStream());
+				if( classbytes.length< 8) throw new IOException( "insufficient class bytes length.");
+				ClassReader clsReader= new ClassReader( classbytes);
+				ServiceIOmmFieldProperties iommFieldProperties= new ServiceIOmmFieldProperties();
+				clsReader.accept( new IOmmTypeClassVisitor( null, iommFieldProperties, null), ClassReader.SKIP_DEBUG);
+				this.headerProperties= iommFieldProperties.getFieldDescriptors( headerClassName);
+			}
+			else
+			{
+				logger.error( "header class resource can not be loaded.");
+				return false;
+			}
+		}
+		catch( Exception e)
+		{
+			logger.error( "can not load configured system header class [{}].",
+					new Object[]{ this.instanceContext.getRequestType().getHeaderClassName(), e});
+			return false;
+		}
+
+		Set<String> targetApplications= this.applicationLoader.getTargetApplications();
+		if( targetApplications!= null && targetApplications.size()> 0)
+		{
+			Map<BxmApplication, File> candidateConfs= loadApplicationConfs( this.appHome, this.appHome);
+			Set<BxmApplication> toDeployConfs= new HashSet<BxmApplication>();
+			Map<String, BxmApplication> checkTos= new HashMap<String, BxmApplication>();
+			for( BxmApplication cconf: candidateConfs.keySet())
+				checkTos.put( cconf.getName(), cconf);
+
+			for( String targetApplication: targetApplications)
+			{
+				BxmApplication conf= null;
+				if( toDeployConfs.contains( targetApplication) || ( conf= checkTos.get( targetApplication))== null)
+					continue;
+				checkReferenceApplications( conf, checkTos, toDeployConfs);
+			}
+
+			for( BxmApplication bxmApplication: toDeployConfs)
+				targetApplications.add( bxmApplication.getName());
+		}
+
+
+		if( this.instanceManager== null && this.applicationLoader.isAutodeploy())
+		{
+			try{ autoDeployApplicationCandidates();}
+			catch( Throwable ath)
+			{
+				logger.error( "AutoDeploy Task of [{}/{}] is failed", new Object[]{ this.uuid, this.name, ath});
+			}
+
+			if( HOT== applicationLoader.getLoadingMode())
+			{
+				if( StringUtils.hasText( this.applicationLoader.getScheduleExpression()))
 				{
-					String relativePath= entryPath.substring( rootEntryPath.length());
-					if( getPathMatcher().match( subPattern, relativePath))
-						results.add( rootDirResource.createRelative( relativePath));
+					this.scheduledApplicationLoader= new ScheduledTaskRegistrar();
+					this.scheduledApplicationLoader.addTriggerTask( this,
+							new CronTrigger( this.applicationLoader.getScheduleExpression()));
+					this.scheduledApplicationLoader.start( NamedExecutors.namedPrivilegedThreadFactory( "Framework_ApplicationLoader"));
+				}
+				else
+				{
+					this.scheduledApplicationLoader= new ScheduledTaskRegistrar();
+					this.scheduledApplicationLoader.addTriggerTask( this,
+							new PeriodicTrigger( this.applicationLoader.getRefreshInterval()));
+					this.scheduledApplicationLoader.start( NamedExecutors.namedPrivilegedThreadFactory( "Framework_ApplicationLoader"));
 				}
 			}
-			return results;
+		}
+
+		if( this.instanceManager!= null)
+		{
+			this.instanceManager.getDeploySessionManager().addListener( new ApplicationDeploySessionListener( this));
+			this.instanceManager.setFrameworkInstance( this);
+		}
+		else
+		{
+			if( this.chunkedResponseHandler!= null)
+				this.chunkedResponseHandler.init( containerName);
+		}
+
+		logger.info( "[{}] current framework instance [{}] is initialized.", getUUID(), this);
+		publishPostInitializeEvent( new InstanceEvent( this));
+
+		if( !this.standalone && this.instanceManager== null && !this.applicationLoader.isAutodeploy())
+		{
+			logger.info( "application init deploy.");
+			autoDeployApplicationCandidates();
+		}
+
+		return true;
+	}
+
+	public void setSystemPreProcessors( List<SystemPreProcessor> procs)
+	{
+		this.preProcessors= procs;
+	}
+
+	public void setSystemPostProcessors( List<SystemPostProcessor> procs)
+	{
+		this.postProcessors= procs;
+	}
+
+	public void setTransactionSynchronizations( List<TransactionSynchronization> syncs)
+	{
+		this.transactionSynchronizations= syncs;
+	}
+
+	public List<SystemPreProcessor> getSystemPreProcessors()
+	{
+		return this.preProcessors;
+	}
+
+	public List<SystemPostProcessor> getSystemPostProcessors()
+	{
+		return this.postProcessors;
+	}
+
+	public List<TransactionSynchronization> getTransactionSynchronizations()
+	{
+		return this.transactionSynchronizations;
+	}
+
+	/**
+	 * for online framework instance
+	 * initial deploy all applications in current application home
+	 */
+	public void deployApplicationCandidates()
+	{
+		logger.debug( "deploy application candidates");
+		autoDeployApplicationCandidates();
+	}
+
+	/**
+	 * for stand-alone executor
+	 * initial deploy all applications in <code>appHome</code>
+	 * @param appHome
+	 */
+	public void deployApplicationCandicates( File appHome)
+	{
+		logger.debug( "deploy application candidates from [{}].", appHome);
+		this.appHome= appHome;
+		autoDeployApplicationCandidates();
+	}
+
+	public synchronized void destroy()
+	{
+		logger.info( "[{}] current framework instance [{}] will be destroyed.", getUUID(), this);
+
+		if( this.scheduledApplicationLoader!= null)
+			this.scheduledApplicationLoader.destroy();
+
+		OperationTimeoutManager.getOperationTimeOutManager().close();
+
+		stopInstanceManager();
+		publishPrepareDestroyEvent( new InstanceEvent( this));
+
+		String[] undeployeds= this.undeployedApplications.keySet().toArray( new String[this.undeployedApplications.size()]);
+		for( String appName: undeployeds)
+		{
+			DeployedApplication application= this.undeployedApplications.remove( appName);
+			if( application!= null)
+			{
+				application.setStage( ApplicationStage.THROWABLE);
+				application.destroy();
+			}
+		}
+
+		undeployeds= this.validatingApplications.keySet().toArray( new String[this.validatingApplications.size()]);
+		for( String appName: undeployeds)
+		{
+			DeployedApplication application= this.validatingApplications.remove( appName);
+			if( application!= null)
+			{
+				application.setStage( ApplicationStage.THROWABLE);
+				application.destroy();
+			}
+		}
+
+		undeployeds= this.deployedApplications.keySet().toArray( new String[this.deployedApplications.size()]);
+		for( String appName: undeployeds)
+		{
+			DeployedApplication application= this.deployedApplications.remove( appName);
+			if( application!= null)
+			{
+				application.setStage( ApplicationStage.THROWABLE);
+				application.destroy();
+			}
+		}
+
+		if( this.instanceManager!= null)
+			this.instanceManager.getDeploySessionManager().destroy();
+
+		if( this.datasource instanceof BasicDataSource)
+			try{ ( (BasicDataSource)this.datasource).close();}catch( SQLException e){}
+//		else if( this.datasource instanceof PooledDataSource)
+//			try{ ( (PooledDataSource)this.datasource).close();}catch( Exception e){}
+
+		if( this.jmsConnector!= null)
+			this.jmsConnector.destroy();
+
+		if( this.messageService!= null)
+			this.messageService.destroy();
+
+
+		this.classLoaderManager.destroy( true);
+		if( this.deployHome!= null && this.deployHome.exists())
+			ResourceUtils.deleteFile( this.deployHome);
+		this.destroyedTime= System.currentTimeMillis();
+		
+		AsyncTaskExecutorFactory.closeAsyncTaskExecutor();
+	}
+
+	public Map<String, String> getObjectNameProperties()
+	{
+		return this.instanceManager.getObjectNameProperties();
+	}
+
+	public synchronized void startInstanceManager( Map<String, String> infos, JobRunner jobRunner)
+	{
+		if( this.managed)	return;
+
+		if( this.applicationLoader.isAutodeploy())
+		{
+			try{ autoDeployApplicationCandidates();}
+			catch( Throwable ath)
+			{
+				logger.error( "AutoDeploy Task of [{}/{}] is failed", new Object[]{ this.uuid, this.name, ath});
+			}
+
+			if( HOT== applicationLoader.getLoadingMode())
+			{
+				if( StringUtils.hasText( this.applicationLoader.getScheduleExpression()))
+				{
+					this.scheduledApplicationLoader= new ScheduledTaskRegistrar();
+					this.scheduledApplicationLoader.addTriggerTask( this,
+							new CronTrigger( this.applicationLoader.getScheduleExpression()));
+					this.scheduledApplicationLoader.start( NamedExecutors.namedPrivilegedThreadFactory( "Framework_ApplicationLoader"));
+				}
+				else
+				{
+					this.scheduledApplicationLoader= new ScheduledTaskRegistrar();
+					this.scheduledApplicationLoader.addTriggerTask( this,
+							new PeriodicTrigger( this.applicationLoader.getRefreshInterval()));
+					this.scheduledApplicationLoader.start( NamedExecutors.namedPrivilegedThreadFactory( "Framework_ApplicationLoader"));
+				}
+			}
+		}
+		this.instanceManager.start( infos, jobRunner);
+		if( this.chunkedResponseHandler!= null)
+			this.chunkedResponseHandler.init( containerName);
+		publishManagedEvent( new InstanceEvent( this));
+		this.managed= true;
+	}
+
+	public synchronized void stopInstanceManager()
+	{
+		if( !this.managed)	 return;
+		this.instanceManager.stop();
+		publishUnmanagedEvent( new InstanceEvent( this));
+		this.managed= false;
+	}
+
+	public void clearMessageSourceCache()
+	{
+		if( this.messageSource!= null)
+			this.messageSource.clearCache();
+		if( this.systemMessageSource!= null)
+			this.systemMessageSource.clearCache();
+	}
+
+	public void clearControlParameterCache()
+	{
+		ControlParameters controls= instanceContext.getControlParameterInstance();
+		if( controls instanceof CachedControlParameters)
+			( (CachedControlParameters)controls).clearCache();
+	}
+
+	public void clearControlParameterCache( String applicationName, String serviceName, String operationName)
+	{
+		ControlParameters controls= instanceContext.getControlParameterInstance();
+		if( controls instanceof CachedControlParameters)
+			( (CachedControlParameters)controls).clearCache( applicationName, serviceName, operationName);
+	}
+
+	public String getUUID()
+	{
+		return this.uuid;
+	}
+
+	public long getCreatedTime()
+	{
+		return createdTime;
+	}
+
+	public long getDestroyedTime()
+	{
+		return destroyedTime;
+	}
+
+	public ApplicationLoader getApplicationLoader()
+	{
+		return applicationLoader;
+	}
+
+	public void setApplicationLoader( ApplicationLoader applicationLoader)
+	{
+		this.applicationLoader= applicationLoader;
+	}
+
+	public void setBeanCandiateScannerSupport( BeanCandidateScannerSupport support)
+	{
+		this.scannerSupport= support;
+	}
+
+	public InstanceContext getInstanceContext()
+	{
+		return instanceContext;
+	}
+
+	public void setInstanceContext( InstanceContext instanceContext)
+	{
+		this.instanceContext= instanceContext;
+	}
+
+	public DataSource getDatasource()
+	{
+		return datasource;
+	}
+
+	public void setDatasource( DataSource datasource)
+	{
+		this.datasource= datasource;
+	}
+
+	public JmsConnector getJmsConnector()
+	{
+		return jmsConnector;
+	}
+
+	public void setJmsConnector( JmsConnector jmsConnector)
+	{
+		this.jmsConnector= jmsConnector;
+		this.jmsExecutor= new RemoteServiceConnectedJmsExecutor<ContextHeader>( jmsConnector);
+	}
+
+	public RemoteServiceConnectedJmsExecutor<ContextHeader> getRemoteServiceConnectedJmsExecutor()
+	{
+		return this.jmsExecutor;
+	}
+
+	public MessageService getMessageService()
+	{
+		return this.messageService;
+	}
+
+	public void setMessageService( MessageService messageService)
+	{
+		this.messageService= messageService;
+	}
+
+	public InstanceManagement getInstanceManager()
+	{
+		return instanceManager;
+	}
+
+	public void setInstanceManager( InstanceManagement instanceManager)
+	{
+		this.instanceManager= instanceManager;
+	}
+
+	public DataAccessContext getDataAccessContext()
+	{
+		return dataAccessContext;
+	}
+
+	public void setDataAccessContext( DataAccessContext dataAccessContext)
+	{
+		this.dataAccessContext= dataAccessContext;
+	}
+
+	public BlackboxContext getBlackboxContext()
+	{
+		return blackboxContext;
+	}
+
+	public void setBlackboxContext( BlackboxContext blackboxContext)
+	{
+		this.blackboxContext= blackboxContext;
+	}
+
+	public ChunkedResponseHandler getChunkedResponseHandler()
+	{
+		return chunkedResponseHandler;
+	}
+
+	public void setChunkedResponseHandler( ChunkedResponseHandler chunkedResponseHandler)
+	{
+		this.chunkedResponseHandler= chunkedResponseHandler;
+	}
+
+	public MessageSource getMessageSource()
+	{
+		return this.messageSource;
+	}
+
+	public void setMessageSource( MessageSource source)
+	{
+		if( source instanceof DataBaseMessageSource)
+			( (DataBaseMessageSource)source).setDataSource( this.datasource);
+		this.messageSource= source;
+	}
+
+	public MessageSource getSystemMessageSource()
+	{
+		return this.systemMessageSource;
+	}
+
+	public void setSystemMessageSource( MessageSource source)
+	{
+		if( source instanceof DataBaseMessageSource)
+			( (DataBaseMessageSource)source).setDataSource( this.datasource);
+		this.systemMessageSource= source;
+	}
+
+	public DeferredContext getDeferredContext()
+	{
+		return deferredContext;
+	}
+
+	public void setDeferredContext( DeferredContext deferredContext)
+	{
+		this.deferredContext= deferredContext;
+	}
+
+	public int getInitWorkerPoolSize()
+	{
+		return initWorkerPoolSize;
+	}
+
+	public void setInitWorkerPoolSize( int initWorkerPoolSize)
+	{
+		this.initWorkerPoolSize= initWorkerPoolSize;
+	}
+
+	public int getMaxWorkerPoolSize()
+	{
+		return maxWorkerPoolSize;
+	}
+
+	public void setMaxWorkerPoolSize( int maxWorkerPoolSize)
+	{
+		this.maxWorkerPoolSize= maxWorkerPoolSize;
+	}
+
+	public long getWorkerWaitTimeout()
+	{
+		return workerWaitTimeout;
+	}
+
+	public void setWorkerWaitTimeout( long workerWaitTimeout)
+	{
+		this.workerWaitTimeout= workerWaitTimeout;
+	}
+
+	public String getExclusiveLoggingHome()
+	{
+		return exclusiveLoggingHome;
+	}
+
+	public void setExclusiveLoggingHome( String exclusiveLoggingHome)
+	{
+		this.exclusiveLoggingHome= exclusiveLoggingHome;
+	}
+
+	public List<InterceptorDefinition> getInstanceLifecycleListeners()
+	{
+		return this.instanceLifecycleListenes;
+	}
+
+	public void setInstanceLifecycleListeners( List<InterceptorDefinition> listeners)
+	{
+		this.instanceLifecycleListenes= listeners;
+	}
+
+	public void addInstanceLifecycleListener( InterceptorDefinition listener)
+	{
+		this.instanceLifecycleListenes.add( listener);
+	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public String getDescription()
+	{
+		return this.description;
+	}
+
+	public void setDescription( String description)
+	{
+		this.description= description;
+	}
+
+	public boolean isStandalone()
+	{
+		return standalone;
+	}
+
+	public void setStandalone( boolean standalone)
+	{
+		this.standalone= standalone;
+	}
+
+	public String getNodeName()
+	{
+		return nodeName;
+	}
+
+	public void setNodeName( String nodeName)
+	{
+		this.nodeName= nodeName;
+	}
+
+	public String getContainerName()
+	{
+		return containerName;
+	}
+
+	public void setContainerName( String containerName)
+	{
+		this.containerName= containerName;
+	}
+
+	public String getContextName()
+	{
+		return contextName;
+	}
+
+	public void setContextName( String contextName)
+	{
+		this.contextName= contextName;
+	}
+
+	public String getSystemMode()
+	{
+		return systemMode;
+	}
+
+	public void setSystemMode( String systemMode)
+	{
+		this.systemMode= systemMode;
+	}
+
+	public JndiDataSourceCache getJndiDataSourceCache()
+	{
+		return this.jndiDatasources;
+	}
+
+	public File getApplicationHome()
+	{
+		return this.appHome;
+	}
+
+	public Map<String, IOmmFieldType> getHeaderFieldProperties()
+	{
+		return this.headerProperties;
+	}
+
+	public String getDomainId() {
+		return domainId;
+	}
+
+	public void setDomainId(String domainId) {
+		this.domainId = domainId;
+	}
+
+	public String[] getPredeployedApplicationNames() throws InvalidCommandException
+	{
+		return this.validatingApplications.keySet().toArray( new String[this.validatingApplications.size()]);
+	}
+
+	public ApplicationInfo[] getPredeployedApplicationInfos() throws InvalidCommandException
+	{
+		List<ApplicationInfo> infos= new ArrayList<ApplicationInfo>();
+		for( String apName: this.validatingApplications.keySet())
+		{
+			DeployedApplication application= this.validatingApplications.get( apName);
+			infos.add( new ApplicationInfo(
+					application.getUUID(), application.getApplicationName(), application.getDescription(),
+					application.getCreatedTime(), application.getDestroyedTime(), application.getCurrentStage(),
+					application.isShared(), application.getLogLevel(), application.getReferenceApplications(),
+					application.isImageLogging(), application.isBlackboxRecording(), application.isLazyInit(),
+					application.getApplicationType(), application.getServiceCount(), application.getValidatingClientPatterns()));
+		}
+		return infos.toArray( new ApplicationInfo[infos.size()]);
+	}
+
+	public ApplicationStage queryApplicationStage( String applicationName) throws ApplicationNotFoundException
+	{
+		DeployedApplication application= null;
+		application= this.validatingApplications.get( applicationName);
+		if( application!= null)	return application.getCurrentStage();
+		application= this.deployedApplications.get( applicationName);
+		if( application!= null)	return application.getCurrentStage();
+
+		throw new ApplicationNotFoundException( applicationName);
+	}
+
+	public String[] getDeployedApplicationNames()
+	{
+		return this.deployedApplications.keySet().toArray( new String[this.deployedApplications.size()]);
+	}
+
+	public ApplicationInfo[] getDeployedApplicationInfos() throws InvalidCommandException
+	{
+		List<ApplicationInfo> infos= new ArrayList<ApplicationInfo>();
+		for( String apName: this.deployedApplications.keySet())
+		{
+			DeployedApplication application= this.deployedApplications.get( apName);
+			infos.add( new ApplicationInfo(
+					application.getUUID(), application.getApplicationName(), application.getDescription(),
+					application.getCreatedTime(), application.getDestroyedTime(), application.getCurrentStage(),
+					application.isShared(), application.getLogLevel(), application.getReferenceApplications(),
+					application.isImageLogging(), application.isBlackboxRecording(), application.isLazyInit(),
+					application.getApplicationType(), application.getServiceCount(), application.getValidatingClientPatterns()));
+		}
+		return infos.toArray( new ApplicationInfo[infos.size()]);
+	}
+
+	public DeployedApplication[] getDeployedApplicationsInternal()
+	{
+		return this.deployedApplications.values().toArray( new DeployedApplication[this.deployedApplications.size()]);
+	}
+
+	public DeployedApplication lookupDeployedApplication( String applicationName) throws ApplicationNotFoundException
+	{
+		if( this.applicationLoader.isRequestWaitForDeploy())
+			waitSynchForLookupDeployedApplication();
+
+		DeployedApplication application= null;
+		application= this.deployedApplications.get( applicationName);
+		if( application!= null && ApplicationStage.EMPLOYED== application.getStage())
+			return application;
+		throw new ApplicationNotFoundException( applicationName);
+	}
+
+	public DeployedApplication lookupDeployedApplication( String applicationName, String remoteAddr)
+			throws ApplicationNotFoundException
+	{
+		if( this.applicationLoader.isRequestWaitForDeploy())
+			waitSynchForLookupDeployedApplication();
+
+		DeployedApplication application= null;
+			if( ( application= this.validatingApplications.get( applicationName))!= null && application.isValidClient( remoteAddr))
+				return application;
+			if( ( application= this.deployedApplications.get( applicationName))!= null)
+				return application;
+		throw new ApplicationNotFoundException( applicationName);
+	}
+
+	private synchronized void waitSynchForLookupDeployedApplication()
+	{
+		// do nothing just wait entering this synchronized block
+	}
+
+	public synchronized String[] predeployApplication(
+			DeploySession session, String applicationName, File appRoot, String... applyPatterns)
+			throws InvalidCommandException, ApplicationTargetException
+	{
+		if( TEPID!= this.applicationLoader.getLoadingMode())
+		{
+			logger.warn( "predeployApplication command is supported in TEPID loading mode.");
+			throw new InvalidCommandException( INVALID_APPLICATION_LOADINGMODE,
+					"predeployApplication command is supported in TEPID loading mode.");
+		}
+
+		List<String> stagingApplicationNames= new ArrayList<String>();
+		Map<String, DeployedApplication> applications= deployApplicationInternal( applicationName, appRoot, true);
+		if( applications!= null && applications.size()> 0)
+		{
+			prepareApplications( applications);
+
+			for( DeployedApplication application: applications.values())
+			{
+				List<LightweightApplicationContext> refCtxs= new ArrayList<LightweightApplicationContext>();
+				ClassLoaderRef[] shRefs=
+						( (ApplicationClassLoader)application.getClassLoaderRef().getClassLoader()).getSharedClassLoaderRefs();
+				for( ClassLoaderRef shRef: shRefs)
+				{
+					String shAppName= shRef.getClassLoader().getApplicationName();
+					if( applications.containsKey( shAppName))
+					{
+						refCtxs.add( applications.get( shAppName).getLightweightApplicationContext());
+						application.getIommFieldProperties().addReferenceIOmmFieldProperties(
+								applications.get( shAppName).getIommFieldProperties());
+					}
+					else if( this.deployedApplications.containsKey( shAppName))
+					{
+						refCtxs.add( this.deployedApplications.get( shAppName).getLightweightApplicationContext());
+						application.getIommFieldProperties().addReferenceIOmmFieldProperties(
+								this.deployedApplications.get( shAppName).getIommFieldProperties());
+					}
+				}
+
+				try
+				{
+					application.getLightweightApplicationContext().postInitialization(
+							refCtxs.toArray( new LightweightApplicationContext[refCtxs.size()]));
+				}
+				catch( Throwable th)
+				{
+					logger.error( "application [{}] postInitialization is failed.",
+							new Object[]{ application.getApplicationName(), th});
+				}
+			}
+
+			for( DeployedApplication application: applications.values())
+			{
+				try
+				{
+					if( !this.batch && this.applicationLoader.isDeferredInit())
+						application.getLightweightApplicationContext().deferredInstantiate( deferredTasks, deferredInitLock);
+					else
+						application.getLightweightApplicationContext().preInstantiate();
+					application.resetValidClientPatterns( applyPatterns);
+					this.validatingApplications.put( application.getApplicationName(), application);
+					application.setStage( ApplicationStage.VALIDATING);
+					application.predeployed( this.uuid, this.datasource);
+					logger.info( "current application [{}] is registered for validating.", application.getApplicationName());
+					stagingApplicationNames.add( application.getApplicationName());
+				}
+				catch( Throwable th)
+				{
+					logger.error( "application [{}] preInstantiate is failed.", new Object[]{ application.getApplicationName(), th});
+					if( session!= null && application!= null && StringUtils.hasText( application.getApplicationName())
+							&& stagingApplicationNames.contains( application.getApplicationName()))
+						stagingApplicationNames.remove( application.getApplicationName());
+					application.getLightweightApplicationContext().interruptedDeferredInstantiate();
+					session.setForcedInvaliding( true);
+				}
+			}
+
+			try
+			{
+				for( DeployedApplication application: applications.values())
+				{
+					if( !applicationLoader.isLazyInit() || COLD== applicationLoader.getLoadingMode()
+							|| ( application.getApplicationSource()!= null
+									&& StringUtils.hasText( application.getApplicationSource().getFile())
+									&& application.getApplicationSource().getFile().endsWith( BXM_ARCHIVE_SUFFIX)))
+					{
+						try{ application.getClassLoaderRef().getResourceLoader().clearMetadataReadCache();}catch( Throwable th){}
+					}
+				}
+			}catch( Throwable th){}
+		}
+
+		return stagingApplicationNames.toArray( new String[stagingApplicationNames.size()]);
+	}
+
+	public synchronized String[] predeployMultiApplications(
+			DeploySession session, PreDeployApplicationRequest[] applications, String... applyPatterns)
+			throws InvalidCommandException, ApplicationTargetException
+	{
+		if( TEPID!= this.applicationLoader.getLoadingMode())
+		{
+			logger.warn( "predeployApplication command is supported in TEPID loading mode.");
+			throw new InvalidCommandException( INVALID_APPLICATION_LOADINGMODE,
+					"predeployApplication command is supported in TEPID loading mode.");
+		}
+
+		List<String> stagingApplicationNames= new ArrayList<String>();
+		Map<String, DeployedApplication> stagingTos= new HashMap<String, DeployedApplication>();
+		Map<String, PreDeployApplicationRequest> requestApplications= new HashMap<String, PreDeployApplicationRequest>();
+
+		for( PreDeployApplicationRequest appToStaging: applications)
+		{
+			logger.info( "application [{}] resource [{}] will be predeployed.",
+					appToStaging.applicationName, appToStaging.resourceUrl);
+
+			requestApplications.put( appToStaging.applicationName, appToStaging);
+
+			File metaFile= null;
+			URL applicationSource= null;
+			InputStream inStream= null;
+			BxmApplication conf= null;
+			try
+			{
+				if( appToStaging.appRoot.isDirectory() && ( metaFile= new File( appToStaging.appRoot, APPLICATION_DD_FILE)).exists())
+				{
+					applicationSource= appToStaging.appRoot.toURI().toURL();
+					inStream= new FileInputStream( metaFile);
+				}
+				else if( appToStaging.appRoot.isFile() && appToStaging.appRoot.getName().endsWith( BXM_ARCHIVE_SUFFIX))
+				{
+					applicationSource= appToStaging.appRoot.toURI().toURL();
+					inStream= findApplicationConfigurationFromArchive( appToStaging.appRoot);
+				}
+				else
+				{
+					throw new InvalidCommandException( INVALID_APPLICATION_FORMAT,
+							"invalid application format. ["+ appToStaging.appRoot.getAbsolutePath()+ "]" );
+				}
+
+				conf= marshallApplicationDescriptor( inStream);
+				if( !StringUtils.hasText( appToStaging.applicationName) || !StringUtils.hasText( conf.getName())
+						|| !appToStaging.applicationName.equals( conf.getName()))
+					throw new InvalidCommandException( INVALID_APPLICATION_FORMAT,
+							"request application not same with configured application name");
+
+				appToStaging.conf= conf;
+				appToStaging.applicationSource= applicationSource;
+
+				List<URL> configuredClasspath= new ArrayList<URL>();
+				configuredClasspath.addAll( applicationLoader.getApplicableClasspath());
+				File loaderTarget= createLoaderTagetForApplication( conf.getName(), appToStaging.appRoot, null, false);
+				appToStaging.loaderTarget= loaderTarget;
+				List<URL> localAppClasspath= createLocalAppClasspath( loaderTarget);
+				configuredClasspath.addAll( localAppClasspath);
+				List<ApplicationClassLoaderListener> listeners= getClassLoaderLifecycleListeners();
+				appToStaging.loaderElements=
+						new ClassLoaderElementsForCreation(
+								conf.getName(), configuredClasspath.toArray( new URL[configuredClasspath.size()]),
+								localAppClasspath.toArray( new URL[localAppClasspath.size()]),
+								conf.isShared(), listeners.toArray( new ApplicationClassLoaderListener[listeners.size()]),
+								loaderTarget,
+								StringUtils.hasText( conf.getReferenceApplications()) ?
+										StringUtils.tokenizeToStringArray( conf.getReferenceApplications(), ",") : new String[]{},
+								applicationLoader.getInstrument());
+			}
+			catch( Throwable th)
+			{
+				logger.error( "application [{}] resource [{}] deployment is failed.",
+						new Object[]{ appToStaging.applicationName, appToStaging.appRoot.getAbsolutePath(), th});
+				throw new ApplicationTargetException( "application ["+ appToStaging.applicationName+ "] resource ["
+						+ appToStaging.appRoot.getAbsolutePath()+ "] deployment is failed.", th);
+			}
+			finally
+			{
+				if( inStream!= null) try{ inStream.close();}catch( IOException e){}
+			}
+		}
+
+		List<ClassLoaderElementsForCreation> loaderElements= new ArrayList<ClassLoaderElementsForCreation>();
+		for( PreDeployApplicationRequest appToStaging: applications)
+			loaderElements.add( appToStaging.loaderElements);
+
+		try
+		{
+			ClassLoaderRef[] changeTos= this.classLoaderManager.getClassLoaderForMultiStaging(
+					loaderElements.toArray( new ClassLoaderElementsForCreation[loaderElements.size()]));
+
+			for( ClassLoaderRef loaderRef: changeTos)
+			{
+//				String fullpath= ( (AbstractApplicationClassLoader)loaderRef.getClassLoader()).getFinder().getClassPath();
+//				logger.debug( fullpath);
+
+				String appName= loaderRef.getClassLoader().getApplicationName();
+				PreDeployApplicationRequest request= requestApplications.get( appName);
+				if( request!= null)
+				{
+					DeployedApplication target=
+							(DeployedApplication)ApplicationConfigurationManager.configure( this, request.conf, true, loaderRef);
+					target.setApplicationSource( request.applicationSource);
+					target.setDeployedTarget( request.loaderTarget);
+					stagingTos.put( target.getApplicationName(), target);
+				}
+				else
+				{
+					DeployedApplication deployedApp= this.deployedApplications.get( appName);
+					if( deployedApp!= null)
+					{
+						DeployedApplication target= (DeployedApplication)ApplicationConfigurationManager.configure(
+								this, deployedApp.getConfiguration(), true, loaderRef);
+						target.setApplicationSource( deployedApp.getApplicationSource());
+						target.setDeployedTarget( deployedApp.getDeployedTarget());
+						stagingTos.put( target.getApplicationName(), target);
+					}
+					else
+						logger.warn( "staging target application [{}] is not deployed.", appName);
+				}
+			}
+		}
+		catch( Throwable th)
+		{
+			logger.error( "applications [{}] resources [{}] deployment is failed.",
+					new Object[]{ requestApplications.keySet(), requestApplications.values(), th});
+			throw new ApplicationTargetException( "applications ["+ requestApplications.keySet()+ "] resource ["+
+					requestApplications.values()+ "] deployment is failed.", th);
+		}
+
+		if( stagingTos!= null && stagingTos.size()> 0)
+		{
+			prepareApplications( stagingTos);
+
+			for( DeployedApplication application: stagingTos.values())
+			{
+				List<LightweightApplicationContext> refCtxs= new ArrayList<LightweightApplicationContext>();
+				ClassLoaderRef[] shRefs=
+						( (ApplicationClassLoader)application.getClassLoaderRef().getClassLoader()).getSharedClassLoaderRefs();
+				for( ClassLoaderRef shRef: shRefs)
+				{
+					String shAppName= shRef.getClassLoader().getApplicationName();
+					if( stagingTos.containsKey( shAppName))
+					{
+						refCtxs.add( stagingTos.get( shAppName).getLightweightApplicationContext());
+						application.getIommFieldProperties().addReferenceIOmmFieldProperties(
+								stagingTos.get( shAppName).getIommFieldProperties());
+					}
+					else if( this.deployedApplications.containsKey( shAppName))
+					{
+						refCtxs.add( this.deployedApplications.get( shAppName).getLightweightApplicationContext());
+						application.getIommFieldProperties().addReferenceIOmmFieldProperties(
+								this.deployedApplications.get( shAppName).getIommFieldProperties());
+					}
+				}
+
+				try
+				{
+					application.getLightweightApplicationContext().postInitialization(
+							refCtxs.toArray( new LightweightApplicationContext[refCtxs.size()]));
+				}
+				catch( Throwable th)
+				{ logger.error( "application [{}] postInitialization is failed.", application.getApplicationName(), th);}
+			}
+
+			for( DeployedApplication application: stagingTos.values())
+			{
+				try
+				{
+					if( !this.batch && this.applicationLoader.isDeferredInit())
+						application.getLightweightApplicationContext().deferredInstantiate( deferredTasks, deferredInitLock);
+					else
+						application.getLightweightApplicationContext().preInstantiate();
+					application.resetValidClientPatterns( applyPatterns);
+					this.validatingApplications.put( application.getApplicationName(), application);
+					application.setStage( ApplicationStage.VALIDATING);
+					application.predeployed( this.uuid, this.datasource);
+					logger.info( "current application [{}] is registered for validating.", application.getApplicationName());
+					stagingApplicationNames.add( application.getApplicationName());
+				}
+				catch( Throwable th)
+				{
+					logger.error( "application [{}] preInstantiate is failed.", application.getApplicationName(), th);
+					if( session!= null && application!= null
+							&& StringUtils.hasText( application.getApplicationName())
+							&& stagingApplicationNames.contains( application.getApplicationName()))
+						stagingApplicationNames.remove( application.getApplicationName());
+					application.getLightweightApplicationContext().interruptedDeferredInstantiate();
+					session.setForcedInvaliding( true);
+				}
+			}
+
+			try
+			{
+				for( DeployedApplication application: stagingTos.values())
+				{
+					if( !applicationLoader.isLazyInit() || COLD== applicationLoader.getLoadingMode()
+							|| ( application.getApplicationSource()!= null
+									&& StringUtils.hasText( application.getApplicationSource().getFile())
+									&& application.getApplicationSource().getFile().endsWith( BXM_ARCHIVE_SUFFIX)))
+					{
+						try{ application.getClassLoaderRef().getResourceLoader().clearMetadataReadCache();}catch( Throwable th){}
+					}
+				}
+			}catch( Throwable th){}
+		}
+		return stagingApplicationNames.toArray( new String[stagingApplicationNames.size()]);
+	}
+
+	@SuppressWarnings("static-access")
+	public synchronized void deployPredeployedAppliation( String[] applicationNames)
+			throws InvalidCommandException, ApplicationTargetException
+	{
+		logger.debug( "==============================================");
+		logger.debug( "deployPredeployedApplication [{}/{}]", applicationNames!= null ?
+				applicationNames.length : "null", applicationNames);
+		logger.debug( "==============================================");
+
+		if( TEPID!= this.applicationLoader.getLoadingMode())
+		{
+			logger.warn( "deployPredeployedAppliation command is supported in TEPID loading mode.");
+			throw new InvalidCommandException( INVALID_APPLICATION_LOADINGMODE,
+					"deployPredeployedAppliation command is supported in TEPID loading mode.");
+		}
+
+		List<ClassLoaderRef> refsToUse= new ArrayList<ClassLoaderRef>();
+		List<ClassLoaderRef> refsToClear= new ArrayList<ClassLoaderRef>();
+		for( String applicationName: applicationNames)
+		{
+			if( !this.validatingApplications.containsKey( applicationName))
+			{
+				logger.warn( "application [{}] is not found in predeployed application pool", applicationName);
+				throw new InvalidCommandException( APPLICATION_NOTFOUND,
+						"application ["+ applicationName+ "] is not found in predeployed application pool");
+			}
+			refsToUse.add( this.validatingApplications.get( applicationName).getClassLoaderRef());
+			if( this.deployedApplications.containsKey( applicationName))
+				refsToClear.add( this.deployedApplications.get( applicationName).getClassLoaderRef());
+		}
+
+		// only one deploy session is valid to staging is completed.
+
+		this.classLoaderManager.applyClassLoaderForStaging(
+				refsToUse.toArray( new ClassLoaderRef[refsToUse.size()]),
+				refsToClear.toArray( new ClassLoaderRef[refsToClear.size()]));
+
+		try
+		{
+			publishApplicationDeployStartedEvent( new InstanceEvent( this));
+
+			for( String applicationName: applicationNames)
+			{
+				DeployedApplication application= this.validatingApplications.remove( applicationName);
+				if( application== null) continue;
+
+				application.setStage( ApplicationStage.EMPLOYED);
+				application.resetValidClientPatterns();
+				DeployedApplication das= this.deployedApplications.put( application.getApplicationName(), application);
+				application.deployed( this.uuid, this.datasource);
+				if( das== null) continue;
+
+				// to avoid early gc effect
+				this.referenceKeeper.add( das);
+				das.getLightweightApplicationContext().interruptedDeferredInstantiate();
+				das.setStage( ApplicationStage.THROWABLE);
+				try{ das.undeployed( this.uuid, this.datasource);}catch( Throwable th){ logger.error( th.getMessage(), th);}
+				finally{ das.destroy();}
+
+				File dasSource= new File( das.getApplicationSource().getFile());
+				File source= new File( application.getApplicationSource().getFile());
+				if( !dasSource.exists() || !source.exists() || source.equals( dasSource)) continue;
+
+				File lockFile= new File( appHome, "."+ application.getApplicationName()+"_lock");
+				try {
+					logger.debug("Lock File Path [{}]", lockFile.getCanonicalPath());
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+
+				/*
+				 * par화일 교체시 아래와 같은 에러 발생. java.io.IOException: Permission denied
+				 * 환경.
+				 * SunOS 5.11 11.2
+				 * java version "1.6.0_45"
+				   Java(TM) SE Runtime Environment (build 1.6.0_45-b06)
+				   Java HotSpot(TM) Server VM (build 20.45-b01, mixed mode)
+
+				   에러StackTrace.
+					java.io.IOException: Permission denied
+			        at sun.nio.ch.FileChannelImpl.lock0(Native Method)
+			        at sun.nio.ch.FileChannelImpl.tryLock(FileChannelImpl.java:871)
+			        at java.nio.channels.FileChannel.tryLock(FileChannel.java:962)
+			        at bxm.instance.FrameworkInstance.deployPredeployedAppliation(FrameworkInstance.java:1360)
+		        */
+				RandomAccessFile raFile= null;
+				FileChannel channel= null;
+				FileLock flock= null;
+				try
+				{
+					raFile= new RandomAccessFile( lockFile, "rw");
+					channel= raFile.getChannel();
+					try {flock= channel.tryLock();} catch (Throwable e) {logger.warn("file lock acquisition failed. ", e);}
+					int retryCount = 10;
+					// file lock 얻지 못하는 경우 retry count횟수 만큼 재시도한다.
+					if (flock == null)
+					{
+						for (int i = 0; i < retryCount; i++)
+						{
+							logger.debug("Lock file acquisition is failed. Lock File Path [{}]", lockFile.getCanonicalPath());
+							try {Thread.currentThread().sleep(1000);} catch (Throwable e) {logger.warn("file lock acquisition failed. interrupted.", e);}
+							try
+							{
+								flock= channel.tryLock();
+							}
+							catch (Throwable e)
+							{
+								logger.warn("file lock acquisition failed. count [{}]", i, e);
+								// 반복횟수가 retryCount 만큼 진행되었으면 그대로 에러 발생.
+								if (i == retryCount -1)
+									throw e;
+							}
+							if (flock != null) break;
+						}
+					}
+					if( flock!= null)
+					{
+						ResourceUtils.deleteFile( dasSource);
+						if( source.isFile())
+						{
+							File nSource= new File( dasSource.getParentFile(), application.getApplicationName()+ ".par");
+							ResourceUtils.copyStream( new FileInputStream( source), new FileOutputStream( nSource));
+							logger.debug( "par archive is replaced.");
+							application.setApplicationSource( nSource.toURI().toURL());
+						}
+						else if( source.isDirectory())
+						{
+							File nSource= new File( dasSource.getParentFile(), application.getApplicationName());
+							ResourceUtils.fileCopyRecursively(
+									source, nSource,
+									new FilenameFilter(){
+										public boolean accept( File dir, String name)
+										{
+											if( !DeployedApplicationModel.COMMAND_FILENAME.equals( name))
+												return true;
+											else
+												return false;
+										}
+									}, new DefaultResourceErrorHandler(), true);
+							logger.debug( "directory is replaced.");
+							application.setApplicationSource( nSource.toURI().toURL());
+						}
+					}
+					else
+					{
+						if( source.isFile())
+							application.setApplicationSource(
+									new File( dasSource.getParentFile(), application.getApplicationName()+ ".par").toURI().toURL());
+						else if( source.isDirectory())
+							application.setApplicationSource(
+									new File( dasSource.getParentFile(), application.getApplicationName()).toURI().toURL());
+					}
+				}
+				catch( Throwable e)
+				{
+					logger.error( "replace par archive failed.", e);
+					throw new ApplicationTargetException( e.getMessage(), e);
+				}
+				finally
+				{
+					if( flock!= null)
+					{
+						try
+						{
+							flock.release();
+							if( channel!= null) channel.close();
+							if( raFile!= null) raFile.close();
+							lockFile.delete();
+						}
+						catch( Exception e)
+						{
+							logger.error( "replace par archive failed.", e);
+							throw new ApplicationTargetException( e.getMessage(), e);
+						}
+					}
+					else
+					{
+						if( channel!= null)
+							try{ channel.close();}catch( Exception e){}
+						if( raFile!= null)
+							try{ raFile.close();}catch( Exception e){}
+					}
+				}
+			}
 		}
 		finally
 		{
-			if( newJarFile)
-				jarFile.close();
-			if( jarEntries instanceof ParEnumeration)
-				( (ParEnumeration<JarEntry>)jarEntries).disconnect();
+			this.referenceKeeper.clear();
+		}
+
+		publishApplicationDeployCompletedEvent( new InstanceEvent( this));
+
+		// temporary action
+		System.gc();
+	}
+
+
+	public synchronized void throwawayPredeployedApplication( Set<String> nCreatedApplications, String[] applicationNames)
+			throws InvalidCommandException, ApplicationTargetException
+	{
+		if( TEPID!= this.applicationLoader.getLoadingMode())
+		{
+			logger.warn( "deployPredeployedAppliation command is supported in TEPID loading mode.");
+			throw new InvalidCommandException( INVALID_APPLICATION_LOADINGMODE,
+					"deployPredeployedAppliation command is supported in TEPID loading mode.");
+		}
+
+		for( String applicationName: applicationNames)
+		{
+			if( !this.validatingApplications.containsKey( applicationName))
+			{
+				logger.warn( "application [{}] is not found in predeployed application pool", applicationName);
+				throw new InvalidCommandException( APPLICATION_NOTFOUND,
+						"application ["+ applicationName+ "] is not found in predeployed application pool");
+			}
+		}
+
+		List<ClassLoaderRef> refsToClear= new ArrayList<ClassLoaderRef>();
+		for( String applicationName: applicationNames)
+		{
+			DeployedApplication application= null;
+			application= this.validatingApplications.get( applicationName);
+			if( application!= null)
+				refsToClear.add( application.getClassLoaderRef());
+		}
+		this.classLoaderManager.clearThrowawayedRefs( refsToClear.toArray( new ClassLoaderRef[refsToClear.size()]));
+
+		for( String applicationName: applicationNames)
+		{
+			DeployedApplication application= null;
+			application= this.validatingApplications.remove( applicationName);
+			if( application!= null)
+			{
+				if( !nCreatedApplications.contains( applicationName))
+				{
+					application.getClassLoaderRef().getClassLoader().setDeleteOnDestroy( false);
+					this.deployedApplications.get( applicationName).getClassLoaderRef().getClassLoader().setDeleteOnDestroy( true);
+				}
+				refsToClear.add( application.getClassLoaderRef());
+				application.getLightweightApplicationContext().interruptedDeferredInstantiate();
+				application.setStage( ApplicationStage.THROWABLE);
+				application.throwawayed( this.uuid);
+				application.destroy();
+				logger.info( "application [{}] is throwawayed permanently.", applicationName);
+			}
+		}
+		synchronized( this.deferredTasks){ this.deferredTasks.clear();}
+		// temporary action
+		System.gc();
+	}
+
+	public synchronized void deployApplication( String name, File applicationLocation)
+			throws InvalidCommandException, ApplicationTargetException
+	{
+		if( COLD== this.applicationLoader.getLoadingMode())
+		{
+			Map<String, DeployedApplication> applications= deployApplicationInternal( name, applicationLocation, false);
+			if( applications!= null && applications.size()> 0)
+			{
+				for( DeployedApplication application: applications.values())
+				{
+					application.setStage( ApplicationStage.EMPLOYED);
+					application.resetValidClientPatterns();
+					this.deployedApplications.put( application.getApplicationName(), application);
+					application.deployed( this.uuid, this.datasource);
+					logger.info( "application [{}] is deployed.", application.getApplicationName());
+				}
+			}
+			else
+				throw new ApplicationTargetException( "application preparing for deployment is failed.");
+		}
+		else
+		{
+			publishApplicationDeployStartedEvent( new InstanceEvent( this));
+
+			Map<String, DeployedApplication> applications= deployApplicationInternal( name, applicationLocation, false);
+			if( applications!= null && applications.size()> 0)
+			{
+				prepareApplications( applications);
+
+				for( DeployedApplication application: applications.values())
+				{
+					List<LightweightApplicationContext> refCtxs= new ArrayList<LightweightApplicationContext>();
+					ClassLoaderRef[] shRefs=
+							( (ApplicationClassLoader)application.getClassLoaderRef().getClassLoader()).getSharedClassLoaderRefs();
+					for( ClassLoaderRef shRef: shRefs)
+					{
+						String shAppName= shRef.getClassLoader().getApplicationName();
+						if( applications.containsKey( shAppName))
+						{
+							refCtxs.add( applications.get( shAppName).getLightweightApplicationContext());
+							application.getIommFieldProperties().addReferenceIOmmFieldProperties(
+									applications.get( shAppName).getIommFieldProperties());
+						}
+						else if( this.deployedApplications.containsKey( shAppName))
+						{
+							refCtxs.add( this.deployedApplications.get( shAppName).getLightweightApplicationContext());
+							application.getIommFieldProperties().addReferenceIOmmFieldProperties(
+									this.deployedApplications.get( shAppName).getIommFieldProperties());
+						}
+					}
+
+					try
+					{
+						application.getLightweightApplicationContext().postInitialization(
+								refCtxs.toArray( new LightweightApplicationContext[refCtxs.size()]));
+					}
+					catch( Throwable th)
+					{
+						logger.error( "application [{}] postInitialization is failed.",
+								new Object[]{ application.getApplicationName(), th});
+					}
+				}
+
+				try
+				{
+					for( DeployedApplication application: applications.values())
+					{
+						DeployedApplication das= null;
+						try
+						{
+							if( !this.batch && this.applicationLoader.isDeferredInit())
+								application.getLightweightApplicationContext().deferredInstantiate( deferredTasks, deferredInitLock);
+							else
+								application.getLightweightApplicationContext().preInstantiate();
+							application.setStage( ApplicationStage.EMPLOYED);
+							application.resetValidClientPatterns();
+							das= this.deployedApplications.put( application.getApplicationName(), application);
+							application.deployed( this.uuid, this.datasource);
+							// to avoid early gc effect
+							if( das!= null)
+							{
+								this.referenceKeeper.add( das);
+								das.getLightweightApplicationContext().interruptedDeferredInstantiate();
+							}
+							logger.info( "application [{}] is deployed.", application.getApplicationName());
+						}
+						catch( Throwable th)
+						{
+							application.getLightweightApplicationContext().interruptedDeferredInstantiate();
+							logger.error( "application [{}] preInstantiate is failed.",
+									new Object[]{ application.getApplicationName(), th});
+						}
+					}
+				}
+				finally
+				{
+					try
+					{
+						for( DeployedApplication application: applications.values())
+						{
+							if( !applicationLoader.isLazyInit() || COLD== applicationLoader.getLoadingMode()
+									|| ( application.getApplicationSource()!= null
+											&& StringUtils.hasText( application.getApplicationSource().getFile())
+											&& application.getApplicationSource().getFile().endsWith( BXM_ARCHIVE_SUFFIX)))
+							{
+								try{ application.getClassLoaderRef().getResourceLoader().clearMetadataReadCache();}
+								catch( Throwable th){}
+							}
+						}
+					}catch( Throwable th){}
+					this.referenceKeeper.clear();
+				}
+			}
+			else
+				throw new ApplicationTargetException( "application preparing for deployment is failed.");
+
+			publishApplicationDeployCompletedEvent( new InstanceEvent( this));
 		}
 	}
 
-	protected boolean isJarResource( Resource rsc) throws IOException
+	public synchronized void undeployApplication( String name) throws InvalidCommandException, ApplicationTargetException
 	{
-		return ResourceUtils.isJarURL( rsc.getURL());
+		if( this.applicationLoader.isAutodeploy())
+		{
+			logger.warn( "application can not be undeployed from command in auto-deploy mode");
+			throw new InvalidCommandException( INVALID_APPLICATION_LOADINGMODE,
+					"application can not be undepoyed from command in auto-deploy mode");
+		}
+
+		if( !this.deployedApplications.containsKey( name))
+			throw new InvalidCommandException( APPLICATION_NOTFOUND, "application ["+ name+ "] is not found.");
+
+		if( HOT== this.applicationLoader.getLoadingMode() || TEPID== this.applicationLoader.getLoadingMode())
+		{
+			//if shared application throw InvalidCommandException in ApplicationClassLoaderManager
+			try{ this.classLoaderManager.removeApplication( name);}
+			catch( ApplicationNotFoundException e)
+			{
+				throw new InvalidCommandException( SHAREDAPPLICATION_REFRESH_OR_REMOVE_NOTSUPPORTED,
+						"current application used for shared.");
+			}
+			logger.info( "application [{}] will be undeployed permanently.", name);
+			DeployedApplication das= this.deployedApplications.remove( name);
+			if( das!= null)
+			{
+				das.setStage( ApplicationStage.THROWABLE);
+				das.getLightweightApplicationContext().interruptedDeferredInstantiate();
+				try{ das.undeployed( this.uuid, this.datasource);}catch( Throwable th){ logger.error( th.getMessage(), th);}
+				finally{ das.destroy();}
+				logger.info( "application [{}] is undeployed permanently.");
+			}
+		}
+		else if( COLD== this.applicationLoader.getLoadingMode())
+		{
+			if( this.undeployedApplications.containsKey( name))
+				throw new InvalidCommandException( APPLICATION_ALREADY_UNDEPLOYED,
+						"application ["+ name+ "] is already undeployed.");
+
+			logger.info( "application [{}] will be undeployed temporarily.", name);
+			DeployedApplication das= this.deployedApplications.remove( name);
+			if( das!= null)
+			{
+				das.getLightweightApplicationContext().interruptedDeferredInstantiate();
+				try{ das.undeployed( this.uuid, this.datasource);}catch( Throwable th){ logger.error( th.getMessage(), th);}
+				this.undeployedApplications.put( das.getApplicationName(), das);
+				logger.info( "application [{}] is undeployed temporarily.", name);
+			}
+		}
+		// temporary action
+		System.gc();
 	}
 
-	protected boolean isParResource( Resource rsc) throws IOException
+	private Map<String, DeployedApplication> deployApplicationInternal( String name, File applicationLocation, boolean predeploy)
+			throws InvalidCommandException, ApplicationTargetException
 	{
-		return rsc.getURL().getProtocol().equals( ResourceUtils.URL_PROTOCOL_PAR);
+		if( !predeploy && this.applicationLoader.isAutodeploy())
+		{
+			logger.warn( "current framework instance deploy applications from [{}] automatically.",
+					this.applicationLoader.getApplicationHome());
+			throw new InvalidCommandException( INVALID_APPLICATION_LOADINGMODE,
+					"current framework instance deploy applications from ["+
+					this.applicationLoader.getApplicationHome()+ "] automatically.");
+		}
+
+		if( !predeploy && this.deployedApplications.containsKey( name))
+			throw new InvalidCommandException( APPLICATION_ALREADY_DEPLOYED, "application ["+ name+ "] is already deployed.");
+
+		if( COLD== this.applicationLoader.getLoadingMode())
+		{
+			if( !this.undeployedApplications.containsKey( name))
+				throw new InvalidCommandException( APPLICATION_NOTFOUND,
+						"application ["+ name+ "] is not found in redeployable application pool.");
+			logger.info( "application [{}] is redeployed from redeployable application pool.", name);
+
+			Map<String, DeployedApplication> apps= new HashMap<String, DeployedApplication>();
+			DeployedApplication app= this.undeployedApplications.get( name);
+			apps.put( app.getApplicationName(), app);
+			return apps;
+		}
+		else if( HOT== this.applicationLoader.getLoadingMode() || TEPID== this.applicationLoader.getLoadingMode())
+		{
+			logger.info( "application [{}] resource [{}] will be deployed.", name, applicationLocation.getAbsolutePath());
+			File metaFile= null;
+			URL applicationSource= null;
+			InputStream inStream= null;
+			BxmApplication conf= null;
+			try
+			{
+				if( applicationLocation.isDirectory() && ( metaFile= new File( applicationLocation, APPLICATION_DD_FILE)).exists())
+				{
+					applicationSource= applicationLocation.toURI().toURL();
+					inStream= new FileInputStream( metaFile);
+				}
+				else if( applicationLocation.isFile() && applicationLocation.getName().endsWith( BXM_ARCHIVE_SUFFIX))
+				{
+					applicationSource= applicationLocation.toURI().toURL();
+					inStream= findApplicationConfigurationFromArchive( applicationLocation);
+				}
+				else
+				{
+					throw new InvalidCommandException( INVALID_APPLICATION_FORMAT,
+							"invalid application format. ["+ applicationLocation.getAbsolutePath()+ "]" );
+				}
+
+				conf= marshallApplicationDescriptor( inStream);
+				if( !StringUtils.hasText( name) || !StringUtils.hasText( conf.getName()) || !name.equals( conf.getName()))
+					throw new InvalidCommandException( INVALID_APPLICATION_FORMAT,
+							"request application not same with configured application name");
+
+				Map<String, DeployedApplication> applications= null;
+				if( !predeploy)
+				{
+					DeployedApplication das= null;
+					if( ( das= this.deployedApplications.get( conf.getName()))!= null)
+					{
+						das.getLightweightApplicationContext().interruptedDeferredInstantiate();
+						return refreshApplication( applicationLocation, conf, applicationSource,
+								das.getClassLoaderRef().getClassLoader(), this.applicationLoader.isUseLastmodifiedCache());
+					}
+					else
+						return newApplication( applicationLocation, conf, applicationSource);
+				}
+				else
+					applications= stagingApplication( applicationLocation, conf, applicationSource);
+				return applications;
+			}
+			catch( Throwable th)
+			{
+				logger.error( "application [{}] resource [{}] deployment is failed.",
+						new Object[]{name, applicationLocation.getAbsolutePath(), th});
+				throw new ApplicationTargetException( "application ["+ name+ "] resource ["+
+						applicationLocation.getAbsolutePath()+ "] deployment is failed.", th);
+			}
+			finally
+			{
+				if( inStream!= null) try{ inStream.close();}catch( IOException e){}
+			}
+		}
+		else
+			throw new InvalidCommandException( INVALID_APPLICATION_LOADINGMODE, "invalid appliaction loading mode.");
 	}
 
-	protected JarFile getJarFile( String jarFileUrl) throws IOException
+	public void run()
 	{
-		if( jarFileUrl.startsWith( ResourceUtils.FILE_URL_PREFIX))
+//		logger.debug( "AutoDeploy Task started {}", new Date());
+		try
+		{
+			synchronized( this.deferredTasks){ this.deferredTasks.clear();}
+			autoDeployApplicationCandidates();
+		}
+		catch( Throwable th)
+		{
+			logger.error( "AutoDeploy Task of [{}/{}] is failed", new Object[]{ this.uuid, this.name, th});
+		}
+	}
+
+	/**
+	 * for stand-alone batch instance
+	 * initial deploy application with dependencies in <code>appHome</code>
+	 * @param appHome
+	 * @param applicationLocation
+	 * @throws ApplicationTargetException
+	 */
+	public synchronized void deployApplicationCandicates( File appHome, File applicationLocation) throws ApplicationTargetException
+	{
+		deployApplicationCandicates( appHome, applicationLocation, null);
+	}
+
+	/**
+	 * for stand-alone batch instance
+	 * initial deploy application with dependencies in <code>appHome</code>
+	 * @param appHome
+	 * @param applicationLocation
+	 * @param basePackages
+	 * @throws ApplicationTargetException
+	 */
+	public synchronized void deployApplicationCandicates( File appHome, File applicationLocation, List<String> basePackages)
+			throws ApplicationTargetException
+	{
+		deployApplicationCandicates( appHome, applicationLocation, basePackages, false);
+	}
+
+	/**
+	 * for stand-alone batch instance
+	 * initial deploy application with dependencies in <code>appHome</code>
+	 * @param appHome
+	 * @param applicationLocation
+	 * @param basePackageFilters
+	 * @param withDependon
+	 * @throws ApplicationTargetException
+	 */
+	public synchronized void deployApplicationCandicates(
+			File appHome, File applicationLocation, Set<BasePackageFilter> basePackageFilters, boolean withDependon)
+			throws ApplicationTargetException
+	{
+		Map<String, DeployedApplication> deployedApps= prepareDeployedApplications( appHome, applicationLocation);
+
+		Set<String> basePackages= new HashSet<String>();
+		PathMatcher pathMatcher= new AntPathMatcher();
+
+		if( basePackageFilters== null) basePackageFilters= new HashSet<BasePackageFilter>();
+		Map<String, BasePackageFilter> scannerSupportBasePackageFilters= null;
+		if( this.scannerSupport!= null
+				&& ( scannerSupportBasePackageFilters= this.scannerSupport.getBasePackagefBasePackageFilters())!= null
+				&& scannerSupportBasePackageFilters.size()> 0)
+		{
+			for( BasePackageFilter basePackageFilter: basePackageFilters)
+			{
+				BasePackageFilter scannerSupportBasePackageFilter= null;
+				if( ( scannerSupportBasePackageFilter=
+						scannerSupportBasePackageFilters.remove( basePackageFilter.getBasePackagePattern()))!= null)
+				{
+					for( String includePattern: scannerSupportBasePackageFilter.getIncludeClassNamePatterns())
+						basePackageFilter.addIncludeClassNamePattern( includePattern);
+					for( String excludePattern: scannerSupportBasePackageFilter.getExcludeClassNamePatterns())
+						basePackageFilter.addExcludeClassNamePattern( excludePattern);
+				}
+			}
+
+			basePackageFilters.addAll( scannerSupportBasePackageFilters.values());
+		}
+
+		if( deployedApps.size()> 0 && basePackageFilters!= null)
+		{
+			for( BasePackageFilter basePackageFilter: basePackageFilters)
+			{
+				String path= CLASSPATH_ALL_URL_PREFIX+ ClassUtils.convertClassNameToResourcePath(
+						SystemPropertyUtils.resolvePlaceholders( basePackageFilter.getBasePackagePattern(), true))+
+						"/"+ DEFAULT_RESOURCE_PATTERN;
+				basePackages.add( basePackageFilter.getBasePackagePattern());
+				try
+				{
+					Set<String> loadedClasses= new HashSet<String>();
+
+					for( DeployedApplication depApp: deployedApps.values())
+					{
+						Resource[] resources= depApp.getClassLoaderRef().getResourceLoader().getLocalResources( path);
+						if( resources!= null && resources.length> 0)
+						{
+							for( Resource resource: resources)
+							{
+								boolean matched= false;
+								String checkPath= resource.getURL().toExternalForm();
+								Set<String> filterPatterns= basePackageFilter.getIncludeClassNamePatterns();
+								if( filterPatterns.size()== 0)
+									matched= true;
+								for( String include: filterPatterns)
+								{
+									if( pathMatcher.match( "**/"+include+ CLASS_FILE_SUFFIX , checkPath))
+									{
+										matched= true;
+										break;
+									}
+								}
+								filterPatterns= basePackageFilter.getExcludeClassNamePatterns();
+								if( matched && filterPatterns.size()> 0)
+								{
+									for( String exclude: filterPatterns)
+									{
+										if( pathMatcher.match( "**/"+ exclude+ CLASS_FILE_SUFFIX, checkPath))
+										{
+											matched= false;
+											break;
+										}
+									}
+								}
+								if( matched)
+								{
+//									logger.debug( "matched resource is {}", resource.getURL());
+									loadClassWithDependencies( deployedApps, resource, depApp.getClassLoaderRef(), loadedClasses, withDependon);
+								}
+							}
+						}
+					}
+
+				}
+				catch( Throwable th)
+				{
+					logger.error( "creation basepackage set for auto-find dependon packages is failed.", th);
+				}
+			}
+		}
+
+		if( deployedApps.size()<= 0) return;
+		List<String> packages= new ArrayList<String>();
+		packages.addAll( basePackages);
+
+		publishApplicationDeployStartedEvent( new InstanceEvent( this));
+
+		prepareApplications( deployedApps, packages);
+		deployPreparedApplications( deployedApps);
+
+		publishApplicationDeployStartedEvent( new InstanceEvent( this));
+	}
+
+
+	/**
+	 * for stand-alone batch instance
+	 * initial deploy application with dependencies in <code>appHome</code>
+	 * @param appHome
+	 * @param applicationLocation
+	 * @param basePackages
+	 * @param withDependon
+	 * @throws ApplicationTargetException
+	 */
+	public synchronized void deployApplicationCandicates(
+			File appHome, File applicationLocation, List<String> basePackages, boolean withDependon)
+			throws ApplicationTargetException
+	{
+
+		Map<String, DeployedApplication> deployedApps= prepareDeployedApplications( appHome, applicationLocation);
+
+		if( deployedApps.size()> 0 && basePackages!= null)
+		{
+			for( String basePackage: basePackages)
+			{
+				String path= CLASSPATH_ALL_URL_PREFIX+ ClassUtils.convertClassNameToResourcePath(
+						SystemPropertyUtils.resolvePlaceholders( basePackage, true))+ "/"+ DEFAULT_RESOURCE_PATTERN;
+				try
+				{
+					Set<String> loadedClasses= new HashSet<String>();
+
+					for( DeployedApplication depApp: deployedApps.values())
+					{
+						Resource[] resources= depApp.getClassLoaderRef().getResourceLoader().getLocalResources( path);
+						if( resources!= null && resources.length> 0)
+						{
+							for( Resource resource: resources)
+								loadClassWithDependencies( deployedApps, resource, depApp.getClassLoaderRef(), loadedClasses, withDependon);
+						}
+					}
+
+				}
+				catch( Throwable th)
+				{
+					logger.error( "creation basepackage set for auto-find dependon packages is failed.", th);
+				}
+			}
+		}
+
+		if( deployedApps.size()<= 0) return;
+
+		publishApplicationDeployStartedEvent( new InstanceEvent(  this));
+
+		prepareApplications( deployedApps, basePackages);
+		deployPreparedApplications( deployedApps);
+
+		publishApplicationDeployCompletedEvent( new InstanceEvent( this));
+	}
+
+	private Map<String, DeployedApplication> prepareDeployedApplications( File appHome, File applicationLocation)
+		throws ApplicationTargetException
+	{
+		if( appHome== null || !appHome.exists() || applicationLocation== null || !applicationLocation.exists())
+		{
+			logger.error( "can not deployApplicationCandicates using application [{}] of application home [{}].",
+					appHome, applicationLocation);
+			throw new ApplicationTargetException( "application preparing for deployment is failed. ");
+		}
+
+		Map<String, DeployedApplication> deployedApps= new HashMap<String, DeployedApplication>();
+		File metaFile= null;
+		InputStream metaStream= null;
+		URL applicationSource= null;
+		if( applicationLocation.isDirectory() && ( metaFile= new File( applicationLocation, APPLICATION_DD_FILE)).exists())
 		{
 			try
 			{
-				return new JarFile( ResourceUtils.toURI( jarFileUrl).getSchemeSpecificPart());
+				applicationSource= applicationLocation.toURI().toURL();
+				BxmApplication conf= marshallApplicationDescriptor( metaFile);
+				if( conf!= null)
+				{
+					logger.debug( "autoDeployApplication using [{}].", metaFile.getAbsolutePath());
+					Map<String, DeployedApplication> depapps= newApplication( applicationLocation, conf, applicationSource);
+					if( depapps!= null && depapps.size()> 0)
+					{
+						for( DeployedApplication depapp: depapps.values())
+							deployedApps.put( depapp.getApplicationName(), depapp);
+					}
+
+					Map<BxmApplication,File> candidateConfs= loadApplicationConfs( appHome, applicationLocation);
+					Set<BxmApplication> toDeployConfs= new HashSet<BxmApplication>();
+					Map<String,BxmApplication> checkTos= new HashMap<String, BxmApplication>();
+					for( BxmApplication cconf: candidateConfs.keySet())
+						checkTos.put( cconf.getName(), cconf);
+					checkReferenceApplications( conf, checkTos, toDeployConfs);
+
+					for( BxmApplication bxmApplication: toDeployConfs)
+					{
+						File target= null;
+						if( deployedApps.containsKey( bxmApplication.getName())) continue;
+						if( ( target= candidateConfs.get( bxmApplication))!= null)
+						{
+							if( target.isDirectory() || ( target.isFile() && target.getName().endsWith( BXM_ARCHIVE_SUFFIX)))
+							{
+								depapps.clear();
+								depapps= newApplication( target, bxmApplication, target.toURI().toURL());
+								if( depapps!= null && depapps.size()> 0)
+								{
+									for( DeployedApplication depapp: depapps.values())
+										deployedApps.put( depapp.getApplicationName(), depapp);
+								}
+							}
+						}
+					}
+				}
 			}
-			catch( URISyntaxException e)
+			catch( Exception e)
 			{
-				return new JarFile( jarFileUrl.substring( ResourceUtils.FILE_URL_PREFIX.length()));
+				logger.error( "deployment using application [{}] of application home [{}] is failed.",
+						new Object[]{ applicationLocation, appHome, e});
+				throw new ApplicationTargetException( "application preparing for deployment is failed. ", e);
+			}
+		}
+		else if( applicationLocation.isFile() && applicationLocation.getName().endsWith( BXM_ARCHIVE_SUFFIX))
+		{
+			try
+			{
+				applicationSource= applicationLocation.toURI().toURL();
+				metaStream= findApplicationConfigurationFromArchive( applicationLocation);
+				if( metaStream== null)
+				{
+					logger.error( "deployment using application [{}] of application home [{}] is failed. " +
+							"application meta-file not found.", new Object[]{ applicationLocation, appHome});
+					throw new ApplicationTargetException( "application preparing for deployment is failed. ");
+				}
+
+				BxmApplication conf= marshallApplicationDescriptor( metaStream);
+				if( conf!= null)
+				{
+					Map<String, DeployedApplication> depapps= newApplication( applicationLocation, conf, applicationSource);
+					if( depapps!= null && depapps.size()> 0)
+					{
+						for( DeployedApplication depapp: depapps.values())
+							deployedApps.put( depapp.getApplicationName(), depapp);
+					}
+
+					Map<BxmApplication,File> candidateConfs= loadApplicationConfs( appHome, applicationLocation);
+					Set<BxmApplication> toDeployConfs= new HashSet<BxmApplication>();
+					Map<String,BxmApplication> checkTos= new HashMap<String, BxmApplication>();
+					for( BxmApplication cconf: candidateConfs.keySet())
+						checkTos.put( cconf.getName(), cconf);
+					checkReferenceApplications( conf, checkTos, toDeployConfs);
+
+					for( BxmApplication bxmApplication: toDeployConfs)
+					{
+						File target= null;
+						if( deployedApps.containsKey( bxmApplication.getName())) continue;
+						if( ( target= candidateConfs.get( bxmApplication))!= null)
+						{
+							if( target.isDirectory() || ( target.isFile() && target.getName().endsWith( BXM_ARCHIVE_SUFFIX)))
+							{
+								depapps.clear();
+								depapps= newApplication( target, bxmApplication, target.toURI().toURL());
+								if( depapps!= null && depapps.size()> 0)
+								{
+									for( DeployedApplication depapp: depapps.values())
+										deployedApps.put( depapp.getApplicationName(), depapp);
+								}
+							}
+						}
+					}
+				}
+			}
+			catch( Exception e)
+			{
+				logger.error( "deployment using application [{}] of application home [{}] is failed.",
+						new Object[]{ applicationLocation, appHome, e});
+				throw new ApplicationTargetException( "application preparing for deployment is failed. ", e);
+			}
+			finally
+			{
+				if( metaStream!= null) try{ metaStream.close();}catch( Throwable th){}
 			}
 		}
 		else
 		{
-			return new JarFile( jarFileUrl);
+			logger.error( "deployment using application [{}] of application home [{}] is failed.",
+					new Object[]{ applicationLocation, appHome});
+			throw new ApplicationTargetException( "application preparing for deployment is failed. ");
 		}
+		return deployedApps;
 	}
 
-	protected Set<Resource> doFindPathMatchingFileResources( Resource rootDirResource, String subPattern) throws IOException
+	private void loadClassWithDependencies(
+			Map<String, DeployedApplication> deployedApps, Resource resource
+			, ClassLoaderRef loaderRef, Set<String> loadedClasses, boolean withDependon)
+			throws Exception
 	{
-		File rootDir= null;
-		try{ rootDir= rootDirResource.getFile().getAbsoluteFile();}
-		catch( IOException e)
+		MetadataReader reader= null;
+		try
 		{
-			logger.warn(
-					"Cannot search for matching files unerneath [{}] " +
-					"because it does not correspond to a directory in the file system.", new Object[]{ rootDirResource, e});
-		}
-		return doFindMatchingFileSystemResources( rootDir, subPattern);
-	}
+			reader= loaderRef.getResourceLoader().getMetadataReader( resource);
+			if( reader== null) return;
 
-	protected Set<Resource> doFindMatchingFileSystemResources( File rootDir, String subPattern) throws IOException
-	{
-//		logger.debug( "looking for matching resources in directory tree [{}].", rootDir.getPath());
-		Set<File> matchingFiles= retrieveMatchingFiles( rootDir, subPattern);
-		Set<Resource> results= new LinkedHashSet<Resource>( matchingFiles.size());
-		for( File file: matchingFiles)
-			results.add( new FileSystemResource( file));
-		return results;
-	}
-
-	protected Set<File> retrieveMatchingFiles( File rootDir, String pattern) throws IOException
-	{
-		if( !rootDir.isDirectory())
-			throw new IllegalArgumentException( "Resource path ["+ rootDir+ "] does not denote a directory");
-
-		String fullPattern= StringUtils.replace( rootDir.getAbsolutePath(), File.separator, "/");
-
-		if( !pattern.startsWith( "/"))
-			fullPattern+= "/";
-
-		fullPattern= fullPattern + StringUtils.replace( pattern, File.separator, "/");
-		Set<File> result= new LinkedHashSet<File>( 8);
-		doRetrieveMatchingFiles( fullPattern, rootDir, result);
-		return result;
-	}
-
-	protected void doRetrieveMatchingFiles( String fullPattern, File dir, Set<File> result) throws IOException
-	{
-//		logger.debug( "searching directory[{}] for files matching pattern [{}]", new Object[]{dir.getAbsolutePath(), fullPattern});
-
-		File[] dirContents= dir.listFiles();
-		if( dirContents== null)
-			throw new IOException( "Could not retrieve contents of directory ["+ dir.getAbsolutePath()+ "]");
-
-		for( int i= 0; i< dirContents.length; i++)
-		{
-			File content= dirContents[i];
-			if( content.isDirectory() && content.getName().endsWith( ".svn")) continue;
-			String currPath= StringUtils.replace( content.getAbsolutePath(), File.separator, "/");
-			if( content.isDirectory() && getPathMatcher().matchStart( fullPattern, currPath+ "/"))
-				doRetrieveMatchingFiles( fullPattern, content, result);
-			if( getPathMatcher().match( fullPattern, currPath))
-				result.add( content);
-		}
-	}
-
-	protected String determineRootDir( String path)
-	{
-		int prefixEnd= path.indexOf( ":")+ 1;
-		int rootDirEnd= path.length();
-		while( rootDirEnd> prefixEnd && getPathMatcher().isPattern( path.substring( prefixEnd, rootDirEnd)))
-			rootDirEnd= path.lastIndexOf( '/', rootDirEnd- 2)+ 1;
-
-		if( rootDirEnd== 0) rootDirEnd= prefixEnd;
-		return path.substring( 0, rootDirEnd);
-	}
-
-	protected Resource convertClassLoaderURL( URL url)
-	{
-		return new URLResource( url);
-	}
-
-	@Override
-	public void putMetadataReader( String clsName, MetadataReader reader)
-	{
-		this.metadataReaderCacheByClassName.put( clsName, reader);
-	}
-
-	@Override
-	public MetadataReader readMetadataReaderOnce( String clsName) throws IOException
-	{
-		synchronized( this.metadataReaderLRUCache)
-		{
-			MetadataReader reader= null;
-			if( ( reader= this.metadataReaderLRUCache.get( clsName))!= null)
-				return reader;
-			else
+			String appname= ( (AbstractApplicationClassLoader)loaderRef.getClassLoader()).getApplicationName();
+			Application resholder= deployedApps.get( appname);
+			if( resholder!= null)
 			{
-				String resourcePath=
-						ResourceUtils.CLASSPATH_URL_PREFIX+
-						ClassUtils.convertClassNameToResourcePath( clsName)+
-						ClassUtils.CLASS_FILE_SUFFIX;
-				Resource resource= getResource( resourcePath);
-				Long lastModified= null;
-				try{ lastModified= resource.lastModified();}catch( Throwable th){}
-				byte[] classbytes= ClassResourceReader.readClassResource( resource.getInputStream());
-				if( classbytes.length< 8) throw new IOException( "insufficient class bytes length.");
-				ClassReader clsReader= new ClassReader( classbytes);
-				reader= new MetadataReader( resource.getURL(), clsReader, this.classLoader.get(), lastModified);
-
-				if( this.metadataReaderLRUCache.size()>= instrumentableMetadataCachesize)
-					this.metadataReaderLRUCache.remove( this.metadataReaderLRUCache.keySet().iterator().next());
-				this.metadataReaderLRUCache.put( clsName, reader);
-				return reader;
+				resholder.addBeanCandidateResource( resource);
+				logger.debug( "appended {} to {}", resource.getFileName(), appname);
 			}
-		}
-	}
 
-	public ClassReader getCachedClassReader( String path, ClassLoader classLoader) throws IOException
-	{
-		synchronized( this.classReaderLRUCache)
-		{
-			ClassReader reader= null;
-			if( ( reader= this.classReaderLRUCache.get( path))!= null)
-				return reader;
-			else
+			String className= reader.getClassMetadata().getClassName();
+
+			if( loadedClasses.contains( className)) return;
+			Class<?> loadedClass= loaderRef.getClassLoader().loadClass( className);
+			loadedClasses.add( className);
+			Field[] fields= loadedClass.getDeclaredFields();
+			for( Field field: fields)
 			{
-				byte[] classbytes= ClassResourceReader.readClassResource( classLoader.getResourceAsStream(
-						path+ ClassUtils.CLASS_FILE_SUFFIX));
-				if( classbytes.length< 8) throw new IOException( "insufficient class bytes length.");
-				reader= new ClassReader( classbytes);
-				if( this.classReaderLRUCache.size()>= classTransformerMetadataCachesize)
-					this.classReaderLRUCache.remove( this.classReaderLRUCache.keySet().iterator().next());
-				this.classReaderLRUCache.put( path, reader);
-				return reader;
-			}
-		}
-	}
-
-//	@Override
-//	public ClassMetadata readClassMetadataOnce( String clsName) throws IOException
-//	{
-//		String resourcePath=
-//				ResourceUtils.CLASSPATH_URL_PREFIX+
-//				ClassUtils.convertClassNameToResourcePath( clsName)+
-//				ClassUtils.CLASS_FILE_SUFFIX;
-//		Resource resource= getResource( resourcePath);
-//		byte[] classbytes= ClassResourceReader.readClassResource( resource.getInputStream());
-//		if( classbytes.length< 8) throw new IOException( "insufficient class bytes length.");
-//		ClassReader clsReader= new ClassReader( classbytes);
-//		ClassVisitor metadata= new ClassVisitor( resource.getURL());
-//		clsReader.accept( metadata, SKIP_DEBUG | SKIP_FRAMES);
-//		return metadata;
-//	}
-
-	@Override
-	public MetadataReader getMetadataReader( String clsName) throws IOException
-	{
-		synchronized( this.metadataReaderCache)
-		{
-			MetadataReader reader= this.metadataReaderCacheByClassName.get( clsName);
-			if( reader== null)
-			{
-				String resourcePath=
-						ResourceUtils.CLASSPATH_URL_PREFIX+
-						ClassUtils.convertClassNameToResourcePath( clsName)+
-						ClassUtils.CLASS_FILE_SUFFIX;
-				reader= getMetadataReader( getResource( resourcePath));
-			}
-			return reader;
-		}
-	}
-
-	@Override
-	public MetadataReader getMetadataReaderIfNotMatchSelf( Resource resource) throws IOException
-	{
-		synchronized( this.metadataReaderCache)
-		{
-			MetadataReader reader= this.metadataReaderCache.get( resource);
-			String[] infNames= null;
-			if( reader!= null)
-			{
-				if( ( infNames= reader.getClassMetadata().getInterfaceNames())== null
-						|| infNames.length== 0 || !Arrays.asList( infNames).contains( IOMMOBJECT_CLASS.getName()))
-					return reader;
-				else
-					return null;
-			}
-			else
-			{
-				Long lastModified= null;
-				try{ lastModified= resource.lastModified();}catch( Throwable th){}
-
-				byte[] classbytes= ClassResourceReader.readClassResource( resource.getInputStream());
-				if( classbytes.length< 8) throw new IOException( "insufficient class bytes length.");
-				ClassReader clsReader= new ClassReader( classbytes);
-				ClassVisitor clsVisitor= new ClassVisitor( resource.getURL());
-				clsReader.accept( clsVisitor, SKIP_DEBUG | SKIP_FRAMES);
-
-				if( ( infNames= clsVisitor.getInterfaceNames())== null
-						|| infNames.length== 0 || !Arrays.asList( infNames).contains( IOMMOBJECT_CLASS.getName()))
+//				Annotation[] annotations= field.getAnnotations();
+//				if( annotations!= null && annotations.length> 0)
+				if( !ClassUtils.isPrimitiveOrWrapper( field.getDeclaringClass()))
 				{
-					AnnotatedClassVisitor annotatedClsVisitor= new AnnotatedClassVisitor( resource.getURL(), this.classLoader.get());
-					clsReader.accept( annotatedClsVisitor, SKIP_DEBUG | SKIP_FRAMES);
-					reader= new MetadataReader( resource.getURL(), clsVisitor, annotatedClsVisitor, lastModified);
-					this.metadataReaderCache.put( resource, reader);
-					this.metadataReaderCacheByClassName.put( clsVisitor.getClassName(), reader);
-					return reader;
-				}
-				else
-					return null;
-			}
-		}
-	}
+					String fieldTypeName= field.getType().getName();
+					if( fieldTypeName.startsWith( "java.") || fieldTypeName.startsWith( "sun.")
+							|| fieldTypeName.startsWith( "javax.") || fieldTypeName.startsWith( "org."))
+						continue;
 
-	@Override
-	public MetadataReader getMetadataReader( Resource resource) throws IOException
-	{
-		synchronized( this.metadataReaderCache)
-		{
-			MetadataReader reader= this.metadataReaderCache.get( resource);
-			if( reader== null)
-			{
-				Long lastModified= null;
-				try{ lastModified= resource.lastModified();}catch( Throwable th){}
+					String resName= ClassUtils.convertClassNameToResourcePath( fieldTypeName)+ ClassUtils.CLASS_FILE_SUFFIX;
+					for( DeployedApplication depApp: deployedApps.values())
+					{
+						AbstractApplicationClassLoader appLoader=
+								(AbstractApplicationClassLoader)depApp.getClassLoaderRef().getClassLoader();
+						URL resUrl= appLoader.getApplicationResource( resName);
 
-				byte[] classbytes= ClassResourceReader.readClassResource( resource.getInputStream());
-				if( classbytes.length< 8) throw new IOException( "insufficient class bytes length.");
-				ClassReader clsReader= new ClassReader( classbytes);
-				reader= new MetadataReader( resource.getURL(), clsReader, this.classLoader.get(), lastModified);
+						if( resUrl!= null)
+						{
+							if(withDependon)
+							{
+								loadClassWithDependencies(
+										deployedApps, new URLResource( resUrl), depApp.getClassLoaderRef(), loadedClasses, withDependon);
+							}
+							break;
+						}
+					}
 
-				if(!LApplicationContext.isBatchContext() || Boolean.parseBoolean(System.getProperty("init.start")))
-				{
-					this.metadataReaderCache.put( resource, reader);
-					this.metadataReaderCacheByClassName.put( reader.getClassMetadata().getClassName(), reader);
+					String[] additionalClassNames= this.scannerSupport!= null ?
+							this.scannerSupport.additionalCandidateClassNames( fieldTypeName) : new String[]{};
+					for( String additionalClassName: additionalClassNames)
+					{
+						if( !StringUtils.hasText( additionalClassName) || additionalClassName.equals( field.getType().getName()))
+							continue;
+
+						logger.debug( "additional class Name is {}/{}", fieldTypeName, additionalClassName);
+						resName= ClassUtils.convertClassNameToResourcePath( additionalClassName)+ ClassUtils.CLASS_FILE_SUFFIX;
+						for( DeployedApplication depApp: deployedApps.values())
+						{
+							AbstractApplicationClassLoader appLoader=
+									(AbstractApplicationClassLoader)depApp.getClassLoaderRef().getClassLoader();
+							URL resUrl= appLoader.getApplicationResource( resName);
+							if( resUrl!= null)
+							{
+								if(withDependon)
+								{
+									loadClassWithDependencies(
+											deployedApps, new URLResource( resUrl), depApp.getClassLoaderRef(), loadedClasses, withDependon);
+								}
+								break;
+							}
+						}
+					}
 				}
 			}
-			return reader;
+
+		}
+		catch( Throwable th)
+		{
+			logger.warn( th.getMessage(), th);
 		}
 	}
 
-	@Override
-	public MetadataReader removeMetadataReaderCache( String clsName)
+	private void deployPreparedApplications( Map<String, DeployedApplication> deployedApps)
 	{
-		synchronized( this.metadataReaderCache)
+		for( DeployedApplication application: deployedApps.values())
 		{
-			return this.metadataReaderCacheByClassName.remove( clsName);
-		}
-	}
-
-	@Override
-	public MetadataReader removeMetadataReaderCache( Resource resource)
-	{
-		synchronized( this.metadataReaderCache)
-		{
-			MetadataReader reader= this.metadataReaderCache.remove( resource);
-			if( reader!= null)
+			List<LightweightApplicationContext> refCtxs= new ArrayList<LightweightApplicationContext>();
+			ClassLoaderRef[] shRefs=
+					( (ApplicationClassLoader)application.getClassLoaderRef().getClassLoader()).getSharedClassLoaderRefs();
+			for( ClassLoaderRef shRef: shRefs)
 			{
-				String classname= reader.getClassMetadata().getClassName();
-				this.metadataReaderCacheByClassName.remove( classname);
+				String shAppName= shRef.getClassLoader().getApplicationName();
+				if( deployedApps.containsKey( shAppName))
+				{
+					refCtxs.add( deployedApps.get( shAppName).getLightweightApplicationContext());
+					application.getIommFieldProperties().addReferenceIOmmFieldProperties(
+							deployedApps.get( shAppName).getIommFieldProperties());
+				}
+				else if( this.deployedApplications.containsKey( shAppName))
+				{
+					refCtxs.add( this.deployedApplications.get( shAppName).getLightweightApplicationContext());
+					application.getIommFieldProperties().addReferenceIOmmFieldProperties(
+							this.deployedApplications.get( shAppName).getIommFieldProperties());
+				}
 			}
-			return reader;
+
+			try
+			{
+				// 배치 기동 실패 시 NullPointerException 발생하여 if( 추가.
+				if(application == null || application.getLightweightApplicationContext() == null)
+				{
+					logger.error( "application [{}] or LightweightApplicationContext is null.", application.getApplicationName());
+				}
+				else
+				{
+					application.getLightweightApplicationContext().postInitialization(
+							refCtxs.toArray( new LightweightApplicationContext[refCtxs.size()]));
+				}
+			}
+			catch( Throwable th)
+			{
+				logger.error( "application [{}] postInitialization is failed.", new Object[]{ application.getApplicationName(), th});
+			}
+		}
+
+		try
+		{
+			for( DeployedApplication application: deployedApps.values())
+			{
+				DeployedApplication das= null;
+				try
+				{
+					if(application != null)
+					{
+						if(application.getLightweightApplicationContext() != null)
+						{
+							if( !this.batch && this.applicationLoader.isDeferredInit())
+								application.getLightweightApplicationContext().deferredInstantiate( deferredTasks, deferredInitLock);
+							else
+								application.getLightweightApplicationContext().preInstantiate();
+						}
+						else
+						{
+							throw new IllegalStateException("Application LightweightApplicationContext is null.");
+						}
+
+						application.setStage( ApplicationStage.EMPLOYED);
+						das= this.deployedApplications.put( application.getApplicationName(), application);
+						application.deployed( this.uuid, this.datasource);
+//						if( this.batch && this.applicationLoader.isNouseSnapshot())
+						if( this.applicationLoader.isNouseSnapshot())
+							application.getClassLoaderRef().getClassLoader().setDeleteOnDestroy( false);
+					}
+				}
+				catch( Throwable th)
+				{
+					if(application != null && application.getLightweightApplicationContext() != null)
+					{
+						application.getLightweightApplicationContext().interruptedDeferredInstantiate();
+						logger.error( "application [{}] preInstantiate is failed.", new Object[]{ application.getApplicationName(), th});
+					}
+					else
+					{
+						logger.error( "application preInstantiate is failed.", new Object[]{th});
+					}
+				}
+				finally
+				{
+					if(application != null)
+					{
+						logger.info( "appliaction [{}] is deployed.", application.getApplicationName());
+					}
+					if( das!= null)
+					{
+						// to avoid early gc effect
+						this.referenceKeeper.add( das);
+						das.getLightweightApplicationContext().interruptedDeferredInstantiate();
+						das.setStage( ApplicationStage.THROWABLE);
+						try{ das.undeployed( this.uuid, this.datasource);}catch( Throwable th){ logger.error( th.getMessage(), th);}
+						finally{ das.destroy();}
+					}
+				}
+			}
+		}
+		finally
+		{
+			try
+			{
+				for( DeployedApplication application: deployedApps.values())
+				{
+					if( !applicationLoader.isLazyInit() || COLD== applicationLoader.getLoadingMode()
+							|| ( application.getApplicationSource()!= null
+									&& StringUtils.hasText( application.getApplicationSource().getFile())
+									&& application.getApplicationSource().getFile().endsWith( BXM_ARCHIVE_SUFFIX)))
+					{
+						try{ application.getClassLoaderRef().getResourceLoader().clearMetadataReadCache();}catch( Throwable th){}
+					}
+				}
+			}catch( Throwable th){}
+			this.referenceKeeper.clear();
 		}
 	}
 
-	@Override
-	public void clearMetadataReadCache()
+	private synchronized void autoDeployApplicationCandidates()
 	{
-		synchronized( this.metadataReaderCache)
+//		logger.debug("Caller Class name :{} ", Reflection.getCallerClass( 2));
+//		try {
+//			throw new Exception("Here");
+//		}
+//		catch (Exception e)
+//		{
+//			StackTraceElement[] ste = e.getStackTrace();
+//			try {
+//				logger.debug(String.format("Caller Class name(%s.%s:%d)", ste[1].getClassName(), ste[1].getMethodName(), ste[1].getLineNumber()));
+//			}
+//			catch (Exception ee) {}
+//		}
+
+		if( this.appHome== null) return;
+		Set<String> targetApplications= this.applicationLoader.getTargetApplications();
+		long now= System.currentTimeMillis();
+		File[] entries= this.appHome.listFiles();
+		Map<String, DeployedApplication> toDeployApps= new HashMap<String, DeployedApplication>();
+		for( File entry: entries)
 		{
-			this.metadataReaderCache.clear();
-			this.metadataReaderCacheByClassName.clear();
+			if( entry.getName().toLowerCase().endsWith( ".svn"))	continue;
+			File parFile= new File( this.appHome.getAbsolutePath()+ File.separator+ entry.getName()+ BXM_ARCHIVE_SUFFIX);
+			File metaFile= null;
+			InputStream metaStream= null;
+
+			if( entry.isDirectory() && entry.getName().equals( EXTRACTED_PATH_SUFFIX))	continue;
+			if( entry.isDirectory() && entry.getName().equals( "META-INF"))	
+				System.out.println("");
+			if( entry.isDirectory() && (( metaFile= new File( entry, APPLICATION_DD_FILE)).exists() || ( metaFile= new File( entry, APPLICATION_DD_FILENAME)).exists())
+					&& !parFile.exists())
+			{
+				URL applicationSource= null;
+				File commandFile= new File( entry, DeployedApplicationModel.COMMAND_FILE);
+				try
+				{
+					applicationSource= entry.toURI().toURL();
+					boolean canAutoDeploy= false;
+
+					if( commandFile.exists())
+					{
+						if( !commandModTimes.containsKey( applicationSource))
+							canAutoDeploy= true;
+						else if( commandModTimes.get( applicationSource).longValue()< commandFile.lastModified())
+							canAutoDeploy= true;
+					}
+					if( !dirModTimes.containsKey( applicationSource))
+						canAutoDeploy= true;
+					else if( dirModTimes.get( applicationSource).longValue()< metaFile.lastModified())
+						canAutoDeploy= true;
+
+					if( canAutoDeploy)
+					{
+						BxmApplication conf= marshallApplicationDescriptor( metaFile);
+						if( conf== null)	continue;
+						if( !batch && ApplicationType.BATCH== conf.getType()) continue;
+						if( !CollectionUtils.isEmpty( targetApplications) && !targetApplications.contains( conf.getName()))
+							continue;
+
+						if( toDeployApps.containsKey( conf.getName()))
+						{
+							logger.debug( "refreshApplicationSourceForLoader using [{}].", entry);
+							refreshApplicationSourceForLoader( entry, conf, applicationSource,
+									toDeployApps.get( conf.getName()).getClassLoaderRef().getClassLoader(),
+									this.applicationLoader.isUseLastmodifiedCache());
+						}
+						else
+						{
+							logger.debug( "autoDeployApplication using [{}].", metaFile.getAbsolutePath());
+							Map<String, DeployedApplication> depapps= autoDeployApplication( applicationSource, conf, entry);
+							if( depapps!= null && depapps.size()> 0)
+							{
+								for( DeployedApplication depapp: depapps.values())
+									toDeployApps.put( depapp.getApplicationName(), depapp);
+							}
+						}
+					}
+				}
+				catch( Exception e)
+				{
+					logger.warn( e.getMessage(), e);
+					continue;
+				}
+				finally
+				{
+					if( applicationSource!= null)
+					{
+						dirModTimes.put( applicationSource, metaFile.lastModified());
+						if( commandFile.exists())	commandModTimes.put( applicationSource, commandFile.lastModified());
+					}
+				}
+			}
+			// else packaged par application
+			else if( entry.isFile() && entry.getName().endsWith( BXM_ARCHIVE_SUFFIX))
+			{
+				URL applicationSource= null;
+				try
+				{
+					applicationSource= entry.toURI().toURL();
+					if( jarModTimes.containsKey( applicationSource)
+							&& ( jarModTimes.get( applicationSource).longValue()>= entry.lastModified()))
+						continue;
+
+					metaStream= findApplicationConfigurationFromArchive( entry);
+					if( metaStream== null) continue;
+
+					BxmApplication conf= marshallApplicationDescriptor( metaStream);
+
+					if( conf== null) continue;
+					if( !batch && ApplicationType.BATCH== conf.getType()) continue;
+					if( !CollectionUtils.isEmpty( targetApplications) && !targetApplications.contains( conf.getName()))
+						continue;
+
+					if( toDeployApps.containsKey( conf.getName()))
+					{
+						logger.debug( "refreshApplicationSourceForLoader using [{}].", entry);
+						refreshApplicationSourceForLoader( entry, conf, applicationSource,
+								toDeployApps.get( conf.getName()).getClassLoaderRef().getClassLoader(), false);
+					}
+					else
+					{
+						logger.debug( "autoDeployApplication using [{}].", entry);
+						Map<String, DeployedApplication> depapps= autoDeployApplication( applicationSource, conf, entry);
+						if( depapps!= null && depapps.size()> 0)
+						{
+							for( DeployedApplication depapp: depapps.values())
+								toDeployApps.put( depapp.getApplicationName(), depapp);
+						}
+					}
+				}
+				catch( Exception e)
+				{
+					logger.warn( e.getMessage(), e);
+					continue;
+				}
+				finally
+				{
+					if( applicationSource!= null) jarModTimes.put( applicationSource, entry.lastModified());
+					if( metaStream!= null) try{ metaStream.close();}catch( Throwable th){}
+				}
+			}
 		}
 
-		synchronized( this.metadataReaderLRUCache)
+		if( toDeployApps.size()<= 0) return;
+		
+		logger.warn( "autoDeployApplicationCandidates_start [{}].", appHome);
+
+		publishApplicationDeployStartedEvent( new InstanceEvent(  this));
+
+		prepareApplications( toDeployApps);
+
+		for( DeployedApplication application: toDeployApps.values())
 		{
-			this.metadataReaderLRUCache.clear();
+			List<LightweightApplicationContext> refCtxs= new ArrayList<LightweightApplicationContext>();
+			ClassLoaderRef[] shRefs=
+					( (ApplicationClassLoader)application.getClassLoaderRef().getClassLoader()).getSharedClassLoaderRefs();
+			for( ClassLoaderRef shRef: shRefs)
+			{
+				String shAppName= null;
+				shAppName= shRef.getClassLoader().getApplicationName();
+				if( toDeployApps.containsKey( shAppName))
+				{
+					refCtxs.add( toDeployApps.get( shAppName).getLightweightApplicationContext());
+					application.getIommFieldProperties().addReferenceIOmmFieldProperties(
+							toDeployApps.get( shAppName).getIommFieldProperties());
+				}
+				else if( this.deployedApplications.containsKey( shAppName))
+				{
+					refCtxs.add( this.deployedApplications.get( shAppName).getLightweightApplicationContext());
+					application.getIommFieldProperties().addReferenceIOmmFieldProperties(
+							this.deployedApplications.get( shAppName).getIommFieldProperties());
+				}
+			}
+
+			try
+			{
+				application.getLightweightApplicationContext().postInitialization(
+						refCtxs.toArray( new LightweightApplicationContext[refCtxs.size()]));
+			}
+			catch( Throwable th)
+			{
+				logger.error( "application [{}] postInitialization is failed.", new Object[]{ application.getApplicationName(), th});
+			}
 		}
+
+		try
+		{
+			for( DeployedApplication application: toDeployApps.values())
+			{
+				DeployedApplication das= null;
+				try
+				{
+					if( !this.batch && this.applicationLoader.isDeferredInit())
+						application.getLightweightApplicationContext().deferredInstantiate( deferredTasks, deferredInitLock);
+					else
+						application.getLightweightApplicationContext().preInstantiate();
+					application.setStage( ApplicationStage.EMPLOYED);
+					das= this.deployedApplications.put( application.getApplicationName(), application);
+					application.deployed( this.uuid, this.datasource);
+				}
+				catch( Throwable th)
+				{
+					application.getLightweightApplicationContext().interruptedDeferredInstantiate();
+					logger.error( "application [{}] preInstantiate is failed.", new Object[]{ application.getApplicationName(), th});
+				}
+				finally
+				{
+					logger.info( "appliaction [{}/{}] is deployed.", application.getApplicationName(), application.getUUID());
+					logger.debug( "old application [{}] is detected.", das!= null ? das.getApplicationName() : "null");
+					if( das!= null)
+					{
+						// to avoid early gc effect
+						this.referenceKeeper.add( das);
+						das.getLightweightApplicationContext().interruptedDeferredInstantiate();
+						logger.info( "application [{}/{}] is undeployed", das.getApplicationName(), das.getUUID());
+						das.setStage( ApplicationStage.THROWABLE);
+						try{ das.undeployed( this.uuid, this.datasource);}catch( Throwable th){ logger.error( th.getMessage(), th);}
+						finally{ das.destroy();}
+					}
+				}
+			}
+		}
+		finally
+		{
+			try
+			{
+				for( DeployedApplication application: toDeployApps.values())
+				{
+					if( !applicationLoader.isLazyInit() || COLD== applicationLoader.getLoadingMode()
+							|| ( application.getApplicationSource()!= null
+									&& StringUtils.hasText( application.getApplicationSource().getFile())
+									&& application.getApplicationSource().getFile().endsWith( BXM_ARCHIVE_SUFFIX)))
+					{
+						try{ application.getClassLoaderRef().getResourceLoader().clearMetadataReadCache();}catch( Throwable th){}
+					}
+				}
+			}catch( Throwable th){}
+			this.referenceKeeper.clear();
+		}
+
+		if( toDeployApps!= null && toDeployApps.size()> 0)
+		{
+			logger.info( "================================================================");
+			logger.warn( "autoDeployApplicationCandidates_ended [{}].", System.currentTimeMillis() - now);
+		}
+
+		publishApplicationDeployCompletedEvent(  new InstanceEvent( this));
+
+		// temporary action
+		System.gc();
 	}
 
-	static class ClassPathContextResource extends ClassPathResource
+	private Map<String, DeployedApplication> autoDeployApplication( URL applicationSource, BxmApplication conf,
+			File applicationLocation) throws Exception
 	{
-
-		public ClassPathContextResource( String path, ClassLoader clsLoader)
+		try
 		{
-			super( path, clsLoader);
+			if( this.deployedApplications.containsKey( conf.getName()))
+			{
+				if( HOT!= applicationLoader.getLoadingMode())
+					return null;
+
+				if( !this.deployedApplications.get( conf.getName()).getApplicationSource().equals( applicationSource))
+				{
+					logger.warn( "duplicated applications are located in application home");
+					return null;
+				}
+			}
+
+			// case 1. not registered before
+			// case 2. auto-deploy and hot loading mode
+			DeployedApplication das= null;
+			if( ( das= this.deployedApplications.get( conf.getName()))!= null)
+			{
+				das.getLightweightApplicationContext().interruptedDeferredInstantiate();
+				return refreshApplication( applicationLocation, conf, applicationSource, das.getClassLoaderRef().getClassLoader(),
+						this.applicationLoader.isUseLastmodifiedCache());
+			}
+			else
+				return newApplication( applicationLocation, conf, applicationSource);
+		}
+		catch( Exception e)
+		{
+			logger.warn( "application source [{}] in application home deployment failed.", new Object[]{ applicationLocation, e});
+			throw e;
+		}
+	}
+
+	private Map<String, DeployedApplication> stagingApplication( File applicationLocation, BxmApplication conf, URL applicationSource)
+		throws ApplicationConfigurationException, InvalidCommandException, ApplicationNotFoundException, IOException
+	{
+		Map<String, DeployedApplication> stagingTos= new HashMap<String, DeployedApplication>();
+
+		List<URL> configuredClasspath= new ArrayList<URL>();
+		configuredClasspath.addAll( applicationLoader.getApplicableClasspath());
+		File loaderTarget= createLoaderTagetForApplication( conf.getName(), applicationLocation, null, false);
+		List<URL> localAppClasspath= createLocalAppClasspath( loaderTarget);
+		configuredClasspath.addAll( localAppClasspath);
+
+		List<ApplicationClassLoaderListener> listeners= getClassLoaderLifecycleListeners();
+
+		ClassLoaderRef[] changeTos= this.classLoaderManager.getClassLoaderForStaging( conf.getName(),
+				configuredClasspath.toArray( new URL[configuredClasspath.size()]),
+				localAppClasspath.toArray( new URL[localAppClasspath.size()]), conf.isShared(),
+				listeners.toArray( new ApplicationClassLoaderListener[listeners.size()]), loaderTarget,
+				StringUtils.hasText( conf.getReferenceApplications()) ?
+						StringUtils.tokenizeToStringArray( conf.getReferenceApplications(), ",") : new String[]{},
+				applicationLoader.getInstrument());
+
+		for( ClassLoaderRef loaderRef: changeTos)
+		{
+//			String fullpath= ( (AbstractApplicationClassLoader)loaderRef.getClassLoader()).getFinder().getClassPath();
+//			logger.debug( fullpath);
+
+			String appName= loaderRef.getClassLoader().getApplicationName();
+			if( appName.equals( conf.getName()))
+			{
+				DeployedApplication target=
+						(DeployedApplication)ApplicationConfigurationManager.configure( this, conf, true, loaderRef);
+				target.setApplicationSource( applicationSource);
+				target.setDeployedTarget( loaderTarget);
+				stagingTos.put( target.getApplicationName(), target);
+			}
+			else
+			{
+				DeployedApplication deployedApp= this.deployedApplications.get( appName);
+				if( deployedApp!= null)
+				{
+					DeployedApplication target= (DeployedApplication)ApplicationConfigurationManager.configure(
+							this, deployedApp.getConfiguration(), true, loaderRef);
+					target.setApplicationSource( deployedApp.getApplicationSource());
+					target.setDeployedTarget( deployedApp.getDeployedTarget());
+					stagingTos.put( target.getApplicationName(), target);
+				}
+				else
+					logger.warn( "staging target application [{}] is not deployed.", appName);
+			}
+		}
+		return stagingTos;
+	}
+
+	private Map<String, DeployedApplication> newApplication( File applicationLocation, BxmApplication conf, URL applicationSource)
+		throws ApplicationConfigurationException, InvalidCommandException, ApplicationNotFoundException, IOException
+	{
+		Map<String, DeployedApplication> apps= new HashMap<String, DeployedApplication>();
+		List<URL> configuredClasspath= new ArrayList<URL>();
+		configuredClasspath.addAll( applicationLoader.getApplicableClasspath());
+		File loaderTarget= createLoaderTagetForApplication( conf.getName(), applicationLocation, null, false);
+		List<URL> localAppClasspath= createLocalAppClasspath( loaderTarget);
+		configuredClasspath.addAll( localAppClasspath);
+
+		List<ApplicationClassLoaderListener> listeners= getClassLoaderLifecycleListeners();
+
+		String[] chTos= this.classLoaderManager.registerApplication( conf.getName(),
+				configuredClasspath.toArray( new URL[configuredClasspath.size()]),
+				localAppClasspath.toArray( new URL[localAppClasspath.size()]), conf.isShared(),
+				listeners.toArray( new ApplicationClassLoaderListener[listeners.size()]), loaderTarget,
+				StringUtils.hasText( conf.getReferenceApplications()) ?
+						StringUtils.tokenizeToStringArray( conf.getReferenceApplications(), ",") : new String[]{},
+				applicationLoader.getInstrument());
+
+		Set<String> changeTos= new HashSet<String>();
+		changeTos.addAll( Arrays.asList( chTos));
+
+		List<String> referenceTos= new ArrayList<String>();
+		for( String changeTo: changeTos)
+		{
+			ClassLoaderRef loaderRef= this.classLoaderManager.getClassLoaderFor( changeTo);
+			if( changeTo.equals( conf.getName()))
+			{
+				DeployedApplication target= (DeployedApplication)ApplicationConfigurationManager.configure(
+						this, conf, true, loaderRef);
+				target.setApplicationSource( applicationSource);
+				target.setDeployedTarget( loaderTarget);
+				referenceTos.addAll( Arrays.asList( target.getReferenceApplications()));
+				apps.put( target.getApplicationName(), target);
+			}
+			else
+			{
+				DeployedApplication deployedApp= this.deployedApplications.get( changeTo);
+				if( deployedApp!= null)
+				{
+					DeployedApplication target= (DeployedApplication)ApplicationConfigurationManager.configure(
+							this, deployedApp.getConfiguration(), true, loaderRef);
+					target.setApplicationSource( deployedApp.getApplicationSource());
+					target.setDeployedTarget( deployedApp.getDeployedTarget());
+					apps.put( target.getApplicationName(), target);
+				}
+				else
+					logger.warn( "refrersh target application[{}] is not deployed.", changeTo);
+			}
 		}
 
-		public String getPathWithinContext()
+		return apps;
+	}
+
+	private Map<String, DeployedApplication> refreshApplication( File applicationLocation, BxmApplication conf,
+			URL applicationSource, AbstractApplicationClassLoader loader, boolean useLastmodifiedCache)
+		throws ApplicationConfigurationException, InvalidCommandException, ApplicationNotFoundException, IOException
+	{
+		Map<String,DeployedApplication> refreshTos= new HashMap<String, DeployedApplication>();
+
+		List<URL> configuredClasspath= new ArrayList<URL>();
+		configuredClasspath.addAll( applicationLoader.getApplicableClasspath());
+		File loaderTarget= createLoaderTagetForApplication( conf.getName(), applicationLocation, loader, useLastmodifiedCache);
+		List<URL> localAppClasspath= createLocalAppClasspath( loaderTarget);
+		configuredClasspath.addAll( localAppClasspath);
+
+		List<ApplicationClassLoaderListener> listeners= getClassLoaderLifecycleListeners();
+
+		String[] changeTos= this.classLoaderManager.refreshApplication( conf.getName(),
+				configuredClasspath.toArray( new URL[configuredClasspath.size()]),
+				localAppClasspath.toArray( new URL[localAppClasspath.size()]), conf.isShared(),
+				listeners.toArray( new ApplicationClassLoaderListener[listeners.size()]), loaderTarget,
+				StringUtils.hasText( conf.getReferenceApplications()) ?
+						StringUtils.tokenizeToStringArray( conf.getReferenceApplications(), ",") : new String[]{},
+				applicationLoader.getInstrument());
+
+		for( String changeTo: changeTos)
 		{
-			return getPath();
+			ClassLoaderRef loaderRef= this.classLoaderManager.getClassLoaderFor( changeTo);
+			if( changeTo.equals( conf.getName()))
+			{
+				DeployedApplication target= (DeployedApplication)ApplicationConfigurationManager.configure(
+						this, conf, true, loaderRef);
+				target.setApplicationSource( applicationSource);
+				target.setDeployedTarget( loaderTarget);
+				refreshTos.put( target.getApplicationName(), target);
+			}
+			else
+			{
+				DeployedApplication deployedApp= this.deployedApplications.get( changeTo);
+				if( deployedApp!= null)
+				{
+					DeployedApplication target= (DeployedApplication)ApplicationConfigurationManager.configure(
+							this, deployedApp.getConfiguration(), true, loaderRef);
+					target.setApplicationSource( deployedApp.getApplicationSource());
+					target.setDeployedTarget( deployedApp.getDeployedTarget());
+					refreshTos.put( target.getApplicationName(), target);
+				}
+				else
+					logger.warn( "refrersh target application[{}] is not deployed.", changeTo);
+			}
 		}
 
-		public Resource createRelative( String relativePath)
+		return refreshTos;
+	}
+
+	private void prepareApplications( Map<String, DeployedApplication> toDeployApps)
+	{
+		List<String> basePackages = new ArrayList<String>();
+		//basePackages.add("**/service");
+
+		String envBasePackages = null;
+		if(!LApplicationContext.isBatchContext())
 		{
-			String pathToUse= StringUtils.applyRelativePath( getPath(),relativePath);
-			return new ClassPathContextResource( pathToUse, getClassLoader());
+			envBasePackages = System.getProperty("bxm.system.online.base.packages");
 		}
+		String [] strBasePackages = new String[0] ;
+
+		if (StringUtils.hasLength(envBasePackages))
+			strBasePackages = envBasePackages.split(",");
+
+		for (String strBasePackage : strBasePackages)
+		{
+			basePackages.add(strBasePackage);
+		}
+
+		prepareApplications( toDeployApps, basePackages);
+		//prepareApplications( toDeployApps, null);
+	}
+
+	private void prepareApplications( Map<String, DeployedApplication> toDeployApps, final List<String> basePackages)
+	{
+		ThreadFactory prepareTaskFactory= NamedExecutors.namedPrivilegedThreadFactory( "autoDeployTask");
+
+		int parallels= toDeployApps.size();
+		if( !initDeployed)
+			parallels= this.applicationLoader.getDeployerInitLimit()> 0
+					&& parallels> this.applicationLoader.getDeployerInitLimit() ?
+					this.applicationLoader.getDeployerInitLimit() : parallels;
+		else
+			parallels= this.applicationLoader.getDeployerProcLimit()> 0
+					&& parallels> this.applicationLoader.getDeployerProcLimit() ?
+					this.applicationLoader.getDeployerProcLimit() : parallels;
+
+		ExecutorService eservice= Executors.newFixedThreadPool( parallels, prepareTaskFactory);
+
+		try
+		{
+			final CountDownLatch start= new CountDownLatch( 1);
+			final CountDownLatch finish= new CountDownLatch( toDeployApps.size());
+
+			final Object initializationLock= new Object();
+			for( DeployedApplication application: toDeployApps.values())
+			{
+				final DeployedApplication target= application;
+				final ServletContext targetContext= this.servletContext;
+				final Object targetLock= this.singletonLock;
+				eservice.execute( new Runnable(){
+					public void run()
+					{
+						try{ start.await(); }
+						catch( InterruptedException e){ logger.error( e.getMessage(), e);}
+
+						try
+						{
+							ResourceLoader legacyLoader= null;
+							DeployedApplication das= null;
+							if( !batch && HOT== FrameworkInstance.this.applicationLoader.getLoadingMode()
+									&& ( das= FrameworkInstance.this.deployedApplications.get( target.getApplicationName()))!= null)
+							{
+								das.getLightweightApplicationContext().interruptedDeferredInstantiate();
+								legacyLoader= das.getClassLoaderRef().getResourceLoader();
+							}
+							target.prepare( FrameworkInstance.this, targetContext, targetLock, initializationLock,
+									legacyLoader, basePackages);
+						}
+						catch( Throwable th)
+						{ logger.error( "application [{}] preparation is failed.", new Object[]{ target.getApplicationName(), th});}
+						finally{ finish.countDown();}
+					}
+				});
+			}
+			start.countDown();
+			try{ finish.await(); }
+			catch( InterruptedException e){ logger.error( e.getMessage(), e);}
+		}
+		finally
+		{
+			initDeployed= true;
+			if( eservice!= null) eservice.shutdown();
+		}
+	}
+
+	private Map<BxmApplication, File> loadApplicationConfs( File apphome, File excludeApplicationLocation)
+	{
+		Map<BxmApplication,File> confs= new HashMap<BxmApplication,File>();
+		File[] entries= apphome.listFiles();
+		for( File entry: entries)
+		{
+			if( entry.equals( excludeApplicationLocation)) continue;
+			if( entry.getName().toLowerCase().endsWith( ".svn"))	continue;
+			File parFile= new File( apphome.getAbsolutePath()+ File.separator+ entry.getName()+ BXM_ARCHIVE_SUFFIX);
+			File metaFile= null;
+			JarFile parEntry= null;
+			ZipEntry metaEntry= null;
+
+			if( entry.isDirectory() && entry.getName().equals( EXTRACTED_PATH_SUFFIX))	continue;
+
+			if( entry.isDirectory() && ( metaFile= new File( entry, APPLICATION_DD_FILE)).exists() && !parFile.exists())
+			{
+				try
+				{
+					BxmApplication conf= marshallApplicationDescriptor( metaFile);
+					if( conf== null)	continue;
+					confs.put( conf, entry);
+				}
+				catch( Exception e)
+				{
+					logger.warn( e.getMessage(), e);
+					continue;
+				}
+			}
+			// else packaged par application
+			else if( entry.isFile() && entry.getName().endsWith( BXM_ARCHIVE_SUFFIX))
+			{
+				InputStream inStream= null;
+				try
+				{
+					metaEntry= ( parEntry= new JarFile( entry)).getEntry( APPLICATION_DD_FILE);
+					if( metaEntry== null) continue;
+					inStream= parEntry.getInputStream( metaEntry);
+					BxmApplication conf= marshallApplicationDescriptor( inStream);
+					if( conf== null) continue;
+					confs.put( conf, entry);
+				}
+				catch( Exception e)
+				{
+					logger.warn( e.getMessage(), e);
+					continue;
+				}
+				finally
+				{
+					if( inStream!= null) try{ inStream.close();}catch( Exception e){}
+				}
+			}
+		}
+
+		return confs;
+	}
+
+	private InputStream findApplicationConfigurationFromArchive( File archive) throws Exception
+	{
+		JarInputStream inStream= null;
+		JarEntry je= null;
+
+		try
+		{
+			inStream= new JarInputStream( new FileInputStream( archive));
+			while( ( je= inStream.getNextJarEntry())!= null)
+			{
+				if( !je.isDirectory() && je.getName().endsWith( "/"+ APPLICATION_DD_FILENAME))
+				{
+					ByteArrayOutputStream bout= new ByteArrayOutputStream();
+					int bLen= 0;
+					byte[] record= new byte[BUFFER_SIZE];
+					do
+					{
+						bLen= inStream.read( record);
+						if( bLen> 0)	bout.write( record, 0, bLen);
+					}
+					while( bLen!= -1);
+					bout.flush(); bout.close();
+
+					return new ByteArrayInputStream( bout.toByteArray());
+				}
+			}
+
+			return null;
+		}
+		finally
+		{
+			inStream.close();
+		}
+	}
+
+	private void checkReferenceApplications(
+			BxmApplication toCheck, Map<String,BxmApplication> candidates, Set<BxmApplication> toDeploys)
+	{
+		if( candidates== null || candidates.size()<= 0)
+			return;
+
+		String[] currentRefTos=
+				StringUtils.hasText( toCheck.getReferenceApplications()) ?
+						StringUtils.tokenizeToStringArray( toCheck.getReferenceApplications(), ",") : new String[]{};
+
+		for( String referenceTo: currentRefTos)
+		{
+			if( candidates.keySet().contains( referenceTo))
+			{
+				BxmApplication refConf= candidates.remove( referenceTo);
+				if( refConf!= null)
+				{
+					toDeploys.add( refConf);
+					checkReferenceApplications( refConf, candidates, toDeploys);
+				}
+			}
+		}
+	}
+
+	private File createLoaderTagetForApplication( String applicationName, File applicationLocation,
+			final AbstractApplicationClassLoader loader, boolean useLastmodifiedCache) throws IOException
+	{
+		File loaderTarget= new File( applicationLoader.getDeployedHome()+ File.separator+ applicationName+ "_"+
+				System.currentTimeMillis()+ "_"+ System.nanoTime());
+
+		if( applicationLocation.isFile() && applicationLocation.getName().endsWith( BXM_ARCHIVE_SUFFIX))
+		{
+//			if( this.batch && this.applicationLoader.isNouseSnapshot())
+			if( this.applicationLoader.isNouseSnapshot())
+			{
+				loaderTarget= applicationLocation;
+			}
+			else
+			{
+				loaderTarget= new File( loaderTarget.getAbsolutePath()+ "."+ ResourceUtils.URL_PROTOCOL_PAR);
+				ResourceUtils.copyStream( new FileInputStream( applicationLocation), new FileOutputStream( loaderTarget));
+			}
+		}
+		else if( applicationLocation.isDirectory())
+		{
+//			if( this.batch && this.applicationLoader.isNouseSnapshot())
+			if( this.applicationLoader.isNouseSnapshot())
+				loaderTarget= applicationLocation;
+			else
+			{
+				if( useLastmodifiedCache)
+				{
+					try
+					{
+						loaderTarget= loader!= null ? loader.getDeleteTo() : loaderTarget;
+//						ResourceUtils.fileCopyRecursively( applicationLocation, loaderTarget, new FileFilter(){
+//							boolean created= loader== null;
+//							public boolean accept( File pathname)
+//							{
+//								if( pathname.isDirectory())	return true;
+//								else if( DeployedApplicationModel.COMMAND_FILENAME.equals( pathname.getName()))	return false;
+//								else if( pathname.getName().endsWith( ClassUtils.CLASS_FILE_SUFFIX)
+//										|| pathname.getName().endsWith( ResourceUtils.DBIO_FILE_SUFFIX))
+//								{
+//									Long lastmodified= null;
+//									if( !created
+//											&& ( lastmodified= applicationResourceLastModified.get( pathname.getAbsolutePath()))!= null
+//											&& pathname.lastModified()<= lastmodified)
+//										return false;
+//									applicationResourceLastModified.put( pathname.getAbsolutePath(), pathname.lastModified());
+//									return true;
+//								}
+//								return true;
+//							}
+//						}, new DefaultResourceErrorHandler(), true);
+						logger.debug("useLastmodifiedCache : {}, applicationLocation : {} ", useLastmodifiedCache, applicationLocation.getCanonicalPath());
+						ResourceUtils.fileCopyRecursively( applicationLocation, loaderTarget, new FileFilter(){
+							boolean created= loader== null;
+							public boolean accept( File pathname)
+							{
+								if( pathname.isDirectory())
+								{
+									//logger.debug("pathNAME : {}", pathname);
+									if (".svn".equals(pathname) || "src".equals(pathname) || "src-gen".equals(pathname))
+										return false;
+									else
+										return true;
+								}
+								else if( DeployedApplicationModel.COMMAND_FILENAME.equals( pathname.getName()))	return false;
+								else if( pathname.getName().endsWith( ClassUtils.CLASS_FILE_SUFFIX)
+										|| pathname.getName().endsWith( ResourceUtils.DBIO_FILE_SUFFIX))
+								{
+									Long lastmodified= null;
+									if( !created
+											&& ( lastmodified= applicationResourceLastModified.get( pathname.getAbsolutePath()))!= null
+											&& pathname.lastModified()<= lastmodified)
+										return false;
+									applicationResourceLastModified.put( pathname.getAbsolutePath(), pathname.lastModified());
+									return true;
+								}
+								return true;
+							}
+						}, new DefaultResourceErrorHandler(), true);
+					}
+					finally
+					{
+						if( loader!= null)
+							loader.setDeleteOnDestroy( false);
+					}
+				}
+				else
+				{
+//					ResourceUtils.fileCopyRecursively( applicationLocation, loaderTarget, new FilenameFilter(){
+//						public boolean accept( File dir, String name)
+//						{
+//							if( !DeployedApplicationModel.COMMAND_FILENAME.equals( name))
+//								return true;
+//							else
+//								return false;
+//						}
+//					}, new DefaultResourceErrorHandler(), true);
+					// classes, lib, META-INF 디렉토리만 복사하도록 할 것.
+					logger.debug("useLastmodifiedCache : {}, applicationLocation : {} ", useLastmodifiedCache, applicationLocation.getCanonicalPath());
+					ResourceUtils.fileCopyRecursively( applicationLocation, loaderTarget, new FileFilter(){
+						public boolean accept( File pathname)
+						{
+							if( pathname.isDirectory())
+							{
+								//logger.debug("pathNAME : {}", pathname);
+								try {
+									if (pathname.getCanonicalPath().endsWith(".svn") || pathname.getCanonicalPath().endsWith("src") || pathname.getCanonicalPath().endsWith("src-gen"))
+										return false;
+									else
+										return true;
+								}
+								catch (Exception e)
+								{
+
+								}
+							}
+							else if( DeployedApplicationModel.COMMAND_FILENAME.equals( pathname.getName()))	return false;
+
+							return true;
+						}
+					}, new DefaultResourceErrorHandler(), true);
+				}
+			}
+		}
+		else
+			throw new IOException( "unsupported application location.");
+		return loaderTarget;
+	}
+
+	private void refreshApplicationSourceForLoader(
+			File applicationLocation, BxmApplication conf, URL applicationSource, AbstractApplicationClassLoader loader,
+			boolean useLastmodifiedCache)
+			throws IOException
+	{
+		List<URL> configuredClasspath= new ArrayList<URL>();
+		configuredClasspath.addAll( applicationLoader.getApplicableClasspath());
+		File loaderTarget= loader.getDeleteTo();
+
+		if( applicationLocation.isFile() && applicationLocation.getName().endsWith( BXM_ARCHIVE_SUFFIX))
+		{
+			logger.debug("[PAR]fileCopy start. useLastmodifiedCache : {}, applicationLocation : {} , loaderTarget : {} ", new Object [] {useLastmodifiedCache, applicationLocation.getCanonicalPath(), loaderTarget.getCanonicalPath()});
+			ResourceUtils.copyStream( new FileInputStream( applicationLocation), new FileOutputStream( loaderTarget));
+			logger.debug("[PAR]fileCopy end. useLastmodifiedCache : {}, applicationLocation : {} , loaderTarget : {} ", new Object [] {useLastmodifiedCache, applicationLocation.getCanonicalPath(), loaderTarget.getCanonicalPath()});
+		}
+		else
+		{
+			if( useLastmodifiedCache)
+			{
+//				ResourceUtils.fileCopyRecursively( applicationLocation, loaderTarget, new FileFilter(){
+//					public boolean accept( File pathname)
+//					{
+//						if( pathname.isDirectory())	return true;
+//						else if( DeployedApplicationModel.COMMAND_FILENAME.equals( pathname.getName()))	return false;
+//						else if( pathname.getName().endsWith( ClassUtils.CLASS_FILE_SUFFIX)
+//								|| pathname.getName().endsWith( ResourceUtils.DBIO_FILE_SUFFIX))
+//						{
+//							Long lastmodified= null;
+//							if( ( lastmodified= applicationResourceLastModified.get( pathname.getAbsolutePath()))!= null
+//									&& pathname.lastModified()<= lastmodified)
+//								return false;
+//							applicationResourceLastModified.put( pathname.getAbsolutePath(), pathname.lastModified());
+//							return true;
+//						}
+//						return true;
+//					}
+//				}, new DefaultResourceErrorHandler(), true);
+				logger.debug("fileCopy start. useLastmodifiedCache : {}, applicationLocation : {} , loaderTarget : {} ", new Object [] {useLastmodifiedCache, applicationLocation.getCanonicalPath(), loaderTarget.getCanonicalPath()});
+				ResourceUtils.fileCopyRecursively( applicationLocation, loaderTarget, new FileFilter(){
+					public boolean accept( File pathname)
+					{
+						if( pathname.isDirectory())
+						{
+							if (".svn".equals(pathname) || "src".equals(pathname) || "src-gen".equals(pathname))
+								return false;
+							else
+								return true;
+						}
+						else if( DeployedApplicationModel.COMMAND_FILENAME.equals( pathname.getName()))	return false;
+						else if( pathname.getName().endsWith( ClassUtils.CLASS_FILE_SUFFIX)
+								|| pathname.getName().endsWith( ResourceUtils.DBIO_FILE_SUFFIX))
+						{
+							Long lastmodified= null;
+							if( ( lastmodified= applicationResourceLastModified.get( pathname.getAbsolutePath()))!= null
+									&& pathname.lastModified()<= lastmodified)
+								return false;
+							applicationResourceLastModified.put( pathname.getAbsolutePath(), pathname.lastModified());
+							return true;
+						}
+						return true;
+					}
+				}, new DefaultResourceErrorHandler(), true);
+				logger.debug("fileCopy end. useLastmodifiedCache : {}, applicationLocation : {} , loaderTarget : {} ", new Object [] {useLastmodifiedCache, applicationLocation.getCanonicalPath(), loaderTarget.getCanonicalPath()});
+			}
+			else
+			{
+//				ResourceUtils.fileCopyRecursively( applicationLocation, loaderTarget, new FilenameFilter(){
+//					public boolean accept( File dir, String name)
+//					{
+//						if( !DeployedApplicationModel.COMMAND_FILENAME.equals( name))
+//							return true;
+//						else
+//							return false;
+//					}
+//				}, new DefaultResourceErrorHandler(), true);
+				logger.debug("fileCopy start. useLastmodifiedCache : {}, applicationLocation : {} , loaderTarget : {} ", new Object [] {useLastmodifiedCache, applicationLocation.getCanonicalPath(), loaderTarget.getCanonicalPath()});
+				ResourceUtils.fileCopyRecursively( applicationLocation, loaderTarget, new FileFilter(){
+					public boolean accept( File pathname)
+					{
+						if( pathname.isDirectory())
+						{
+							if (".svn".equals(pathname) || "src".equals(pathname) || "src-gen".equals(pathname))
+								return false;
+							else
+								return true;
+						}
+						else if( DeployedApplicationModel.COMMAND_FILENAME.equals( pathname.getName()))	return false;
+
+						return true;
+					}
+				}, new DefaultResourceErrorHandler(), true);
+				logger.debug("fileCopy end. useLastmodifiedCache : {}, applicationLocation : {} , loaderTarget : {} ", new Object [] {useLastmodifiedCache, applicationLocation.getCanonicalPath(), loaderTarget.getCanonicalPath()});
+			}
+		}
+
+		List<URL> localAppClasspath= createLocalAppClasspath( loaderTarget);
+		configuredClasspath.addAll( localAppClasspath);
+		ApplicationClassFinder finder=
+				new DefaultApplicationClassFinder( configuredClasspath.toArray( new URL[configuredClasspath.size()]));
+		finder.setLocalApplicationClasspaths( localAppClasspath);
+		loader.setFinder( finder);
+	}
+
+	private List<URL> createLocalAppClasspath( File loaderTarget) throws IOException
+	{
+		List<URL> localAppClasspath= new ArrayList<URL>();
+
+		if( loaderTarget.isFile() && loaderTarget.getName().endsWith( ResourceUtils.URL_PROTOCOL_PAR))
+		{
+			URL parUrl= ApplicationClassLoaderManager.createClassPathEntry( loaderTarget);
+			JarFile parFile= new JarFile( loaderTarget);
+			JarEntry classPath= parFile.getJarEntry( DeployedApplicationModel.CLASSES_PATH_SUFFIX+ "/");
+			JarEntry binPath= parFile.getJarEntry( DeployedApplicationModel.BIN_PATH_SUFFIX+ "/");
+			JarEntry libPath= parFile.getJarEntry( DeployedApplicationModel.LIB_PATH_SUFFIX+ "/");
+			if( classPath!= null && classPath.isDirectory())
+			{
+				try
+				{
+					localAppClasspath.add(
+							new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, "file:"+ parUrl.getFile()+
+									ParURLConnection.SEPARATOR+ DeployedApplicationModel.CLASSES_PATH_SUFFIX,
+									new ParURLStreamHandler()));
+				}
+				catch( MalformedURLException ne){}
+			}
+			if( binPath!= null && binPath.isDirectory())
+			{
+				try
+				{
+					localAppClasspath.add(
+						new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, "file:"+ parUrl.getFile()+
+								ParURLConnection.SEPARATOR+ DeployedApplicationModel.BIN_PATH_SUFFIX,
+								new ParURLStreamHandler()));
+				}
+				catch( MalformedURLException ne){}
+			}
+			if( libPath!= null && libPath.isDirectory())
+			{
+				for( Enumeration<JarEntry> entries= parFile.entries(); entries.hasMoreElements();)
+				{
+					JarEntry candidate= entries.nextElement();
+					if( candidate.getName().equals( ".svn")) continue;
+					if( candidate.getName().startsWith( libPath.getName()) && !candidate.isDirectory() &&
+							candidate.getName().endsWith( ResourceUtils.URL_PROTOCOL_JAR))
+					{
+						try
+						{
+							localAppClasspath.add(
+								new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, "file:"+ parUrl.getFile()+
+										ParURLConnection.SEPARATOR+ candidate.getName(), new ParURLStreamHandler()));
+						}
+						catch( MalformedURLException ne){}
+					}
+				}
+			}
+
+			// Batch
+			if( Boolean.valueOf( System.getProperty( ApplicationContainerLoader.CONTAINER_FOR_BATCH)))
+			{
+				JarEntry metaInfPath= parFile.getJarEntry( DeployedApplicationModel.META_PATH_SUFFIX+ "/");
+				if( metaInfPath!= null && metaInfPath.isDirectory())
+				{
+					try
+					{
+						localAppClasspath.add(
+								new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, "file:"+ parUrl.getFile()+
+										ParURLConnection.SEPARATOR+ DeployedApplicationModel.META_PATH_SUFFIX,
+										new ParURLStreamHandler()));
+					}
+					catch( MalformedURLException ne){}
+				}
+
+				JarEntry configPath= parFile.getJarEntry( DeployedApplicationModel.CONFIG_PATH_SUFFIX+ "/");
+				if( configPath!= null && configPath.isDirectory())
+				{
+					try
+					{
+						localAppClasspath.add(
+								new URL( ResourceUtils.URL_PROTOCOL_PAR, "", 0, "file:"+ parUrl.getFile()+
+										ParURLConnection.SEPARATOR+ DeployedApplicationModel.CONFIG_PATH_SUFFIX,
+										new ParURLStreamHandler()));
+					}
+					catch( MalformedURLException ne){}
+				}
+			}
+		}
+		else
+		{
+			File libPath= new File( loaderTarget, DeployedApplicationModel.LIB_PATH_SUFFIX);
+			File classPath= new File( loaderTarget, DeployedApplicationModel.CLASSES_PATH_SUFFIX);
+			File binPath= new File( loaderTarget, DeployedApplicationModel.BIN_PATH_SUFFIX);
+
+			if( classPath.exists() && classPath.isDirectory())
+			{
+				try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( classPath));}
+				catch( MalformedURLException ne){}
+			}
+			if( binPath.exists() && binPath.isDirectory())
+			{
+				try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( binPath));}
+				catch( MalformedURLException ne){}
+			}
+
+			if( Boolean.valueOf( System.getProperty( ApplicationContainerLoader.CONTAINER_FOR_BATCH)))
+			{
+				File file = new File(libPath + File.separator + "lib_version.properties");
+				if(file.exists())
+				{
+					BufferedReader br = null;
+					try
+					{
+						br = new BufferedReader(new FileReader(file));
+						String read = br.readLine();
+						if(StringUtils.hasText(read))
+						{
+							libPath = new File(libPath + File.separator + read);
+						}
+					}
+					catch (Exception e)
+					{
+						throw new RuntimeException(e.getMessage(), e);
+					}
+					finally
+					{
+						if(br != null) try { br.close();} catch (Exception e2) {}
+					}
+				}
+
+				if( libPath.exists() && libPath.isDirectory())
+				{
+					File[] libEntries= libPath.listFiles();
+					for( File libEntry: libEntries)
+					{
+						if( libEntry.getName().equals( ".svn")) continue;
+						if(libEntry.getName().endsWith(".jar"))
+						{
+							if(libEntry.getName().contains("online") || libEntry.getName().contains("interface") || libEntry.getName().contains("batch")
+									|| libEntry.getName().contains("dbio"))
+							try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( libEntry));}
+							catch( MalformedURLException ne){}
+						}
+					}
+				}
+			}
+			else
+			{
+				if( libPath.exists() && libPath.isDirectory())
+				{
+					File[] libEntries= libPath.listFiles();
+					for( File libEntry: libEntries)
+					{
+						if( libEntry.getName().equals( ".svn")) continue;
+						try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( libEntry));}
+						catch( MalformedURLException ne){}
+					}
+				}
+			}
+
+			// Batch
+			if( Boolean.valueOf( System.getProperty( ApplicationContainerLoader.CONTAINER_FOR_BATCH)))
+			{
+				File metaInfPath= new File( loaderTarget, DeployedApplicationModel.META_PATH_SUFFIX);
+				if( metaInfPath.exists() && metaInfPath.isDirectory())
+				{
+					try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( metaInfPath));}
+					catch( MalformedURLException ne){}
+				}
+
+				File configPath= new File( loaderTarget, DeployedApplicationModel.CONFIG_PATH_SUFFIX);
+				if( configPath.exists() && configPath.isDirectory())
+				{
+					try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( configPath));}
+					catch( MalformedURLException ne){}
+				}
+			}
+		}
+
+		String[] libHome= applicationLoader.getLibraryHome();
+		if( libHome!= null && libHome.length> 0)
+		{
+			for( String path: libHome)
+			{
+				File pathFile= new File( path);
+				if( !pathFile.exists() || !pathFile.canRead() || !pathFile.isDirectory())	continue;
+				File[] pathList= pathFile.listFiles();
+				for( File pathEntry: pathList)
+				{
+					if( pathEntry.getName().equals( ".svn"))	continue;
+					try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( pathEntry));}
+					catch( MalformedURLException ne){}
+				}
+			}
+		}
+
+		return localAppClasspath;
+	}
+
+	private BxmApplication marshallApplicationDescriptor( InputStream inStream) throws JAXBException, SAXException
+	{
+		JAXBContext jaxbContext= JAXBContext.newInstance( APPLICATION_JAXB_CONTEXT_CLASS);
+		Unmarshaller unmarshaller= jaxbContext.createUnmarshaller();
+		//[[CERT - XML External Entity Injection
+		try
+		{
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			dbf.setNamespaceAware(true);
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			Document document = db.parse(inStream);
+
+			JAXBElement<BxmApplication> result = unmarshaller.unmarshal( document, BxmApplication.class);
+			return result.getValue();
+		}
+		catch( Throwable th)
+		{
+			return null;
+		}
+		//]]
 
 	}
 
+	private BxmApplication marshallApplicationDescriptor( File metaFile)
+	{
+		InputStream inStream= null;
+		try
+		{
+			inStream= new FileInputStream( metaFile);
+			JAXBContext jaxbContext= JAXBContext.newInstance( APPLICATION_JAXB_CONTEXT_CLASS);
+			Unmarshaller unmarshaller= jaxbContext.createUnmarshaller();
+
+			//[[CERT - XML External Entity Injection
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			dbf.setNamespaceAware(true);
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			Document document = db.parse(inStream);
+
+			JAXBElement<BxmApplication> result = unmarshaller.unmarshal( document, BxmApplication.class);
+
+			return result.getValue();
+			//]]
+
+		}
+		catch( Throwable th)
+		{
+			return null;
+		}
+		finally
+		{
+			if( inStream!= null) try{ inStream.close();}catch( IOException e){}
+		}
+	}
+
+	private List<ApplicationClassLoaderListener> getClassLoaderLifecycleListeners()
+	{
+		List<InterceptorDefinition> listenerDefs= applicationLoader.getClassLoaderLifecycleListeners();
+		List<ApplicationClassLoaderListener> listeners= new ArrayList<ApplicationClassLoaderListener>();
+		for( InterceptorDefinition def: listenerDefs)
+		{
+			ApplicationClassLoaderListener listener= def.getInterceptor();
+			if( listener== null) continue;
+			listeners.add( listener);
+		}
+		return listeners;
+	}
+
+	private void publishManagedEvent( final InstanceEvent event)
+	{
+		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
+		synchronized( this.instanceLifecycleListenes)
+		{
+			Iterator<InterceptorDefinition> defs= this.instanceLifecycleListenes.iterator();
+			while( defs.hasNext())
+			{
+				final InstanceListener listener= defs.next().getInterceptor();
+				if( listener== null) continue;
+				executor.execute( new Runnable(){
+					public void run()
+					{
+						listener.managedInstance( event);
+					}
+				});
+			}
+		}
+	}
+
+	private void publishUnmanagedEvent( final InstanceEvent event)
+	{
+		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
+		synchronized( this.instanceLifecycleListenes)
+		{
+			Iterator<InterceptorDefinition> defs= this.instanceLifecycleListenes.iterator();
+			while( defs.hasNext())
+			{
+				final InstanceListener listener= defs.next().getInterceptor();
+				if( listener== null) continue;
+				executor.execute( new Runnable(){
+					public void run()
+					{
+						listener.unmanagedInstance( event);
+					}
+				});
+			}
+		}
+	}
+
+	private void publishPrepareDestroyEvent( final InstanceEvent event)
+	{
+		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
+		synchronized( this.instanceLifecycleListenes)
+		{
+			Iterator<InterceptorDefinition> defs= this.instanceLifecycleListenes.iterator();
+			while( defs.hasNext())
+			{
+				final InstanceListener listener= defs.next().getInterceptor();
+				executor.execute( new Runnable(){
+					public void run()
+					{
+						listener.prepareInstanceDestroy( event);
+					}
+				});
+			}
+		}
+	}
+
+	private void publishPostInitializeEvent( final InstanceEvent event)
+	{
+		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
+		synchronized( this.instanceLifecycleListenes)
+		{
+			Iterator<InterceptorDefinition> defs= this.instanceLifecycleListenes.iterator();
+			while( defs.hasNext())
+			{
+				final InstanceListener listener= defs.next().getInterceptor();
+				if( listener== null) continue;
+				executor.execute( new Runnable(){
+					public void run()
+					{
+						listener.postInstanceInitialize( event);
+					}
+				});
+			}
+		}
+	}
+
+	private void publishApplicationDeployStartedEvent( final InstanceEvent event)
+	{
+		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
+		synchronized( this.instanceLifecycleListenes)
+		{
+			Iterator<InterceptorDefinition> defs= this.instanceLifecycleListenes.iterator();
+			while( defs.hasNext())
+			{
+				final InstanceListener listener= defs.next().getInterceptor();
+				if( listener== null) continue;
+				executor.execute( new Runnable(){
+					public void run()
+					{
+						listener.applicationDeployStarted( event);
+					}
+				});
+			}
+		}
+	}
+
+	private void publishApplicationDeployCompletedEvent( final InstanceEvent event)
+	{
+		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
+		synchronized( this.instanceLifecycleListenes)
+		{
+			Iterator<InterceptorDefinition> defs= this.instanceLifecycleListenes.iterator();
+			while( defs.hasNext())
+			{
+				final InstanceListener listener= defs.next().getInterceptor();
+				if( listener== null) continue;
+				executor.execute( new Runnable(){
+					public void run()
+					{
+						listener.applicationDeployCompleted( event);
+					}
+				});
+			}
+		}
+	}
+
+	public StringBuffer dumpClassLoaderStatus()
+	{
+		return this.classLoaderManager.dumpLoaders();
+	}
+
+	public void setBatchContext(BatchContext batchContext)
+	{
+		this.batchContext = batchContext;
+	}
+
+	public BatchContext getBatchContext()
+	{
+		return this.batchContext;
+	}
 }
 
-
-
-
-이걸로 계속 resource 가 0  으로 스캔 되서 
-		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-
-        try {
-            // 2. 변수 타입을 선언할 때 패키지 경로를 명확히 합니다.
-            // 만약 import문에서 Resource를 bxm...Resource로 가져왔다면 
-            // 아래처럼 앞에 패키지명을 다 적어주세요.
-            org.springframework.core.io.Resource[] resources = 
-                resolver.getResources("classpath*:hi/**/*.class");
-            
-            for (org.springframework.core.io.Resource resource : resources) {
-                System.out.println("찾은 파일 경로: " + resource.getURI());
-            }
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-햇더니 다 읽히긴해서 변경 해야할것같은데 감이 안와. 우리가 자체 적으로 쓰는 Resource 를 쓰고있어서 
+FrameworkInstance.newApplication 중 createLocalAppClasspath 가 문제야 
+우리가 META-INF/bxm-application.xml 의 위치를 기준으로 클래스 패스를 잡는것같아 
