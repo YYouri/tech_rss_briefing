@@ -1,1004 +1,646 @@
 /**
- * 작성된 날짜: Aug 2, 2011 Copyright 2011 EsCode co. All rights reserved.
+ * 작성된 날짜: Aug 16, 2011
+ * Copyright 2011 EsCode co. All rights reserved.
  */
 
 package bxm.app;
 
-import java.io.File;
+import static bxm.service.ServiceDefinitions.AnnotatedConfig.BEAN_OBJECT_ANNOTATION_CLASSNAME;
+import static bxm.service.ServiceDefinitions.AnnotatedConfig.SUBSERVICE_OBJECT_ANNOTATION_CLASSNAME;
+import static bxm.service.ServiceDefinitions.AnnotatedConfig.MANAGED_OBJECT_ANNOTATION_CLASS;
+import static bxm.service.ServiceDefinitions.AnnotatedConfig.TRANID_ANNOTATION_CLASS;
+import static bxm.service.ServiceDefinitions.AnnotatedConfig.TRANSACTIONALOPERATION_ANNOTATION_CLASS;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.instrument.ClassFileTransformer;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import jakarta.servlet.ServletContext;
-import javax.sql.DataSource;
-
-import bxm.DataSourceAware;
-import bxm.InterceptorDefinition;
-import bxm.LoadAndInitializable;
-import bxm.NilRefException;
-import bxm.PostProcessor;
-import bxm.PreProcessor;
-import bxm.SystemPostProcessor;
-import bxm.SystemPreProcessor;
-import bxm.app.config.ApplicationConfigurationException;
-import bxm.app.config.ApplicationType;
-import bxm.app.event.ApplicationEvent;
-import bxm.app.event.ApplicationListener;
-import bxm.common.instance.config.BxmApplication;
-import bxm.common.logging.ApplicationLogLevel;
-import bxm.common.util.StringUtils;
-import bxm.common.util.SystemUtils;
-import bxm.common.util.task.SimpleSyncTaskExecutor;
-import bxm.common.util.task.TaskExecutor;
-import bxm.container.RemoteServiceConnectedJmsExecutor;
-import bxm.deferred.DeferredContext;
-import bxm.instance.ApplicationNotFoundException;
-import bxm.instance.FrameworkInstance;
-import bxm.instance.ServiceNotFoundException;
-import bxm.instance.ServiceOperationNotFoundException;
-import bxm.instance.config.ApplicationLoadingMode;
-import bxm.instance.context.control.ControlParameters;
-import bxm.instance.das.DataAccessContext;
-import bxm.instance.instrument.Instrument;
-import bxm.instance.loader.classloader.ApplicationStage;
-import bxm.instance.loader.classloader.context.ApplicationClassLoader;
-import bxm.instance.loader.classloader.ref.ClassLoaderRef;
-import bxm.instance.loader.classloading.instrument.TransactionalServiceOperationTransfomer;
-import bxm.instance.loader.resource.Resource;
-import bxm.instance.loader.resource.ResourceLoader;
-import bxm.omm.marshaller.IBxmMarshaller;
-import bxm.omm.marshaller.factory.BxmMarshallerFactory;
-import bxm.request.ChunkedResponseHandler;
-import bxm.request.ContextHeader;
-import bxm.request.support.IOmmFieldProperties;
-import bxm.request.support.IOmmFieldType;
-import bxm.request.support.ServiceIOmmFieldProperties;
-import bxm.service.ContainerManagedService;
-import bxm.service.Service;
-import bxm.service.ServiceOperation;
-import bxm.transaction.jms.JmsConnector;
-import bxm.transaction.support.TransactionSynchronization;
-
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import bxm.common.util.Assert;
+import bxm.common.util.ClassUtils;
+import bxm.common.util.ResourceUtils;
+import bxm.common.util.StringUtils;
+import bxm.common.util.SystemPropertyUtils;
+import bxm.container.LApplicationContext;
+import bxm.container.annotation.BxmDataAccess;
+import bxm.container.annotation.DataAccess;
+import bxm.instance.ServiceOperationNotFoundException;
+import bxm.instance.filter.AnnotationMemberTypeFilter;
+import bxm.instance.filter.AnnotationTypeFilter;
+import bxm.instance.filter.TypeFilter;
+import bxm.instance.instrument.InstrumentTargetFilter;
+import bxm.instance.loader.classloader.ref.ClassLoaderRef;
+import bxm.instance.loader.classloading.instrument.ClassResourceReader;
+import bxm.instance.loader.classloading.instrument.ManagedBeanTransformer;
+import bxm.instance.loader.classloading.instrument.ManagedServiceOperationTransfomer;
+import bxm.instance.loader.classloading.instrument.TransactionalServiceOperationTransfomer;
+import bxm.instance.loader.resource.Resource;
+import bxm.instance.loader.resource.ResourceLoader;
+import bxm.instance.loader.support.AnnotationMetadata;
+import bxm.instance.loader.support.MetadataReader;
+import bxm.instance.support.DeployedApplicationModel;
+import bxm.request.support.IOmmTypeClassVisitor;
+import bxm.request.support.IOmmTypeUtils;
+import bxm.service.DeployedService;
+import bxm.service.ServiceDefinitions;
+import bxm.service.ServiceDefinitions.AnnotatedConfig;
+import bxm.service.ServiceOperation;
 
 /**
- *
- * @file			bxm.app.Application.java
- * @filetype		java source file
+ * @file		bxm.instance.support.DeployedResourceDefinitionScanner.java
+ * @filetype	java source file
  * @brief
- * @author			Jong Oh Lee
- * @version			1.0
+ * @author		Jong Oh Lee
+ * @version		1.0
  * @history
  * 성		명		일			자			근  거  자  료				변  경  내  용
  * ----------------	-------------------		-------------------		--------------------------
- * Jong Oh Lee :	Mar 13, 2013:			product 개발:				신규 작성
+ * Jong Oh Lee :	Aug 16, 2011:			product 개발:				신규 작성
  *
  */
-//FIXED 1. OperationName만으로 ServiceOperation을 검색할 수 있게 DeployedService, DeployedServiceOperation에 applicationName, ServiceName 추가
-public abstract class Application implements LoadAndInitializable
+//FIXED 1. SubService, TranId annotation 반영.
+public class DeployedResourceDefinitionScanner
 {
-	private Logger logger= LoggerFactory.getLogger( Application.class);
+	private Logger logger= LoggerFactory.getLogger( DeployedResourceDefinitionScanner.class);
 
-	protected URL applicationSource;
+//	private String resourcePattern= DeployedApplicationModel.DEFAULT_RESOURCE_PATTERN;
 
-	protected File deployedTarget;
+	private final List<TypeFilter> typeFilters= new LinkedList<TypeFilter>();
 
-	protected BxmApplication conf;
+	private final List<ClassFileTransformer> managedServiceTransformers= new LinkedList<ClassFileTransformer>();
+	private final ClassFileTransformer managedBeanTransformer= new ManagedBeanTransformer();
 
-	protected String uuid;
+	private final Set<String> beanCandidateAnnotations= new HashSet<String>();
 
-	protected String applicationName;
+	private static final Class<? extends Annotation> SERVICEOPERATION_ANNOTATION_CLASS ;
 
-	protected String description;
-
-	protected Map<String, ApplicationDataSource> datasources= new HashMap<String, ApplicationDataSource>();
-
-	protected List<InterceptorDefinition> applicationListeners= new LinkedList<InterceptorDefinition>();
-
-	protected long createdTime= -1L;
-
-	protected long destroyedTime= -1L;
-
-	protected ApplicationStage stage= ApplicationStage.NOTHING;
-
-	protected ClassLoaderRef classLoaderRef;
-
-	protected ApplicationClassLoader dirtyLoader;
-
-	protected boolean shared;
-
-	protected boolean dirty;
-
-	protected ApplicationType applicationType= ApplicationType.UNDEFINED;
-
-	protected ApplicationLogLevel logLevel;
-
-	private String[] referenceApplications;
-
-	protected Instrument instrument;
-
-	protected List<InterceptorDefinition> preProcessorDefinitions= new LinkedList<InterceptorDefinition>();
-
-	protected List<InterceptorDefinition> postProcessorDefinitions= new LinkedList<InterceptorDefinition>();
-
-	protected volatile List<PreProcessor> preProcessors;
-
-	protected volatile List<PostProcessor> postProcessors;
-
-	protected Preloading preloading;
-
-	protected ApplicationPreloadingFilter preloadingFilter;
-
-	protected Pattern[][] validClientPatterns= new Pattern[0][0];
-
-	protected String[] validatingClients= new String[]{};
-
-	protected Map<String, Service> services= new HashMap<String, Service>();
-
-	//[[ 20170919 거래기준 검색
-	protected Map<String, ServiceOperation> operations= new HashMap<String, ServiceOperation>();
-	//]] 20170919 거래기준 검색
-
-	//[[ 20171109 중복거래 보관
-	protected Map<String, Map<String, ServiceOperation>> duplicatedOperations= new HashMap<String, Map<String, ServiceOperation>>();
-	//]]
-
-	protected LightweightApplicationContext applicationContext;
-
-	protected DataSource containerDataSource;
-
-	protected DataAccessContext dasContext;
-
-	protected DeferredContext deferredContext;
-
-	protected List<String> transactionRollbackForNames= new ArrayList<String>();
-
-	protected List<String> transactionNoRollbackForNames= new ArrayList<String>();
-
-	protected FrameworkInstance frameworkInstance;
-
-	protected ServiceIOmmFieldProperties iommFieldProperties= new ServiceIOmmFieldProperties();
-
-	protected Map<String, ContainerManagedService> serviceInstances= new HashMap<String, ContainerManagedService>();
-
-	protected Map<BxmMarshallerFactory.Marshaller, IBxmMarshaller> marshallers=
-			new HashMap<BxmMarshallerFactory.Marshaller, IBxmMarshaller>();
-
-	protected Object objectMapper;
-
-	protected Set<Resource> beanCandidateResources= new HashSet<Resource>();
-
-	protected DeployedResourceDefinitionScanner scanner;
-
-	protected TransactionalServiceOperationTransfomer transformer;
-
-	protected Map<String, String> contextInfo;
-
-	protected boolean destroyed= false;
-
-	public Application()
+	static
 	{
-		this.uuid= SystemUtils.generateRandomUUID();
-	}
+		boolean useMainService = Boolean.parseBoolean(System.getProperty("bxm.use.mainservice", "true"));
 
-	public boolean initialize( ClassLoaderRef ref)
-	{
-		return true;
-	}
-
-	public boolean initialize()
-	{
-		return true;
-	}
-
-	public void addBeanCandidateResource( Resource resource)
-	{
-		this.beanCandidateResources.add( resource);
-	}
-
-	public abstract void prepare( FrameworkInstance frameworkInstance, ServletContext servletContext, Object singletonLock,
-			Object initializationLock, ResourceLoader legacyLoader) throws ApplicationConfigurationException;
-
-	public abstract void prepare( FrameworkInstance frameworkInstance, ServletContext servletContext, Object singletonLock,
-			Object initializationLock, ResourceLoader legacyLoader, List<String> basePackages)
-					throws ApplicationConfigurationException;
-
-	public void setTransactionalServiceOperationTransfomer( TransactionalServiceOperationTransfomer transformer)
-	{
-		this.transformer= transformer;
-	}
-
-	public void setStage( ApplicationStage stage)
-	{
-		this.stage= stage;
-		if( this.classLoaderRef!= null)
+		if (useMainService)
 		{
-			try{ this.classLoaderRef.getClassLoader().setStage( stage);}
-			catch( NilRefException ne){}
+			SERVICEOPERATION_ANNOTATION_CLASS = TRANID_ANNOTATION_CLASS;
+		}
+		else
+		{
+			SERVICEOPERATION_ANNOTATION_CLASS = AnnotatedConfig.SERVICEOPERATION_ANNOTATION_CLASS;
 		}
 	}
 
-	public ApplicationStage getStage()
+	@SuppressWarnings( "unchecked")
+	public DeployedResourceDefinitionScanner( TransactionalServiceOperationTransfomer transformer)
 	{
-		return this.stage;
-	}
-
-	public String getUUID()
-	{
-		return this.uuid;
-	}
-
-	public void setLightweightApplicationContext( LightweightApplicationContext context)
-	{
-		this.applicationContext= context;
-	}
-
-	public LightweightApplicationContext getLightweightApplicationContext()
-	{
-		return this.applicationContext;
-	}
-
-	public void setFrameworkInstance( FrameworkInstance instance)
-	{
-		this.frameworkInstance= instance;
-	}
-
-	public boolean isImageLogging()
-	{
-		return this.frameworkInstance!= null ?
-				this.frameworkInstance.getInstanceContext().getRequestType().isImageLogging() : false;
-	}
-
-	public boolean isBlackboxRecording()
-	{
-		return this.frameworkInstance!= null && this.frameworkInstance.getBlackboxContext()!= null ?
-						this.frameworkInstance.getBlackboxContext().isRecording() : false;
-	}
-
-	public boolean isDeferredInit()
-	{
-		return this.frameworkInstance!= null && this.frameworkInstance.getApplicationLoader()!= null ?
-				this.frameworkInstance.getApplicationLoader().isDeferredInit() : false;
-	}
-
-	public long getDeferredInitInterval()
-	{
-		return this.frameworkInstance!= null && this.frameworkInstance.getApplicationLoader()!= null ?
-				this.frameworkInstance.getApplicationLoader().getDeferredInitInterval() : -1;
-	}
-
-	public boolean isLazyInit()
-	{
-		return this.frameworkInstance!= null && this.frameworkInstance.getApplicationLoader()!= null ?
-						this.frameworkInstance.getApplicationLoader().isLazyInit() : false;
-	}
-
-	public boolean isSessionfactroyLazyinit()
-	{
-		return this.frameworkInstance!= null && this.frameworkInstance.getApplicationLoader()!= null ?
-				this.frameworkInstance.getApplicationLoader().isSessionfactoryLazyinit() : false;
-	}
-
-	public ApplicationInitializerReference getApplicationInitailizerReference()
-	{
-		return this.frameworkInstance!= null && this.frameworkInstance.getApplicationLoader()!= null ?
-				this.frameworkInstance.getApplicationLoader().getApplicationInitailizerReference() : null;
-	}
-
-	public long getForcedTimeout()
-	{
-		return this.frameworkInstance.getInstanceContext().getForcedTimeout();
-	}
-
-	public boolean isUseOnlyPredefinedBeanProcessors()
-	{
-		return this.frameworkInstance.getApplicationLoader().isUseOnlyPredefinedBeanProcessors();
-	}
-
-	public void setContainerDataSource( DataSource dataSource)
-	{
-		this.containerDataSource= dataSource;
-	}
-
-	public ApplicationLoadingMode getApplicationLoadingMode()
-	{
-		return this.frameworkInstance.getApplicationLoader().getLoadingMode();
-	}
-
-	public List<SystemPreProcessor> getSystemPreProcessors()
-	{
-		return this.frameworkInstance.getSystemPreProcessors();
-	}
-
-	public List<SystemPostProcessor> getSystemPostProcessors()
-	{
-		return this.frameworkInstance.getSystemPostProcessors();
-	}
-
-	public List<TransactionSynchronization> getTransactionSynchronizations()
-	{
-		return this.frameworkInstance.getTransactionSynchronizations();
-	}
-
-	public DataSource getContainerDataSource()
-	{
-		return this.containerDataSource;
-	}
-
-	public String getRequestHeaderClassName()
-	{
-		return this.frameworkInstance.getInstanceContext().getRequestType().getHeaderClassName();
-	}
-
-	public String getRequestResolverClassName()
-	{
-		return this.frameworkInstance.getInstanceContext().getRequestType().getRequestResolverClassName();
-	}
-
-	public String getResponseResolverClassName()
-	{
-		return this.frameworkInstance.getInstanceContext().getRequestType().getResponseResolverClassName();
-	}
-
-	public String getRequestTraceClassName()
-	{
-		return this.frameworkInstance.getInstanceContext().getRequestType().getRequestTraceClassName();
-	}
-
-	public String getRequestInterceptorClassName()
-	{
-		return this.frameworkInstance.getInstanceContext().getRequestType().getRequestInterceptorClassName();
-	}
-
-
-	public JmsConnector getJmsConnector()
-	{
-		if( this.frameworkInstance== null || this.frameworkInstance.getJmsConnector()== null)
-			throw new IllegalStateException( "Jms Connector not prepared. check frameworkinstance configuration.");
-		return this.frameworkInstance.getJmsConnector();
-	}
-
-	public RemoteServiceConnectedJmsExecutor<ContextHeader> getRemoteServiceConnectedJmsExecutor()
-	{
-		if( this.frameworkInstance== null || this.frameworkInstance.getJmsConnector()== null
-				|| this.frameworkInstance.getRemoteServiceConnectedJmsExecutor()== null)
-			throw new IllegalStateException( "Jms Connector not prepared. check frameworkinstance configuration.");
-		return this.frameworkInstance.getRemoteServiceConnectedJmsExecutor();
-	}
-
-	public void setDataAccessContext( DataAccessContext dasContext)
-	{
-		this.dasContext= dasContext;
-	}
-
-	public DataAccessContext getDataAccessContext()
-	{
-		return this.dasContext;
-	}
-
-	public DeferredContext getDeferredContext()
-	{
-		return deferredContext;
-	}
-
-	public void setDeferredContext( DeferredContext deferredContext)
-	{
-		this.deferredContext= deferredContext;
-	}
-
-	public List<String> getTransactionRollbackForNames()
-	{
-		return transactionRollbackForNames;
-	}
-
-	public void setTransactionRollbackForNames( List<String> transactionRollbackForNames)
-	{
-		this.transactionRollbackForNames= transactionRollbackForNames;
-	}
-
-	public List<String> getTransactionNoRollbackForNames()
-	{
-		return transactionNoRollbackForNames;
-	}
-
-	public ControlParameters getControlParameterIntance()
-	{
-		return this.frameworkInstance.getInstanceContext().getControlParameterInstance();
-	}
+		beanCandidateAnnotations.add( "org.springframework.stereotype.Component");
+		beanCandidateAnnotations.add( DataAccess.class.getName());
+		beanCandidateAnnotations.add( BxmDataAccess.class.getName());
 
-	public void setTransactionNoRollbackForNames( List<String> transactionNoRollbackForNames)
-	{
-		this.transactionNoRollbackForNames= transactionNoRollbackForNames;
-	}
-
-	public DeployedApplication lookupDeployedApplication( String applicationName, String remoteAddr)
-			throws ApplicationNotFoundException
-	{
-		return this.frameworkInstance.lookupDeployedApplication( applicationName, remoteAddr);
-	}
-
-	public void setApplicationSource( URL source)
-	{
-		this.applicationSource= source;
-	}
-
-	public URL getApplicationSource()
-	{
-		return this.applicationSource;
-	}
-
-	public File getDeployedTarget()
-	{
-		return deployedTarget;
-	}
-
-	public void setDeployedTarget( File deployedTarget)
-	{
-		this.deployedTarget= deployedTarget;
-	}
-
-	public void setConfiguration( BxmApplication conf)
-	{
-		this.conf= conf;
-	}
-
-	public BxmApplication getConfiguration()
-	{
-		return this.conf;
-	}
-
-	public String getApplicationName()
-	{
-		return applicationName;
-	}
-
-	public void setApplicationName( String applicationName)
-	{
-		this.applicationName= applicationName;
-	}
-
-	public String getDescription()
-	{
-		return description;
-	}
-
-	public void setDescription( String description)
-	{
-		this.description= description;
-	}
-
-	public ApplicationType getApplicationType()
-	{
-		return applicationType;
-	}
-
-	public void setApplicationType( ApplicationType applicationType)
-	{
-		this.applicationType= applicationType;
-	}
-
-	public void addDataSource( String name, ApplicationDataSource ds)
-	{
-		this.datasources.put( name, ds);
-	}
-
-	public ApplicationDataSource getDataSource( String name)
-	{
-		return this.datasources.get( name);
-	}
-
-	public Map<String, ApplicationDataSource> getDataSources()
-	{
-		return this.datasources;
-	}
-
-	public void addApplicationListener( InterceptorDefinition listener)
-	{
-		this.applicationListeners.add( listener);
+		typeFilters.add( new AnnotationTypeFilter( MANAGED_OBJECT_ANNOTATION_CLASS, true));
+		typeFilters.add( new AnnotationMemberTypeFilter
+				(
+						transformer!= null ?
+								new Class[]{ TRANSACTIONALOPERATION_ANNOTATION_CLASS, SERVICEOPERATION_ANNOTATION_CLASS} :
+								new Class[]{ SERVICEOPERATION_ANNOTATION_CLASS},
+				false));
+		managedServiceTransformers.add( new ManagedServiceOperationTransfomer());
+		if( transformer!= null)
+			managedServiceTransformers.add( transformer);
 	}
 
-	public List<InterceptorDefinition> getApplicationListeners()
+	public static String determineManagedName( Map<String, Object> attributes, String substitueName)
 	{
-		return applicationListeners;
-	}
-
-	public void setApplicationListeners( List<InterceptorDefinition> applicationListeners)
-	{
-		this.applicationListeners= applicationListeners;
-	}
-
-	public long getCreatedTime()
-	{
-		return this.createdTime;
-	}
-
-	public long getDestroyedTime()
-	{
-		return this.destroyedTime;
-	}
-
-	public ApplicationStage getCurrentStage()
-	{
-		return this.stage;
-	}
-
-	public ClassLoaderRef getClassLoaderRef()
-	{
-		return this.classLoaderRef;
-	}
-
-	public boolean isShared()
-	{
-		return shared;
-	}
-
-	public void setShared( boolean shared)
-	{
-		this.shared= shared;
-	}
-
-	public boolean isDirty()
-	{
-		return dirty;
-	}
-
-	public void setDirty( boolean dirty)
-	{
-		this.dirty= dirty;
-	}
-
-	public ApplicationLogLevel getLogLevel()
-	{
-		return logLevel;
-	}
-
-	public void setLogLevel( ApplicationLogLevel logLevel)
-	{
-		this.logLevel= logLevel;
-	}
-
-	public void setReferenceApplications( String[] refs)
-	{
-		this.referenceApplications= refs;
-	}
-
-	public String[] getReferenceApplications()
-	{
-		return this.referenceApplications!= null ? this.referenceApplications : new String[]{};
-	}
-
-	public Instrument getInstrument()
-	{
-		return instrument;
-	}
-
-	public void setInstrument( Instrument instrument)
-	{
-		this.instrument= instrument;
-	}
+		if( attributes== null || attributes.size()== 0)	return substitueName;
+		Object value= null;
+		String managedName= null;
+		if( attributes.containsKey( ServiceDefinitions.VALUE_ATTRIBUTE_NAME))
+			value= attributes.get( ServiceDefinitions.VALUE_ATTRIBUTE_NAME);
+		managedName= value!= null && (value instanceof String) && StringUtils.hasText( value.toString()) ?
+				value.toString() : null;
+		if( attributes.containsKey( ServiceDefinitions.NAME_ATTRIBUTE_NAME))
+			value= attributes.get( ServiceDefinitions.NAME_ATTRIBUTE_NAME);
+		managedName= value!= null && (value instanceof String) && StringUtils.hasText( value.toString()) ?
+				value.toString() : managedName;
 
-	public List<InterceptorDefinition> getPreProcessorDefinitions()
-	{
-		return preProcessorDefinitions;
+		managedName= managedName!= null && StringUtils.hasText( managedName) ? managedName : substitueName;
+		return managedName;
 	}
 
-	public void setPreProcessorDefinitions( List<InterceptorDefinition> preProcessors)
+	public void applyResourceManagedTransformer( final ServiceRegistry registry, final ClassLoaderRef loaderRef)
 	{
-		this.preProcessorDefinitions= preProcessors;
-	}
+		loaderRef.getClassLoader().setManagedResourceFilter( new InstrumentTargetFilter(){
 
-	public List<InterceptorDefinition> getPostProcessorDefinitions()
-	{
-		return postProcessorDefinitions;
-	}
+			private final Set<String> knownNotInstrumentables= Collections.synchronizedSet( new HashSet<String>());
 
-	public void setPostProcessorDefinitions( List<InterceptorDefinition> postProcessors)
-	{
-		this.postProcessorDefinitions= postProcessors;
-	}
+			private ResourceLoader resourceLoader= loaderRef.getResourceLoader();
 
-	public List<PreProcessor> getPreProcessors()
-	{
-		if( this.frameworkInstance.getApplicationLoader().isLazyInit())
-		{
-			synchronized( this)
+			@Override
+			public List<ClassFileTransformer> checkIfInstrumentable( String name)
 			{
-				if( this.preProcessors== null)
-					preparePreProcessors();
-			}
-		}
-		return this.preProcessors;
-	}
-
-	public List<PostProcessor> getPostProcessors()
-	{
-		if( this.frameworkInstance.getApplicationLoader().isLazyInit())
-		{
-			synchronized( this)
-			{
-				if( this.postProcessors== null)
-					preparePostProcessors();
-			}
-		}
-		return this.postProcessors;
-	}
-
-	public ChunkedResponseHandler getChunkedResponseHandler()
-	{
-		return this.frameworkInstance.getChunkedResponseHandler();
-	}
-
-	public void setMarshaller( BxmMarshallerFactory.Marshaller type, IBxmMarshaller marshaller)
-	{
-		this.marshallers.put( type, marshaller);
-	}
-
-	public IBxmMarshaller getMarshaller( BxmMarshallerFactory.Marshaller type)
-	{
-		return this.marshallers.get( type);
-	}
-
-	public void setObjectMapper( Object objectMapper)
-	{
-		this.objectMapper= objectMapper;
-	}
-
-	public Object getObjectMapper()
-	{
-		return this.objectMapper;
-	}
-
-	public Preloading getPreloading()
-	{
-		return preloading;
-	}
-
-	public void setPreloading( Preloading preloading)
-	{
-		this.preloading= preloading;
-	}
-
-	public void addPreProcessor( InterceptorDefinition processor)
-	{
-		this.preProcessorDefinitions.add( processor);
-	}
-
-	public void addPostProcessor( InterceptorDefinition processor)
-	{
-		this.postProcessorDefinitions.add( processor);
-	}
-
-	public boolean isValidClient( String remoteAddr)
-	{
-		if( !StringUtils.hasText( remoteAddr)) return true;
-		boolean valid= true;
-		String[] addrTokens= StringUtils.tokenizeToStringArray( remoteAddr, ".");
-		for( Pattern[] patterns: this.validClientPatterns)
-		{
-			valid= true;
-			for( int i= 0; i< patterns.length; i++)
-			{
-				if( !patterns[i].matcher( addrTokens[i]).matches())
+				try
 				{
-					valid= false;
-					break;
+					if( this.knownNotInstrumentables.contains( name) || managedServiceTransformers.size()<= 0)
+						return null;
+
+					List<ClassFileTransformer> transformers= new LinkedList<ClassFileTransformer>();
+					DeployedService cdef= null;
+					MetadataReader reader= resourceLoader.readMetadataReaderOnce( name);
+					if( !isCandidateManagedType( reader, resourceLoader)
+							|| !isCandidateManagedType( reader.getAnnotationMetadata()))
+					{
+						this.knownNotInstrumentables.add( name);
+						return null;
+					}
+					else
+					{
+						try{ cdef= AnnotatedDefinitionReader.defineAnnotatedResource( reader, registry);}
+						catch( IOException e)
+						{
+							ApplicationResourceInitializer.logger.warn(
+									"annotated resource [{}] definition reading is failed.", name, e);
+						}
+
+						// not service but managed resource ex) @BxmBean
+						if( cdef== null)
+						{
+//							logger.debug( "not service but managed resource [{}].", name);
+							String managedName= null;
+							if (reader.getAnnotationMetadata().hasAnnotation(BEAN_OBJECT_ANNOTATION_CLASSNAME))
+							{
+								managedName = determineManagedName(
+												reader.getAnnotationMetadata().getAnnotationAttributes( BEAN_OBJECT_ANNOTATION_CLASSNAME), name);
+
+							}
+							else
+							{
+								managedName = determineManagedName(
+										reader.getAnnotationMetadata().getAnnotationAttributes( SUBSERVICE_OBJECT_ANNOTATION_CLASSNAME), name);
+							}
+							( (ManagedBeanTransformer)managedBeanTransformer).setManagedName( managedName);
+							transformers.add( managedBeanTransformer);
+
+//							logger.debug( "resource [{}] is instrumentable using [{}].", name, transformers);
+							return transformers;
+						}
+
+//						logger.debug( "managed resource [{}], data [{}].", name, cdef);
+
+						// managed resources @BxmService, include @TransactionalOperation
+						if( cdef.isInstrumentable() || cdef.isExposed())
+						{
+							for( ClassFileTransformer transformer: managedServiceTransformers)
+							{
+								if( transformer instanceof ManagedServiceOperationTransfomer)
+								{
+									( (ManagedServiceOperationTransfomer)transformer).setServiceOperations( cdef.getOperations());
+									( (ManagedServiceOperationTransfomer)transformer).setManagedName( cdef.getServiceName());
+								}
+								else if( transformer instanceof TransactionalServiceOperationTransfomer)
+									( (TransactionalServiceOperationTransfomer)transformer).setTransactionInstrumentableMethods(
+											cdef.getTransactionInstrumentableMethods());
+								transformers.add( transformer);
+							}
+//							logger.debug( "resource [{}] is instrumentable using [{}].", name, transformers);
+							return transformers;
+						}
+						return null;
+					}
+				}
+				catch( Exception e)
+				{
+//					logger.warn( "[{}] is can not check for instrumentable classloader.", name);
+					this.knownNotInstrumentables.add( name);
+					return null;
 				}
 			}
-			if( valid)
-				break;
-		}
-		return valid;
+		});
 	}
 
-	public String[] getValidatingClientPatterns()
+	public Set<MetadataReader> scanResources( ServiceRegistry registry, final ClassLoaderRef loaderRef,
+			boolean cacheIOProperties, ResourceLoader legacyLoader, Resource[] resources)
 	{
-		return this.validatingClients;
+		Assert.notNull( registry, "registry can not be null");
+		Assert.notNull( loaderRef, "loaderRef can not be null");
+
+		Set<MetadataReader> beanCandidates= new LinkedHashSet<MetadataReader>();
+		collectBeanCandidates( registry, loaderRef, resources, beanCandidates, cacheIOProperties, legacyLoader);
+//		for( MetadataReader candidate: beanCandidates)
+//		logger.debug( "{}/{}", ( (ApplicationClassLoader)loaderRef.getClassLoader()).getApplicationName(), candidate.getResourceURI());
+
+		return beanCandidates;
 	}
 
-	public void resetValidClientPatterns( String... ipPatterns)
+	public Set<MetadataReader> scanResources( ServiceRegistry registry, final ClassLoaderRef loaderRef,
+			boolean cacheIOProperties, ResourceLoader legacyLoader, String... basePackages)
+			throws IOException
 	{
-		if( ipPatterns== null) return;
-		this.validatingClients= ipPatterns;
-		Pattern[][] patternsToUse= new Pattern[ipPatterns.length][];
-		int index= 0;
-		for( String validStr: ipPatterns)
+		Assert.notNull( registry, "registry can not be null");
+		Assert.notNull( loaderRef, "loaderRef can not be null");
+
+		Set<MetadataReader> beanCandidates= new LinkedHashSet<MetadataReader>();
+
+		ArrayList<String> postPatterns = getBasePackagePostPatterns();
+
+		for( String basePackage: basePackages)
 		{
-			List<Pattern> patterns= new ArrayList<Pattern>();
-			String[] applyTokens= StringUtils.tokenizeToStringArray( validStr, ".");
-			for( int i= 0; i< applyTokens.length; i++)
-				patterns.add( Pattern.compile( StringUtils.replace( applyTokens[i], "*", "(\\d{1,3})")));
+			if (basePackage == null) continue;
+			basePackage = basePackage.trim();
+			if ("".equals(basePackage)) continue;
 
-			patternsToUse[index++]= patterns.toArray( new Pattern[patterns.size()]);
-		}
-		this.validClientPatterns= patternsToUse;
-	}
+//			String path= ResourceLoader.CLASSPATH_ALL_URL_PREFIX+ resolveBasePackage( basePackage)+ "/"+ this.resourcePattern;
 
-	public void resetValidClientPatterns()
-	{
-		this.validClientPatterns= new Pattern[0][0];
-	}
-
-	public Map<String, Service> getServices()
-	{
-		return this.services;
-	}
-
-	public Service lookupService( String name) throws ServiceNotFoundException
-	{
-		Service svc= this.services.get( name);
-		if( svc!= null && svc.isExposed())
-			return svc;
-		throw new ServiceNotFoundException( this.applicationName, name);
-	}
-
-	public ServiceOperation lookupServiceOperation( String serviceName,
-			String operationName) throws ServiceOperationNotFoundException
-	{
-		Service svc= this.services.get( serviceName);
-		if( svc!= null && svc.isExposed())
-		{
-			ServiceOperation op= svc.lookupOperation( operationName);
-			if( op!= null&& op.isExposed())
-				return op;
-		}
-		throw new ServiceOperationNotFoundException( serviceName, operationName);
-	}
-
-	//[[ 20170919 거래기준 검색
-	public ServiceOperation lookupServiceOperation( String operationName) throws ServiceOperationNotFoundException
-	{
-		ServiceOperation op= this.operations.get( operationName);
-		if( op!= null&& op.isExposed())
-			return op;
-		throw new ServiceOperationNotFoundException( "", operationName);
-	}
-	//]] 20170919 거래기준 검색
-
-	public Map<String, ServiceOperation> getServiceOperations()
-	{
-		return operations;
-	}
-
-	public void registerServiceInstance( String serviceName, ContainerManagedService serviceInstance)
-	{
-		if( this.services.containsKey( serviceName))
-		{
-			synchronized( this.serviceInstances)
+			for ( String postPattern: postPatterns)
 			{
-				this.serviceInstances.put( serviceName, serviceInstance);
+				String path= ResourceLoader.CLASSPATH_ALL_URL_PREFIX+ resolveBasePackage( basePackage)+ "/"+ postPattern;
+
+				long now1 = System.currentTimeMillis();
+				Resource[] resources= loaderRef.getResourceLoader().getLocalResources( path);
+				long now2 = System.currentTimeMillis();
+				long findTime = now2 - now1;
+				collectBeanCandidates( registry, loaderRef, resources, beanCandidates, cacheIOProperties, legacyLoader);
+				logger.debug( "scan-beans : path [{}] count[{}] time1 [{}] time2 [{}]", new Object[]{ path, (resources == null ? 0 : resources.length), findTime, (System.currentTimeMillis()-now2) });
+
 			}
 		}
-	}
 
-	public ContainerManagedService lookupServiceInstance( String serviceName) throws ServiceNotFoundException
-	{
-		ContainerManagedService instance= this.serviceInstances.get( serviceName);
-		if( instance!= null) return instance;
-		logger.debug( "request bean creation for service [{}].", serviceName);
-		Object serviceInstance= this.applicationContext.getBean( serviceName);
-		if( !( serviceInstance instanceof ContainerManagedService))
-			throw new ServiceNotFoundException( this.applicationName, serviceName,
-					"requested service type is not matched with [" + ContainerManagedService.class.getName()+ "].");
-
-		synchronized( this.serviceInstances)
+		ArrayList<String> addPackages = getAddPackages();
+		for ( String addPackage: addPackages)
 		{
-			logger.debug( "register ContainerManagedBean Instance [{}].", serviceName);
-			if( !isDestroyed())
-				this.serviceInstances.put( serviceName, (ContainerManagedService)serviceInstance);
+			String path= ResourceLoader.CLASSPATH_ALL_URL_PREFIX+ resolveBasePackage( addPackage)+ "/*.class";
+
+			long now1 = System.currentTimeMillis();
+			Resource[] resources= loaderRef.getResourceLoader().getLocalResources( path);
+			long now2 = System.currentTimeMillis();
+			long findTime = now2 - now1;
+			collectBeanCandidates( registry, loaderRef, resources, beanCandidates, cacheIOProperties, legacyLoader);
+			logger.debug( "scan-beans : path [{}] count[{}] time1 [{}] time2 [{}]", new Object[]{ path, (resources == null ? 0 : resources.length), findTime, (System.currentTimeMillis()-now2) });
 		}
-		return (ContainerManagedService)serviceInstance;
+
+//		for( MetadataReader candidate: beanCandidates)
+//			logger.debug( ">>{}", candidate.getResourceURL().toString());
+
+		return beanCandidates;
 	}
 
-	public int getServiceCount()
-	{
-		return this.services.size();
+	private ArrayList<String> getBasePackagePostPatterns() {
+
+		ArrayList<String> postPatterns = new ArrayList<String>();
+		String postPatternStr = System.getProperty("bxm.system.online.base.packages.post.pattern");
+		if (postPatternStr == null) {
+			postPatterns.add("**/*.class");
+		} else {
+			String[] patterns = postPatternStr.split(",");
+			if (patterns == null || patterns.length == 0) {
+				postPatterns.add("**/*.class");
+			} else {
+				for (String pattern : patterns) {
+					postPatterns.add(pattern);
+				}
+			}
+		}
+		return postPatterns;
 	}
 
-	protected void publishPostInitializeEvent( final ApplicationEvent event)
-	{
-		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
-		synchronized( this.applicationListeners)
+	private ArrayList<String> getAddPackages() {
+
+		ArrayList<String> addPackages = new ArrayList<String>();
+
+		if(!LApplicationContext.isBatchContext())
 		{
-			Iterator<InterceptorDefinition> defs= this.applicationListeners.iterator();
-			while( defs.hasNext())
-			{
-				final ApplicationListener listener= defs.next().getInterceptor();
-				if( listener== null) continue;
-				executor.execute( new Runnable(){
-					public void run()
-					{
-						listener.postApplicationInitialize( event);
+			String addPackagesStr = System.getProperty("bxm.system.online.base.packages.added");
+			if (addPackagesStr == null) {
+			} else {
+				String[] patterns = addPackagesStr.split(",");
+				if (patterns == null || patterns.length == 0) {
+				} else {
+					for (String pattern : patterns) {
+						addPackages.add(pattern);
 					}
-				});
+				}
 			}
 		}
+		return addPackages;
 	}
 
-	protected void publishPrepareDestroyEvent( final ApplicationEvent event)
+	private void collectBeanCandidates( ServiceRegistry registry, ClassLoaderRef loaderRef, Resource[] resources,
+			Set<MetadataReader> beanCandidates, boolean cacheIOProperties, ResourceLoader legacyLoader)
 	{
-		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
-		synchronized( this.applicationListeners)
+		List<Pattern> localPathPatterns= null;
+		URL[] applocalpaths= null;
+		if( legacyLoader!= null && ( applocalpaths= loaderRef.getClassLoader().getLocalApplicationClasspaths())!= null)
 		{
-			Iterator<InterceptorDefinition> defs= this.applicationListeners.iterator();
-			while( defs.hasNext())
+			localPathPatterns= new ArrayList<Pattern>();
+			for( URL applocalpath: applocalpaths)
 			{
-				final ApplicationListener listener= defs.next().getInterceptor();
-				if( listener== null) continue;
-				executor.execute( new Runnable(){
-					public void run()
-					{
-						listener.prepareApplicationDestroy( event);
-					}
-				});
+				if( applocalpath.toExternalForm().endsWith( DeployedApplicationModel.CLASSES_PATH_SUFFIX)
+						|| applocalpath.toExternalForm().endsWith( DeployedApplicationModel.BIN_PATH_SUFFIX))
+				{
+					Pattern pattern= Pattern.compile( "("+ applocalpath.toExternalForm()+ ")(/)(.*)(.class)");
+					localPathPatterns.add( pattern);
+				}
 			}
 		}
-	}
 
-	protected void publishPredeployedEvent( final ApplicationEvent event)
-	{
-		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
-		synchronized( this.applicationListeners)
+		for( Resource resource: resources)
 		{
-			Iterator<InterceptorDefinition> defs= this.applicationListeners.iterator();
-			while( defs.hasNext())
+//			logger.debug( "resource [{}/{}] scanned.", resource.getFileName(), resource.getClass().getName());
+
+			if( !resource.isReadable()) continue;
+			DeployedService def= null;
+			MetadataReader reader= null;
+			String className= null;
+
+			URL resourceUrl= null;
+			Long lastModified= null;
+			try
 			{
-				final ApplicationListener listener= defs.next().getInterceptor();
-				if( listener== null) continue;
-				executor.execute( new Runnable(){
-					public void run()
+				resourceUrl= resource.getURL();
+				lastModified= resource.lastModified();
+			}catch( IOException ioe){}
+
+			if( resourceUrl!= null && localPathPatterns!= null)
+			{
+				try
+				{
+					for( Pattern pathPattern: localPathPatterns)
 					{
-						listener.predeployed( event);
+						Matcher matcher= pathPattern.matcher( resourceUrl.toExternalForm());
+						if( matcher.matches())
+						{
+							className= ClassUtils.convertResourcePathToClassName( matcher.replaceFirst( "$3"));
+							MetadataReader cached= legacyLoader.removeMetadataReaderCache( className);
+							if( cached!= null && cached.lastModified()!= null && lastModified!= null
+									&& cached.lastModified().equals( lastModified))
+							{
+//								logger.debug(  "cached found {}/{}", lastModified, resourceUrl.toExternalForm());
+								reader= cached;
+								reader.setResourceURL( resource.getURL());
+								loaderRef.getResourceLoader().putMetadataReader( className, reader);
+								break;
+							}
+						}
 					}
-				});
+				}
+				catch( Throwable th){}
+			}
+
+			if( reader== null)
+			{
+				try{ reader= loaderRef.getResourceLoader().getMetadataReader( resource);}
+				catch( Throwable th)
+				{
+					ApplicationResourceInitializer.logger.warn( "metadata reading for resource [{}] is failed.",
+							resourceUrl!= null ? resourceUrl : resource.getFileName(), th);
+					continue;
+				}
+			}
+
+			if( registry instanceof Application && IOmmTypeUtils.isOmmType( loaderRef.getResourceLoader(), reader))
+			{
+				loaderRef.getResourceLoader().removeMetadataReaderCache( resource);
+				continue;
+			}
+
+			if( !isCandidateManagedType( reader, loaderRef.getResourceLoader())
+					|| !isCandidateManagedType( reader.getAnnotationMetadata()))
+			{
+				boolean additionalChecked= false;
+				for( String candidateAnnotattion: this.beanCandidateAnnotations)
+				{
+					if( reader.getAnnotationMetadata().hasAnnotation( candidateAnnotattion)
+							|| reader.getAnnotationMetadata().hasMetaAnnotation( candidateAnnotattion))
+					{
+						beanCandidates.add( reader);
+						additionalChecked= true;
+						break;
+					}
+				}
+				if( !additionalChecked)
+					loaderRef.getResourceLoader().removeMetadataReaderCache( resource);
+				continue;
+			}
+
+			beanCandidates.add( reader);
+
+//			logger.debug( "resource [{}] will be defined.", resource.getURL().toExternalForm());
+			try
+			{
+				def= AnnotatedDefinitionReader.defineAnnotatedResource( reader, registry);
+				//[[ 20171109 define동작과 registry에 등록하는 동작을 분리함.
+				//   이유는 AnnotatedDefinitionReader.defineAnnotatedResource를
+				//   collectBeanCandidates와 applyResourceManagedTransformer 메소드에서 호출하는 데
+				//   applyResourceManagedTransformer와 이미 등록된 상태에서 DeployedService객체만 필요하기 때문임..
+				registerService(registry, def, reader.getClassMetadata().getClassName());
+				//]]
+			}
+			catch( IOException e)
+			{
+				ApplicationResourceInitializer.logger.warn( "annotated resource[{}] definition is failed.",
+						new Object[]{ resourceUrl!= null ? resourceUrl : resource.getFileName(), e});
+			}
+
+			if( def!= null)
+			{
+				def.setClassName( reader.getClassMetadata().getClassName());
+//				logger.debug( "cacheiop {}", cacheIOProperties);
+				if( cacheIOProperties)
+				{
+					for( ServiceOperation operation: def.getOperations().values())
+					{
+						if( StringUtils.hasText( operation.getInputTypeName())
+								&& !( (Application)registry).getIommFieldProperties().hasFieldDescriptors(
+										operation.getInputTypeName()))
+						{
+//							logger.debug( "cache IO Properties for [{}].", operation.getInputTypeName());
+							try
+							{
+								String inputTypeName=
+										ResourceUtils.CLASSPATH_URL_PREFIX+
+										ClassUtils.convertClassNameToResourcePath( operation.getInputTypeName())+
+										ClassUtils.CLASS_FILE_SUFFIX;
+								byte[] classbytes= ClassResourceReader.readClassResource(
+										loaderRef.getResourceLoader().getResource( inputTypeName).getInputStream());
+								if( classbytes.length< 8) throw new IOException( "insufficient class bytes length.");
+								ClassReader clsReader= new ClassReader( classbytes);
+								clsReader.accept( new IOmmTypeClassVisitor( loaderRef.getResourceLoader(),
+												( (Application)registry).getIommFieldProperties(), null),
+										ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+							}
+							catch( Throwable th)
+							{
+								/*logger.error( th.getMessage(), th);*/
+								ApplicationResourceInitializer.logger.warn(
+										"invalid input type[{}] resource.", operation.getInputTypeName(), th);
+							}
+						}
+
+						if( StringUtils.hasText( operation.getOutputTypeName()) &&  Type.VOID_TYPE!= operation.getReturnType()
+								&& !( (Application)registry).getIommFieldProperties().hasFieldDescriptors(
+										operation.getOutputTypeName()))
+						{
+//							logger.debug( "cache IO Properties for [{}].", operation.getOutputTypeName());
+							try
+							{
+								String outputTypeName= ResourceUtils.CLASSPATH_URL_PREFIX+
+										ClassUtils.convertClassNameToResourcePath( operation.getOutputTypeName())+
+										ClassUtils.CLASS_FILE_SUFFIX;
+								byte[] classbytes= ClassResourceReader.readClassResource(
+										loaderRef.getResourceLoader().getResource( outputTypeName).getInputStream());
+								if( classbytes.length< 8) throw new IOException( "insufficient class bytes length.");
+								ClassReader clsReader= new ClassReader( classbytes);
+								clsReader.accept( new IOmmTypeClassVisitor( loaderRef.getResourceLoader(),
+												( (Application)registry).getIommFieldProperties(), null),
+										ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+							}
+							catch( Throwable th)
+							{
+								/*logger.error( th.getMessage(), th);*/
+								ApplicationResourceInitializer.logger.warn(
+										"invalid output type[{}] resource.", operation.getOutputTypeName(), th);
+							}
+						}
+					}
+				}
 			}
 		}
 	}
 
-	protected void publishDeployedEvent( final ApplicationEvent event)
-	{
-		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
-		synchronized( this.applicationListeners)
+	/**
+	 * @param registry
+	 * @param def
+	 * @param reader
+	 */
+	private void registerService(ServiceRegistry registry, DeployedService def, String classname) {
+		if( def!= null && def.isExposed() && registry!= null)
 		{
-			Iterator<InterceptorDefinition> defs= this.applicationListeners.iterator();
-			while( defs.hasNext())
+			registry.registerService( def.getServiceName(), def);
+
+			Map<String, ServiceOperation> operationMap = def.getOperations();
+			for (Entry<String, ServiceOperation> operationEntry : operationMap.entrySet())
 			{
-				final ApplicationListener listener= defs.next().getInterceptor();
-				if( listener== null) continue;
-				executor.execute( new Runnable(){
-					public void run()
+				String operationName = operationEntry.getKey();
+				ServiceOperation serviceOperation = operationEntry.getValue();
+//				logger.debug("Operation-[{}][{}][{}][{}]", new Object[]{serviceOperation.getApplicationName(), serviceOperation.getServiceName(), serviceOperation.getOperationName(), serviceOperation.getInputTypeName()});
+				if (registry.checkIfServiceOperationRegistered(operationName))
+				{
+					try
 					{
-						listener.deployed( event);
+						ServiceOperation registered = registry.lookupServiceOperation(operationName);
+						String rServiceInfoStr = getServiceInfoStr(registered);
+						String sServiceInfoStr = getServiceInfoStr(serviceOperation);
+						if (rServiceInfoStr.equalsIgnoreCase(sServiceInfoStr))
+						{
+							// 중복 scan하는 경우가 있으므로 application, service, operation이 같으면 무시한다.
+							continue;
+						}
+						logger.warn( "OperationName [{}] is already registered, so this operation is ignored. Already registered operation {}",
+								operationName, registered);
+
+						if (!registry.checkIfServiceOperationDuplicated(operationName))
+							registry.registerDuplicatedServiceOperation(operationName, registered);
+
+						registry.registerDuplicatedServiceOperation(operationName, serviceOperation);
+
 					}
-				});
+					catch (ServiceOperationNotFoundException e) {}
+
+					continue;
+				}
+
+				registry.registerServiceOperation(operationName, serviceOperation);
+			}
+
+
+			Map<String, List<ServiceOperation>> duplicatedOperationMap = def.getDuplicatedOperations();
+			if (duplicatedOperationMap != null)
+			{
+
+				for (Entry<String, List<ServiceOperation>> dupOpListEntry : duplicatedOperationMap.entrySet())
+				{
+					String operationName = dupOpListEntry.getKey();
+					List<ServiceOperation> dupOpList =  dupOpListEntry.getValue();
+
+					for (ServiceOperation serviceOperation : dupOpList)
+					{
+						try
+						{
+							ServiceOperation registered = registry.lookupServiceOperation(operationName);
+							String rServiceInfoStr = getServiceInfoStr(registered);
+							String sServiceInfoStr = getServiceInfoStr(serviceOperation);
+							if (rServiceInfoStr.equalsIgnoreCase(sServiceInfoStr))
+							{
+								// 중복 scan하는 경우가 있으므로 application, service, operation이 같으면 무시한다.
+								continue;
+							}
+							
+							logger.warn( "OperationName [{}] is already registered, so this operation is ignored. Already registered operation {}",
+									operationName, registered);
+
+							if (!registry.checkIfServiceOperationDuplicated(operationName))
+								registry.registerDuplicatedServiceOperation(operationName, registered);
+
+							registry.registerDuplicatedServiceOperation(operationName, serviceOperation);
+
+						}
+						catch (ServiceOperationNotFoundException e) {}
+
+					}
+
+				}
 			}
 		}
+
 	}
 
-	protected void publishUndeployedEvent( final ApplicationEvent event)
+	private String getServiceInfoStr(ServiceOperation operation) {
+		StringBuilder buffer = new StringBuilder();
+		buffer.append(operation.getApplicationName()).append("_");
+		buffer.append(operation.getServiceName()).append("_");
+		buffer.append(operation.getOperationName()).append("_");
+		buffer.append(operation.getInputTypeName()).append("_");
+		return buffer.toString();
+	}
+
+	private boolean isCandidateManagedType( MetadataReader reader, ResourceLoader resourceLoader)
 	{
-		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
-		synchronized( this.applicationListeners)
+		for( TypeFilter filter: this.typeFilters)
 		{
-			Iterator<InterceptorDefinition> defs= this.applicationListeners.iterator();
-			while( defs.hasNext())
+			try
 			{
-				final ApplicationListener listener= defs.next().getInterceptor();
-				if( listener== null) continue;
-				executor.execute( new Runnable(){
-					public void run()
-					{
-						listener.undeployed( event);
-					}
-				});
+				if( filter.match( reader, resourceLoader))
+					return true;
+			}
+			catch( IOException e)
+			{
+				return false;
 			}
 		}
-	}
-
-	public IOmmFieldProperties getIommFieldProperties()
-	{
-		return iommFieldProperties;
-	}
-
-	public Map<String, IOmmFieldType> getHeaderFieldProperties()
-	{
-		return this.frameworkInstance.getHeaderFieldProperties();
-	}
-
-	public boolean isStoredBeanCreationTrace( String beanName)
-	{
 		return false;
 	}
 
-	public void storeBeanCreationTrace( String beanName, StringBuilder sb)
+	private boolean isCandidateManagedType( AnnotationMetadata metadata)
 	{
-		if( ApplicationLogLevel.DEBUG.level()< logLevel.level())
-			return;
-		//
+		return metadata.isConcrete() && metadata.isIndependent();
 	}
 
-	public String loadBeanCreationTrace( String beanName)
+	private String resolveBasePackage( String base)
 	{
-		if( ApplicationLogLevel.DEBUG.level()< logLevel.level())
-			return "";
-		return "";
+		return ClassUtils.convertClassNameToResourcePath( SystemPropertyUtils.resolvePlaceholders( base, true));
 	}
 
-	public boolean isDestroyed()
-	{
-		return this.destroyed;
-	}
-
-	public void dirtyClear()
-	{
-		if( this.dirtyLoader!= null)
-			this.dirtyLoader.destroy();
-	}
-
-	public boolean destroy()
-	{
-		return true;
-	}
-
-	protected void preparePreProcessors()
-	{
-		if( this.preProcessors== null)
-		{
-			this.preProcessors= new ArrayList<PreProcessor>();
-			for( InterceptorDefinition def: this.preProcessorDefinitions)
-			{
-				if( StringUtils.hasText( ( (ApplicationPreProcessor)def).getBeanName()))
-				{
-					PreProcessor proc= (PreProcessor)this.applicationContext.getBean(
-							( (ApplicationPreProcessor)def).getBeanName());
-					if( proc instanceof DataSourceAware)
-						( (DataSourceAware)proc).setDataSource( this.containerDataSource);
-					if( proc!= null) preProcessors.add( proc);
-				}
-				else
-				{
-					PreProcessor proc= (PreProcessor)def.getInterceptor();
-					if( proc instanceof DataSourceAware)
-						( (DataSourceAware)proc).setDataSource( this.containerDataSource);
-					if( proc!= null) preProcessors.add( proc);
-				}
-			}
-		}
-	}
-
-	protected void preparePostProcessors()
-	{
-		if( this.postProcessors== null)
-		{
-			this.postProcessors= new ArrayList<PostProcessor>();
-			for( InterceptorDefinition def: this.postProcessorDefinitions)
-			{
-				if( StringUtils.hasText( ( (ApplicationPostProcessor)def).getBeanName()))
-				{
-					PostProcessor proc= (PostProcessor)this.applicationContext.getBean(
-							( (ApplicationPostProcessor)def).getBeanName());
-					if( proc instanceof DataSourceAware)
-						( (DataSourceAware)proc).setDataSource( this.containerDataSource);
-					if( proc!= null)
-						postProcessors.add( proc);
-				}
-				else
-				{
-					PostProcessor proc= (PostProcessor)def.getInterceptor();
-					if( proc instanceof DataSourceAware)
-						( (DataSourceAware)proc).setDataSource( this.containerDataSource);
-					if( proc!= null)
-						postProcessors.add( proc);
-				}
-			}
-		}
-	}
 }
