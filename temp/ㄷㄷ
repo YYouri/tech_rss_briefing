@@ -1,267 +1,931 @@
-/*
- * Copyright 2002-2023 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+/**
+ * 작성된 날짜: Sep 5, 2011
+ * Copyright 2011 EsCode co. All rights reserved.
  */
 
-package org.springframework.context.annotation;
+package bxm.context;
 
+import static bxm.container.das.DataAccessDefinitions.DATASORUCE_ATTRIBUTE_NAME;
+import static bxm.container.das.DataAccessDefinitions.MAPPER_ATTRIBUTE_NAME;
+import static bxm.container.das.DataAccessDefinitions.AnnotatedConfig.DATAACCESS_OBJECT_ANNOTATION_CLASSNAME;
+import static bxm.container.das.DataAccessDefinitions.AnnotatedConfig.DATAACCESS_OBJECT_METAANNOTATION_CLASSNAME;
+import static bxm.instance.loader.resource.ResourceLoader.CLASSPATH_ALL_URL_PREFIX;
+import static bxm.service.ServiceDefinitions.AnnotatedConfig.MANAGED_OBJECT_ANNOTATION_CLASSNAME;
+import static bxm.service.ServiceDefinitions.AnnotatedConfig.TRANID_ANNOTATION_CLASS;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.net.URL;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.sql.DataSource;
+
+import org.apache.ibatis.logging.EsIBatisLogger;
+import org.apache.ibatis.type.TypeHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.aop.scope.ScopedProxyUtils;
+import org.springframework.beans.BeanMetadataAttribute;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionDefaults;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanNameGenerator;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.context.annotation.AnnotationBeanNameGenerator;
+import org.springframework.context.annotation.AnnotationScopeMetadataResolver;
+import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Role;
+import org.springframework.context.annotation.ScannedGenericBeanDefinition;
+import org.springframework.context.annotation.ScopeMetadata;
+import org.springframework.context.annotation.ScopeMetadataResolver;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.env.Environment;
-import org.springframework.core.env.EnvironmentCapable;
 import org.springframework.core.env.StandardEnvironment;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.lang.Nullable;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.core.type.MethodMetadata;
+import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
+import org.springframework.core.type.classreading.MetadataReaderFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.PatternMatchUtils;
+
+import bxm.app.AnnotatedDefinitionReader;
+import bxm.app.Application;
+import bxm.app.ApplicationDataSource;
+import bxm.app.ApplicationResourceInitializer;
+import bxm.app.ServiceRegistry;
+import bxm.common.annotaion.BxmCategory;
+import bxm.common.util.ClassUtils;
+import bxm.common.util.SecureCodingUtils;
+import bxm.common.util.StringUtils;
+import bxm.common.util.SystemPropertyUtils;
+import bxm.common.util.SystemUtils;
+import bxm.container.ApplicationContainer;
+import bxm.container.ApplicationContainerLoader;
+import bxm.container.ApplicationContainerUtils;
+import bxm.container.LApplicationContext;
+import bxm.container.annotation.BxmTranID;
+import bxm.context.das.DasExceptionTranslator;
+import bxm.context.das.DasUtils;
+import bxm.context.das.session.MapperFactoryBean;
+//[[ 20170117 추가
+import bxm.context.das.session.RefreshableSqlSessionFactoryBean;
+//]] 20170117 추가
+import bxm.context.das.session.SqlSessionFactoryBean;
+import bxm.context.das.session.SqlSessionTemplate;
+import bxm.instance.ApplicationNotFoundException;
+import bxm.instance.das.DataAccessContext;
+import bxm.instance.loader.classloader.ref.ClassLoaderRef;
+import bxm.instance.loader.support.MetadataReader;
+import bxm.service.ServiceDefinitions;
 
 /**
- * A bean definition scanner that detects bean candidates on the classpath,
- * registering corresponding bean definitions with a given registry ({@code BeanFactory}
- * or {@code ApplicationContext}).
+ * @file		bxm.context.DeployedResourceScannerConfigurer.java
+ * @filetype	java source file
+ * @brief
+ * @author		Jong Oh Lee
+ * @version		1.0
+ * @history
+ * 성		명		일			자			근  거  자  료				변  경  내  용
+ * ----------------	-------------------		-------------------		--------------------------
+ * Jong Oh Lee :	Sep 5, 2011:			product 개발:				신규 작성
  *
- * <p>Candidate classes are detected through configurable type filters. The
- * default filters include classes that are annotated with Spring's
- * {@link org.springframework.stereotype.Component @Component},
- * {@link org.springframework.stereotype.Repository @Repository},
- * {@link org.springframework.stereotype.Service @Service}, or
- * {@link org.springframework.stereotype.Controller @Controller} stereotype.
- *
- * <p>Also supports Jakarta EE's {@link jakarta.annotation.ManagedBean} and
- * JSR-330's {@link jakarta.inject.Named} annotations, if available.
- *
- * @author Mark Fisher
- * @author Juergen Hoeller
- * @author Chris Beams
- * @since 2.5
- * @see AnnotationConfigApplicationContext#scan
- * @see org.springframework.stereotype.Component
- * @see org.springframework.stereotype.Repository
- * @see org.springframework.stereotype.Service
- * @see org.springframework.stereotype.Controller
  */
-public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateComponentProvider {
 
-	private final BeanDefinitionRegistry registry;
+public class DeployedResourceScannerConfigurer extends ClassPathBeanDefinitionScanner
+{
+	public static final String MAPPER_INTERFACE_ATTRIBUTE= "mapperInterface";
 
-	private BeanDefinitionDefaults beanDefinitionDefaults = new BeanDefinitionDefaults();
+	public static final Logger dataAccessLogger= LoggerFactory.getLogger( "bxm.context.das.logging");
 
-	@Nullable
-	private String[] autowireCandidatePatterns;
+	private final String FORCEDLAZYINIT= "forcedLazyInit";
 
-	private BeanNameGenerator beanNameGenerator = AnnotationBeanNameGenerator.INSTANCE;
+	private final String DEFAULT_QUERYINJECTOR_BEAN_CLASSNAME= "bxm.das.spi.mybatis.QueryInjector";
+	private final String TIMEOUT_QUERYINJECTOR_BEAN_CLASSNAME= "bxm.das.spi.mybatis.TimeOutInjector";
+
+	private final String LOCAL_BATCH_EXECUTION = "local.batch.execution";
+	private final String SPRING_BATCH_RESPOSITORY = "spring.batch.repo";
+	private final String SPRING_BATCH_RESPOSITORY_MAP = "map";
+
+	private final String JOBREPOSITORY_FACTORYBEAN_CLASSNAME= "bxm.batch.core.repository.support.JobRepositoryFactory";
+	private final String LOCAL_JOBREPOSITORY_FACTORYBEAN_CLASSNAME= "bxm.batch.core.repository.support.DaemonJobRepositoryFactory";
+
+	private final String DEFAULT_ISOLATION_LEVEL= "ISOLATION_READ_COMMITTED";
+	private final String DEFAULT_TABLE_PREFIX= "F_BATCH_";
+	private final String JOBLAUNCHER_BEAN_CLASSNAME= "bxm.batch.core.launch.support.SyncJobLauncher";
+	private final String JOBEXPLORER_FACTORYBEAN_CLASSNAME= "bxm.batch.core.explorer.support.JobExplorerFactory";
+	private final String JOBLOCATOR_BEAN_CLASSNAME= "bxm.batch.core.configuration.support.ManagedJobRegistry";
+
+	private final String BXM_BATCH_USE_EXTENSION_BEAN = "bxm.batch.use.extension.bean";
+	private final String BXM_BATCH_DEFAULT_FILE_ENCODING = "UTF-8";
+	private final String BXM_BATCH_ITEM_MAPPER_CLASSNAME = "bxm.batch.item.file.mapping.ItemOmmMapper";
+	private final String BXM_BATCH_ITEM_AGGREGATOR_CLASSNAME = "bxm.batch.item.file.transform.ItemOmmAggregator";
+	private final String BXM_BATCH_DEFAULT_TARGET_TYPE = "bxm.omm.root.IOmmObject";
+	private final String BXM_BATCH_IRFIXED_CLASSNAME = "bxm.batch.item.file.AsynchronousFlatFileItemReader";
+	private final String BXM_BATCH_IWFIXED_CLASSNAME = "bxm.batch.item.file.TransactionalFlatFileItemWriter";
+	private final String BXM_BATCH_IRDELIMITED_CLASSNAME = "bxm.batch.item.file.AsynchronousFlatFileItemReader";
+	private final String BXM_BATCH_IWDELIMITED_CLASSNAME = "bxm.batch.item.file.TransactionalFlatFileItemWriter";
+	private final String BXM_BATCH_LINE_MAPPER_CLASSNAME = "bxm.batch.item.file.mapping.LineOmmMapper";
+	private final String BXM_BATCH_LINE_AGGREGATOR_CLASSNAME = "line.batch.item.file.transform.LineOmmAggregator";
+
+	private final String BXM_BATCH_IRXML_CLASSNAME = "bxm.batch.item.file.AsynchronousStaxEventItemReader";
+	private final String BXM_BATCH_IWXML_CLASSNAME = "bxm.batch.item.file.TransactionalStaxEventItemWriter";
+	private final String BXM_BATCH_IWMULTIFILE_CLASSNAME = "bxm.batch.ext.bean.IWMultiFile";
+	private final String BXM_BATCH_IWMULTILINE_CLASSNAME = "bxm.batch.ext.bean.MultiLineItemWriter";
+
+	private final String BXM_BATCH_TASKLET_SINGLE_COMMAND_CLASSNAME = "bxm.batch.ext.bean.TaskletSingleCommand";
+
+	private Logger logger= LoggerFactory.getLogger( DeployedResourceScannerConfigurer.class);
+
+	private DataSource containerDataSource;
+
+	private DataAccessContext dasContext;
+
+	private Map<String, ApplicationDataSource> datasources= new HashMap<String, ApplicationDataSource>();
+
+	private Set<Class<?>> predefinedTypes= new HashSet<Class<?>>();
+
+	private ClassLoaderRef loaderRef;
+
+	private boolean sessionFactoryLazyInit;
+
+	private LazyInitFilter lazyInitFilter;
+
+	private Set<MetadataReader> beanCandidates;
+	private Map<String, Map<String, Resource>> mapperResources= new HashMap<String, Map<String, Resource>>();
+	private Map<String, List<GenericBeanDefinition>> mapperDefs= new HashMap<String, List<GenericBeanDefinition>>();
+	private Map<String, List<GenericBeanDefinition>> tempMapperDefs= new HashMap<String, List<GenericBeanDefinition>>();
+
+	private Map<String, String> batchServices = new HashMap<String, String>();
+
+	private Environment environment;
+
+	private static Set<Class<?>> JSRTypes= new HashSet<Class<?>>();
+
+	public final Class<? extends Annotation> SERVICEOPERATION_ANNOTATION_CLASS = TRANID_ANNOTATION_CLASS;
+
+	static
+	{
+		try
+		{
+			Class<?> type= Thread.currentThread().getContextClassLoader().loadClass( "jakarta.annotation.ManagedBean");
+			if( type!= null) JSRTypes.add( type);
+			type= Thread.currentThread().getContextClassLoader().loadClass( "jakarta.inject.Named");
+			if( type!= null) JSRTypes.add( type);
+		}
+		catch( ClassNotFoundException ce){}
+	}
 
 	private ScopeMetadataResolver scopeMetadataResolver = new AnnotationScopeMetadataResolver();
+	private BeanNameGenerator beanNameGenerator = new AnnotationBeanNameGenerator();
 
-	private boolean includeAnnotationConfig = true;
-
-
-	/**
-	 * Create a new {@code ClassPathBeanDefinitionScanner} for the given bean factory.
-	 * @param registry the {@code BeanFactory} to load bean definitions into, in the form
-	 * of a {@code BeanDefinitionRegistry}
-	 */
-	public ClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry) {
-		this(registry, true);
-	}
-
-	/**
-	 * Create a new {@code ClassPathBeanDefinitionScanner} for the given bean factory.
-	 * <p>If the passed-in bean factory does not only implement the
-	 * {@code BeanDefinitionRegistry} interface but also the {@code ResourceLoader}
-	 * interface, it will be used as default {@code ResourceLoader} as well. This will
-	 * usually be the case for {@link org.springframework.context.ApplicationContext}
-	 * implementations.
-	 * <p>If given a plain {@code BeanDefinitionRegistry}, the default {@code ResourceLoader}
-	 * will be a {@link org.springframework.core.io.support.PathMatchingResourcePatternResolver}.
-	 * <p>If the passed-in bean factory also implements {@link EnvironmentCapable} its
-	 * environment will be used by this reader.  Otherwise, the reader will initialize and
-	 * use a {@link org.springframework.core.env.StandardEnvironment}. All
-	 * {@code ApplicationContext} implementations are {@code EnvironmentCapable}, while
-	 * normal {@code BeanFactory} implementations are not.
-	 * @param registry the {@code BeanFactory} to load bean definitions into, in the form
-	 * of a {@code BeanDefinitionRegistry}
-	 * @param useDefaultFilters whether to include the default filters for the
-	 * {@link org.springframework.stereotype.Component @Component},
-	 * {@link org.springframework.stereotype.Repository @Repository},
-	 * {@link org.springframework.stereotype.Service @Service}, and
-	 * {@link org.springframework.stereotype.Controller @Controller} stereotype annotations
-	 * @see #setResourceLoader
-	 * @see #setEnvironment
-	 */
-	public ClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry, boolean useDefaultFilters) {
-		this(registry, useDefaultFilters, getOrCreateEnvironment(registry));
-	}
-
-	/**
-	 * Create a new {@code ClassPathBeanDefinitionScanner} for the given bean factory and
-	 * using the given {@link Environment} when evaluating bean definition profile metadata.
-	 * <p>If the passed-in bean factory does not only implement the {@code
-	 * BeanDefinitionRegistry} interface but also the {@link ResourceLoader} interface, it
-	 * will be used as default {@code ResourceLoader} as well. This will usually be the
-	 * case for {@link org.springframework.context.ApplicationContext} implementations.
-	 * <p>If given a plain {@code BeanDefinitionRegistry}, the default {@code ResourceLoader}
-	 * will be a {@link org.springframework.core.io.support.PathMatchingResourcePatternResolver}.
-	 * @param registry the {@code BeanFactory} to load bean definitions into, in the form
-	 * of a {@code BeanDefinitionRegistry}
-	 * @param useDefaultFilters whether to include the default filters for the
-	 * {@link org.springframework.stereotype.Component @Component},
-	 * {@link org.springframework.stereotype.Repository @Repository},
-	 * {@link org.springframework.stereotype.Service @Service}, and
-	 * {@link org.springframework.stereotype.Controller @Controller} stereotype annotations
-	 * @param environment the Spring {@link Environment} to use when evaluating bean
-	 * definition profile metadata
-	 * @since 3.1
-	 * @see #setResourceLoader
-	 */
-	public ClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry, boolean useDefaultFilters,
-			Environment environment) {
-
-		this(registry, useDefaultFilters, environment,
-				(registry instanceof ResourceLoader resourceLoader ? resourceLoader : null));
-	}
-
-	/**
-	 * Create a new {@code ClassPathBeanDefinitionScanner} for the given bean factory and
-	 * using the given {@link Environment} when evaluating bean definition profile metadata.
-	 * @param registry the {@code BeanFactory} to load bean definitions into, in the form
-	 * of a {@code BeanDefinitionRegistry}
-	 * @param useDefaultFilters whether to include the default filters for the
-	 * {@link org.springframework.stereotype.Component @Component},
-	 * {@link org.springframework.stereotype.Repository @Repository},
-	 * {@link org.springframework.stereotype.Service @Service}, and
-	 * {@link org.springframework.stereotype.Controller @Controller} stereotype annotations
-	 * @param environment the Spring {@link Environment} to use when evaluating bean
-	 * definition profile metadata
-	 * @param resourceLoader the {@link ResourceLoader} to use
-	 * @since 4.3.6
-	 */
-	public ClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry, boolean useDefaultFilters,
-			Environment environment, @Nullable ResourceLoader resourceLoader) {
-
-		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
-		this.registry = registry;
-
-		if (useDefaultFilters) {
-			registerDefaultFilters();
-		}
-		setEnvironment(environment);
-		setResourceLoader(resourceLoader);
-	}
-
-
-	/**
-	 * Return the BeanDefinitionRegistry that this scanner operates on.
-	 */
 	@Override
-	public final BeanDefinitionRegistry getRegistry() {
-		return this.registry;
+	public void setScopeMetadataResolver(ScopeMetadataResolver scopeMetadataResolver)
+	{
+		this.scopeMetadataResolver = (scopeMetadataResolver != null ? scopeMetadataResolver : new AnnotationScopeMetadataResolver());
+		super.setScopeMetadataResolver(scopeMetadataResolver);
 	}
 
-	/**
-	 * Set the defaults to use for detected beans.
-	 * @see BeanDefinitionDefaults
-	 */
-	public void setBeanDefinitionDefaults(@Nullable BeanDefinitionDefaults beanDefinitionDefaults) {
-		this.beanDefinitionDefaults =
-				(beanDefinitionDefaults != null ? beanDefinitionDefaults : new BeanDefinitionDefaults());
+	@Override
+	public void setBeanNameGenerator(BeanNameGenerator beanNameGenerator)
+	{
+		this.beanNameGenerator = (beanNameGenerator != null ? beanNameGenerator : new AnnotationBeanNameGenerator());
+		super.setBeanNameGenerator(beanNameGenerator);
 	}
 
-	/**
-	 * Return the defaults to use for detected beans (never {@code null}).
-	 * @since 4.1
-	 */
-	public BeanDefinitionDefaults getBeanDefinitionDefaults() {
-		return this.beanDefinitionDefaults;
-	}
-
-	/**
-	 * Set the name-matching patterns for determining autowire candidates.
-	 * @param autowireCandidatePatterns the patterns to match against
-	 */
-	public void setAutowireCandidatePatterns(@Nullable String... autowireCandidatePatterns) {
-		this.autowireCandidatePatterns = autowireCandidatePatterns;
-	}
-
-	/**
-	 * Set the BeanNameGenerator to use for detected bean classes.
-	 * <p>Default is a {@link AnnotationBeanNameGenerator}.
-	 */
-	public void setBeanNameGenerator(@Nullable BeanNameGenerator beanNameGenerator) {
-		this.beanNameGenerator =
-				(beanNameGenerator != null ? beanNameGenerator : AnnotationBeanNameGenerator.INSTANCE);
-	}
-
-	/**
-	 * Set the ScopeMetadataResolver to use for detected bean classes.
-	 * Note that this will override any custom "scopedProxyMode" setting.
-	 * <p>The default is an {@link AnnotationScopeMetadataResolver}.
-	 * @see #setScopedProxyMode
-	 */
-	public void setScopeMetadataResolver(@Nullable ScopeMetadataResolver scopeMetadataResolver) {
-		this.scopeMetadataResolver =
-				(scopeMetadataResolver != null ? scopeMetadataResolver : new AnnotationScopeMetadataResolver());
-	}
-
-	/**
-	 * Specify the proxy behavior for non-singleton scoped beans.
-	 * Note that this will override any custom "scopeMetadataResolver" setting.
-	 * <p>The default is {@link ScopedProxyMode#NO}.
-	 * @see #setScopeMetadataResolver
-	 */
-	public void setScopedProxyMode(ScopedProxyMode scopedProxyMode) {
-		this.scopeMetadataResolver = new AnnotationScopeMetadataResolver(scopedProxyMode);
-	}
-
-	/**
-	 * Specify whether to register annotation config post-processors.
-	 * <p>The default is to register the post-processors. Turn this off
-	 * to be able to ignore the annotations or to process them differently.
-	 */
-	public void setIncludeAnnotationConfig(boolean includeAnnotationConfig) {
-		this.includeAnnotationConfig = includeAnnotationConfig;
-	}
-
-
-	/**
-	 * Perform a scan within the specified base packages.
-	 * @param basePackages the packages to check for annotated classes
-	 * @return number of beans registered
-	 */
-	public int scan(String... basePackages) {
-		int beanCountAtScanStart = this.registry.getBeanDefinitionCount();
-
-		doScan(basePackages);
-
-		// Register annotation config processors, if necessary.
-		if (this.includeAnnotationConfig) {
-			AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
+	public DeployedResourceScannerConfigurer( Set<MetadataReader> beanCandidates, BeanDefinitionRegistry registry,
+			DataSource containerDataSource, DataAccessContext dasContext, Map<String, ApplicationDataSource> datasources,
+			ClassLoaderRef loaderRef, boolean useDefaultFilters, boolean sessionFactoryLazyInit, LazyInitFilter lazyInitFilter)
+	{
+		super( registry, useDefaultFilters);
+		this.beanCandidates= beanCandidates;
+		this.containerDataSource= containerDataSource;
+		this.dasContext= dasContext;
+		this.datasources= datasources;
+		this.loaderRef= loaderRef;
+		this.sessionFactoryLazyInit= sessionFactoryLazyInit;
+		this.lazyInitFilter= lazyInitFilter;
+		this.environment= new StandardEnvironment();
+		try
+		{
+			Class<?> fc= Thread.currentThread().getContextClassLoader().loadClass( "org.apache.ibatis.logging.LogFactory");
+			Field field= fc.getDeclaredField( "logConstructor");
+			field.setAccessible( true);
+			field.set( fc, EsIBatisLogger.class.getConstructor( new Class[]{ String.class}));	// mybatis 3.2 수정사항.
+		}
+		catch( Throwable th)
+		{
+			logger.error( th.getMessage(), th);
 		}
 
-		return (this.registry.getBeanDefinitionCount() - beanCountAtScanStart);
+		initPredefinedTypes();
+
+		boolean isDaemon = false;
+		String springBatchRepo = System.getProperty(SPRING_BATCH_RESPOSITORY);
+		if(StringUtils.hasText(springBatchRepo))
+		{
+			if(SPRING_BATCH_RESPOSITORY_MAP.equals(springBatchRepo))
+			{
+				isDaemon = true;
+			}
+		}
+
+		if(!Boolean.parseBoolean(System.getProperty(LOCAL_BATCH_EXECUTION)) && !isDaemon)
+		{
+			DasExceptionTranslator.dasExceptionTranslator( containerDataSource);
+		}
 	}
 
+	@Override
+	public Set<BeanDefinition> findCandidateComponents( String basePackage)
+	{
+		Set<BeanDefinition> candidates= new LinkedHashSet<BeanDefinition>();
+		MetadataReaderFactory metadataReaderFactory= new CachingMetadataReaderFactory( getResourceLoader());
+		try
+		{
+			for( MetadataReader reader: this.beanCandidates)
+			{
+				Resource resource= new UrlResource( reader.getResourceURL());
+
+				try
+				{
+					if( isCandidateComponent( reader) && checkProfile( reader) && checkComponentType( reader))
+					{
+						GenericBeanDefinition bd= null;
+						Set<String> annotations= new HashSet<String>();
+						annotations.addAll( reader.getAnnotationMetadata().getAnnotationTypes());
+						annotations.remove( BxmCategory.class.getName());
+
+						if( annotations!= null && annotations.size()> 1)
+						{
+							org.springframework.core.type.classreading.MetadataReader metadataReader=
+									metadataReaderFactory.getMetadataReader( resource);
+							bd= new ScannedGenericBeanDefinition( metadataReader);
+
+						}
+						else
+						{
+							bd= new GenericBeanDefinition();
+							bd.setBeanClassName( reader.getClassMetadata().getClassName());
+						}
+
+						bd.setResource( resource);
+						bd.setSource( resource);
+
+						if( this.lazyInitFilter!= null && this.lazyInitFilter.checkLazyInitRuleFilter(
+								reader.getClassMetadata().getClassName(), this.loaderRef.getResourceLoader()))
+							bd.addMetadataAttribute( new BeanMetadataAttribute( FORCEDLAZYINIT, true));
+
+						candidates.add( bd);
+
+						Map<String, Object> attributes= reader.getAnnotationMetadata().getAnnotationAttributes(
+								DATAACCESS_OBJECT_ANNOTATION_CLASSNAME);
+						if( attributes== null || attributes.size()== 0)
+							attributes= reader.getAnnotationMetadata().getAnnotationAttributes(
+									DATAACCESS_OBJECT_METAANNOTATION_CLASSNAME);
+						if( attributes== null || attributes.size()== 0)
+							continue;
+
+						String datasource= (String)attributes.get( DATASORUCE_ATTRIBUTE_NAME);
+						String mapper= (String)attributes.get( MAPPER_ATTRIBUTE_NAME);
+						if( !StringUtils.hasText( datasource) || !StringUtils.hasText( mapper)) continue;
+
+						if( !this.datasources.containsKey( datasource))
+						{
+							ApplicationResourceInitializer.logger.warn(
+									"invalid datasource name in DBIO [{}/{}], this DBIO will be removed in registry.",
+									datasource, bd.getBeanClassName());
+							candidates.remove( bd);
+						}
+
+						defineMapperResources( datasource, reader.getClassMetadata().getClassName(), mapper);
+						bd.getPropertyValues().add( MAPPER_INTERFACE_ATTRIBUTE, bd.getBeanClassName());
+						bd.getPropertyValues().add( "addToConfig", true);
+						if( this.mapperDefs.containsKey( datasource))
+							this.mapperDefs.get( datasource).add( bd);
+						else
+						{
+							List<GenericBeanDefinition> defs= new ArrayList<GenericBeanDefinition>();
+							defs.add( bd);
+							this.mapperDefs.put( datasource, defs);
+						}
+					}
+				}
+				catch( Throwable th)
+				{
+					throw new BeanDefinitionStoreException( "Failed to read candidate component class: " + resource, th);
+				}
+			}
+		}
+		catch( Exception ex)
+		{
+			throw new BeanDefinitionStoreException("failure during classpath scanning", ex);
+		}
+		return candidates;
+	}
+
+	private boolean checkComponentType( MetadataReader reader)
+	{
+		try
+		{
+			Set<String> annotationTypes= reader.getAnnotationMetadata().getAnnotationTypes();
+			Set<String> metaAnnotationTypes=
+					reader.getAnnotationMetadata().getMetaAnnotationTypes( DATAACCESS_OBJECT_METAANNOTATION_CLASSNAME);
+			if( ( annotationTypes!= null && annotationTypes.contains( DATAACCESS_OBJECT_ANNOTATION_CLASSNAME)) ||
+					( metaAnnotationTypes!= null && metaAnnotationTypes.contains( DATAACCESS_OBJECT_METAANNOTATION_CLASSNAME)))
+				return ( reader.getClassMetadata().isInterface() && reader.getClassMetadata().isIndependent());
+			else
+				return ( reader.getClassMetadata().isConcrete() && reader.getClassMetadata().isIndependent());
+		}
+		catch( Throwable th)
+		{
+			logger.warn( "ignored invalid bean definition [{}].", new Object[]{ reader, th});
+			return false;
+		}
+	}
+
+	private boolean isCandidateComponent( MetadataReader reader) throws IOException
+	{
+		try
+		{
+			boolean managedType= ( reader.getAnnotationMetadata().hasAnnotation( MANAGED_OBJECT_ANNOTATION_CLASSNAME)
+					|| reader.getAnnotationMetadata().hasMetaAnnotation( MANAGED_OBJECT_ANNOTATION_CLASSNAME)
+					|| reader.getAnnotationMetadata().hasAnnotation( DATAACCESS_OBJECT_ANNOTATION_CLASSNAME)
+					|| reader.getAnnotationMetadata().hasMetaAnnotation( DATAACCESS_OBJECT_METAANNOTATION_CLASSNAME)
+					|| reader.getAnnotationMetadata().hasAnnotation( Component.class.getName())
+					|| reader.getAnnotationMetadata().hasMetaAnnotation( Component.class.getName()));
+
+			if( managedType) return true;
+
+			boolean managedMethodContained= reader.getAnnotationMetadata().hasAnnotatedMethod(
+					SERVICEOPERATION_ANNOTATION_CLASS.getName());
+
+			if( managedMethodContained) return true;
+
+			boolean jsrType= false;
+			for( Class<?> type: JSRTypes)
+			{
+				jsrType= reader.getAnnotationMetadata().hasAnnotation( type.getName());
+				if( jsrType) break;
+			}
+
+			if( jsrType) return true;
+
+			return false;
+		}
+		catch( Throwable th)
+		{
+			//logger.warn( "ignored invalid resource [{}].",  new Object[]{ reader.getResourceURI(), th});
+			ApplicationResourceInitializer.logger.warn( "ignored invalid resource [{}].",
+					new Object[]{ reader.getResourceURL(), th});
+			return false;
+		}
+	}
+
+	protected boolean checkProfile( MetadataReader reader)
+	{
+		if( !reader.getAnnotationMetadata().hasAnnotation( Profile.class.getName()))
+			return true;
+		else
+		{
+			Map<String, Object> attributes= reader.getAnnotationMetadata().getAnnotationAttributes( Profile.class.getName());
+			return this.environment.acceptsProfiles( (String[])attributes.get( "value"));
+		}
+	}
+
+	@Override
+	protected Set<BeanDefinitionHolder> doScan( String... basePackages)
+	{
+		Set<BeanDefinitionHolder> beanDefinitions= super.doScan( basePackages);
+		registerSqlSessionFactory();
+
+		if( Boolean.valueOf( System.getProperty( ApplicationContainerLoader.CONTAINER_FOR_BATCH)))
+			registerBatchComponents( getRegistry());
+
+		this.beanCandidates.clear();
+		return beanDefinitions;
+	}
+
+	@Override
+	protected void postProcessBeanDefinition( AbstractBeanDefinition beanDefinition, String beanName)
+	{
+		super.postProcessBeanDefinition( beanDefinition, beanName);
+
+		BeanMetadataAttribute metaAttr= beanDefinition.getMetadataAttribute( FORCEDLAZYINIT);
+		if( metaAttr!= null && metaAttr.getValue()!= null && Boolean.valueOf( metaAttr.getValue().toString()))
+			beanDefinition.setLazyInit( true);
+	}
+
+	private void registerBatchComponents( BeanDefinitionRegistry registry)
+	{
+		GenericBeanDefinition beanDef= new GenericBeanDefinition();
+		boolean isDaemon = false;
+		String springBatchRepo = System.getProperty(SPRING_BATCH_RESPOSITORY);
+		if(StringUtils.hasText(springBatchRepo))
+		{
+			if(SPRING_BATCH_RESPOSITORY_MAP.equals(springBatchRepo))
+			{
+				isDaemon = true;
+			}
+		}
+		if(Boolean.parseBoolean(System.getProperty(LOCAL_BATCH_EXECUTION)) || isDaemon)
+		{
+			beanDef.setBeanClassName( LOCAL_JOBREPOSITORY_FACTORYBEAN_CLASSNAME);
+		}
+		else
+		{
+			beanDef.setBeanClassName( JOBREPOSITORY_FACTORYBEAN_CLASSNAME);
+			beanDef.getPropertyValues().add( "tablePrefix", DEFAULT_TABLE_PREFIX);
+			beanDef.getPropertyValues().add( "isolationLevelForCreate", DEFAULT_ISOLATION_LEVEL);
+			beanDef.getPropertyValues().add( "dataSource", this.containerDataSource);
+		}
+		getRegistry().registerBeanDefinition( "jobRepository", beanDef);
+
+		logger.debug( "jobRespository [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( JOBLAUNCHER_BEAN_CLASSNAME);
+		try {
+			// jobRepository getBean Check..
+			beanDef.getPropertyValues().add( "jobRepository", ( (BeanFactory)getRegistry()).getBean( "jobRepository"));
+		} catch (Exception e) {
+			logger.warn("jobRepository bean register error. {}. reload memory jobRepository.", e.getMessage());
+			GenericBeanDefinition reloadBeanDef= new GenericBeanDefinition();
+			reloadBeanDef.setBeanClassName( LOCAL_JOBREPOSITORY_FACTORYBEAN_CLASSNAME);
+			getRegistry().registerBeanDefinition( "jobRepository", reloadBeanDef);
+			beanDef.getPropertyValues().add( "jobRepository", ( (BeanFactory)getRegistry()).getBean( "jobRepository"));
+			System.setProperty(LOCAL_BATCH_EXECUTION, "true");
+		}
+
+		getRegistry().registerBeanDefinition( "jobLauncher", beanDef);
+		logger.debug( "jobLauncher [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( JOBEXPLORER_FACTORYBEAN_CLASSNAME);
+		beanDef.getPropertyValues().add( "dataSource", this.containerDataSource);
+		getRegistry().registerBeanDefinition( "jobExplorer", beanDef);
+		logger.debug( "jobExplorer [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( JOBLOCATOR_BEAN_CLASSNAME);
+		getRegistry().registerBeanDefinition( "jobRegistry", beanDef);
+		logger.debug( "jobRegistry [{}] is registered.", beanDef);
+
+
+		//** 2013.02.18 Kim Jinman
+		//** 배치용 predefined bean 초기화 추가.
+		if (Boolean.valueOf(System.getProperty(BXM_BATCH_USE_EXTENSION_BEAN, "false")) == true) {
+			registerExtensionBatchComponents(registry);
+		}
+	}
+	// Extension Batch Components 초기화하기 .
+	private void registerExtensionBatchComponents(BeanDefinitionRegistry registry) {
+
+		//** 빈등록시 scope를 step으로 지정하면 job xml에서 해당 빈의 scope를 step으로 지정하여 사용할때 에러가 발생한다.
+		//   Target type could not be determined at the time of proxy creation
+		GenericBeanDefinition beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( "bxm.batch.ext.bean.TaskletCommand");
+		beanDef.setAbstract(true);
+		getRegistry().registerBeanDefinition( "TaskletCommand", beanDef);
+		logger.debug( "TaskletCommand [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( "bxm.batch.ext.bean.TaskletFileDelete");
+		beanDef.setAbstract(true);
+		beanDef.getPropertyValues().add( "strict", "false");
+		getRegistry().registerBeanDefinition( "TaskletFileDelete", beanDef);
+		logger.debug( "TaskletFileDelete [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( "bxm.batch.ext.bean.TaskletSleep");
+		beanDef.setAbstract(true);
+		beanDef.getPropertyValues().add( "sleepSeconds", "0");
+		getRegistry().registerBeanDefinition( "TaskletSleep", beanDef);
+		logger.debug( "TaskletSleep [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( BXM_BATCH_IRFIXED_CLASSNAME);
+		beanDef.setAbstract(true);
+		beanDef.getPropertyValues().add( "encoding", BXM_BATCH_DEFAULT_FILE_ENCODING);
+		beanDef.getPropertyValues().add( "strict", "true");
+		GenericBeanDefinition beanDefItemMapper= new GenericBeanDefinition();
+		beanDefItemMapper.setBeanClassName( BXM_BATCH_ITEM_MAPPER_CLASSNAME);
+		beanDefItemMapper.getPropertyValues().add("encoding", BXM_BATCH_DEFAULT_FILE_ENCODING);
+		beanDefItemMapper.getPropertyValues().add("targetType", BXM_BATCH_DEFAULT_TARGET_TYPE);
+		beanDef.getPropertyValues().add( "itemMapper", beanDefItemMapper);
+		getRegistry().registerBeanDefinition( "IRFixed", beanDef);
+		logger.debug( "IRFixed [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( BXM_BATCH_IWFIXED_CLASSNAME);
+		beanDef.setAbstract(true);
+		beanDef.getPropertyValues().add( "encoding", BXM_BATCH_DEFAULT_FILE_ENCODING);
+		beanDef.getPropertyValues().add( "compressed", "false");
+		GenericBeanDefinition beanDefItemAggregator= new GenericBeanDefinition();
+		beanDefItemAggregator.setBeanClassName( BXM_BATCH_ITEM_AGGREGATOR_CLASSNAME);
+		beanDefItemAggregator.getPropertyValues().add("encoding", BXM_BATCH_DEFAULT_FILE_ENCODING);
+		beanDefItemAggregator.getPropertyValues().add("targetType", BXM_BATCH_DEFAULT_TARGET_TYPE);
+		beanDef.getPropertyValues().add( "itemAggregator", beanDefItemAggregator);
+		getRegistry().registerBeanDefinition( "IWFixed", beanDef);
+		logger.debug( "IWFixed [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( BXM_BATCH_IRDELIMITED_CLASSNAME);
+		beanDef.setAbstract(true);
+		beanDef.getPropertyValues().add( "encoding", BXM_BATCH_DEFAULT_FILE_ENCODING);
+		beanDef.getPropertyValues().add( "strict", "true");
+		GenericBeanDefinition beanDefLineMapper= new GenericBeanDefinition();
+		beanDefLineMapper.setBeanClassName( BXM_BATCH_LINE_MAPPER_CLASSNAME);
+		beanDefLineMapper.getPropertyValues().add("delimiter", ",");
+		beanDefLineMapper.getPropertyValues().add("encoding", BXM_BATCH_DEFAULT_FILE_ENCODING);
+		beanDefLineMapper.getPropertyValues().add("targetType", BXM_BATCH_DEFAULT_TARGET_TYPE);
+		beanDef.getPropertyValues().add( "lineMapper", beanDefLineMapper);
+		getRegistry().registerBeanDefinition( "IRDelimited", beanDef);
+		logger.debug( "IRDelimited [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( BXM_BATCH_IWDELIMITED_CLASSNAME);
+		beanDef.setAbstract(true);
+		beanDef.getPropertyValues().add( "encoding", BXM_BATCH_DEFAULT_FILE_ENCODING);
+		beanDef.getPropertyValues().add( "compressed", "false");
+		GenericBeanDefinition beanDefLineAggregator= new GenericBeanDefinition();
+		beanDefLineAggregator.setBeanClassName( BXM_BATCH_LINE_AGGREGATOR_CLASSNAME);
+		beanDefLineAggregator.getPropertyValues().add("delimiter", ",");
+		beanDefLineAggregator.getPropertyValues().add("encoding", BXM_BATCH_DEFAULT_FILE_ENCODING);
+		beanDefLineAggregator.getPropertyValues().add("targetType", BXM_BATCH_DEFAULT_TARGET_TYPE);
+		beanDef.getPropertyValues().add( "lineAggregator", beanDefItemAggregator);
+		getRegistry().registerBeanDefinition( "IWDelimited", beanDef);
+		logger.debug( "IWDelimited [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( BXM_BATCH_IRXML_CLASSNAME);
+		beanDef.setAbstract(true);
+		beanDef.getPropertyValues().add( "strict", "true");
+		getRegistry().registerBeanDefinition( "IRXml", beanDef);
+		logger.debug( "IRXml [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( BXM_BATCH_IWXML_CLASSNAME);
+		beanDef.setAbstract(true);
+		beanDef.getPropertyValues().add( "encoding", BXM_BATCH_DEFAULT_FILE_ENCODING);
+		getRegistry().registerBeanDefinition( "IWXml", beanDef);
+		logger.debug( "IWXml [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( BXM_BATCH_IWMULTIFILE_CLASSNAME);
+		beanDef.setAbstract(true);
+		getRegistry().registerBeanDefinition( "IWMultiFile", beanDef);
+		logger.debug( "IWMultiFile [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( BXM_BATCH_IWMULTILINE_CLASSNAME);
+		beanDef.setAbstract(true);
+		getRegistry().registerBeanDefinition( "IWMultiLine", beanDef);
+		logger.debug( "IWMultiLine [{}] is registered.", beanDef);
+
+		beanDef= new GenericBeanDefinition();
+		beanDef.setBeanClassName( BXM_BATCH_TASKLET_SINGLE_COMMAND_CLASSNAME);
+		beanDef.setAbstract(true);
+		getRegistry().registerBeanDefinition( "TaskletSingleCommand", beanDef);
+		logger.debug( "TaskletSingleCommand [{}] is registered.", beanDef);
+	}
+
+	protected boolean checkCandidate( String beanName, BeanDefinition beanDefinition) throws IllegalStateException
+	{
+		if( !getRegistry().containsBeanDefinition( beanName)) return true;
+		else
+		{
+			/* 2013.06.25 changyoung.shin update */
+			if(LApplicationContext.isBatchContext())
+			{
+				logger.info( "Annotation-specified bean [{}] for bean class [{}] is already registered. " +
+						"bean[{}] for bean class [{}] will be ignored.",
+						new Object[]{ beanName, getRegistry().getBeanDefinition( beanName).getBeanClassName(),
+								beanName, beanDefinition.getBeanClassName()});
+			}
+			else
+			{
+				logger.warn( "Annotation-specified bean [{}] for bean class [{}] is already registered. " +
+						"bean[{}] for bean class [{}] will be ignored.",
+						new Object[]{ beanName, getRegistry().getBeanDefinition( beanName).getBeanClassName(),
+								beanName, beanDefinition.getBeanClassName(),
+								new Throwable()});
+			}
+
+			return false;
+		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	private void registerSqlSessionFactory()
+	{
+		for( String dsName: this.datasources.keySet())
+		{
+			ApplicationDataSource appDatasource= this.datasources.get( dsName);
+			GenericBeanDefinition sessionFactoryDef= new GenericBeanDefinition();
+			//[[ 20170117 추가 #495 dbio reload
+			if (dasContext.isRefreshableSessionFactory() == false)
+				sessionFactoryDef.setBeanClass( SqlSessionFactoryBean.class);
+			else
+				sessionFactoryDef.setBeanClass( RefreshableSqlSessionFactoryBean.class);
+			//]]
+			sessionFactoryDef.getPropertyValues().add( "dataSourceName", dsName);
+			sessionFactoryDef.getPropertyValues().add( "dataSource", appDatasource.getDatasource());
+			sessionFactoryDef.getPropertyValues().add( "applicationDataSource", appDatasource);
+			sessionFactoryDef.getPropertyValues().add( "dasContext", dasContext);
+			sessionFactoryDef.getPropertyValues().add( "loaderRef", new WeakReference<ClassLoader>( loaderRef.getClassLoader()));
+			sessionFactoryDef.getPropertyValues().add( "lazyInit", sessionFactoryLazyInit);
+
+			GenericBeanDefinition timeoutInjectorDef= new GenericBeanDefinition();
+			timeoutInjectorDef.setBeanClassName( TIMEOUT_QUERYINJECTOR_BEAN_CLASSNAME);
+			String timeoutInjectorName= "TINJECTOR_"+ SystemUtils.generateGUID();
+			getRegistry().registerBeanDefinition( timeoutInjectorName, timeoutInjectorDef);
+
+			GenericBeanDefinition queryInjectorDef= new GenericBeanDefinition();
+			queryInjectorDef.setBeanClassName( DEFAULT_QUERYINJECTOR_BEAN_CLASSNAME);
+
+			GenericBeanDefinition userQueryInjectorDef= null;
+
+			if( dasContext!= null)
+			{
+				if( dasContext.getQueryInjector()!= null
+						&& StringUtils.hasText( dasContext.getQueryInjector().getQueryInjectorClassName()))
+				{
+					queryInjectorDef.setBeanClassName( dasContext.getQueryInjector().getQueryInjectorClassName());
+					if( dasContext.getQueryInjector().getQueryInjectorClassName().equals( DEFAULT_QUERYINJECTOR_BEAN_CLASSNAME))
+						queryInjectorDef.getPropertyValues().add( "dasContext", dasContext);
+					logger.debug( "configed queryInjector[{}] is applied.",
+							dasContext.getQueryInjector().getQueryInjectorClassName());
+				}
+				else
+					queryInjectorDef.getPropertyValues().add( "dasContext", dasContext);
+
+				if( dasContext.getTypeHandlers()!= null && dasContext.getTypeHandlers().size()> 0)
+				{
+					List<bxm.instance.das.TypeHandler> handlers= new ArrayList<bxm.instance.das.TypeHandler>();
+					TypeHandler handler= null;
+					for( bxm.instance.das.TypeHandler handlerConf: dasContext.getTypeHandlers())
+					{
+						try
+						{
+							handlerConf.setTypeClass( loaderRef.getClassLoader().loadClass( handlerConf.getJavaType()));
+							handlerConf.setJavaType( handlerConf.getJavaType());
+							handlerConf.setJdbcType( handlerConf.getJdbcType());
+							handlerConf.setHandler(
+									loaderRef.getClassLoader().loadClass( handlerConf.getHandlerClassName()).newInstance());
+							handlers.add( handlerConf);
+						}
+						catch( Throwable th)
+						{
+							logger.warn( "configed typehandler [{}] is not applied.", handler, th);
+						}
+					}
+					if( handlers.size()> 0)
+					{
+						sessionFactoryDef.getPropertyValues().add(
+								"udefinedTypeHandlers", handlers.toArray( new bxm.instance.das.TypeHandler[handlers.size()]));
+						logger.debug( "configed typeHandler [{}] is applied.", handlers);
+					}
+				}
+
+				if( dasContext.getUserQueryInjector()!= null
+						&& StringUtils.hasText( dasContext.getUserQueryInjector().getQueryInjectorClassName()))
+				{
+					userQueryInjectorDef= new GenericBeanDefinition();
+					userQueryInjectorDef.setBeanClassName( dasContext.getUserQueryInjector().getQueryInjectorClassName());
+					logger.debug( "configed userQueryInjector[{}] is applied.",
+							dasContext.getUserQueryInjector().getQueryInjectorClassName());
+				}
+
+			}
+			String injectorName= "QINJECTOR_"+ SystemUtils.generateGUID();
+			getRegistry().registerBeanDefinition( injectorName, queryInjectorDef);
+			String userInjectorName= "USER_QINJECTOR_"+ SystemUtils.generateGUID();
+			if (userQueryInjectorDef != null)
+				getRegistry().registerBeanDefinition( userInjectorName, userQueryInjectorDef);
+
+			ManagedList<RuntimeBeanReference> plugins= new ManagedList<RuntimeBeanReference>();
+			plugins.add( new RuntimeBeanReference( timeoutInjectorName));
+			plugins.add( new RuntimeBeanReference( injectorName));
+			if (userQueryInjectorDef != null)
+				plugins.add( new RuntimeBeanReference( userInjectorName));
+			sessionFactoryDef.getPropertyValues().add( "plugins", plugins);
+
+			// for lazy-init & lazy-loading performance comment out below lines
+			//			if( typeAliases.containsKey( dsName))
+			//				sessionFactoryDef.getPropertyValues().add( "typeAliases",
+			//						typeAliases.get( dsName).toArray( new Class[typeAliases.get( dsName).size()]));
+
+			if( this.mapperResources.containsKey( dsName))
+				sessionFactoryDef.getPropertyValues().add( "mapperLocations", this.mapperResources.get( dsName));
+			String sfBeanName= DasUtils.SQL_SESSIONFACTORY_PREFIX+ loaderRef.getClassLoader().getApplicationName()+ "."+ dsName;
+			getRegistry().registerBeanDefinition( sfBeanName, sessionFactoryDef);
+
+			// for lazy-init & lazy-loading performance comment out below lines
+			//			SqlSessionFactory sqlSessionFactory= null;
+			//			try{ sqlSessionFactory= (SqlSessionFactory)( (BeanFactory)getRegistry()).getBean( sfBeanName);}
+			//			catch( Throwable th)
+			//			{
+			//				logger.warn( "sqlSessionFactory [{}] creation is failed. all mapper using datasource [{}] will be ignored.",
+			//						new Object[]{ sessionFactoryDef, dsName, th});
+			//				continue;
+			//			}
+
+			if( this.mapperDefs.containsKey( dsName))
+			{
+				List<GenericBeanDefinition> defs= this.mapperDefs.get( dsName);
+				for( GenericBeanDefinition def: defs)
+				{
+					GenericBeanDefinition stDef= new GenericBeanDefinition();
+					stDef.setBeanClass( SqlSessionTemplate.class);
+					stDef.getConstructorArgumentValues().addGenericArgumentValue( new RuntimeBeanReference( sfBeanName));
+					String stName= "STEMPLATE_"+ SystemUtils.generateGUID();
+					getRegistry().registerBeanDefinition( stName, stDef);
+					def.getPropertyValues().add( "sqlSessionTemplate", new RuntimeBeanReference( stName));
+					def.setBeanClass( MapperFactoryBean.class);
+				}
+			}
+		}
+	}
+
+	private void defineMapperResources( String datasourceName, String interfaceName, String mapperlocation)
+	{
+		// for lazy-init & lazy-loading performance comment out below lines
+
+		//		Set<Class<?>> types= new HashSet<Class<?>>();
+		//		Method[] methods= beanClass.getMethods();
+		//		for( Method method: methods)
+		//		{
+		//			Class<?>[] paramTypes= method.getParameterTypes();
+		//			if( paramTypes!= null && paramTypes.length> 0)
+		//			{
+		//				for( Class<?> ptype: paramTypes)
+		//				{
+		//					if( !this.predefinedTypes.contains( ptype))
+		//						types.add( ptype);
+		//				}
+		//			}
+		//			Class<?> returnType= method.getReturnType();
+		//			if( !this.predefinedTypes.contains( returnType))
+		//				types.add( returnType);
+		//		}
+		//		if( typeAliases.containsKey( datasourceName))	typeAliases.get( datasourceName).addAll( types);
+		//		else	typeAliases.put( datasourceName, types);
+
+		Resource mapperResource= getResourceLoader().getResource( mapperlocation);
+		if( mapperResource== null)
+		{
+			logger.warn( "mapper resource [{}] is not exist or can not be readable.", new Object[]{ mapperlocation, new Throwable()});
+			return;
+		}
+
+		if( this.mapperResources.containsKey( datasourceName))
+			this.mapperResources.get( datasourceName).put( interfaceName, mapperResource);
+		else
+		{
+			Map<String, Resource> res= new HashMap<String, Resource>();
+			res.put( interfaceName, getResourceLoader().getResource( mapperlocation));
+			this.mapperResources.put( datasourceName, res);
+		}
+	}
+
+	private void initPredefinedTypes()
+	{
+		this.predefinedTypes.add( String.class);
+		this.predefinedTypes.add( Byte.class);
+		this.predefinedTypes.add( Long.class);
+		this.predefinedTypes.add( Short.class);
+		this.predefinedTypes.add( Integer.class);
+		this.predefinedTypes.add( Integer.class);
+		this.predefinedTypes.add( Double.class);
+		this.predefinedTypes.add( Float.class);
+		this.predefinedTypes.add( Boolean.class);
+
+		this.predefinedTypes.add( Byte[].class);
+		this.predefinedTypes.add( Long[].class);
+		this.predefinedTypes.add( Short[].class);
+		this.predefinedTypes.add( Integer[].class);
+		this.predefinedTypes.add( Integer[].class);
+		this.predefinedTypes.add( Double[].class);
+		this.predefinedTypes.add( Float[].class);
+		this.predefinedTypes.add( Boolean[].class);
+
+		this.predefinedTypes.add( byte.class);
+		this.predefinedTypes.add( long.class);
+		this.predefinedTypes.add( short.class);
+		this.predefinedTypes.add( int.class);
+		this.predefinedTypes.add( int.class);
+		this.predefinedTypes.add( double.class);
+		this.predefinedTypes.add( float.class);
+		this.predefinedTypes.add( boolean.class);
+
+		this.predefinedTypes.add( byte[].class);
+		this.predefinedTypes.add( long[].class);
+		this.predefinedTypes.add( short[].class);
+		this.predefinedTypes.add( int[].class);
+		this.predefinedTypes.add( int[].class);
+		this.predefinedTypes.add( double[].class);
+		this.predefinedTypes.add( float[].class);
+		this.predefinedTypes.add( boolean[].class);
+
+		this.predefinedTypes.add( Date.class);
+		this.predefinedTypes.add( BigDecimal.class);
+		this.predefinedTypes.add( BigDecimal.class);
+		this.predefinedTypes.add( Object.class);
+
+		this.predefinedTypes.add( Date[].class);
+		this.predefinedTypes.add( BigDecimal[].class);
+		this.predefinedTypes.add( BigDecimal[].class);
+		this.predefinedTypes.add( Object[].class);
+
+		this.predefinedTypes.add( Map.class);
+		this.predefinedTypes.add( HashMap.class);
+		this.predefinedTypes.add( List.class);
+		this.predefinedTypes.add( ArrayList.class);
+		this.predefinedTypes.add( Collection.class);
+		this.predefinedTypes.add( Iterator.class);
+
+		this.predefinedTypes.add( ResultSet.class);
+	}
+
+	/**
+	 * 배치에서 getBean() Bean Scan 하기 위한 Method
+	 * @param <T>
+	 */
+	public <T> boolean beanScan(Class<T> requiredType)
+	{
+		return beanScan(requiredType, false);
+	}
+
+	public <T> boolean beanScan(Class<T> requiredType, boolean isServiceLoad)
+	{
+		if(LApplicationContext.isBatchContext())
+		{
+			if(requiredType.getClassLoader().equals(loaderRef.getClassLoader()))
+			{
+				return doBeanScan(requiredType.getName(), isServiceLoad);
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * 배치에서 getBean() Bean Scan 하기 위한 Method
+	 */
+	public boolean beanScan(String beanName)
+	{
+		return beanScan(beanName, false);
+	}
+
+	public boolean beanScan(String beanName, boolean isServiceLoad)
+	{
+		if(LApplicationContext.isBatchContext())
+		{
+			return doBeanScan(beanName, isServiceLoad);
+		}
+		return false;
+	}
+
+	/*****************************************************
+	 * 아래는 내부에서 배치에서 Bean이 없을 경우 Bean 생성  처리하기 위한 Method들...
+	 ****************************************************/
+
+	boolean doBeanScan(String findBeanName)
+	{
+		return doBeanScan(findBeanName, false);
+	}
 	/**
 	 * Perform a scan within the specified base packages,
 	 * returning the registered bean definitions.
@@ -270,124 +934,525 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * @param basePackages the packages to check for annotated classes
 	 * @return set of beans registered if any for tooling registration purposes (never {@code null})
 	 */
-	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
-		Assert.notEmpty(basePackages, "At least one base package must be specified");
-		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
-		for (String basePackage : basePackages) {
-			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
-			for (BeanDefinition candidate : candidates) {
-				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
-				candidate.setScope(scopeMetadata.getScopeName());
-				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
-				if (candidate instanceof AbstractBeanDefinition abstractBeanDefinition) {
-					postProcessBeanDefinition(abstractBeanDefinition, beanName);
+	boolean doBeanScan(String findBeanName, boolean isServiceLoad) {
+		boolean isResult = false;
+		Assert.notNull(findBeanName, "At least one bean must be specified");
+		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<BeanDefinitionHolder>();
+
+		MetadataReader reader = null;
+		try {
+			reader = loaderRef.getResourceLoader().getMetadataReader(findBeanName);
+			if(isServiceLoad)
+			{
+				String applicationName = loaderRef.getClassLoader().getApplicationName();
+				ApplicationContainer container = ApplicationContainerUtils.getApplicationContainer();
+				Application application = container.lookupApplication(applicationName, null);
+				AnnotatedDefinitionReader.defineAnnotatedResource(reader, (ServiceRegistry) application);
+			}
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+			throw new RuntimeException(e.getMessage(), e);
+		} catch (ApplicationNotFoundException e) {
+			logger.error(e.getMessage(), e);
+			throw new RuntimeException(e.getMessage(), e);
+		}
+
+		Set<BeanDefinition> candidates = findCandidateBean(reader);
+		for (BeanDefinition candidate : candidates) {
+			ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
+			candidate.setScope(scopeMetadata.getScopeName());
+			String beanName = this.beanNameGenerator.generateBeanName(candidate, getRegistry());
+			if (candidate instanceof AbstractBeanDefinition) {
+				postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
+			}
+			if (candidate instanceof AnnotatedBeanDefinition) {
+				processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
+			}
+			if (checkCandidate(beanName, candidate)) {
+				BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
+				definitionHolder = applyScopedProxyMode(scopeMetadata, definitionHolder, getRegistry());
+				beanDefinitions.add(definitionHolder);
+				registerBeanDefinition(definitionHolder, getRegistry());
+				isResult = true;
+			}
+		}
+
+		for(String dsName: this.datasources.keySet())
+		{
+			if( this.tempMapperDefs.containsKey( dsName))
+			{
+				String sfBeanName= DasUtils.SQL_SESSIONFACTORY_PREFIX+ loaderRef.getClassLoader().getApplicationName()+ "."+ dsName;
+
+				GenericBeanDefinition sessionFactoryDef = (GenericBeanDefinition) getRegistry().getBeanDefinition(sfBeanName);
+
+				if( this.mapperResources.containsKey( dsName))
+				{
+					sessionFactoryDef.getPropertyValues().add( "mapperLocations", this.mapperResources.get( dsName));
 				}
-				if (candidate instanceof AnnotatedBeanDefinition annotatedBeanDefinition) {
-					AnnotationConfigUtils.processCommonDefinitionAnnotations(annotatedBeanDefinition);
+
+				//				getRegistry().registerBeanDefinition( sfBeanName, sessionFactoryDef);
+
+				try
+				{
+					getRegistry().registerBeanDefinition( sfBeanName, sessionFactoryDef);
 				}
-				if (checkCandidate(beanName, candidate)) {
-					BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
-					definitionHolder =
-							AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
-					beanDefinitions.add(definitionHolder);
-					registerBeanDefinition(definitionHolder, this.registry);
+				catch (Throwable th)
+				{
+					throw new IllegalStateException(th.getMessage(), th);
+				}
+
+				List<GenericBeanDefinition> defs= this.tempMapperDefs.get( dsName);
+				for( GenericBeanDefinition def: defs)
+				{
+					GenericBeanDefinition stDef= new GenericBeanDefinition();
+					stDef.setBeanClass( SqlSessionTemplate.class);
+					stDef.getConstructorArgumentValues().addGenericArgumentValue( new RuntimeBeanReference( sfBeanName));
+					String stName= "STEMPLATE_"+ SystemUtils.generateGUID();
+					getRegistry().registerBeanDefinition( stName, stDef);
+					def.getPropertyValues().add( "sqlSessionTemplate", new RuntimeBeanReference( stName));
+					def.setBeanClass( MapperFactoryBean.class);
 				}
 			}
 		}
-		return beanDefinitions;
+
+		tempMapperDefs.clear();
+
+		return isResult;
+	}
+
+	private Set<BeanDefinition> findCandidateBean(MetadataReader reader)
+	{
+		Set<BeanDefinition> candidates= new LinkedHashSet<BeanDefinition>();
+		MetadataReaderFactory metadataReaderFactory= new CachingMetadataReaderFactory( getResourceLoader());
+		try
+		{
+			Resource resource= new UrlResource( reader.getResourceURL());
+
+			try
+			{
+				if( isCandidateComponent( reader) && checkProfile( reader) && checkComponentType( reader))
+				{
+					GenericBeanDefinition bd= null;
+					Set<String> annotations= new HashSet<String>();
+					annotations.addAll( reader.getAnnotationMetadata().getAnnotationTypes());
+					annotations.remove( BxmCategory.class.getName());
+
+					if( annotations!= null && annotations.size()> 1)
+					{
+						org.springframework.core.type.classreading.MetadataReader metadataReader=
+								metadataReaderFactory.getMetadataReader( resource);
+						bd= new ScannedGenericBeanDefinition( metadataReader);
+
+					}
+					else
+					{
+						bd= new GenericBeanDefinition();
+						bd.setBeanClassName( reader.getClassMetadata().getClassName());
+					}
+
+					bd.setResource( resource);
+					bd.setSource( resource);
+
+					if( this.lazyInitFilter!= null && this.lazyInitFilter.checkLazyInitRuleFilter(
+							reader.getClassMetadata().getClassName(), this.loaderRef.getResourceLoader()))
+						bd.addMetadataAttribute( new BeanMetadataAttribute( FORCEDLAZYINIT, true));
+
+					candidates.add( bd);
+
+					Map<String, Object> attributes= reader.getAnnotationMetadata().getAnnotationAttributes(
+							DATAACCESS_OBJECT_ANNOTATION_CLASSNAME);
+					if( attributes== null || attributes.size()== 0)
+					{
+						attributes= reader.getAnnotationMetadata().getAnnotationAttributes(
+								DATAACCESS_OBJECT_METAANNOTATION_CLASSNAME);
+					}
+					if( attributes== null || attributes.size()== 0)
+						return candidates;
+
+					String datasource= (String)attributes.get( DATASORUCE_ATTRIBUTE_NAME);
+					String mapper= (String)attributes.get( MAPPER_ATTRIBUTE_NAME);
+					if( !StringUtils.hasText( datasource) || !StringUtils.hasText( mapper)) return candidates;
+
+					if( !this.datasources.containsKey( datasource))
+					{
+						//						ApplicationResourceInitializer.logger.warn(
+						//								"invalid datasource name in DBIO [{}/{}], this DBIO will be removed in registry.",
+						//								datasource, bd.getBeanClassName());
+						candidates.remove( bd);
+					}
+
+					defineMapperResources( datasource, reader.getClassMetadata().getClassName(), mapper);
+					bd.getPropertyValues().add( MAPPER_INTERFACE_ATTRIBUTE, bd.getBeanClassName());
+					bd.getPropertyValues().add( "addToConfig", true);
+					if( this.mapperDefs.containsKey( datasource))
+					{
+						this.mapperDefs.get( datasource).add( bd);
+						this.tempMapperDefs.get( datasource).add( bd);
+					}
+					else
+					{
+						List<GenericBeanDefinition> defs= new ArrayList<GenericBeanDefinition>();
+						defs.add( bd);
+						this.mapperDefs.put( datasource, defs);
+						this.tempMapperDefs.put( datasource, defs);
+					}
+				}
+			}
+			catch( Throwable th)
+			{
+				throw new BeanDefinitionStoreException( "Failed to read candidate component class: " + resource, th);
+			}
+		}
+		catch( Exception ex)
+		{
+			throw new BeanDefinitionStoreException("failure during classpath scanning", ex);
+		}
+		return candidates;
+	}
+
+	void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd) {
+		AnnotationMetadata metadata = abd.getMetadata();
+		if (metadata.isAnnotated(Primary.class.getName())) {
+			abd.setPrimary(true);
+		}
+		if (metadata.isAnnotated(Lazy.class.getName())) {
+			abd.setLazyInit(attributesFor(metadata, Lazy.class).getBoolean("value"));
+		}
+		if (metadata.isAnnotated(DependsOn.class.getName())) {
+			abd.setDependsOn(attributesFor(metadata, DependsOn.class).getStringArray("value"));
+		}
+		if (abd instanceof AbstractBeanDefinition) {
+			if (metadata.isAnnotated(Role.class.getName())) {
+				Integer role = attributesFor(metadata, Role.class).getNumber("value");
+				((AbstractBeanDefinition)abd).setRole(role);
+			}
+		}
+	}
+
+	static AnnotationAttributes attributesFor(AnnotationMetadata metadata, Class<?> annoClass) {
+		return attributesFor(metadata, annoClass.getName());
+	}
+
+	static AnnotationAttributes attributesFor(AnnotationMetadata metadata, String annoClassName) {
+		return AnnotationAttributes.fromMap(metadata.getAnnotationAttributes(annoClassName, false));
+	}
+
+	static AnnotationAttributes attributesFor(MethodMetadata metadata, Class<?> targetAnno) {
+		return AnnotationAttributes.fromMap(metadata.getAnnotationAttributes(targetAnno.getName()));
+	}
+
+	static BeanDefinitionHolder applyScopedProxyMode(
+			ScopeMetadata metadata, BeanDefinitionHolder definition, BeanDefinitionRegistry registry) {
+
+		ScopedProxyMode scopedProxyMode = metadata.getScopedProxyMode();
+		if (scopedProxyMode.equals(ScopedProxyMode.NO)) {
+			return definition;
+		}
+		boolean proxyTargetClass = scopedProxyMode.equals(ScopedProxyMode.TARGET_CLASS);
+		return createScopedProxy(definition, registry, proxyTargetClass);
+	}
+
+	static BeanDefinitionHolder createScopedProxy(
+			BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry, boolean proxyTargetClass) {
+
+		return ScopedProxyUtils.createScopedProxy(definitionHolder, registry, proxyTargetClass);
+	}
+
+	static String getTargetBeanName(String originalBeanName) {
+		return ScopedProxyUtils.getTargetBeanName(originalBeanName);
 	}
 
 	/**
-	 * Apply further settings to the given bean definition,
-	 * beyond the contents retrieved from scanning the component class.
-	 * @param beanDefinition the scanned bean definition
-	 * @param beanName the generated bean name for the given bean
+	 * Service / Bean load.
 	 */
-	protected void postProcessBeanDefinition(AbstractBeanDefinition beanDefinition, String beanName) {
-		beanDefinition.applyDefaults(this.beanDefinitionDefaults);
-		if (this.autowireCandidatePatterns != null) {
-			beanDefinition.setAutowireCandidate(PatternMatchUtils.simpleMatch(this.autowireCandidatePatterns, beanName));
+	public synchronized void loadServiceClass()
+	{
+		// package load
+		List<String> beanScanPackages = new ArrayList<String>();
+		List<String> beanScanPaths = new ArrayList<String>();
+		List<String> beanScanPatterns = new ArrayList<String>();
+		// Dummy Test
+		// test.sample.*.online.*
+		//beanScanPackages.add("test.sample.*.online.*");
+
+		String[] basePackagePatterns = getBasePackagePatterns();
+		if(basePackagePatterns != null && basePackagePatterns.length != 0)
+		{
+			beanScanPackages = Arrays.asList(basePackagePatterns);
+		}
+
+		for(String beanScanPackage : beanScanPackages)
+		{
+			logger.info("load beanScanPackage : {}", beanScanPackage);
+			ArrayList<String> patterns = new ArrayList<String>();
+			String postPatternStr = System.getProperty("bxm.system.online.base.packages.post.pattern");
+			if (postPatternStr == null)
+			{
+				patterns.add("**/*.class");
+			}
+			else {
+				String[] pttrns = postPatternStr.split(",");
+				if (pttrns == null || pttrns.length == 0)
+				{
+					patterns.add("**/*.class");
+				}
+				else
+				{
+					for (String pattern : pttrns) {
+						patterns.add(pattern);
+					}
+				}
+			}
+
+			for(String postPattern : patterns)
+			{
+				String path= CLASSPATH_ALL_URL_PREFIX+ ClassUtils.convertClassNameToResourcePath(
+						SystemPropertyUtils.resolvePlaceholders(beanScanPackage, true)) + "/"+ postPattern;
+
+				beanScanPaths.add(path);
+
+				//Pattern pattern= Pattern.compile( "("+ "org/apache" + ")(/)(.*)(.class)");
+				String[] splitPattern = postPattern.split("/\\**");
+				String suffixPattern = "(.class)";
+				if(splitPattern != null && splitPattern.length != 1)
+				{
+					suffixPattern = "(" + splitPattern[splitPattern.length - 1] + ")";
+
+				}
+				beanScanPatterns.add("(" + beanScanPackage + ")(/)(.*)" + suffixPattern);
+
+			}
+		}
+
+		List<String> addPackages = getAddPackages();
+		for(String addPackage : addPackages)
+		{
+			String path= CLASSPATH_ALL_URL_PREFIX+ ClassUtils.convertClassNameToResourcePath(
+					SystemPropertyUtils.resolvePlaceholders(addPackage, true)) + "/"+ "**/*.class";
+			beanScanPaths.add(path);
+			beanScanPatterns.add("(" + addPackage + ")(/)(.*)(.class)");
+		}
+
+		List<Pattern> patternList = new ArrayList<Pattern>();
+		for(String beanScanPattern : beanScanPatterns)
+		{
+			//[[CERT - Denial of Service: Regular Expression
+			beanScanPattern= SecureCodingUtils.sanitizeRegularExpressionPattern(beanScanPattern);
+			//]]
+			Pattern pattern= Pattern.compile( beanScanPattern);
+			patternList.add(pattern);
+		}
+
+		String applicationName = loaderRef.getClassLoader().getApplicationName();
+		String onlineApplicationName = System.getProperty("bxm.system.default.application.name");
+
+		boolean isLibraryLoad = false;
+		if(onlineApplicationName.equals(applicationName))
+		{
+			isLibraryLoad = false;
+		}
+		else if(applicationName.endsWith("Batch") || applicationName.endsWith("BATCH") || applicationName.endsWith("batch"))
+		{
+			isLibraryLoad = true; // Library Load
+		}
+		else
+		{
+			isLibraryLoad = true;
+		}
+
+		if(isLibraryLoad)
+		{
+			// 온라인 라이브러리 체크
+			if(loaderRef.getClassLoader().getLocalApplicationClasspaths() != null)
+			{
+				for(URL url : loaderRef.getClassLoader().getLocalApplicationClasspaths())
+				{
+					if(!url.getFile().endsWith(".jar"))
+					{
+						continue;
+					}
+
+					if(url.getFile().contains("online") || url.getFile().contains("interface"))
+					{
+						//Pattern pattern= Pattern.compile( "("+ "org/apache" + ")(/)(.*)(.class)");
+						try
+						{
+							List<String> content = getJarContent(url.getFile());
+							for(String classFile : content)
+							{
+								for(Pattern pattern : patternList)
+								{
+									Matcher matcher = pattern.matcher(classFile);
+									if(matcher.matches() && classFile.endsWith(".class"))
+									{
+										String classname = classFile.replace('/', '.').substring(0, classFile.length() - 6);
+										try
+										{
+											Class<?> c = Thread.currentThread().getContextClassLoader().loadClass(classname);
+											for(Method m : c.getMethods())
+											{
+												BxmTranID bxmTranId = m.getAnnotation(BxmTranID.class);
+												if(bxmTranId != null)
+												{
+													String tranId = bxmTranId.name();
+													if(batchServices.containsKey(tranId)) continue;
+													batchServices.put(tranId, classname);
+												}
+											}
+										}
+										catch (Throwable th)
+										{
+										}
+									}
+								}
+							}
+						}
+						catch (Throwable th)
+						{
+							logger.error(th.getMessage());
+						}
+
+					}
+				}
+			}
+		}
+		else
+		{
+			try
+			{
+				for(String beanScanPath : beanScanPaths)
+				{
+					// 온라인 Application Resource 확인
+					bxm.instance.loader.resource.Resource[] resources = loaderRef.getResourceLoader().getLocalResources(beanScanPath);
+					if( resources!= null && resources.length> 0)
+					{
+						logger.info("find resource : {}/{}", beanScanPath, resources.length);
+						for(bxm.instance.loader.resource.Resource resource : resources)
+						{
+							loadClass(resource);
+						}
+					}
+				}
+			}
+			catch (Throwable th)
+			{
+				logger.error( "creation basepackage set for auto-find dependon packages is failed.", th);
+			}
+		}
+	}
+
+	private void loadClass(bxm.instance.loader.resource.Resource resource)
+			throws Exception
+	{
+		MetadataReader reader= null;
+		try
+		{
+			reader = loaderRef.getResourceLoader().getMetadataReader( resource);
+			if( reader== null) return;
+
+			org.objectweb.asm.commons.Method[] methods = reader.getAnnotationMetadata().getAnnotatedMethods(ServiceDefinitions.AnnotatedConfig.TRANID_ANNOTATION_CLASSNAME);
+
+			if(methods != null)
+			{
+				for(org.objectweb.asm.commons.Method method : methods)
+				{
+					Map<String, Object> attrs = reader.getAnnotationMetadata().getAnnotatedMethodAttributes(ServiceDefinitions.AnnotatedConfig.TRANID_ANNOTATION_CLASSNAME, method);
+					if(attrs != null)
+					{
+						String tranId = (String) attrs.get("name");
+						if(batchServices.containsKey(tranId)) continue;
+						batchServices.put(tranId, reader.getClassMetadata().getClassName());
+					}
+				}
+			}
+
+//			Class<?> loadedClass= loaderRef.getClassLoader().loadClass( className);
+//			loadedClasses.add(loadedClass);
+		}
+		catch( Throwable th)
+		{
+			logger.warn( th.getMessage(), th);
+		}
+	}
+
+	private String[] getBasePackagePatterns() {
+
+		String envBasePackages = System.getProperty("bxm.system.online.base.packages");
+		String[] strBasePackages = new String[0] ;
+
+		if (StringUtils.hasLength(envBasePackages))
+		{
+			strBasePackages = envBasePackages.split(",");
+		}
+
+		return strBasePackages;
+	}
+
+	private ArrayList<String> getAddPackages() {
+
+		ArrayList<String> addPackages = new ArrayList<String>();
+
+		String addPackagesStr = System.getProperty("bxm.system.online.base.packages.added");
+		if (addPackagesStr == null) {
+		} else {
+			String[] patterns = addPackagesStr.split(",");
+			if (patterns == null || patterns.length == 0) {
+			} else {
+				for (String pattern : patterns) {
+					addPackages.add(pattern);
+				}
+			}
+		}
+		return addPackages;
+	}
+
+	public boolean loadService(String tranId)
+	{
+		if(LApplicationContext.isBatchContext())
+		{
+			if(batchServices.containsKey(tranId))
+			{
+				String className = batchServices.get(tranId);
+				try
+				{
+					Class<?> loadedClass= loaderRef.getClassLoader().loadClass(className);
+					return beanScan(loadedClass, true);
+				} catch (ClassNotFoundException e) {
+					throw new RuntimeException(e.getMessage(), e);
+				}
+			}
+		}
+		return false;
+	}
+
+	public boolean loadSimpleService(String tranId, String className)
+	{
+		try
+		{
+			Class<?> loadedClass= loaderRef.getClassLoader().loadClass(className);
+			return beanScan(loadedClass, true);
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e.getMessage(), e);
 		}
 	}
 
 	/**
-	 * Register the specified bean with the given registry.
-	 * <p>Can be overridden in subclasses, for example, to adapt the registration
-	 * process or to register further bean definitions for each scanned bean.
-	 * @param definitionHolder the bean definition plus bean name for the bean
-	 * @param registry the BeanDefinitionRegistry to register the bean with
+	 * List the content of the given jar
+	 *
+	 * @param jarPath
+	 * @return
+	 * @throws IOException
 	 */
-	protected void registerBeanDefinition(BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry) {
-		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, registry);
-	}
-
-
-	/**
-	 * Check the given candidate's bean name, determining whether the corresponding
-	 * bean definition needs to be registered or conflicts with an existing definition.
-	 * @param beanName the suggested name for the bean
-	 * @param beanDefinition the corresponding bean definition
-	 * @return {@code true} if the bean can be registered as-is;
-	 * {@code false} if it should be skipped because there is an
-	 * existing, compatible bean definition for the specified name
-	 * @throws IllegalStateException if an existing, incompatible bean definition
-	 * has been found for the specified name
-	 */
-	protected boolean checkCandidate(String beanName, BeanDefinition beanDefinition) throws IllegalStateException {
-		if (!this.registry.containsBeanDefinition(beanName)) {
-			return true;
+	public List<String> getJarContent(String jarPath) throws IOException {
+		List<String> content = new ArrayList<String>();
+		JarFile jarFile = new JarFile(jarPath);
+		Enumeration<JarEntry> e = jarFile.entries();
+		while (e.hasMoreElements()) {
+			JarEntry entry = (JarEntry) e.nextElement();
+			String name = entry.getName();
+			content.add(name);
 		}
-
-		BeanDefinition existingDef = this.registry.getBeanDefinition(beanName);
-		BeanDefinition originatingDef = existingDef.getOriginatingBeanDefinition();
-		if (originatingDef != null) {
-			existingDef = originatingDef;
-		}
-
-		// Explicitly registered overriding bean?
-		if (!(existingDef instanceof ScannedGenericBeanDefinition) &&
-				(this.registry.isBeanDefinitionOverridable(beanName) || ObjectUtils.nullSafeEquals(
-						beanDefinition.getBeanClassName(), existingDef.getBeanClassName()))) {
-			return false;
-		}
-
-		// Scanned same file or equivalent class twice?
-		if (isCompatible(beanDefinition, existingDef)) {
-			return false;
-		}
-
-		throw new ConflictingBeanDefinitionException("Annotation-specified bean name '" + beanName +
-				"' for bean class [" + beanDefinition.getBeanClassName() + "] conflicts with existing, " +
-				"non-compatible bean definition of same name and class [" + existingDef.getBeanClassName() + "]");
-	}
-
-	/**
-	 * Determine whether the given new bean definition is compatible with
-	 * the given existing bean definition.
-	 * <p>The default implementation considers them as compatible when the existing
-	 * bean definition comes from the same source or from a non-scanning source.
-	 * @param newDef the new bean definition, originated from scanning
-	 * @param existingDef the existing bean definition, potentially an
-	 * explicitly defined one or a previously generated one from scanning
-	 * @return whether the definitions are considered as compatible, with the
-	 * new definition to be skipped in favor of the existing definition
-	 */
-	protected boolean isCompatible(BeanDefinition newDef, BeanDefinition existingDef) {
-		return ((newDef.getSource() != null && newDef.getSource().equals(existingDef.getSource())) ||
-				newDef.equals(existingDef));
-	}
-
-
-	/**
-	 * Get the Environment from the given registry if possible, otherwise return a new
-	 * StandardEnvironment.
-	 */
-	private static Environment getOrCreateEnvironment(BeanDefinitionRegistry registry) {
-		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
-		if (registry instanceof EnvironmentCapable environmentCapable) {
-			return environmentCapable.getEnvironment();
-		}
-		return new StandardEnvironment();
+		return content;
 	}
 
 }
