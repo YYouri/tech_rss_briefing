@@ -1,469 +1,1004 @@
 /**
- * 작성된 날짜: Aug 19, 2011
- * Copyright 2011 EsCode co. All rights reserved.
+ * 작성된 날짜: Aug 2, 2011 Copyright 2011 EsCode co. All rights reserved.
  */
 
-package bxm.context;
+package bxm.app;
 
-import java.lang.annotation.Annotation;
-import java.lang.ref.WeakReference;
-import java.util.Enumeration;
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import jakarta.servlet.ServletContext;
+import javax.sql.DataSource;
+
+import bxm.DataSourceAware;
+import bxm.InterceptorDefinition;
+import bxm.LoadAndInitializable;
+import bxm.NilRefException;
+import bxm.PostProcessor;
+import bxm.PreProcessor;
+import bxm.SystemPostProcessor;
+import bxm.SystemPreProcessor;
+import bxm.app.config.ApplicationConfigurationException;
+import bxm.app.config.ApplicationType;
+import bxm.app.event.ApplicationEvent;
+import bxm.app.event.ApplicationListener;
+import bxm.common.instance.config.BxmApplication;
+import bxm.common.logging.ApplicationLogLevel;
+import bxm.common.util.StringUtils;
+import bxm.common.util.SystemUtils;
+import bxm.common.util.task.SimpleSyncTaskExecutor;
+import bxm.common.util.task.TaskExecutor;
+import bxm.container.RemoteServiceConnectedJmsExecutor;
+import bxm.deferred.DeferredContext;
+import bxm.instance.ApplicationNotFoundException;
+import bxm.instance.FrameworkInstance;
+import bxm.instance.ServiceNotFoundException;
+import bxm.instance.ServiceOperationNotFoundException;
+import bxm.instance.config.ApplicationLoadingMode;
+import bxm.instance.context.control.ControlParameters;
+import bxm.instance.das.DataAccessContext;
+import bxm.instance.instrument.Instrument;
+import bxm.instance.loader.classloader.ApplicationStage;
+import bxm.instance.loader.classloader.context.ApplicationClassLoader;
+import bxm.instance.loader.classloader.ref.ClassLoaderRef;
+import bxm.instance.loader.classloading.instrument.TransactionalServiceOperationTransfomer;
+import bxm.instance.loader.resource.Resource;
+import bxm.instance.loader.resource.ResourceLoader;
+import bxm.omm.marshaller.IBxmMarshaller;
+import bxm.omm.marshaller.factory.BxmMarshallerFactory;
+import bxm.request.ChunkedResponseHandler;
+import bxm.request.ContextHeader;
+import bxm.request.support.IOmmFieldProperties;
+import bxm.request.support.IOmmFieldType;
+import bxm.request.support.ServiceIOmmFieldProperties;
+import bxm.service.ContainerManagedService;
+import bxm.service.Service;
+import bxm.service.ServiceOperation;
+import bxm.transaction.jms.JmsConnector;
+import bxm.transaction.support.TransactionSynchronization;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.support.AbstractRefreshableApplicationContext;
-import org.springframework.context.support.AbstractRefreshableConfigApplicationContext;
-import org.springframework.util.ObjectUtils;
-import org.springframework.web.context.ConfigurableWebApplicationContext;
-import org.springframework.web.context.WebApplicationContext;
 
-import bxm.app.Application;
-import bxm.app.GetBeanTask;
-import bxm.app.LightweightApplicationContext;
-import bxm.common.util.StringUtils;
-import bxm.instance.NestedRuntimeException;
-import bxm.instance.loader.classloader.ref.ClassLoaderRef;
-import bxm.instance.loader.support.MetadataReader;
 
 /**
- * @file				bxm.context.SpringLightweightApplicationContext.java
+ *
+ * @file			bxm.app.Application.java
  * @filetype		java source file
  * @brief
- * @author		Jong Oh Lee
- * @version		1.0
+ * @author			Jong Oh Lee
+ * @version			1.0
  * @history
- * 성		명				일			자				근  거  자  료				변  경  내  용
- * ----------------	-------------------		-------------------			--------------------------
- * Jong Oh Lee :	Aug 19, 2011:		product 개발:			신규 작성
+ * 성		명		일			자			근  거  자  료				변  경  내  용
+ * ----------------	-------------------		-------------------		--------------------------
+ * Jong Oh Lee :	Mar 13, 2013:			product 개발:				신규 작성
  *
  */
-
-public class SpringLightweightApplicationContext implements LightweightApplicationContext
+//FIXED 1. OperationName만으로 ServiceOperation을 검색할 수 있게 DeployedService, DeployedServiceOperation에 applicationName, ServiceName 추가
+public abstract class Application implements LoadAndInitializable
 {
-	private Logger logger= LoggerFactory.getLogger( LightweightApplicationContext.class);
+	private Logger logger= LoggerFactory.getLogger( Application.class);
 
-	private String applicationId;
+	protected URL applicationSource;
 
-	private volatile AbstractRefreshableApplicationContext context;
+	protected File deployedTarget;
 
-	private volatile ServletContext servletContext;
+	protected BxmApplication conf;
 
-	private ClassLoaderRef loaderRef;
+	protected String uuid;
 
-	public SpringLightweightApplicationContext( String applicationId)
+	protected String applicationName;
+
+	protected String description;
+
+	protected Map<String, ApplicationDataSource> datasources= new HashMap<String, ApplicationDataSource>();
+
+	protected List<InterceptorDefinition> applicationListeners= new LinkedList<InterceptorDefinition>();
+
+	protected long createdTime= -1L;
+
+	protected long destroyedTime= -1L;
+
+	protected ApplicationStage stage= ApplicationStage.NOTHING;
+
+	protected ClassLoaderRef classLoaderRef;
+
+	protected ApplicationClassLoader dirtyLoader;
+
+	protected boolean shared;
+
+	protected boolean dirty;
+
+	protected ApplicationType applicationType= ApplicationType.UNDEFINED;
+
+	protected ApplicationLogLevel logLevel;
+
+	private String[] referenceApplications;
+
+	protected Instrument instrument;
+
+	protected List<InterceptorDefinition> preProcessorDefinitions= new LinkedList<InterceptorDefinition>();
+
+	protected List<InterceptorDefinition> postProcessorDefinitions= new LinkedList<InterceptorDefinition>();
+
+	protected volatile List<PreProcessor> preProcessors;
+
+	protected volatile List<PostProcessor> postProcessors;
+
+	protected Preloading preloading;
+
+	protected ApplicationPreloadingFilter preloadingFilter;
+
+	protected Pattern[][] validClientPatterns= new Pattern[0][0];
+
+	protected String[] validatingClients= new String[]{};
+
+	protected Map<String, Service> services= new HashMap<String, Service>();
+
+	//[[ 20170919 거래기준 검색
+	protected Map<String, ServiceOperation> operations= new HashMap<String, ServiceOperation>();
+	//]] 20170919 거래기준 검색
+
+	//[[ 20171109 중복거래 보관
+	protected Map<String, Map<String, ServiceOperation>> duplicatedOperations= new HashMap<String, Map<String, ServiceOperation>>();
+	//]]
+
+	protected LightweightApplicationContext applicationContext;
+
+	protected DataSource containerDataSource;
+
+	protected DataAccessContext dasContext;
+
+	protected DeferredContext deferredContext;
+
+	protected List<String> transactionRollbackForNames= new ArrayList<String>();
+
+	protected List<String> transactionNoRollbackForNames= new ArrayList<String>();
+
+	protected FrameworkInstance frameworkInstance;
+
+	protected ServiceIOmmFieldProperties iommFieldProperties= new ServiceIOmmFieldProperties();
+
+	protected Map<String, ContainerManagedService> serviceInstances= new HashMap<String, ContainerManagedService>();
+
+	protected Map<BxmMarshallerFactory.Marshaller, IBxmMarshaller> marshallers=
+			new HashMap<BxmMarshallerFactory.Marshaller, IBxmMarshaller>();
+
+	protected Object objectMapper;
+
+	protected Set<Resource> beanCandidateResources= new HashSet<Resource>();
+
+	protected DeployedResourceDefinitionScanner scanner;
+
+	protected TransactionalServiceOperationTransfomer transformer;
+
+	protected Map<String, String> contextInfo;
+
+	protected boolean destroyed= false;
+
+	public Application()
 	{
-		this.applicationId= applicationId;
+		this.uuid= SystemUtils.generateRandomUUID();
 	}
 
-	public void initializeApplicationContext( ServletContext sc, String configLocation, ClassLoaderRef loaderRef,
-			Application application, Object singletonLock, Object initializationLock, Set<MetadataReader> beanCandidates)
+	public boolean initialize( ClassLoaderRef ref)
 	{
-		logger.info( "Initializing Spring root ApplicationContext. using classloader [{}]", loaderRef.getClassLoader());
-		AbstractRefreshableApplicationContext ac;
-		this.loaderRef= loaderRef;
-		loaderRef.getClassLoader().setApplicationContextRef( new WeakReference<LightweightApplicationContext>( this));
-		try
-		{
-			if( sc!= null)
-			{
-				this.servletContext= new ServletContextDelegate( sc);
-				ac= new bxm.context.WebApplicationContext( application, singletonLock, initializationLock, beanCandidates);
-				ConfigurableWebApplicationContext wac= (ConfigurableWebApplicationContext)ac;
-
-				if( sc.getMajorVersion()== 2 && sc.getMinorVersion()< 5)
-				{
-					String servletContextName= sc.getServletContextName();
-					wac.setId( ConfigurableWebApplicationContext.APPLICATION_CONTEXT_ID_PREFIX+
-							ObjectUtils.getDisplayString( servletContextName));
-				}
-				else
-				{
-					try
-					{
-						String contextPath= (String)ServletContext.class.getMethod( "getContextPath").invoke(sc);
-						wac.setId( ConfigurableWebApplicationContext.APPLICATION_CONTEXT_ID_PREFIX+
-								ObjectUtils.getDisplayString( contextPath));
-					}
-					catch( Exception ex)
-					{
-						throw new IllegalStateException( "Failed to invoke Servlet 2.5 getContextPath method", ex);
-					}
-				}
-				wac.setServletContext( servletContext);
-				if( StringUtils.hasText( configLocation));
-					wac.setConfigLocation( configLocation);
-				this.context= (AbstractRefreshableApplicationContext)wac;
-				this.servletContext.setAttribute( WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
-			}
-			else
-			{
-				ac= new bxm.context.XmlApplicationContext( application, singletonLock, initializationLock, beanCandidates);
-				ac.setId( applicationId+ ": "+ ObjectUtils.getDisplayString( this));
-				if( StringUtils.hasText( configLocation))
-					( (AbstractRefreshableConfigApplicationContext)ac).setConfigLocation( configLocation);
-				this.context= ac;
-			}
-
-			if( ac instanceof ClassLoaderRefAware)
-				( (ClassLoaderRefAware)ac).setClassLoaderRef( loaderRef);
-			ac.refresh();
-			logger.info( "Spring root ApplicationContext [{}] is initialized.",
-					application!= null ? application.getApplicationName() : "null");
-		}
-		catch( Throwable th)
-		{
-			logger.error( "application context creation is failed.", th);
-			if( this.servletContext!= null)
-				this.servletContext.setAttribute( WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, th);
-			throw new NestedRuntimeException( th.getMessage(), th);
-		}
-	}
-
-	public void postInitialization( LightweightApplicationContext[] refCtxs)
-	{
-		if( this.context instanceof bxm.context.WebApplicationContext)
-			( (bxm.context.WebApplicationContext)this.context).postInitialization( refCtxs);
-		else if( this.context instanceof bxm.context.XmlApplicationContext)
-			( (bxm.context.XmlApplicationContext)this.context).postInitialization( refCtxs);
-	}
-
-	public void preInstantiate()
-	{
-		if( this.context instanceof bxm.context.WebApplicationContext)
-			( (bxm.context.WebApplicationContext)this.context).preInstantiate();
-		else if( this.context instanceof bxm.context.XmlApplicationContext)
-			( (bxm.context.XmlApplicationContext)this.context).preInstantiate();
-	}
-
-	public void deferredInstantiate( LinkedList<GetBeanTask> deferredQueue, Object lock)
-	{
-		if( this.context instanceof bxm.context.WebApplicationContext)
-		{
-			bxm.context.WebApplicationContext wctx= (bxm.context.WebApplicationContext)this.context;
-			wctx.setDeferredInitializerQueue( deferredQueue);
-			wctx.setDeployerLock( lock);
-			wctx.preInstantiate();
-		}
-	}
-
-	public void interruptedDeferredInstantiate()
-	{
-		if( this.context instanceof bxm.context.WebApplicationContext)
-		{
-			bxm.context.WebApplicationContext wctx= (bxm.context.WebApplicationContext)this.context;
-			wctx.setDeferredInitInterrupted( true);
-		}
-	}
-
-	public ClassLoaderRef getClassLoaderRef()
-	{
-		return this.loaderRef;
+		return true;
 	}
 
 	public boolean initialize()
 	{
-		if( this.context instanceof Initialized)
-			return ( (Initialized)this.context).initialized( true);
-		return false;
+		return true;
 	}
 
-	public void destroyApplicationContext()
+	public void addBeanCandidateResource( Resource resource)
 	{
-		if( this.context== null || !this.context.isActive()) return;
-		logger.info( "closing Spring root ApplicationContext [{}].", this.context);
-		try{ this.context.close();}
-		finally
+		this.beanCandidateResources.add( resource);
+	}
+
+	public abstract void prepare( FrameworkInstance frameworkInstance, ServletContext servletContext, Object singletonLock,
+			Object initializationLock, ResourceLoader legacyLoader) throws ApplicationConfigurationException;
+
+	public abstract void prepare( FrameworkInstance frameworkInstance, ServletContext servletContext, Object singletonLock,
+			Object initializationLock, ResourceLoader legacyLoader, List<String> basePackages)
+					throws ApplicationConfigurationException;
+
+	public void setTransactionalServiceOperationTransfomer( TransactionalServiceOperationTransfomer transformer)
+	{
+		this.transformer= transformer;
+	}
+
+	public void setStage( ApplicationStage stage)
+	{
+		this.stage= stage;
+		if( this.classLoaderRef!= null)
 		{
-			if( this.servletContext!= null)
-			{
-				this.servletContext.removeAttribute( WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
-				//[[ 20170518 NCIS08 BXM외의 Spring 사용을 위해 ServletContext를 cleanup하지 않음.
-				//                   이미 ServletContextDelegate를 사용해 원본 ServletContext를 수정하지 않고 있음.
-				//cleanupServletContextAttributes();
-				//]]
-				this.servletContext= null;
-			}
+			try{ this.classLoaderRef.getClassLoader().setStage( stage);}
+			catch( NilRefException ne){}
 		}
+	}
+
+	public ApplicationStage getStage()
+	{
+		return this.stage;
+	}
+
+	public String getUUID()
+	{
+		return this.uuid;
+	}
+
+	public void setLightweightApplicationContext( LightweightApplicationContext context)
+	{
+		this.applicationContext= context;
+	}
+
+	public LightweightApplicationContext getLightweightApplicationContext()
+	{
+		return this.applicationContext;
+	}
+
+	public void setFrameworkInstance( FrameworkInstance instance)
+	{
+		this.frameworkInstance= instance;
+	}
+
+	public boolean isImageLogging()
+	{
+		return this.frameworkInstance!= null ?
+				this.frameworkInstance.getInstanceContext().getRequestType().isImageLogging() : false;
+	}
+
+	public boolean isBlackboxRecording()
+	{
+		return this.frameworkInstance!= null && this.frameworkInstance.getBlackboxContext()!= null ?
+						this.frameworkInstance.getBlackboxContext().isRecording() : false;
+	}
+
+	public boolean isDeferredInit()
+	{
+		return this.frameworkInstance!= null && this.frameworkInstance.getApplicationLoader()!= null ?
+				this.frameworkInstance.getApplicationLoader().isDeferredInit() : false;
+	}
+
+	public long getDeferredInitInterval()
+	{
+		return this.frameworkInstance!= null && this.frameworkInstance.getApplicationLoader()!= null ?
+				this.frameworkInstance.getApplicationLoader().getDeferredInitInterval() : -1;
+	}
+
+	public boolean isLazyInit()
+	{
+		return this.frameworkInstance!= null && this.frameworkInstance.getApplicationLoader()!= null ?
+						this.frameworkInstance.getApplicationLoader().isLazyInit() : false;
+	}
+
+	public boolean isSessionfactroyLazyinit()
+	{
+		return this.frameworkInstance!= null && this.frameworkInstance.getApplicationLoader()!= null ?
+				this.frameworkInstance.getApplicationLoader().isSessionfactoryLazyinit() : false;
+	}
+
+	public ApplicationInitializerReference getApplicationInitailizerReference()
+	{
+		return this.frameworkInstance!= null && this.frameworkInstance.getApplicationLoader()!= null ?
+				this.frameworkInstance.getApplicationLoader().getApplicationInitailizerReference() : null;
+	}
+
+	public long getForcedTimeout()
+	{
+		return this.frameworkInstance.getInstanceContext().getForcedTimeout();
+	}
+
+	public boolean isUseOnlyPredefinedBeanProcessors()
+	{
+		return this.frameworkInstance.getApplicationLoader().isUseOnlyPredefinedBeanProcessors();
+	}
+
+	public void setContainerDataSource( DataSource dataSource)
+	{
+		this.containerDataSource= dataSource;
+	}
+
+	public ApplicationLoadingMode getApplicationLoadingMode()
+	{
+		return this.frameworkInstance.getApplicationLoader().getLoadingMode();
+	}
+
+	public List<SystemPreProcessor> getSystemPreProcessors()
+	{
+		return this.frameworkInstance.getSystemPreProcessors();
+	}
+
+	public List<SystemPostProcessor> getSystemPostProcessors()
+	{
+		return this.frameworkInstance.getSystemPostProcessors();
+	}
+
+	public List<TransactionSynchronization> getTransactionSynchronizations()
+	{
+		return this.frameworkInstance.getTransactionSynchronizations();
+	}
+
+	public DataSource getContainerDataSource()
+	{
+		return this.containerDataSource;
+	}
+
+	public String getRequestHeaderClassName()
+	{
+		return this.frameworkInstance.getInstanceContext().getRequestType().getHeaderClassName();
+	}
+
+	public String getRequestResolverClassName()
+	{
+		return this.frameworkInstance.getInstanceContext().getRequestType().getRequestResolverClassName();
+	}
+
+	public String getResponseResolverClassName()
+	{
+		return this.frameworkInstance.getInstanceContext().getRequestType().getResponseResolverClassName();
+	}
+
+	public String getRequestTraceClassName()
+	{
+		return this.frameworkInstance.getInstanceContext().getRequestType().getRequestTraceClassName();
+	}
+
+	public String getRequestInterceptorClassName()
+	{
+		return this.frameworkInstance.getInstanceContext().getRequestType().getRequestInterceptorClassName();
+	}
+
+
+	public JmsConnector getJmsConnector()
+	{
+		if( this.frameworkInstance== null || this.frameworkInstance.getJmsConnector()== null)
+			throw new IllegalStateException( "Jms Connector not prepared. check frameworkinstance configuration.");
+		return this.frameworkInstance.getJmsConnector();
+	}
+
+	public RemoteServiceConnectedJmsExecutor<ContextHeader> getRemoteServiceConnectedJmsExecutor()
+	{
+		if( this.frameworkInstance== null || this.frameworkInstance.getJmsConnector()== null
+				|| this.frameworkInstance.getRemoteServiceConnectedJmsExecutor()== null)
+			throw new IllegalStateException( "Jms Connector not prepared. check frameworkinstance configuration.");
+		return this.frameworkInstance.getRemoteServiceConnectedJmsExecutor();
+	}
+
+	public void setDataAccessContext( DataAccessContext dasContext)
+	{
+		this.dasContext= dasContext;
+	}
+
+	public DataAccessContext getDataAccessContext()
+	{
+		return this.dasContext;
+	}
+
+	public DeferredContext getDeferredContext()
+	{
+		return deferredContext;
+	}
+
+	public void setDeferredContext( DeferredContext deferredContext)
+	{
+		this.deferredContext= deferredContext;
+	}
+
+	public List<String> getTransactionRollbackForNames()
+	{
+		return transactionRollbackForNames;
+	}
+
+	public void setTransactionRollbackForNames( List<String> transactionRollbackForNames)
+	{
+		this.transactionRollbackForNames= transactionRollbackForNames;
+	}
+
+	public List<String> getTransactionNoRollbackForNames()
+	{
+		return transactionNoRollbackForNames;
+	}
+
+	public ControlParameters getControlParameterIntance()
+	{
+		return this.frameworkInstance.getInstanceContext().getControlParameterInstance();
+	}
+
+	public void setTransactionNoRollbackForNames( List<String> transactionNoRollbackForNames)
+	{
+		this.transactionNoRollbackForNames= transactionNoRollbackForNames;
+	}
+
+	public DeployedApplication lookupDeployedApplication( String applicationName, String remoteAddr)
+			throws ApplicationNotFoundException
+	{
+		return this.frameworkInstance.lookupDeployedApplication( applicationName, remoteAddr);
+	}
+
+	public void setApplicationSource( URL source)
+	{
+		this.applicationSource= source;
+	}
+
+	public URL getApplicationSource()
+	{
+		return this.applicationSource;
+	}
+
+	public File getDeployedTarget()
+	{
+		return deployedTarget;
+	}
+
+	public void setDeployedTarget( File deployedTarget)
+	{
+		this.deployedTarget= deployedTarget;
+	}
+
+	public void setConfiguration( BxmApplication conf)
+	{
+		this.conf= conf;
+	}
+
+	public BxmApplication getConfiguration()
+	{
+		return this.conf;
 	}
 
 	public String getApplicationName()
 	{
-		return this.applicationId;
+		return applicationName;
 	}
 
-	@Override
-	public String getId()
+	public void setApplicationName( String applicationName)
 	{
-		return this.context.getId();
+		this.applicationName= applicationName;
 	}
 
-	@Override
-	public String getDisplayName()
+	public String getDescription()
 	{
-		return this.context.getDisplayName();
+		return description;
 	}
 
-	@Override
-	public long getStartupDate()
+	public void setDescription( String description)
 	{
-		return this.getStartupDate();
+		this.description= description;
 	}
 
-	@Override
-	public boolean isRunning()
+	public ApplicationType getApplicationType()
 	{
-		return this.context.isRunning();
+		return applicationType;
 	}
 
-	@Override
-	public boolean isActive()
+	public void setApplicationType( ApplicationType applicationType)
 	{
-		return this.context.isActive();
+		this.applicationType= applicationType;
 	}
 
-	@Override
-	public void start()
+	public void addDataSource( String name, ApplicationDataSource ds)
 	{
-		this.context.start();
+		this.datasources.put( name, ds);
 	}
 
-	@Override
-	public void stop()
+	public ApplicationDataSource getDataSource( String name)
 	{
-		this.context.stop();
+		return this.datasources.get( name);
 	}
 
-	@Override
-	public void refresh()
+	public Map<String, ApplicationDataSource> getDataSources()
 	{
-		this.context.refresh();
+		return this.datasources;
 	}
 
-	public ConfigurableListableBeanFactory getContainingBeanFactory( String name)
+	public void addApplicationListener( InterceptorDefinition listener)
 	{
-		return ( (ConfigurableListableBeanFactoryDelegate)this.context.getBeanFactory()).getContainingBeanFactory( name);
+		this.applicationListeners.add( listener);
 	}
 
-	@Override
-	public boolean containsBeanDefinition( String beanName)
+	public List<InterceptorDefinition> getApplicationListeners()
 	{
-		return this.context.containsBeanDefinition( beanName);
+		return applicationListeners;
 	}
 
-	@Override
-	public int getBeanDefinitionCount()
+	public void setApplicationListeners( List<InterceptorDefinition> applicationListeners)
 	{
-		return this.context.getBeanDefinitionCount();
+		this.applicationListeners= applicationListeners;
 	}
 
-	public BeanDefinition getMergedBeanDefinition( String name) throws BeansException
+	public long getCreatedTime()
 	{
-		return this.context.getBeanFactory().getMergedBeanDefinition( name);
+		return this.createdTime;
 	}
 
-	@Override
-	public String[] getBeanDefinitionNames()
+	public long getDestroyedTime()
 	{
-		return this.context.getBeanDefinitionNames();
+		return this.destroyedTime;
 	}
 
-	@Override
-	public String[] getBeanNamesForType( Class<?> type)
+	public ApplicationStage getCurrentStage()
 	{
-		return this.context.getBeanNamesForType( type);
+		return this.stage;
 	}
 
-	@Override
-	public String[] getBeanNamesForType( Class<?> type, boolean includeNonSingletons, boolean allowEagerInit)
+	public ClassLoaderRef getClassLoaderRef()
 	{
-		return this.context.getBeanNamesForType( type, includeNonSingletons, allowEagerInit);
+		return this.classLoaderRef;
 	}
 
-	public ConfigurableListableBeanFactory getBeanFactory()
+	public boolean isShared()
 	{
-		return this.context.getBeanFactory();
+		return shared;
 	}
 
-	public ConfigurableListableBeanFactory getOriginalBeanFactory()
+	public void setShared( boolean shared)
 	{
-		return ( (ConfigurableListableBeanFactoryDelegate)this.context.getBeanFactory()).getDelegate();
+		this.shared= shared;
 	}
 
-	@Override
-	public <T> Map<String, T> getBeansOfType( Class<T> type) throws NestedRuntimeException
+	public boolean isDirty()
 	{
-		return this.context.getBeansOfType( type);
+		return dirty;
 	}
 
-	@Override
-	public <T> Map<String, T> getBeansOfType( Class<T> type, boolean includeNonSingletons, boolean allowEagerInit)
-			throws NestedRuntimeException
+	public void setDirty( boolean dirty)
 	{
-		return this.context.getBeansOfType( type, includeNonSingletons, allowEagerInit);
+		this.dirty= dirty;
 	}
 
-	@Override
-	public Map<String, Object> getBeansWithAnnotation( Class<? extends Annotation> annotationType)
-			throws NestedRuntimeException
+	public ApplicationLogLevel getLogLevel()
 	{
-		return this.context.getBeansWithAnnotation( annotationType);
+		return logLevel;
 	}
 
-	@Override
-	public <A extends Annotation> A findAnnotationOnBean( String beanName, Class<A> annotationType)
+	public void setLogLevel( ApplicationLogLevel logLevel)
 	{
-		return this.context.findAnnotationOnBean( beanName, annotationType);
+		this.logLevel= logLevel;
 	}
 
-	@Override
-	public Object getBean( String name) throws NestedRuntimeException
+	public void setReferenceApplications( String[] refs)
 	{
-		return this.context.getBean( name);
+		this.referenceApplications= refs;
 	}
 
-	@SuppressWarnings( "unchecked")
-	@Override
-	public <T> T getBeanFromContext( String name) throws NestedRuntimeException
+	public String[] getReferenceApplications()
 	{
-		ConfigurableListableBeanFactoryDelegate factory= (ConfigurableListableBeanFactoryDelegate)this.context.getBeanFactory();
-		factory= factory.getContainingBeanFactory( name);
-		if( factory== null)
-			throw new NoSuchBeanDefinitionException( name);
-		return (T)factory.getBean( name);
+		return this.referenceApplications!= null ? this.referenceApplications : new String[]{};
 	}
 
-	@Override
-	public <T> T getBean( String name, Class<T> requiredType) throws NestedRuntimeException
+	public Instrument getInstrument()
 	{
-		return this.context.getBean( name, requiredType);
+		return instrument;
 	}
 
-	@Override
-	public <T> T getBean( Class<T> requiredType) throws NestedRuntimeException
+	public void setInstrument( Instrument instrument)
 	{
-		return this.context.getBean( requiredType);
+		this.instrument= instrument;
 	}
 
-	@Override
-	public <T> T getBeanFromContext( Class<T> requiredType) throws NestedRuntimeException
+	public List<InterceptorDefinition> getPreProcessorDefinitions()
 	{
-		ConfigurableListableBeanFactoryDelegate factory= (ConfigurableListableBeanFactoryDelegate)this.context.getBeanFactory();
-		ConfigurableListableBeanFactoryDelegate[] factories= factory.getContainingBeanFactories( requiredType);
-		if( factories== null || factories.length<= 0)
-			throw new NoSuchBeanDefinitionException( requiredType);
-		Map<ConfigurableListableBeanFactoryDelegate, String> beanNames=
-				new HashMap<ConfigurableListableBeanFactoryDelegate, String>();
-		for( ConfigurableListableBeanFactoryDelegate fac: factories)
+		return preProcessorDefinitions;
+	}
+
+	public void setPreProcessorDefinitions( List<InterceptorDefinition> preProcessors)
+	{
+		this.preProcessorDefinitions= preProcessors;
+	}
+
+	public List<InterceptorDefinition> getPostProcessorDefinitions()
+	{
+		return postProcessorDefinitions;
+	}
+
+	public void setPostProcessorDefinitions( List<InterceptorDefinition> postProcessors)
+	{
+		this.postProcessorDefinitions= postProcessors;
+	}
+
+	public List<PreProcessor> getPreProcessors()
+	{
+		if( this.frameworkInstance.getApplicationLoader().isLazyInit())
 		{
-			String[] names= fac.getDelegate().getBeanNamesForType( requiredType);
-			if( names!= null && names.length> 0)
-			for( String name: names)
-				beanNames.put( fac, name);
-		}
-
-		if( beanNames.size()== 1)
-			return beanNames.keySet().iterator().next().getBean( requiredType);
-		else
-			throw new NoSuchBeanDefinitionException(requiredType, "expected single bean but found " +
-					beanNames.size() + ": " + beanNames.values());
-	}
-
-	@Override
-	public Object getBean( String name, Object... args) throws NestedRuntimeException
-	{
-		return this.context.getBean( name, args);
-	}
-
-	@Override
-	public boolean containsBean( String name)
-	{
-		return this.context.containsBean( name);
-	}
-
-	@Override
-	public boolean isFactoryBean( String name) throws NestedRuntimeException
-	{
-		return context.getBeanFactory().isFactoryBean( name);
-	}
-
-	@Override
-	public boolean isSingleton( String name) throws NestedRuntimeException
-	{
-		return this.context.isSingleton( name);
-	}
-
-	@Override
-	public boolean isPrototype( String name) throws NestedRuntimeException
-	{
-		return this.context.isPrototype( name);
-	}
-
-	@Override
-	public boolean isTypeMatch( String name, Class<?> targetType) throws NestedRuntimeException
-	{
-		return this.context.isTypeMatch( name, targetType);
-	}
-
-	@Override
-	public Class<?> getType( String name) throws NestedRuntimeException
-	{
-		return this.context.getType( name);
-	}
-
-	@Override
-	public String[] getAliases( String name)
-	{
-		return this.context.getAliases( name);
-	}
-
-	@SuppressWarnings( "rawtypes")
-	private void cleanupServletContextAttributes()
-	{
-		Enumeration attrNames= this.servletContext.getAttributeNames();
-		while( attrNames.hasMoreElements())
-		{
-			String attrName= (String)attrNames.nextElement();
-			if( attrName.startsWith( "org.springframework."))
+			synchronized( this)
 			{
-				Object attrValue= this.servletContext.getAttribute( attrName);
-				if( attrValue instanceof DisposableBean)
+				if( this.preProcessors== null)
+					preparePreProcessors();
+			}
+		}
+		return this.preProcessors;
+	}
+
+	public List<PostProcessor> getPostProcessors()
+	{
+		if( this.frameworkInstance.getApplicationLoader().isLazyInit())
+		{
+			synchronized( this)
+			{
+				if( this.postProcessors== null)
+					preparePostProcessors();
+			}
+		}
+		return this.postProcessors;
+	}
+
+	public ChunkedResponseHandler getChunkedResponseHandler()
+	{
+		return this.frameworkInstance.getChunkedResponseHandler();
+	}
+
+	public void setMarshaller( BxmMarshallerFactory.Marshaller type, IBxmMarshaller marshaller)
+	{
+		this.marshallers.put( type, marshaller);
+	}
+
+	public IBxmMarshaller getMarshaller( BxmMarshallerFactory.Marshaller type)
+	{
+		return this.marshallers.get( type);
+	}
+
+	public void setObjectMapper( Object objectMapper)
+	{
+		this.objectMapper= objectMapper;
+	}
+
+	public Object getObjectMapper()
+	{
+		return this.objectMapper;
+	}
+
+	public Preloading getPreloading()
+	{
+		return preloading;
+	}
+
+	public void setPreloading( Preloading preloading)
+	{
+		this.preloading= preloading;
+	}
+
+	public void addPreProcessor( InterceptorDefinition processor)
+	{
+		this.preProcessorDefinitions.add( processor);
+	}
+
+	public void addPostProcessor( InterceptorDefinition processor)
+	{
+		this.postProcessorDefinitions.add( processor);
+	}
+
+	public boolean isValidClient( String remoteAddr)
+	{
+		if( !StringUtils.hasText( remoteAddr)) return true;
+		boolean valid= true;
+		String[] addrTokens= StringUtils.tokenizeToStringArray( remoteAddr, ".");
+		for( Pattern[] patterns: this.validClientPatterns)
+		{
+			valid= true;
+			for( int i= 0; i< patterns.length; i++)
+			{
+				if( !patterns[i].matcher( addrTokens[i]).matches())
 				{
-					try{ ( (DisposableBean)attrValue).destroy();}
-					catch( Throwable th)
+					valid= false;
+					break;
+				}
+			}
+			if( valid)
+				break;
+		}
+		return valid;
+	}
+
+	public String[] getValidatingClientPatterns()
+	{
+		return this.validatingClients;
+	}
+
+	public void resetValidClientPatterns( String... ipPatterns)
+	{
+		if( ipPatterns== null) return;
+		this.validatingClients= ipPatterns;
+		Pattern[][] patternsToUse= new Pattern[ipPatterns.length][];
+		int index= 0;
+		for( String validStr: ipPatterns)
+		{
+			List<Pattern> patterns= new ArrayList<Pattern>();
+			String[] applyTokens= StringUtils.tokenizeToStringArray( validStr, ".");
+			for( int i= 0; i< applyTokens.length; i++)
+				patterns.add( Pattern.compile( StringUtils.replace( applyTokens[i], "*", "(\\d{1,3})")));
+
+			patternsToUse[index++]= patterns.toArray( new Pattern[patterns.size()]);
+		}
+		this.validClientPatterns= patternsToUse;
+	}
+
+	public void resetValidClientPatterns()
+	{
+		this.validClientPatterns= new Pattern[0][0];
+	}
+
+	public Map<String, Service> getServices()
+	{
+		return this.services;
+	}
+
+	public Service lookupService( String name) throws ServiceNotFoundException
+	{
+		Service svc= this.services.get( name);
+		if( svc!= null && svc.isExposed())
+			return svc;
+		throw new ServiceNotFoundException( this.applicationName, name);
+	}
+
+	public ServiceOperation lookupServiceOperation( String serviceName,
+			String operationName) throws ServiceOperationNotFoundException
+	{
+		Service svc= this.services.get( serviceName);
+		if( svc!= null && svc.isExposed())
+		{
+			ServiceOperation op= svc.lookupOperation( operationName);
+			if( op!= null&& op.isExposed())
+				return op;
+		}
+		throw new ServiceOperationNotFoundException( serviceName, operationName);
+	}
+
+	//[[ 20170919 거래기준 검색
+	public ServiceOperation lookupServiceOperation( String operationName) throws ServiceOperationNotFoundException
+	{
+		ServiceOperation op= this.operations.get( operationName);
+		if( op!= null&& op.isExposed())
+			return op;
+		throw new ServiceOperationNotFoundException( "", operationName);
+	}
+	//]] 20170919 거래기준 검색
+
+	public Map<String, ServiceOperation> getServiceOperations()
+	{
+		return operations;
+	}
+
+	public void registerServiceInstance( String serviceName, ContainerManagedService serviceInstance)
+	{
+		if( this.services.containsKey( serviceName))
+		{
+			synchronized( this.serviceInstances)
+			{
+				this.serviceInstances.put( serviceName, serviceInstance);
+			}
+		}
+	}
+
+	public ContainerManagedService lookupServiceInstance( String serviceName) throws ServiceNotFoundException
+	{
+		ContainerManagedService instance= this.serviceInstances.get( serviceName);
+		if( instance!= null) return instance;
+		logger.debug( "request bean creation for service [{}].", serviceName);
+		Object serviceInstance= this.applicationContext.getBean( serviceName);
+		if( !( serviceInstance instanceof ContainerManagedService))
+			throw new ServiceNotFoundException( this.applicationName, serviceName,
+					"requested service type is not matched with [" + ContainerManagedService.class.getName()+ "].");
+
+		synchronized( this.serviceInstances)
+		{
+			logger.debug( "register ContainerManagedBean Instance [{}].", serviceName);
+			if( !isDestroyed())
+				this.serviceInstances.put( serviceName, (ContainerManagedService)serviceInstance);
+		}
+		return (ContainerManagedService)serviceInstance;
+	}
+
+	public int getServiceCount()
+	{
+		return this.services.size();
+	}
+
+	protected void publishPostInitializeEvent( final ApplicationEvent event)
+	{
+		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
+		synchronized( this.applicationListeners)
+		{
+			Iterator<InterceptorDefinition> defs= this.applicationListeners.iterator();
+			while( defs.hasNext())
+			{
+				final ApplicationListener listener= defs.next().getInterceptor();
+				if( listener== null) continue;
+				executor.execute( new Runnable(){
+					public void run()
 					{
-						logger.warn( th.getMessage(), th);
+						listener.postApplicationInitialize( event);
 					}
+				});
+			}
+		}
+	}
+
+	protected void publishPrepareDestroyEvent( final ApplicationEvent event)
+	{
+		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
+		synchronized( this.applicationListeners)
+		{
+			Iterator<InterceptorDefinition> defs= this.applicationListeners.iterator();
+			while( defs.hasNext())
+			{
+				final ApplicationListener listener= defs.next().getInterceptor();
+				if( listener== null) continue;
+				executor.execute( new Runnable(){
+					public void run()
+					{
+						listener.prepareApplicationDestroy( event);
+					}
+				});
+			}
+		}
+	}
+
+	protected void publishPredeployedEvent( final ApplicationEvent event)
+	{
+		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
+		synchronized( this.applicationListeners)
+		{
+			Iterator<InterceptorDefinition> defs= this.applicationListeners.iterator();
+			while( defs.hasNext())
+			{
+				final ApplicationListener listener= defs.next().getInterceptor();
+				if( listener== null) continue;
+				executor.execute( new Runnable(){
+					public void run()
+					{
+						listener.predeployed( event);
+					}
+				});
+			}
+		}
+	}
+
+	protected void publishDeployedEvent( final ApplicationEvent event)
+	{
+		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
+		synchronized( this.applicationListeners)
+		{
+			Iterator<InterceptorDefinition> defs= this.applicationListeners.iterator();
+			while( defs.hasNext())
+			{
+				final ApplicationListener listener= defs.next().getInterceptor();
+				if( listener== null) continue;
+				executor.execute( new Runnable(){
+					public void run()
+					{
+						listener.deployed( event);
+					}
+				});
+			}
+		}
+	}
+
+	protected void publishUndeployedEvent( final ApplicationEvent event)
+	{
+		TaskExecutor executor= SimpleSyncTaskExecutor.executor();
+		synchronized( this.applicationListeners)
+		{
+			Iterator<InterceptorDefinition> defs= this.applicationListeners.iterator();
+			while( defs.hasNext())
+			{
+				final ApplicationListener listener= defs.next().getInterceptor();
+				if( listener== null) continue;
+				executor.execute( new Runnable(){
+					public void run()
+					{
+						listener.undeployed( event);
+					}
+				});
+			}
+		}
+	}
+
+	public IOmmFieldProperties getIommFieldProperties()
+	{
+		return iommFieldProperties;
+	}
+
+	public Map<String, IOmmFieldType> getHeaderFieldProperties()
+	{
+		return this.frameworkInstance.getHeaderFieldProperties();
+	}
+
+	public boolean isStoredBeanCreationTrace( String beanName)
+	{
+		return false;
+	}
+
+	public void storeBeanCreationTrace( String beanName, StringBuilder sb)
+	{
+		if( ApplicationLogLevel.DEBUG.level()< logLevel.level())
+			return;
+		//
+	}
+
+	public String loadBeanCreationTrace( String beanName)
+	{
+		if( ApplicationLogLevel.DEBUG.level()< logLevel.level())
+			return "";
+		return "";
+	}
+
+	public boolean isDestroyed()
+	{
+		return this.destroyed;
+	}
+
+	public void dirtyClear()
+	{
+		if( this.dirtyLoader!= null)
+			this.dirtyLoader.destroy();
+	}
+
+	public boolean destroy()
+	{
+		return true;
+	}
+
+	protected void preparePreProcessors()
+	{
+		if( this.preProcessors== null)
+		{
+			this.preProcessors= new ArrayList<PreProcessor>();
+			for( InterceptorDefinition def: this.preProcessorDefinitions)
+			{
+				if( StringUtils.hasText( ( (ApplicationPreProcessor)def).getBeanName()))
+				{
+					PreProcessor proc= (PreProcessor)this.applicationContext.getBean(
+							( (ApplicationPreProcessor)def).getBeanName());
+					if( proc instanceof DataSourceAware)
+						( (DataSourceAware)proc).setDataSource( this.containerDataSource);
+					if( proc!= null) preProcessors.add( proc);
+				}
+				else
+				{
+					PreProcessor proc= (PreProcessor)def.getInterceptor();
+					if( proc instanceof DataSourceAware)
+						( (DataSourceAware)proc).setDataSource( this.containerDataSource);
+					if( proc!= null) preProcessors.add( proc);
 				}
 			}
 		}
 	}
 
-	void checkStatus()
+	protected void preparePostProcessors()
 	{
-		if( this.context== null || !this.context.isActive())
-			throw new IllegalStateException( "current application context is not initialized.");
-	}
-
-	/**
-	 * @generated by CodeSugar http://sourceforge.net/projects/codesugar */
-
-	public String toString() {
-		StringBuffer buffer = new StringBuffer();
-		buffer.append("[SpringLightweightApplicationContext:");
-		buffer.append(" context: ");
-		buffer.append(context);
-		buffer.append("]");
-		return buffer.toString();
+		if( this.postProcessors== null)
+		{
+			this.postProcessors= new ArrayList<PostProcessor>();
+			for( InterceptorDefinition def: this.postProcessorDefinitions)
+			{
+				if( StringUtils.hasText( ( (ApplicationPostProcessor)def).getBeanName()))
+				{
+					PostProcessor proc= (PostProcessor)this.applicationContext.getBean(
+							( (ApplicationPostProcessor)def).getBeanName());
+					if( proc instanceof DataSourceAware)
+						( (DataSourceAware)proc).setDataSource( this.containerDataSource);
+					if( proc!= null)
+						postProcessors.add( proc);
+				}
+				else
+				{
+					PostProcessor proc= (PostProcessor)def.getInterceptor();
+					if( proc instanceof DataSourceAware)
+						( (DataSourceAware)proc).setDataSource( this.containerDataSource);
+					if( proc!= null)
+						postProcessors.add( proc);
+				}
+			}
+		}
 	}
 }
