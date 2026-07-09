@@ -1,307 +1,263 @@
-1l. WebContent/META-INF/bxm-application.xml
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<bxm-application xmlns="http://www.es-code.com/schema/application" xmlns:ns2="http://www.es-code.com/schema/common" name="EX2" loglevel="Default" shared="false" reference-applications="" type="online">
-    <description>HI2예제</description>
-    <datasource>
-        <jdbc-datasource name="MainDS" driver-classname="${driver-classname}" uri="${uri}" username="${username}" enc-password="${password}" maxActive="10" maxIdle="10" validationQuery="select 1 from dual" validationQueryTimeout="60"/>
-    </datasource>
-</bxm-application>
-2. WebContent/WEB-INF/classes/online-instance.xml
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<bxm-instance xmlns="http://www.es-code.com/schema/instance" xmlns:ns2="http://www.es-code.com/schema/common" name="bxm-instance">
-    <domain-id>HI2EX</domain-id>
-    <description>HI2EX Configuration</description>
-    <environment>
-        <system-properties>asyncTaskExecutor.workerpool=50
-bxm.system.classloader.delegate.handler=jef.application.bxm.instance.support.ClassLoaderDelegateHandlerImpl
-bxm.system.online.base.packages=hi
-asyncTaskExecutor.taskqueue=300
-bxm.system.default.application.name=EX
-</system-properties>
-        <system-mode>D</system-mode>
-        <datasource>
-            <jdbc-datasource driver-classname="oracle.jdbc.OracleDriver" uri="empty" username="empty" enc-password="empty" maxActive="1" initialiSize="1" maxIdle="1"/>
-        </datasource>
-        <loader mode="cold" autodeploy="true" lazy-init="true" deferred-init="false" deferred-init-interval="1000" interval-millis="10000" cache-ioproperties="off" nouse-snapshot="true" use-lastmodified-cache="true" sessionfactory-lazyinit="true">
-            <application-home>D:\DEV\workspace\git-bxm-runtime-21-work\bxm-runtime\EX2\bin\main</application-home>
-            <classloader-delegate parent-first="true" auto-delegate="true"/>
-        </loader>
-    </environment>
-    <management>
-        <objectname domain="JRF">
-            <properties>
-				Name=bxm-management
-			</properties>
-        </objectname>
-    </management>
-    <context forced-timeout="-1">
-        <control-parameter classname="jef.application.bxm.control.impl.ServiceControlParametersImpl"/>
-        <transaction-rollbackfors>
-			java.lang.Exception
-			bxm.app.ApplicationException
-			jef.foundation.exception.JEFException
-		</transaction-rollbackfors>
-        <request header-classname="jef.application.message.header.GeneralHeader" imagelogging="false" request-resolver-classname="bxm.request.DefaultRequestResolver" response-resolver-classname="bxm.request.DefaultResponseResolver" request-trace-classname="bxm.request.DefaultRequestTrace"/>
-    </context>
-    <data-access trace-inject="false" monitor-inject="false" identify-inject="true" max-resultset="5000" limit-exceeded-action="Error" forced-logging="true" fetch-size="100" min-fetch-size="100">
-        <io-handler classname="jef.application.bxm.resource.dbio.Dbio2Handler"/>
-    </data-access>
-    <message message-source-classname="jef.foundation.bxm.message.DummyMessageSource"/>
-    <system-message message-source-classname="jef.foundation.bxm.message.DummyMessageSource"/>
-</bxm-instance>
-3. 스프링-> 스프링 부트 전환 하면서 기존 web.xml 을 클래스로 변경 
-package hi.example.mig.config;
-
-import java.io.IOException;
-
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import hi.framework.web.xss.XssFilter;
-import jef.application.channel.filter.EncodingFilter;
-import jef.application.channel.fms.ServiceInfoServlet;
-import jef.application.channel.gateway.servlet.DispatcherServletGateway;
-import jef.application.channel.gateway.servlet.JEFBxmContextListener;
-import jef.application.channel.gateway.servlet.JEFSpringContextListener;;
-
-@Configuration
-public class LegacyWebConfig {
-	// 1. JEFSpringContextListener
-	 @Bean
-	 public ServletListenerRegistrationBean<JEFSpringContextListener> jefSpringContextListener() {
-	 return new ServletListenerRegistrationBean<>(new JEFSpringContextListener());
-	 }
-	// 2. JEFBxmContextListener
-	@Bean
-	public ServletListenerRegistrationBean<JEFBxmContextListener> jefBxmContextListener() {
-		return new ServletListenerRegistrationBean<>(new JEFBxmContextListener());
-	}
-	// 3. ServletContextInitializer
-	@Bean
-	public ServletListenerRegistrationBean<jef.application.lifecycle.ServletContextInitializer> servletContextInitializer() {
-		return new ServletListenerRegistrationBean<>(new jef.application.lifecycle.ServletContextInitializer());
-	}
-	// 1. Gateway Servlet
-	@Bean
-	public ServletRegistrationBean<DispatcherServletGateway> gatewayServletRegistrationBean() {
-		DispatcherServletGateway servlet = new DispatcherServletGateway();
-		org.springframework.core.io.Resource resource = 
-		        new org.springframework.core.io.ClassPathResource("context-servlet.xml");
-	    try {
-			servlet.setContextConfigLocation(resource.getURL().toString());
-		} catch (IOException e) {
-			e.printStackTrace();
+@SpringBootApplication(
+		scanBasePackages = {"jef", "bxm", "hi.example"},
+		exclude = {
+				org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class,
+				DataSourceAutoConfiguration.class,
+				DataSourceTransactionManagerAutoConfiguration.class,
+				HibernateJpaAutoConfiguration.class,
+				JdbcTemplateAutoConfiguration.class
+				// DispatcherServletAutoConfiguration은 절대 exclude 하지 마세요!
 		}
-
-	    ServletRegistrationBean<DispatcherServletGateway> registrationBean =
-	        new ServletRegistrationBean<>(servlet, "*.hi", "*.do", "*.nhi", "*.download", "*.int", "*.ext", "*.obj", "*.extsoap", "/EX/");
-	    registrationBean.setName("gateway");
-	    registrationBean.setLoadOnStartup(1);
-	    return registrationBean;
-	    }
-	// 2. FMS Servlet
-	@Bean
-	public ServletRegistrationBean<ServiceInfoServlet> fmsServletRegistrationBean() {
-		ServiceInfoServlet servlet = new ServiceInfoServlet();
-		ServletRegistrationBean<ServiceInfoServlet> registrationBean =
-				new ServletRegistrationBean<>(servlet, "*.fms");
-		registrationBean.setName("fmssvc");
-		return registrationBean;
-	}
-	// 3. EncodingFilter (기본)
-	@Bean
-	public FilterRegistrationBean<EncodingFilter> encodingFilter() {
-		EncodingFilter filter = new EncodingFilter();
-		FilterRegistrationBean<EncodingFilter> registrationBean = new FilterRegistrationBean<>(filter);
-		// [중요] filter.setInitParameter 대신 registrationBean.addInitParameter를 사용합니다.
-		// 이것이 web.xml의 <init-param>과 동일한 역할을 합니다.
-		registrationBean.addInitParameter("encoding", "UTF-8");
-		registrationBean.addInitParameter("responseContentType", "application/json");
-		registrationBean.addUrlPatterns("*.hi", "*.do", "*.nhi", "*.obj");
-		registrationBean.setName("EncodingFilter");
-		return registrationBean;
-	}
-	// 4. ExternalEncodingFilter
-	@Bean
-	public FilterRegistrationBean<EncodingFilter> externalEncodingFilter() {
-		EncodingFilter filter = new EncodingFilter();
-		FilterRegistrationBean<EncodingFilter> registrationBean = new FilterRegistrationBean<>(filter);
-		registrationBean.addInitParameter("encoding", "EUC-KR");
-		registrationBean.addInitParameter("responseContentType", "text/xml");
-		registrationBean.addUrlPatterns("*.ext");
-		registrationBean.setName("ExternalEncodingFilter");
-		return registrationBean;
-	}
-	// 5. InternalEncodingFilter
-	@Bean
-	public FilterRegistrationBean<EncodingFilter> internalEncodingFilter() {
-		EncodingFilter filter = new EncodingFilter();
-		FilterRegistrationBean<EncodingFilter> registrationBean = new FilterRegistrationBean<>(filter);
-		registrationBean.addInitParameter("encoding", "EUC-KR");
-		registrationBean.addInitParameter("responseContentType", "application/json");
-		registrationBean.addUrlPatterns("*.int");
-		registrationBean.setName("InternalEncodingFilter");
-		return registrationBean;
-	}
-	// 6. FMS Encoding Filter
-	@Bean
-	public FilterRegistrationBean<EncodingFilter> fmsEncodingFilter() {
-		EncodingFilter filter = new EncodingFilter();
-		FilterRegistrationBean<EncodingFilter> registrationBean = new FilterRegistrationBean<>(filter);
-		registrationBean.addInitParameter("encoding", "UTF-8");
-		registrationBean.addInitParameter("responseContentType", "application/json");
-		registrationBean.addUrlPatterns("*.fms");
-		registrationBean.setName("FmsEncodingFilter");
-		return registrationBean;
-	}
-
-	// 7. XSS Filter
-	@Bean
-	public FilterRegistrationBean<XssFilter> xssFilter() {
-		XssFilter filter = new XssFilter();
-		FilterRegistrationBean<XssFilter> registrationBean = new FilterRegistrationBean<>(filter);
-
-		// XSS 필터의 patterns 설정
-		registrationBean.addInitParameter("patterns", "<\\<=<|\\>=>|'='");
-
-		registrationBean.addUrlPatterns("*.hi", "*.nhi");
-		registrationBean.setName("XssFilter");
-		return registrationBean;
+		)
+@ImportResource({
+	"classpath:context-application.xml",
+	"classpath:context-interceptor.xml",
+	"classpath:context-servlet.xml"
+})
+public class JefBootTestApplication {
+	public static void main(String[] args) {
+		SpringApplication.run(JefBootTestApplication.class, args);
 	}
 }
 
-4. 
-package jef.application.channel.gateway.servlet;
+1. context-application.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+					http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+					http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
-import jakarta.servlet.ServletContextEvent;
+	<import resource="context-interceptor.xml" />
+	
+	<context:component-scan	base-package="hi.example" />
+	
+	<mvc:annotation-driven />
 
-import bxm.service.endpoint.http.HttpServiceEndpointContextListener;
-import jef.foundation.bxm.defs.EnvConst;
-import jef.foundation.configuration.helper.ConfigurationUtils;
-import jef.foundation.util.StringUtils;
+	<!-- Gateway -->
+	<bean id="gateway" class="jef.application.channel.gateway.servlet.ServletGateway" abstract="true">
+		<property name="gatewayType" value="SERVLET" />
+		<property name="msgCharset" value="UTF-8" />
+	</bean>
+	<bean id="xInternetGateway" class="jef.application.channel.gateway.servlet.ServletGateway" parent="gateway">
+		<property name="channelType" value="XINTERNET" />
+		<property name="e2eLayerName" value="GW_XINTERNET" />
+		<property name="msgConverter" ref="xInternetHttpMessageConverter" />
+		<property name="interceptorChain" value="basicChain" />
+	</bean>
+	<bean id="websquareGateway" class="jef.application.channel.gateway.servlet.ServletGateway" parent="gateway">
+		<property name="channelType" value="XINTERNET" />
+		<property name="e2eLayerName" value="GW_XINTERNET" />
+		<property name="msgConverter" ref="websquareHttpMessageConverter" />
+		<property name="interceptorChain" value="basicChain" />
+	</bean>
+	<bean id="internalGateway" class="jef.application.channel.gateway.servlet.ServletGateway" parent="gateway">
+		<property name="channelType" value="INTERNAL" />
+		<property name="e2eLayerName" value="GW_INTERNAL" />
+		<property name="msgConverter" ref="internalHttpMessageConverter" />
+		<property name="msgCharset" value="EUC-KR" />
+		<property name="interceptorChain" value="channelChain" />
+	</bean>
+	<bean id="objectGateway" class="jef.application.channel.gateway.servlet.ServletGateway" parent="gateway">
+		<property name="channelType" value="XINTERNET" />
+		<property name="e2eLayerName" value="GW_XINTERNET" />
+		<property name="msgConverter" ref="objectHttpMessageConverter" />
+		<property name="interceptorChain" value="objectChain" />
+	</bean>
+	<bean id="pojoGateway" class="jef.application.channel.gateway.pojo.PojoServiceGateway" parent="gateway">
+		<property name="channelType" value="POJO" />
+		<property name="e2eLayerName" value="GW_POJO" />
+		<property name="msgConverter" ref="pojoServiceMessageConverter" />
+		<property name="interceptorChain" value="pojoChain" />
+	</bean>
+	<bean id="fileDownloadGateway" class="jef.application.channel.gateway.servlet.ServletNonServiceGateway" parent="gateway">
+		<property name="channelType" value="FILEDOWNLOAD" />
+		<property name="e2eLayerName" value="GW_FILEDOWNLOAD"/>
+		<property name="msgConverter" ref="dummyServletConverter" />
+		<property name="interceptorChain" value="fileDownloadChain" />
+	</bean>
+	<bean id="externalGateway" class="jef.application.channel.gateway.servlet.ServletGateway" parent="gateway">
+		<property name="channelType" value="EXTERNAL" />
+		<property name="e2eLayerName" value="GW_EXTERNAL"/>
+		<property name="msgConverter" ref="externalHttpMessageConverter" />
+		<property name="msgCharset" value="EUC-KR" />
+		<property name="interceptorChain" value="channelChain" />
+	</bean>
+	<bean id="externalSoapGateway" class="jef.application.channel.gateway.servlet.ServletGateway" parent="gateway">
+		<property name="channelType" value="EXTERNAL" />
+		<property name="e2eLayerName" value="GW_EXTERNAL"/>
+		<property name="msgConverter" ref="externalSoapMessageConverter" />
+		<property name="msgCharset" value="EUC-KR" />
+		<property name="interceptorChain" value="channelChain" />
+	</bean>
+	
+	<!-- Converter -->
+	<bean id="xInternetHttpMessageConverter" class="jef.application.channel.converter.XInternetHttpMessageConverter" />
+	
+	<bean id="internalHttpMessageConverter" class="jef.application.channel.converter.InternalHttpMessageConverter" />
+	<bean id="internalMessageConverter"	class="jef.application.channel.converter.InternalMessageConverter" />
+	
+	<bean id="externalSoapMessageConverter" class="jef.application.channel.converter.ExternalSoapMessageConverter" />
+	<bean id="externalHttpMessageConverter" class="jef.application.channel.converter.ExternalHttpMessageConverter" />
+	<bean id="externalMessageConverter"	class="jef.application.channel.converter.ExternalMessageConverter" />
+	
+	<bean id="websquareHttpMessageConverter" class="jef.application.channel.converter.WebSquareHttpMessageConverter" />
+	<bean id="objectHttpMessageConverter" class="jef.application.channel.converter.ObjectHttpMessageConverter" />
+	<bean id="pojoServiceMessageConverter"	class="jef.application.channel.converter.PojoServiceMessageConverter" />
+	<bean id="dummyServletConverter"	class="jef.application.channel.converter.HttpServletDummyConverter" />
+	
+	<!-- ApplicationContextUtil -->
+	<bean id="applicationContextUtils" class="jef.foundation.bxm.util.SystemApplicationContextUtils" />
+	<bean id="newE2EBizClient" class="jef.foundation.ne2e.config.NewE2EBizClient" />
 
-/**
- * BXM Application Context을 초기화한다
- *
- */
-public class JEFBxmContextListener extends HttpServiceEndpointContextListener {
+	<bean id="antPathMatcher" class="org.springframework.util.AntPathMatcher"/>
 
-    public void contextInitialized(ServletContextEvent sce) {
-        
-    	System.setProperty("beantype.usemetadata", "true");
-    	System.setProperty("bxm.use.mainservice", "true");
-    	System.setProperty("bxm.servicelog.messageMaxSizeChar", "100000");
-    	System.setProperty("bxm.system.ignore.container.datasource.connection.error", "true");
-    	System.setProperty("com.mocomsys.parser.json.helper.external", "jef.application.channel.helper.DataHelperHIF20");
+	<!-- RuleEngine Timestamp Check -->
+	<!-- bean id="ruleTimestampCheck" class="jef.application.resource.imdg.util.rule.RuleTimestampService">
+		<property name="checkInterval" value="1000" />
+	</bean-->
 
-    	if (StringUtils.isEmpty(System.getProperty("bxm.system.custom.jndi.datasource.classname"))) {
-    		if (ConfigurationUtils.matchTransactionMgrType(EnvConst.TRANSACTION_MGR_TYPE_JEF)) {
-    			System.setProperty("bxm.system.custom.jndi.datasource.classname", "jef.application.bxm.instance.support.PersitenceJndiDataSource");
-    		} else if (ConfigurationUtils.matchTransactionMgrType(EnvConst.TRANSACTION_MGR_TYPE_HIF10)) {
-    			System.setProperty("bxm.system.custom.jndi.datasource.classname", "jef.application.bxm.instance.support.HiTransactionJndiDataSource");
-    		} else if (ConfigurationUtils.matchTransactionMgrType(EnvConst.TRANSACTION_MGR_TYPE_HIF11)) {
-    			System.setProperty("bxm.system.custom.jndi.datasource.classname", "jef.application.bxm.instance.support.HiTransactionJndiDataSource");
-    		}
-    	}
-    	if (StringUtils.isEmpty(System.getProperty("bxm.system.custom.jndi.datasource.classname"))) {
-    		System.setProperty("bxm.system.use.custom.jndi.datasource", "false");    		
-    	} else {
-    		System.setProperty("bxm.system.use.custom.jndi.datasource", "true");
-    	}
-    	if ("jef.application.bxm.instance.support.PersitenceJndiDataSource".equals(System.getProperty("bxm.system.custom.jndi.datasource.classname")) 
-    			|| "jef.application.bxm.instance.support.HiTransactionJndiDataSource".equals(System.getProperty("bxm.system.custom.jndi.datasource.classname"))) {
-    		System.setProperty("bxm.system.custom.jndi.another.trxmgr", "true");
-    	}
-    	
-    	// Bxm ShutDown Class PreLoading.
-    	try {
-    		Class.forName(bxm.common.util.concurrent.worker.Worker.class.getName());
-    		Class.forName(bxm.common.util.concurrent.worker.PooledWorker.Closed.class.getName());
-    		Class.forName(bxm.common.util.concurrent.pool.internal.FrameBasicWorkerPooling.Destroyer.class.getName());
-    		Class.forName(bxm.common.util.concurrent.task.ConcurrentTaskManager.Closed.class.getName());
-    	} catch (Throwable t) {
-    		t.printStackTrace();
-    	}
-    	
-    	super.contextInitialized(sce);
-    }
-    
-    public void contextDestroyed(ServletContextEvent sce) {
-    	super.contextDestroyed(sce);
-    }
-}
+</beans>
+2. context.servlet.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-5. 
-package jef.application.channel.gateway.servlet;
+	<bean id="xInternetGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
+		<property name="servletGateway" ref="xInternetGateway" />
+	</bean>
+	<bean id="websquareGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
+		<property name="servletGateway" ref="websquareGateway" />
+	</bean>
+	<bean id="internalGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
+		<property name="servletGateway" ref="internalGateway" />
+	</bean>
+	<bean id="objectGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
+		<property name="servletGateway" ref="objectGateway" />
+	</bean>
+	<bean id="fileDownloadGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
+		<property name="servletGateway" ref="fileDownloadGateway" />
+	</bean>
+	<bean id="externalGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
+		<property name="servletGateway" ref="externalGateway" />
+	</bean>
+	<bean id="externalSoapGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
+		<property name="servletGateway" ref="externalSoapGateway" />
+	</bean>
+	
+	<bean id="gatewayHandlerMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+		<property name="order"><value>0</value></property>
 
-import java.util.Enumeration;
-import java.util.Properties;
+		<property name="pathMatcher" ref="antPathMatcher"/>
 
-import org.springframework.web.context.ContextLoaderListener;
-import org.springframework.web.context.WebApplicationContext;
+		<property name="mappings">
+			<props>
+				<prop key="*.hi">websquareGatewayController</prop>
+				<prop key="*.nhi">websquareGatewayController</prop>
+				<prop key="*.int">internalGatewayController</prop>
+				<prop key="*.download">fileDownloadGatewayController</prop>
+				<prop key="*.ext">externalGatewayController</prop>
+				<prop key="*.extsoap">externalSoapGatewayController</prop>
+				<prop key="*.obj">objectGatewayController</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="jstlViewResolver" class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/bin/" />
+		<property name="suffix" value=".jsp" />
+		<property name="order" value="3" />
+	</bean>
+</beans>
 
-import jef.foundation.afc.locator.EnvLocator;
-import jef.foundation.logging.ConsoleLogger;
-
-/**
- * JEF Application Context을 초기화한다
- * @author NCIS05
- *
- */
-public class JEFSpringContextListener extends ContextLoaderListener {
-
-	public JEFSpringContextListener() {
-		super();
-		loadServerInformation();
-	}
-
-	public JEFSpringContextListener(WebApplicationContext context) {
-		super(context);
-		loadServerInformation();
-	}
-
-	@SuppressWarnings("rawtypes")
-	private void loadServerInformation() {
-
-		try {
-			ConsoleLogger.info("Server information loading start.");
-
-			EnvLocator.loadServerInfo(false);
-			
-			String instanceName = System.getProperty("bxm.instance.name");
-			if (instanceName == null || "".equals(instanceName)) {
-				System.setProperty("bxm.instance.name", EnvLocator.getServerName());
-			}
-			
-			StringBuilder sb = new StringBuilder();
-			sb.append("domain name=").append(EnvLocator.getDomainName()).append("\n");
-			sb.append("cluster name=").append(EnvLocator.getClusterName()).append("\n");
-			sb.append("server name=").append(EnvLocator.getServerName()).append("\n");
-			sb.append("listen port=").append(EnvLocator.getListenPort());
-
-			ConsoleLogger.info("Server Information\n" + sb.toString());
-
-			StringBuilder builder = new StringBuilder();
-			Properties props = System.getProperties();
-			String key = null;
-			String value = null;
-			for (Enumeration e = props.keys(); e.hasMoreElements();) {
-				key = (String) e.nextElement();
-				value = (String) props.get(key);
-				builder.append(key).append("=").append(value).append("\n");
-			}
-			ConsoleLogger.info("Java System Properties\n" + builder.toString());
-
-			ConsoleLogger.info("Server information loading finish.");
-		} catch (Exception e) {
-			ConsoleLogger.error("Cannot loading Server information.", e);
-		}
-	}
-
-}
-
-
+3. context-interceptor.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		
+	<!-- InterceptorChains -->
+	<bean id="basicChain" class="jef.application.interceptor.InterceptorChain">
+		<property name="interceptors">
+			<list>
+				<ref bean="sessionValidatorInterceptor" />
+				<ref bean="authServerInterceptor" />
+				<ref bean="serviceOnOffInterceptor" />
+				<ref bean="uploadExtensionInterceptor" />
+				<ref bean="internalDirectInterceptor" />
+				<ref bean="mainServiceInterceptor" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="pojoChain" class="jef.application.interceptor.InterceptorChain">
+		<property name="interceptors">
+			<list>
+				<ref bean="sessionValidatorInterceptor" />
+				<ref bean="authServerInterceptor" />
+				<ref bean="serviceOnOffInterceptor" />
+				<ref bean="uploadExtensionInterceptor" />
+				<ref bean="internalDirectInterceptor" />
+				<ref bean="mainServiceInterceptor" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="channelChain" class="jef.application.interceptor.InterceptorChain">
+		<property name="interceptors">
+			<list>
+				<ref bean="authServerInterceptor" />
+				<ref bean="serviceOnOffInterceptor" />
+				<ref bean="mainServiceInterceptor" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="objectChain" class="jef.application.interceptor.InterceptorChain">
+		<property name="interceptors">
+			<list>
+				<ref bean="serviceOnOffInterceptor" />
+				<ref bean="mainServiceInterceptor" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="fileDownloadChain" class="jef.application.interceptor.InterceptorChain">
+		<property name="interceptors">
+			<list>
+				<ref bean="sessionValidatorInterceptor" />
+				<ref bean="fileDownloadInterceptor" />
+			</list>
+		</property>
+	</bean>
+	
+	<!-- Interceptors -->
+	<bean id="mainServiceInterceptor" class="jef.application.channel.interceptor.MainServiceExecuteInterceptor" />
+	<bean id="internalDirectInterceptor" class="jef.application.channel.interceptor.WebSquareInternalDirectInterceptor" />
+	<bean id="serviceOnOffInterceptor" class="jef.application.channel.interceptor.ServiceOnOffInterceptor" />
+	<bean id="fileDownloadInterceptor" class="jef.application.channel.interceptor.FileDownloadInterceptor" />
+	<bean id="uploadExtensionInterceptor" class="jef.application.channel.interceptor.UploadExtensionInterceptor">
+		<property name="rejectPatternList">
+			<list>
+				<value>,</value>
+				<value>;</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="sessionValidatorInterceptor" class="jef.application.channel.interceptor.SessionIpValidateInterceptor">
+		<property name="exceptionTranIdList">
+			<list>
+				<value>EXOC0001M01S</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="authServerInterceptor" class="jef.application.channel.interceptor.AuthServerInterceptor" />
+</beans>
 
