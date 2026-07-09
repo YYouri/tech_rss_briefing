@@ -1,263 +1,43 @@
-@SpringBootApplication(
-		scanBasePackages = {"jef", "bxm", "hi.example"},
-		exclude = {
-				org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class,
-				DataSourceAutoConfiguration.class,
-				DataSourceTransactionManagerAutoConfiguration.class,
-				HibernateJpaAutoConfiguration.class,
-				JdbcTemplateAutoConfiguration.class
-				// DispatcherServletAutoConfiguration은 절대 exclude 하지 마세요!
-		}
-		)
-@ImportResource({
-	"classpath:context-application.xml",
-	"classpath:context-interceptor.xml",
-	"classpath:context-servlet.xml"
-})
-public class JefBootTestApplication {
-	public static void main(String[] args) {
-		SpringApplication.run(JefBootTestApplication.class, args);
-	}
-}
+지금 
 
-1. context-application.xml
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns="http://www.springframework.org/schema/beans"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:mvc="http://www.springframework.org/schema/mvc"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-					http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-					http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+bin/main/META-INF/bxm-application.xml
+bin/main/*.class
+bin/main/*.properties
+bin/main/*.xml
+bin/main/static/index.html
 
-	<import resource="context-interceptor.xml" />
-	
-	<context:component-scan	base-package="hi.example" />
-	
-	<mvc:annotation-driven />
 
-	<!-- Gateway -->
-	<bean id="gateway" class="jef.application.channel.gateway.servlet.ServletGateway" abstract="true">
-		<property name="gatewayType" value="SERVLET" />
-		<property name="msgCharset" value="UTF-8" />
-	</bean>
-	<bean id="xInternetGateway" class="jef.application.channel.gateway.servlet.ServletGateway" parent="gateway">
-		<property name="channelType" value="XINTERNET" />
-		<property name="e2eLayerName" value="GW_XINTERNET" />
-		<property name="msgConverter" ref="xInternetHttpMessageConverter" />
-		<property name="interceptorChain" value="basicChain" />
-	</bean>
-	<bean id="websquareGateway" class="jef.application.channel.gateway.servlet.ServletGateway" parent="gateway">
-		<property name="channelType" value="XINTERNET" />
-		<property name="e2eLayerName" value="GW_XINTERNET" />
-		<property name="msgConverter" ref="websquareHttpMessageConverter" />
-		<property name="interceptorChain" value="basicChain" />
-	</bean>
-	<bean id="internalGateway" class="jef.application.channel.gateway.servlet.ServletGateway" parent="gateway">
-		<property name="channelType" value="INTERNAL" />
-		<property name="e2eLayerName" value="GW_INTERNAL" />
-		<property name="msgConverter" ref="internalHttpMessageConverter" />
-		<property name="msgCharset" value="EUC-KR" />
-		<property name="interceptorChain" value="channelChain" />
-	</bean>
-	<bean id="objectGateway" class="jef.application.channel.gateway.servlet.ServletGateway" parent="gateway">
-		<property name="channelType" value="XINTERNET" />
-		<property name="e2eLayerName" value="GW_XINTERNET" />
-		<property name="msgConverter" ref="objectHttpMessageConverter" />
-		<property name="interceptorChain" value="objectChain" />
-	</bean>
-	<bean id="pojoGateway" class="jef.application.channel.gateway.pojo.PojoServiceGateway" parent="gateway">
-		<property name="channelType" value="POJO" />
-		<property name="e2eLayerName" value="GW_POJO" />
-		<property name="msgConverter" ref="pojoServiceMessageConverter" />
-		<property name="interceptorChain" value="pojoChain" />
-	</bean>
-	<bean id="fileDownloadGateway" class="jef.application.channel.gateway.servlet.ServletNonServiceGateway" parent="gateway">
-		<property name="channelType" value="FILEDOWNLOAD" />
-		<property name="e2eLayerName" value="GW_FILEDOWNLOAD"/>
-		<property name="msgConverter" ref="dummyServletConverter" />
-		<property name="interceptorChain" value="fileDownloadChain" />
-	</bean>
-	<bean id="externalGateway" class="jef.application.channel.gateway.servlet.ServletGateway" parent="gateway">
-		<property name="channelType" value="EXTERNAL" />
-		<property name="e2eLayerName" value="GW_EXTERNAL"/>
-		<property name="msgConverter" ref="externalHttpMessageConverter" />
-		<property name="msgCharset" value="EUC-KR" />
-		<property name="interceptorChain" value="channelChain" />
-	</bean>
-	<bean id="externalSoapGateway" class="jef.application.channel.gateway.servlet.ServletGateway" parent="gateway">
-		<property name="channelType" value="EXTERNAL" />
-		<property name="e2eLayerName" value="GW_EXTERNAL"/>
-		<property name="msgConverter" ref="externalSoapMessageConverter" />
-		<property name="msgCharset" value="EUC-KR" />
-		<property name="interceptorChain" value="channelChain" />
-	</bean>
-	
-	<!-- Converter -->
-	<bean id="xInternetHttpMessageConverter" class="jef.application.channel.converter.XInternetHttpMessageConverter" />
-	
-	<bean id="internalHttpMessageConverter" class="jef.application.channel.converter.InternalHttpMessageConverter" />
-	<bean id="internalMessageConverter"	class="jef.application.channel.converter.InternalMessageConverter" />
-	
-	<bean id="externalSoapMessageConverter" class="jef.application.channel.converter.ExternalSoapMessageConverter" />
-	<bean id="externalHttpMessageConverter" class="jef.application.channel.converter.ExternalHttpMessageConverter" />
-	<bean id="externalMessageConverter"	class="jef.application.channel.converter.ExternalMessageConverter" />
-	
-	<bean id="websquareHttpMessageConverter" class="jef.application.channel.converter.WebSquareHttpMessageConverter" />
-	<bean id="objectHttpMessageConverter" class="jef.application.channel.converter.ObjectHttpMessageConverter" />
-	<bean id="pojoServiceMessageConverter"	class="jef.application.channel.converter.PojoServiceMessageConverter" />
-	<bean id="dummyServletConverter"	class="jef.application.channel.converter.HttpServletDummyConverter" />
-	
-	<!-- ApplicationContextUtil -->
-	<bean id="applicationContextUtils" class="jef.foundation.bxm.util.SystemApplicationContextUtils" />
-	<bean id="newE2EBizClient" class="jef.foundation.ne2e.config.NewE2EBizClient" />
+이구조에서 소스에서 강제로 클래스 로드 하는걸 이렇게 해둔 상태에서 정상동작이 되는데 .. 
 
-	<bean id="antPathMatcher" class="org.springframework.util.AntPathMatcher"/>
+			File bin = loaderTarget.getParentFile();
+			File libPath= new File( "D:\\DEV\\workspace\\git-bxm-runtime-21-work\\bxm-runtime\\EX\\WebContent\\WEB-INF\\lib");
+			File classPath= new File( bin, "hi");
+			File binPath= bin;
+//			File libPath= new File( loaderTarget, DeployedApplicationModel.LIB_PATH_SUFFIX);
+//			File classPath= new File( loaderTarget, DeployedApplicationModel.CLASSES_PATH_SUFFIX);
+//			File binPath= new File( loaderTarget, DeployedApplicationModel.BIN_PATH_SUFFIX);
 
-	<!-- RuleEngine Timestamp Check -->
-	<!-- bean id="ruleTimestampCheck" class="jef.application.resource.imdg.util.rule.RuleTimestampService">
-		<property name="checkInterval" value="1000" />
-	</bean-->
+			if( classPath.exists() && classPath.isDirectory())
+			{
+				try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( classPath));}
+				catch( MalformedURLException ne){}
+			}
+			if( binPath.exists() && binPath.isDirectory())
+			{
+				try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( binPath));}
+				catch( MalformedURLException ne){}
+			}
+			{
+				if( libPath.exists() && libPath.isDirectory())
+				{
+					File[] libEntries= libPath.listFiles();
+					for( File libEntry: libEntries)
+					{
+						if( libEntry.getName().equals( ".svn")) continue;
+						try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( libEntry));}
+						catch( MalformedURLException ne){}
+					}
+				}
+			}
 
-</beans>
-2. context.servlet.xml
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
-
-	<bean id="xInternetGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
-		<property name="servletGateway" ref="xInternetGateway" />
-	</bean>
-	<bean id="websquareGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
-		<property name="servletGateway" ref="websquareGateway" />
-	</bean>
-	<bean id="internalGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
-		<property name="servletGateway" ref="internalGateway" />
-	</bean>
-	<bean id="objectGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
-		<property name="servletGateway" ref="objectGateway" />
-	</bean>
-	<bean id="fileDownloadGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
-		<property name="servletGateway" ref="fileDownloadGateway" />
-	</bean>
-	<bean id="externalGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
-		<property name="servletGateway" ref="externalGateway" />
-	</bean>
-	<bean id="externalSoapGatewayController" class="jef.application.channel.gateway.servlet.ServletGatewayController" >
-		<property name="servletGateway" ref="externalSoapGateway" />
-	</bean>
-	
-	<bean id="gatewayHandlerMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
-		<property name="order"><value>0</value></property>
-
-		<property name="pathMatcher" ref="antPathMatcher"/>
-
-		<property name="mappings">
-			<props>
-				<prop key="*.hi">websquareGatewayController</prop>
-				<prop key="*.nhi">websquareGatewayController</prop>
-				<prop key="*.int">internalGatewayController</prop>
-				<prop key="*.download">fileDownloadGatewayController</prop>
-				<prop key="*.ext">externalGatewayController</prop>
-				<prop key="*.extsoap">externalSoapGatewayController</prop>
-				<prop key="*.obj">objectGatewayController</prop>
-			</props>
-		</property>
-	</bean>
-	
-	<bean id="jstlViewResolver" class="org.springframework.web.servlet.view.UrlBasedViewResolver">
-		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
-		<property name="prefix" value="/bin/" />
-		<property name="suffix" value=".jsp" />
-		<property name="order" value="3" />
-	</bean>
-</beans>
-
-3. context-interceptor.xml
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-		
-	<!-- InterceptorChains -->
-	<bean id="basicChain" class="jef.application.interceptor.InterceptorChain">
-		<property name="interceptors">
-			<list>
-				<ref bean="sessionValidatorInterceptor" />
-				<ref bean="authServerInterceptor" />
-				<ref bean="serviceOnOffInterceptor" />
-				<ref bean="uploadExtensionInterceptor" />
-				<ref bean="internalDirectInterceptor" />
-				<ref bean="mainServiceInterceptor" />
-			</list>
-		</property>
-	</bean>
-	
-	<bean id="pojoChain" class="jef.application.interceptor.InterceptorChain">
-		<property name="interceptors">
-			<list>
-				<ref bean="sessionValidatorInterceptor" />
-				<ref bean="authServerInterceptor" />
-				<ref bean="serviceOnOffInterceptor" />
-				<ref bean="uploadExtensionInterceptor" />
-				<ref bean="internalDirectInterceptor" />
-				<ref bean="mainServiceInterceptor" />
-			</list>
-		</property>
-	</bean>
-	
-	<bean id="channelChain" class="jef.application.interceptor.InterceptorChain">
-		<property name="interceptors">
-			<list>
-				<ref bean="authServerInterceptor" />
-				<ref bean="serviceOnOffInterceptor" />
-				<ref bean="mainServiceInterceptor" />
-			</list>
-		</property>
-	</bean>
-	
-	<bean id="objectChain" class="jef.application.interceptor.InterceptorChain">
-		<property name="interceptors">
-			<list>
-				<ref bean="serviceOnOffInterceptor" />
-				<ref bean="mainServiceInterceptor" />
-			</list>
-		</property>
-	</bean>
-	
-	<bean id="fileDownloadChain" class="jef.application.interceptor.InterceptorChain">
-		<property name="interceptors">
-			<list>
-				<ref bean="sessionValidatorInterceptor" />
-				<ref bean="fileDownloadInterceptor" />
-			</list>
-		</property>
-	</bean>
-	
-	<!-- Interceptors -->
-	<bean id="mainServiceInterceptor" class="jef.application.channel.interceptor.MainServiceExecuteInterceptor" />
-	<bean id="internalDirectInterceptor" class="jef.application.channel.interceptor.WebSquareInternalDirectInterceptor" />
-	<bean id="serviceOnOffInterceptor" class="jef.application.channel.interceptor.ServiceOnOffInterceptor" />
-	<bean id="fileDownloadInterceptor" class="jef.application.channel.interceptor.FileDownloadInterceptor" />
-	<bean id="uploadExtensionInterceptor" class="jef.application.channel.interceptor.UploadExtensionInterceptor">
-		<property name="rejectPatternList">
-			<list>
-				<value>,</value>
-				<value>;</value>
-			</list>
-		</property>
-	</bean>
-	<bean id="sessionValidatorInterceptor" class="jef.application.channel.interceptor.SessionIpValidateInterceptor">
-		<property name="exceptionTranIdList">
-			<list>
-				<value>EXOC0001M01S</value>
-			</list>
-		</property>
-	</bean>
-	<bean id="authServerInterceptor" class="jef.application.channel.interceptor.AuthServerInterceptor" />
-</beans>
-
+알다시피 너무 별로잖아 .
