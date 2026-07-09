@@ -1,43 +1,80 @@
-지금 
+	public ApplicationContainer lookupApplicationContainer( ServletContext servletContext, URL configLocation)
+	{
+		ClassLoader currentLoader= Thread.currentThread().getContextClassLoader();
+//		logger.debug( "classLoader is {}", ApplicationContainerLoader.class.getClassLoader());
 
-bin/main/META-INF/bxm-application.xml
-bin/main/*.class
-bin/main/*.properties
-bin/main/*.xml
-bin/main/static/index.html
+		ContextClassLoaderWeakReference currentRef= new ContextClassLoaderWeakReference( currentLoader);
+		FrameworkInstanceApplicationContainer container;
+		BxmInstance conf;
+		try{ conf= createConfigurationBindingObject( configLocation);}
+		catch( Exception e)
+		{
+			logger.error( e.getMessage(), e);
+			throw new IllegalArgumentException( "Invalid configuration for Framework instance");
+		}
 
-
-이구조에서 소스에서 강제로 클래스 로드 하는걸 이렇게 해둔 상태에서 정상동작이 되는데 .. 
-
-			File bin = loaderTarget.getParentFile();
-			File libPath= new File( "D:\\DEV\\workspace\\git-bxm-runtime-21-work\\bxm-runtime\\EX\\WebContent\\WEB-INF\\lib");
-			File classPath= new File( bin, "hi");
-			File binPath= bin;
-//			File libPath= new File( loaderTarget, DeployedApplicationModel.LIB_PATH_SUFFIX);
-//			File classPath= new File( loaderTarget, DeployedApplicationModel.CLASSES_PATH_SUFFIX);
-//			File binPath= new File( loaderTarget, DeployedApplicationModel.BIN_PATH_SUFFIX);
-
-			if( classPath.exists() && classPath.isDirectory())
+		synchronized( monitor)
+		{
+			container= (FrameworkInstanceApplicationContainer)currentContexts.get( currentRef);
+			if( container!= null)
 			{
-				try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( classPath));}
-				catch( MalformedURLException ne){}
-			}
-			if( binPath.exists() && binPath.isDirectory())
-			{
-				try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( binPath));}
-				catch( MalformedURLException ne){}
-			}
-			{
-				if( libPath.exists() && libPath.isDirectory())
+				if( container.getFrameworkInstance().getName().equals( conf.getName()))
+					return container;
+				else
 				{
-					File[] libEntries= libPath.listFiles();
-					for( File libEntry: libEntries)
-					{
-						if( libEntry.getName().equals( ".svn")) continue;
-						try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( libEntry));}
-						catch( MalformedURLException ne){}
-					}
+					logger.warn( "created ApplicationContainer's name in current context is [{}].",
+							container.getFrameworkInstance().getName());
+					throw new IllegalStateException( "created ApplicationContainer's name in current context is "+
+							container.getFrameworkInstance().getName());
 				}
 			}
+			else
+			{
+				// associate
+				for( Map.Entry<ContextClassLoaderWeakReference, ApplicationContainer> entry:
+					ApplicationContainerLoader.currentContexts.entrySet())
+				{
+					FrameworkInstanceApplicationContainer managedContainer= (FrameworkInstanceApplicationContainer)entry.getValue();
+					if( managedContainer.getFrameworkInstance().getName().equals( conf.getName()))
+					{
+						ApplicationContainerLoader.currentContextRefs.put(
+								currentRef, new WeakReference<ApplicationContainer>( managedContainer));
+						logger.info( "ApplicationContainer request associated with [{}]."+ entry.getKey());
+						return managedContainer;
+					}
+				}
 
-알다시피 너무 별로잖아 .
+				// or create
+				FrameworkInstance instance=
+						FrameworkInstanceConfigurationManager.configure( servletContext, conf, deployRoot, true);
+				container= new FrameworkInstanceApplicationContainer( instance);
+
+				if( instance.getMessageService()!= null)
+				{
+					List<JmsMessageListener> jmsListeners= instance.getMessageService().getJmsMessageListeners();
+					if( jmsListeners!= null && jmsListeners.size()> 0)
+					{
+						for( JmsMessageListener jmsListener: jmsListeners)
+						{
+							if( jmsListener.getServiceEndpoint()!=null)
+							{
+								jmsListener.getServiceEndpoint().setApplicationContainer( container);
+								jmsListener.start();
+							}
+						}
+					}
+
+					List<MessageListenerServiceEndpoint> endpoints= instance.getMessageService().getMessageListenerServiceEndpoints();
+					if( endpoints!= null && endpoints.size()> 0)
+					{
+						for( MessageListenerServiceEndpoint endpoint: endpoints)
+							endpoint.setApplicationContainer( container);
+					}
+				}
+
+				ApplicationContainerLoader.currentContexts.put( currentRef, container);
+				logger.info( "ApplicationContainer with resource [{}] is created.", configLocation);
+				return container;
+			}
+		}
+	}
