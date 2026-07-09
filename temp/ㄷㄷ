@@ -1,80 +1,32 @@
-	public ApplicationContainer lookupApplicationContainer( ServletContext servletContext, URL configLocation)
+	public static BxmInstance createConfigurationBindingObject( URL configurationURL) throws JAXBException, SAXException
 	{
-		ClassLoader currentLoader= Thread.currentThread().getContextClassLoader();
-//		logger.debug( "classLoader is {}", ApplicationContainerLoader.class.getClassLoader());
+		BxmInstance conf= null;
 
-		ContextClassLoaderWeakReference currentRef= new ContextClassLoaderWeakReference( currentLoader);
-		FrameworkInstanceApplicationContainer container;
-		BxmInstance conf;
-		try{ conf= createConfigurationBindingObject( configLocation);}
-		catch( Exception e)
-		{
-			logger.error( e.getMessage(), e);
-			throw new IllegalArgumentException( "Invalid configuration for Framework instance");
+		JAXBContext jaxbContext= JAXBContext.newInstance( Configurable.INSTANCE_JAXB_CONTEXT_CLASS);
+		//SchemaFactory sfac= SchemaFactory.newInstance( Configurable.XMLSCHEMA_LOCATION);
+		//URL schemaURL= ApplicationContainerLoader.class.getClassLoader().getResource( Configurable.INSTANCE_SCHEMA_LOCATION);
+		//Schema schema= sfac.newSchema( schemaURL);
+		Unmarshaller unmarshaller= jaxbContext.createUnmarshaller();
+		//unmarshaller.setSchema( schema);
+		//conf= (BxmInstance)unmarshaller.unmarshal( configurationURL);
+		//[[CERT - XML External Entity Injection
+		File configFile;
+		try {
+			configFile = ResourceUtils.getFile(configurationURL);
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			dbf.setNamespaceAware(true); 
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			Document document = db.parse(configFile);
+			JAXBElement<BxmInstance> bxmInstanceElement = unmarshaller.unmarshal( document, BxmInstance.class);
+			conf= bxmInstanceElement.getValue();
+		} catch (FileNotFoundException e) {
+			throw new JAXBException(e);
+		} catch (Exception e) {
+			throw new JAXBException(e);
 		}
+		//]]
 
-		synchronized( monitor)
-		{
-			container= (FrameworkInstanceApplicationContainer)currentContexts.get( currentRef);
-			if( container!= null)
-			{
-				if( container.getFrameworkInstance().getName().equals( conf.getName()))
-					return container;
-				else
-				{
-					logger.warn( "created ApplicationContainer's name in current context is [{}].",
-							container.getFrameworkInstance().getName());
-					throw new IllegalStateException( "created ApplicationContainer's name in current context is "+
-							container.getFrameworkInstance().getName());
-				}
-			}
-			else
-			{
-				// associate
-				for( Map.Entry<ContextClassLoaderWeakReference, ApplicationContainer> entry:
-					ApplicationContainerLoader.currentContexts.entrySet())
-				{
-					FrameworkInstanceApplicationContainer managedContainer= (FrameworkInstanceApplicationContainer)entry.getValue();
-					if( managedContainer.getFrameworkInstance().getName().equals( conf.getName()))
-					{
-						ApplicationContainerLoader.currentContextRefs.put(
-								currentRef, new WeakReference<ApplicationContainer>( managedContainer));
-						logger.info( "ApplicationContainer request associated with [{}]."+ entry.getKey());
-						return managedContainer;
-					}
-				}
-
-				// or create
-				FrameworkInstance instance=
-						FrameworkInstanceConfigurationManager.configure( servletContext, conf, deployRoot, true);
-				container= new FrameworkInstanceApplicationContainer( instance);
-
-				if( instance.getMessageService()!= null)
-				{
-					List<JmsMessageListener> jmsListeners= instance.getMessageService().getJmsMessageListeners();
-					if( jmsListeners!= null && jmsListeners.size()> 0)
-					{
-						for( JmsMessageListener jmsListener: jmsListeners)
-						{
-							if( jmsListener.getServiceEndpoint()!=null)
-							{
-								jmsListener.getServiceEndpoint().setApplicationContainer( container);
-								jmsListener.start();
-							}
-						}
-					}
-
-					List<MessageListenerServiceEndpoint> endpoints= instance.getMessageService().getMessageListenerServiceEndpoints();
-					if( endpoints!= null && endpoints.size()> 0)
-					{
-						for( MessageListenerServiceEndpoint endpoint: endpoints)
-							endpoint.setApplicationContainer( container);
-					}
-				}
-
-				ApplicationContainerLoader.currentContexts.put( currentRef, container);
-				logger.info( "ApplicationContainer with resource [{}] is created.", configLocation);
-				return container;
-			}
-		}
+		return conf;
 	}
+	위에 준 코드에서 createConfigurationBindingObject 여기 함수 중에 에러가 났어
