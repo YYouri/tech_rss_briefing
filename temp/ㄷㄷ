@@ -1,32 +1,224 @@
-	public static BxmInstance createConfigurationBindingObject( URL configurationURL) throws JAXBException, SAXException
+스프링 기준 
+EX/WEB-INF/META-INF/bxm-application.xml
+EX/WEB-INF/classes
+EX/WEB-INF/llib
+
+1. online-instance.xml - application_home (=appHome = EX 경로 까지 지정) 을 기준으로 파일 검색하면서 bxm-application.xml 찾기
+File[] entries= this.appHome.listFiles();
+for (file: entries)
+if(file.equals("bxm-application.xml" ))
+BxmApplication conf= marshallApplicationDescriptor( file);
+						if( conf== null)	continue;
+						if( !batch && ApplicationType.BATCH== conf.getType()) continue;
+						if( !CollectionUtils.isEmpty( targetApplications) && !targetApplications.contains( conf.getName()))
+							continue;
+
+						if( toDeployApps.containsKey( conf.getName()))
+						{
+							logger.debug( "refreshApplicationSourceForLoader using [{}].", entry);
+							refreshApplicationSourceForLoader( entry, conf, applicationSource,
+									toDeployApps.get( conf.getName()).getClassLoaderRef().getClassLoader(),
+									this.applicationLoader.isUseLastmodifiedCache());
+						}
+						else
+						{
+							logger.debug( "autoDeployApplication using [{}].", metaFile.getAbsolutePath());
+							Map<String, DeployedApplication> depapps= autoDeployApplication( applicationSource, conf, entry);
+							if( depapps!= null && depapps.size()> 0)
+							{
+								for( DeployedApplication depapp: depapps.values())
+									toDeployApps.put( depapp.getApplicationName(), depapp);
+							}
+						}
+						
+2. bxm-application.xml 기준으로 클래스 패스 잡기 						
+	private Map<String, DeployedApplication> autoDeployApplication( URL applicationSource, BxmApplication conf, File applicationLocation) throws Exception
 	{
-		BxmInstance conf= null;
+		try
+		{
+			if( this.deployedApplications.containsKey( conf.getName()))
+			{
+				if( HOT!= applicationLoader.getLoadingMode())
+					return null;
 
-		JAXBContext jaxbContext= JAXBContext.newInstance( Configurable.INSTANCE_JAXB_CONTEXT_CLASS);
-		//SchemaFactory sfac= SchemaFactory.newInstance( Configurable.XMLSCHEMA_LOCATION);
-		//URL schemaURL= ApplicationContainerLoader.class.getClassLoader().getResource( Configurable.INSTANCE_SCHEMA_LOCATION);
-		//Schema schema= sfac.newSchema( schemaURL);
-		Unmarshaller unmarshaller= jaxbContext.createUnmarshaller();
-		//unmarshaller.setSchema( schema);
-		//conf= (BxmInstance)unmarshaller.unmarshal( configurationURL);
-		//[[CERT - XML External Entity Injection
-		File configFile;
-		try {
-			configFile = ResourceUtils.getFile(configurationURL);
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-			dbf.setNamespaceAware(true); 
-			DocumentBuilder db = dbf.newDocumentBuilder();
-			Document document = db.parse(configFile);
-			JAXBElement<BxmInstance> bxmInstanceElement = unmarshaller.unmarshal( document, BxmInstance.class);
-			conf= bxmInstanceElement.getValue();
-		} catch (FileNotFoundException e) {
-			throw new JAXBException(e);
-		} catch (Exception e) {
-			throw new JAXBException(e);
+				if( !this.deployedApplications.get( conf.getName()).getApplicationSource().equals( applicationSource))
+				{
+					logger.warn( "duplicated applications are located in application home");
+					return null;
+				}
+			}
+
+			// case 1. not registered before
+			// case 2. auto-deploy and hot loading mode
+			DeployedApplication das= null;
+			if( ( das= this.deployedApplications.get( conf.getName()))!= null)
+			{
+				das.getLightweightApplicationContext().interruptedDeferredInstantiate();
+				return refreshApplication( applicationLocation, conf, applicationSource, das.getClassLoaderRef().getClassLoader(),
+						this.applicationLoader.isUseLastmodifiedCache());
+			}
+			else
+				return newApplication( applicationLocation, conf, applicationSource);
 		}
-		//]]
+		catch( Exception e)
+		{
+			logger.warn( "application source [{}] in application home deployment failed.", new Object[]{ applicationLocation, e});
+			throw e;
+		}
+	}						
 
-		return conf;
-	}
-	위에 준 코드에서 createConfigurationBindingObject 여기 함수 중에 에러가 났어
+3. bxm-application.xml 기준으로 클래스 패스 잡기
+	private Map<String, DeployedApplication> newApplication( File applicationLocation, BxmApplication conf, URL applicationSource)
+		throws ApplicationConfigurationException, InvalidCommandException, ApplicationNotFoundException, IOException
+	{
+		Map<String, DeployedApplication> apps= new HashMap<String, DeployedApplication>();
+		List<URL> configuredClasspath= new ArrayList<URL>();
+		configuredClasspath.addAll( applicationLoader.getApplicableClasspath());
+		File loaderTarget= createLoaderTagetForApplication( conf.getName(), applicationLocation, null, false);
+		List<URL> localAppClasspath= createLocalAppClasspath( loaderTarget);
+		configuredClasspath.addAll( localAppClasspath);
+
+		List<ApplicationClassLoaderListener> listeners= getClassLoaderLifecycleListeners();
+
+		String[] chTos= this.classLoaderManager.registerApplication( conf.getName(),
+				configuredClasspath.toArray( new URL[configuredClasspath.size()]),
+				localAppClasspath.toArray( new URL[localAppClasspath.size()]), conf.isShared(),
+				listeners.toArray( new ApplicationClassLoaderListener[listeners.size()]), loaderTarget,
+				StringUtils.hasText( conf.getReferenceApplications()) ?
+						StringUtils.tokenizeToStringArray( conf.getReferenceApplications(), ",") : new String[]{},
+				applicationLoader.getInstrument());
+
+		Set<String> changeTos= new HashSet<String>();
+		changeTos.addAll( Arrays.asList( chTos));
+
+		List<String> referenceTos= new ArrayList<String>();
+		for( String changeTo: changeTos)
+		{
+			ClassLoaderRef loaderRef= this.classLoaderManager.getClassLoaderFor( changeTo);
+			if( changeTo.equals( conf.getName()))
+			{
+				DeployedApplication target= (DeployedApplication)ApplicationConfigurationManager.configure(
+						this, conf, true, loaderRef);
+				target.setApplicationSource( applicationSource);
+				target.setDeployedTarget( loaderTarget);
+				referenceTos.addAll( Arrays.asList( target.getReferenceApplications()));
+				apps.put( target.getApplicationName(), target);
+			}
+			else
+			{
+				DeployedApplication deployedApp= this.deployedApplications.get( changeTo);
+				if( deployedApp!= null)
+				{
+					DeployedApplication target= (DeployedApplication)ApplicationConfigurationManager.configure(
+							this, deployedApp.getConfiguration(), true, loaderRef);
+					target.setApplicationSource( deployedApp.getApplicationSource());
+					target.setDeployedTarget( deployedApp.getDeployedTarget());
+					apps.put( target.getApplicationName(), target);
+				}
+				else
+					logger.warn( "refrersh target application[{}] is not deployed.", changeTo);
+			}
+		}
+
+		return apps;
+	}	
+	
+4. META-INF 같은 패스에서 classes, lib 찾아서  클래스 패스 올리기 
+
+loaderTarget =>> METa-INF 폴더로 보여짐
+			File libPath= new File( loaderTarget, DeployedApplicationModel.LIB_PATH_SUFFIX); //LIB
+			File classPath= new File( loaderTarget, DeployedApplicationModel.CLASSES_PATH_SUFFIX); //classes
+			File binPath= new File( loaderTarget, DeployedApplicationModel.BIN_PATH_SUFFIX); //bin
+
+			if( classPath.exists() && classPath.isDirectory())
+			{
+				try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( classPath));}
+				catch( MalformedURLException ne){}
+			}
+			if( binPath.exists() && binPath.isDirectory())
+			{
+				try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( binPath));}
+				catch( MalformedURLException ne){}
+			}
+
+			if( Boolean.valueOf( System.getProperty( ApplicationContainerLoader.CONTAINER_FOR_BATCH)))
+			{
+				File file = new File(libPath + File.separator + "lib_version.properties");
+				if(file.exists())
+				{
+					BufferedReader br = null;
+					try
+					{
+						br = new BufferedReader(new FileReader(file));
+						String read = br.readLine();
+						if(StringUtils.hasText(read))
+						{
+							libPath = new File(libPath + File.separator + read);
+						}
+					}
+					catch (Exception e)
+					{
+						throw new RuntimeException(e.getMessage(), e);
+					}
+					finally
+					{
+						if(br != null) try { br.close();} catch (Exception e2) {}
+					}
+				}
+
+				if( libPath.exists() && libPath.isDirectory())
+				{
+					File[] libEntries= libPath.listFiles();
+					for( File libEntry: libEntries)
+					{
+						if( libEntry.getName().equals( ".svn")) continue;
+						if(libEntry.getName().endsWith(".jar"))
+						{
+							if(libEntry.getName().contains("online") || libEntry.getName().contains("interface") || libEntry.getName().contains("batch")
+									|| libEntry.getName().contains("dbio"))
+							try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( libEntry));}
+							catch( MalformedURLException ne){}
+						}
+					}
+				}
+			}
+			else
+			{
+				if( libPath.exists() && libPath.isDirectory())
+				{
+					File[] libEntries= libPath.listFiles();
+					for( File libEntry: libEntries)
+					{
+						if( libEntry.getName().equals( ".svn")) continue;
+						try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( libEntry));}
+						catch( MalformedURLException ne){}
+					}
+				}
+			}
+
+			// Batch
+			if( Boolean.valueOf( System.getProperty( ApplicationContainerLoader.CONTAINER_FOR_BATCH)))
+			{
+				File metaInfPath= new File( loaderTarget, DeployedApplicationModel.META_PATH_SUFFIX);
+				if( metaInfPath.exists() && metaInfPath.isDirectory())
+				{
+					try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( metaInfPath));}
+					catch( MalformedURLException ne){}
+				}
+
+				File configPath= new File( loaderTarget, DeployedApplicationModel.CONFIG_PATH_SUFFIX);
+				if( configPath.exists() && configPath.isDirectory())
+				{
+					try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( configPath));}
+					catch( MalformedURLException ne){}
+				}
+			}
+
+우린 스프링부트로 전환하면서 
+EX/BOOT-INF/classes			
+EX/BOOT-INF/lib
+EX/META-INF/bxm-application.xml
+
+경로가 달라지지 여기에 맞춰서 위의 로직들을 바꿔줘
+
+Boolean.parseBoolean(System.getProperty("bxm.boot.type") 여부로 스프링부트인지 아닌지 결정할거야 
