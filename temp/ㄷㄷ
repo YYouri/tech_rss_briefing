@@ -1,47 +1,8 @@
-===== SERVER: 10.2.12.92 =====
-BACKUP_DIR=/NFS/IDES/PMS/CIS_RM/BACK_UP/F20260626-0031; DRYRUN=false; echo '/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/CLCZ0030VO.class                            
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/CLCZ0050VO.class                        
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/CLCZ0051VO.class
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/PrdListByPrdCdInPoolRIVO.class
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/PrdListByPrdCdInPoolROVO.class
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/service/CLCZ0030S.class
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/service/CLCZ0050M.class
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/service/CLCZ0050S.class
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/service/CLCZ0180S.class
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/receive/entity/CLCR0106VO.class
-' | while read -r p || [ -n "$p" ]; do [ -z "$p" ] && continue; echo "----- $p -----"; ls -l "$p" 2>&1; if [ -f "$p" ]; then if [ "$DRYRUN" = "true" ]; then echo "RESULT: WOULD_MOVE"; else mkdir -p "$BACKUP_DIR$(dirname "$p")"; mv "$p" 
-"$BACKUP_DIR$p"; ls "$p" 2>&1; echo "RESULT: MOVED"; fi; else echo "RESULT: NOTFOUND"; fi; done : ----- /Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/CLCZ0030VO.class -----
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/CLCZ0030VO.class: No such file or directory
-RESULT: NOTFOUND
------ /Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/CLCZ0050VO.class -----
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/CLCZ0050VO.class: No such file or directory
-RESULT: NOTFOUND
------ /Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/CLCZ0051VO.class -----
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/CLCZ0051VO.class: No such file or directory
-RESULT: NOTFOUND
------ /Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/PrdListByPrdCdInPoolRIVO.class -----
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/PrdListByPrdCdInPoolRIVO.class: No such file or directory
-RESULT: NOTFOUND
------ /Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/PrdListByPrdCdInPoolROVO.class -----
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/PrdListByPrdCdInPoolROVO.class: No such file or directory
-RESULT: NOTFOUND
------ /Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/service/CLCZ0030S.class -----
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/service/CLCZ0030S.class: No such file or directory
-RESULT: NOTFOUND
------ /Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/service/CLCZ0050M.class -----
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/service/CLCZ0050M.class: No such file or directory
-RESULT: NOTFOUND
------ /Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/service/CLCZ0050S.class -----
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/service/CLCZ0050S.class: No such file or directory
-RESULT: NOTFOUND
------ /Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/service/CLCZ0180S.class -----
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/service/CLCZ0180S.class: No such file or directory
-RESULT: NOTFOUND
------ /Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/receive/entity/CLCR0106VO.class -----
-/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/receive/entity/CLCR0106VO.class: No such file or directory
-RESULT: NOTFOUND
+					<sshexec host="@{server.ip}"
+							username="@{user}"
+							password="@{passwd}"
+							trust="true"
+							outputproperty="result.@{server.ip}"
+							command="BACKUP_DIR=${backup_root}/${task_id}; DRYRUN=${dryrun}; echo '${pathlist}' | while read -r p || [ -n "$p" ]; do [ -z "$p" ] && continue; echo "----- $p -----"; ls -l "$p" 2>&1; if [ -f "$p" ]; then if [ "$DRYRUN" = "true" ]; then echo "RESULT: WOULD_MOVE"; else mkdir -p "$BACKUP_DIR$(dirname "$p")"; mv "$p" "$BACKUP_DIR$p"; ls "$p" 2>&1; echo "RESULT: MOVED"; fi; else echo "RESULT: NOTFOUND"; fi; done"/>
 
-로그인데  
-BACKUP_DIR=/NFS/IDES/PMS/CIS_RM/BACK_UP/F20260626-0031 안생겨져 있고 
-echo '/Appl/Online/EAR/WEB/WEB-INF/classes/hi/claim/subrogation/common/entity/CLCZ0030VO.class                             이것도 다른 로그랑 다르지??
-뭐때문일까?
+또 깨질까봐 무서워
