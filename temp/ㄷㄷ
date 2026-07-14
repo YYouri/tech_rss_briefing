@@ -1,224 +1,85 @@
-스프링 기준 
-EX/WEB-INF/META-INF/bxm-application.xml
-EX/WEB-INF/classes
-EX/WEB-INF/llib
-
-1. online-instance.xml - application_home (=appHome = EX 경로 까지 지정) 을 기준으로 파일 검색하면서 bxm-application.xml 찾기
-File[] entries= this.appHome.listFiles();
-for (file: entries)
-if(file.equals("bxm-application.xml" ))
-BxmApplication conf= marshallApplicationDescriptor( file);
-						if( conf== null)	continue;
-						if( !batch && ApplicationType.BATCH== conf.getType()) continue;
-						if( !CollectionUtils.isEmpty( targetApplications) && !targetApplications.contains( conf.getName()))
-							continue;
-
-						if( toDeployApps.containsKey( conf.getName()))
-						{
-							logger.debug( "refreshApplicationSourceForLoader using [{}].", entry);
-							refreshApplicationSourceForLoader( entry, conf, applicationSource,
-									toDeployApps.get( conf.getName()).getClassLoaderRef().getClassLoader(),
-									this.applicationLoader.isUseLastmodifiedCache());
-						}
-						else
-						{
-							logger.debug( "autoDeployApplication using [{}].", metaFile.getAbsolutePath());
-							Map<String, DeployedApplication> depapps= autoDeployApplication( applicationSource, conf, entry);
-							if( depapps!= null && depapps.size()> 0)
-							{
-								for( DeployedApplication depapp: depapps.values())
-									toDeployApps.put( depapp.getApplicationName(), depapp);
-							}
-						}
-						
-2. bxm-application.xml 기준으로 클래스 패스 잡기 						
-	private Map<String, DeployedApplication> autoDeployApplication( URL applicationSource, BxmApplication conf, File applicationLocation) throws Exception
-	{
-		try
-		{
-			if( this.deployedApplications.containsKey( conf.getName()))
-			{
-				if( HOT!= applicationLoader.getLoadingMode())
-					return null;
-
-				if( !this.deployedApplications.get( conf.getName()).getApplicationSource().equals( applicationSource))
-				{
-					logger.warn( "duplicated applications are located in application home");
-					return null;
-				}
-			}
-
-			// case 1. not registered before
-			// case 2. auto-deploy and hot loading mode
-			DeployedApplication das= null;
-			if( ( das= this.deployedApplications.get( conf.getName()))!= null)
-			{
-				das.getLightweightApplicationContext().interruptedDeferredInstantiate();
-				return refreshApplication( applicationLocation, conf, applicationSource, das.getClassLoaderRef().getClassLoader(),
-						this.applicationLoader.isUseLastmodifiedCache());
-			}
-			else
-				return newApplication( applicationLocation, conf, applicationSource);
-		}
-		catch( Exception e)
-		{
-			logger.warn( "application source [{}] in application home deployment failed.", new Object[]{ applicationLocation, e});
-			throw e;
-		}
-	}						
-
-3. bxm-application.xml 기준으로 클래스 패스 잡기
-	private Map<String, DeployedApplication> newApplication( File applicationLocation, BxmApplication conf, URL applicationSource)
-		throws ApplicationConfigurationException, InvalidCommandException, ApplicationNotFoundException, IOException
-	{
-		Map<String, DeployedApplication> apps= new HashMap<String, DeployedApplication>();
-		List<URL> configuredClasspath= new ArrayList<URL>();
-		configuredClasspath.addAll( applicationLoader.getApplicableClasspath());
-		File loaderTarget= createLoaderTagetForApplication( conf.getName(), applicationLocation, null, false);
-		List<URL> localAppClasspath= createLocalAppClasspath( loaderTarget);
-		configuredClasspath.addAll( localAppClasspath);
-
-		List<ApplicationClassLoaderListener> listeners= getClassLoaderLifecycleListeners();
-
-		String[] chTos= this.classLoaderManager.registerApplication( conf.getName(),
-				configuredClasspath.toArray( new URL[configuredClasspath.size()]),
-				localAppClasspath.toArray( new URL[localAppClasspath.size()]), conf.isShared(),
-				listeners.toArray( new ApplicationClassLoaderListener[listeners.size()]), loaderTarget,
-				StringUtils.hasText( conf.getReferenceApplications()) ?
-						StringUtils.tokenizeToStringArray( conf.getReferenceApplications(), ",") : new String[]{},
-				applicationLoader.getInstrument());
-
-		Set<String> changeTos= new HashSet<String>();
-		changeTos.addAll( Arrays.asList( chTos));
-
-		List<String> referenceTos= new ArrayList<String>();
-		for( String changeTo: changeTos)
-		{
-			ClassLoaderRef loaderRef= this.classLoaderManager.getClassLoaderFor( changeTo);
-			if( changeTo.equals( conf.getName()))
-			{
-				DeployedApplication target= (DeployedApplication)ApplicationConfigurationManager.configure(
-						this, conf, true, loaderRef);
-				target.setApplicationSource( applicationSource);
-				target.setDeployedTarget( loaderTarget);
-				referenceTos.addAll( Arrays.asList( target.getReferenceApplications()));
-				apps.put( target.getApplicationName(), target);
-			}
-			else
-			{
-				DeployedApplication deployedApp= this.deployedApplications.get( changeTo);
-				if( deployedApp!= null)
-				{
-					DeployedApplication target= (DeployedApplication)ApplicationConfigurationManager.configure(
-							this, deployedApp.getConfiguration(), true, loaderRef);
-					target.setApplicationSource( deployedApp.getApplicationSource());
-					target.setDeployedTarget( deployedApp.getDeployedTarget());
-					apps.put( target.getApplicationName(), target);
-				}
-				else
-					logger.warn( "refrersh target application[{}] is not deployed.", changeTo);
-			}
-		}
-
-		return apps;
-	}	
+<!-- ==================================================
+     [공통 로직] 서버 목록을 순회하며 파일 정리
+     실제 ls -> mv -> ls -> 로그 로직은 여기 한 곳에만 존재
+     ================================================== -->
+<project name="cleanup_build" basedir=".">
+		<property file="./config/cis.deploy.properties" />
+		<macrodef name="do-cleanup">
+		<attribute name="server.list"/>
+		<attribute name="request.file"/>
+		<attribute name="user"/>
+		<attribute name="passwd"/>
 	
-4. META-INF 같은 패스에서 classes, lib 찾아서  클래스 패스 올리기 
+		<sequential>
+			<loadfile property="pathlist" srcFile="@{request.file}"/>
+	
+			<for list="@{server.list}" param="server.ip" delimiter=" ">
+				<sequential>
+	
+					<sshexec host="@{server.ip}"
+							username="@{user}"
+							password="@{passwd}"
+							trust="true"
+							outputproperty="result.@{server.ip}"
+							command="
+	BACKUP_DIR=${backup.root}/${task_id};
+	DRYRUN=${dryrun};
+	
+	echo '${pathlist}' | while read -r p || [ -n "$p" ]; do
+	[ -z "$p" ] && continue;
+	echo "----- $p -----";
+	ls -l "$p" 2>&1;
+	if [ -f "$p" ]; then
+		if [ "$DRYRUN" = "true" ]; then
+		echo "RESULT: WOULD_MOVE";
+		else
+		mkdir -p "$BACKUP_DIR$(dirname "$p")";
+		mv "$p" "$BACKUP_DIR$p";
+		ls "$p" 2>&1;
+		echo "RESULT: MOVED";
+		fi;
+	else
+		echo "RESULT: NOTFOUND";
+	fi;
+	done
+	"/>
+	
+					<!-- 로그를 서버별 파일이 아니라 task_id 하나짜리 파일에 이어붙임.
+						어느 서버 결과인지 구분되도록 헤더 라인을 먼저 남김 -->
+					<echo file="${log_dir}/${task_id}.log" append="true"
+						message="${line.separator}===== SERVER: @{server.ip} =====${line.separator}${result.@{server.ip}}${line.separator}"/>
+	
+				</sequential>
+			</for>
+		</sequential>
+	</macrodef>
+	
+	
+	<!-- ==================================================
+		[타겟 3개] 각자 자기 서버 목록/계정만 지정해서 위 매크로 호출
+		================================================== -->
+	<target name="cleanup.legacy.resources.online">
+		<do-cleanup server.list="${cowas.server.ip.list}"
+					request.file="${request_file}"
+					user="${cowas.server.user}"
+					passwd="${cowas.server.passwd}"/>
+	</target>
+	
+	<target name="cleanup.legacy.resources.batch">
+		<do-cleanup server.list="${batch.server.ip.list}"
+					request.file="${request_file}"
+					user="${batch.server.user}"
+					passwd="${batch.server.passwd}"/>
+	</target>
+	
+	<target name="cleanup.legacy.resources.web">
+		<do-cleanup server.list="${coweb.server.ip.list}"
+					request.file="${request_file}"
+					user="${coweb.server.user}"
+					passwd="${coweb.server.passwd}"/>
+	</target>
+</project>
 
-loaderTarget =>> METa-INF 폴더로 보여짐
-			File libPath= new File( loaderTarget, DeployedApplicationModel.LIB_PATH_SUFFIX); //LIB
-			File classPath= new File( loaderTarget, DeployedApplicationModel.CLASSES_PATH_SUFFIX); //classes
-			File binPath= new File( loaderTarget, DeployedApplicationModel.BIN_PATH_SUFFIX); //bin
 
-			if( classPath.exists() && classPath.isDirectory())
-			{
-				try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( classPath));}
-				catch( MalformedURLException ne){}
-			}
-			if( binPath.exists() && binPath.isDirectory())
-			{
-				try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( binPath));}
-				catch( MalformedURLException ne){}
-			}
 
-			if( Boolean.valueOf( System.getProperty( ApplicationContainerLoader.CONTAINER_FOR_BATCH)))
-			{
-				File file = new File(libPath + File.separator + "lib_version.properties");
-				if(file.exists())
-				{
-					BufferedReader br = null;
-					try
-					{
-						br = new BufferedReader(new FileReader(file));
-						String read = br.readLine();
-						if(StringUtils.hasText(read))
-						{
-							libPath = new File(libPath + File.separator + read);
-						}
-					}
-					catch (Exception e)
-					{
-						throw new RuntimeException(e.getMessage(), e);
-					}
-					finally
-					{
-						if(br != null) try { br.close();} catch (Exception e2) {}
-					}
-				}
-
-				if( libPath.exists() && libPath.isDirectory())
-				{
-					File[] libEntries= libPath.listFiles();
-					for( File libEntry: libEntries)
-					{
-						if( libEntry.getName().equals( ".svn")) continue;
-						if(libEntry.getName().endsWith(".jar"))
-						{
-							if(libEntry.getName().contains("online") || libEntry.getName().contains("interface") || libEntry.getName().contains("batch")
-									|| libEntry.getName().contains("dbio"))
-							try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( libEntry));}
-							catch( MalformedURLException ne){}
-						}
-					}
-				}
-			}
-			else
-			{
-				if( libPath.exists() && libPath.isDirectory())
-				{
-					File[] libEntries= libPath.listFiles();
-					for( File libEntry: libEntries)
-					{
-						if( libEntry.getName().equals( ".svn")) continue;
-						try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( libEntry));}
-						catch( MalformedURLException ne){}
-					}
-				}
-			}
-
-			// Batch
-			if( Boolean.valueOf( System.getProperty( ApplicationContainerLoader.CONTAINER_FOR_BATCH)))
-			{
-				File metaInfPath= new File( loaderTarget, DeployedApplicationModel.META_PATH_SUFFIX);
-				if( metaInfPath.exists() && metaInfPath.isDirectory())
-				{
-					try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( metaInfPath));}
-					catch( MalformedURLException ne){}
-				}
-
-				File configPath= new File( loaderTarget, DeployedApplicationModel.CONFIG_PATH_SUFFIX);
-				if( configPath.exists() && configPath.isDirectory())
-				{
-					try{ localAppClasspath.add( ApplicationClassLoaderManager.createClassPathEntry( configPath));}
-					catch( MalformedURLException ne){}
-				}
-			}
-
-우린 스프링부트로 전환하면서 
-EX/BOOT-INF/classes			
-EX/BOOT-INF/lib
-EX/META-INF/bxm-application.xml
-
-경로가 달라지지 여기에 맞춰서 위의 로직들을 바꿔줘
-
-Boolean.parseBoolean(System.getProperty("bxm.boot.type") 여부로 스프링부트인지 아닌지 결정할거야 
+/Appl/IDES/PmsDeploy/cleanup_build.xml:28: Element type "sshexec" must be followed by either attribute specifications, ">" or "/>".
