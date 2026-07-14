@@ -1,192 +1,12 @@
-1. cleanup_run.sh
-#!/bin/bash
-# ==================================================
-# cleanup_run.sh
-# 레거시 미사용 자원 정리 실행 스크립트
-#
-# 사용법:
-#   ./cleanup_run.sh <task_id> --dryrun   # 시뮬레이션만 (실제 삭제 없음)
-#   ./cleanup_run.sh <task_id>            # 실제 실행 (확인 프롬프트 있음)
-#
-# 전제:
-#   requests/<task_id>_online.txt
-#   requests/<task_id>_batch.txt
-#   requests/<task_id>_web.txt
-#   위 3개 중 존재하는 파일만 해당 서버군을 대상으로 실행됨
-# ==================================================
-
-set -euo pipefail
-
-# ==================================================
-# [설정 구역] 환경이 바뀌면 이 블록만 수정하면 된다
-# ==================================================
-ANT_HOME="/Appl/IDES/apache-ant-1.7.1/bin/"
-JAVA_HOME="/Product/java/jdk1.8.0_271"
-export JAVA_HOME
-export PATH="$JAVA_HOME/bin:$PATH"
-
-REQUEST_DIR="/NFS/IDES/PMS/CIS_RM/TASK_ID"          # 작업의뢰 파일이 위치한 폴더
-LOG_DIR="/Logs/IDES/PMS/CIS_RM"             # 실행 로그가 쌓이는 폴더
-BUILD_FILE="cleanup_build.xml"       # 실행할 Ant 빌드 파일
-BACKUP_ROOT="/NFS/IDES/PMS/CIS_RM/BACK_UP"
-
-# 서버군 이름 -> Ant 타겟 이름 매핑
-declare -A TARGET_MAP=(
-  [online]="cleanup.legacy.resources.online"
-  [batch]="cleanup.legacy.resources.batch"
-  [web]="cleanup.legacy.resources.web"
-)
-
-TASK_ID="${1:-}"
-DRYRUN_FLAG="${2:-}"
-
-PREVIEW_LINES=10
-# ==================================================
-# [설정 구역 끝]
-# ==================================================
-
-
-# --------------------------------------------------
-# 아래부터는 로직만 있음
-# --------------------------------------------------
-
-IS_DRYRUN="false"
-[ "$DRYRUN_FLAG" = "--dryrun" ] && IS_DRYRUN="true"
-
-COMBINED_LOG="${LOG_DIR}/${TASK_ID}.log"
-
-# --------------------------------------------------
-# [1] 입력값 검증
-# --------------------------------------------------
-if [ -z "$TASK_ID" ]; then
-  echo "사용법: $0 <task_id> [--dryrun]"
-  exit 1
-fi
-
-mkdir -p "$LOG_DIR"
-
-# 이전 실행 로그가 남아있으면 집계가 섞이니, 시작 전에 초기화
-> "$COMBINED_LOG"
-
-# --------------------------------------------------
-# [2] 존재하는 요청 파일 찾기
-# --------------------------------------------------
-FOUND_ANY="false"
-
-echo "=================================================="
-echo " Task ID       : $TASK_ID"
-echo " Dry-run 여부   : $([ "$IS_DRYRUN" = "true" ] && echo YES || echo NO)"
-echo " 통합 로그 파일  : $COMBINED_LOG"
-echo "=================================================="
-
-for TYPE in "${!TARGET_MAP[@]}"; do
-  REQUEST_FILE="${REQUEST_DIR}/${TASK_ID}_${TYPE}.txt"
-
-  if [ -f "$REQUEST_FILE" ]; then
-    FOUND_ANY="true"
-    LINE_COUNT=$(grep -c . "$REQUEST_FILE" || true)
-    echo "[발견] $TYPE 대상 : $REQUEST_FILE  (경로 ${LINE_COUNT}개)"
-    echo "  --- 미리보기 (상위 ${PREVIEW_LINES}개) ---"
-    head -n "$PREVIEW_LINES" "$REQUEST_FILE" | sed 's/^/  /'
-  fi
-done
-
-echo "=================================================="
-
-if [ "$FOUND_ANY" = "false" ]; then
-  echo "[에러] ${TASK_ID}_online.txt / _batch.txt / _web.txt 중 존재하는 파일이 없습니다."
-  exit 1
-fi
-
-# --------------------------------------------------
-# [3] 실제 삭제 모드일 때만 최종 확인
-# --------------------------------------------------
-if [ "$IS_DRYRUN" != "true" ]; then
-  read -rp "실제로 파일을 이동(삭제)합니다. 계속할까요? (y/N): " CONFIRM
-  if [ "$CONFIRM" != "y" ]; then
-    echo "취소되었습니다."
-    exit 0
-  fi
-fi
-
-# --------------------------------------------------
-# [4] 존재하는 요청 파일 종류마다 Ant 실행
-# --------------------------------------------------
-for TYPE in "${!TARGET_MAP[@]}"; do
-  REQUEST_FILE="${REQUEST_DIR}/${TASK_ID}_${TYPE}.txt"
-  [ -f "$REQUEST_FILE" ] || continue
-
-  TARGET_NAME="${TARGET_MAP[$TYPE]}"
-  ANT_CONSOLE_LOG="${LOG_DIR}/${TASK_ID}_${TYPE}_ant_console.log"
-
-  echo "[진행] $TYPE 서버군 Ant 빌드 실행 중... (target=$TARGET_NAME)"
-
-  if $ANT_HOME/ant -f "$BUILD_FILE" -lib lib:classes "$TARGET_NAME" \
-      -Dtask_id="$TASK_ID" \
-      -Ddryrun="$IS_DRYRUN" \
-      -Drequest_file="$REQUEST_FILE" \
-      -Dlog_dir="$LOG_DIR" \
-	  -Dbackup_root="$BACKUP_ROOT" \
-      -Dverbose=false \
-      > "$ANT_CONSOLE_LOG" 2>&1
-  then
-    echo "  -> 완료 (상세 실행 로그: $ANT_CONSOLE_LOG)"
-  else
-    echo "  -> [에러] Ant 빌드 실패. 아래 로그를 확인하세요: $ANT_CONSOLE_LOG"
-    tail -n 20 "$ANT_CONSOLE_LOG"
-    exit 1
-  fi
-done
-
-echo "[완료] Ant 실행 종료. 로그 집계를 시작합니다."
-
-# --------------------------------------------------
-# [5] 로그 집계 (통합 로그 파일 하나를 읽어서 서버별로 분리 집계)
-#     "===== SERVER: x.x.x.x =====" 헤더를 기준으로 구간을 나눔
-# --------------------------------------------------
-echo "=================================================="
-echo " 서버별 결과 요약"
-echo "=================================================="
-
-awk '
-  /^===== SERVER: / {
-    if (server != "") {
-      printf "%-20s MOVED:%-5s WOULD_MOVE:%-5s NOTFOUND:%-5s\n", server, moved, wouldmove, notfound
-    }
-    server = $3
-    moved = 0; wouldmove = 0; notfound = 0
-    next
-  }
-  /RESULT: MOVED/       { moved++ }
-  /RESULT: WOULD_MOVE/  { wouldmove++ }
-  /RESULT: NOTFOUND/    { notfound++ }
-  END {
-    if (server != "") {
-      printf "%-20s MOVED:%-5s WOULD_MOVE:%-5s NOTFOUND:%-5s\n", server, moved, wouldmove, notfound
-    }
-  }
-' "$COMBINED_LOG"
-
-echo "=================================================="
-
-TOTAL_MOVED=$(grep -c "RESULT: MOVED" "$COMBINED_LOG" || true)
-TOTAL_WOULD_MOVE=$(grep -c "RESULT: WOULD_MOVE" "$COMBINED_LOG" || true)
-TOTAL_NOTFOUND=$(grep -c "RESULT: NOTFOUND" "$COMBINED_LOG" || true)
-
-echo " 전체 합계 : MOVED=$TOTAL_MOVED  WOULD_MOVE=$TOTAL_WOULD_MOVE  NOTFOUND=$TOTAL_NOTFOUND"
-echo "=================================================="
-echo "[완료] 상세 로그는 $COMBINED_LOG 에서 확인 가능합니다."
-
-echo "[완료] 상세 로그는 ${LOG_DIR}/*_${TASK_ID}.log 에서 확인 가능합니다."
-
-2. cleanup_build.xml
 <!-- ==================================================
      [공통 로직] 서버 목록을 순회하며 파일 정리
      실제 ls -> mv -> ls -> 로그 로직은 여기 한 곳에만 존재
+     백업 경로는 서버 호스트명 단위로 분리되어 있어, 서버간 백업 덮어쓰기가 없음
      ================================================== -->
 <project name="cleanup_build" basedir=".">
 	<property file="./config/cis.deploy.properties" />
 	<taskdef resource="net/sf/antcontrib/antlib.xml" />
+
 	<macrodef name="do-cleanup">
 		<attribute name="server.list"/>
 		<attribute name="request.file"/>
@@ -204,7 +24,7 @@ echo "[완료] 상세 로그는 ${LOG_DIR}/*_${TASK_ID}.log 에서 확인 가능
 							password="@{passwd}"
 							trust="true"
 							outputproperty="result.@{server.ip}"
-							command="BACKUP_DIR=${backup_root}/${task_id}; DRYRUN=${dryrun}; echo '${pathlist}' | while read -r p || [ -n "$p" ]; do p=$(echo "$p" | sed 's/[ \t\r]*$//'); [ -z "$p" ] && continue; echo "----- $p -----"; ls -l "$p" 2>&1; if [ -f "$p" ]; then if [ "$DRYRUN" = "true" ]; then echo "RESULT: WOULD_MOVE"; else mkdir -p "$BACKUP_DIR$(dirname "$p")"; mv "$p" "$BACKUP_DIR$p"; ls "$p" 2>&1; echo "RESULT: MOVED"; fi; else echo "RESULT: NOTFOUND"; fi; done"/>
+							command="BACKUP_DIR=${backup_root}/${task_id}/$(hostname -s); DRYRUN=${dryrun}; echo '${pathlist}' | while read -r p || [ -n "$p" ]; do p=$(echo "$p" | sed 's/[ \t\r]*$//'); [ -z "$p" ] && continue; echo "----- $p -----"; ls -l "$p" 2>&1; if [ -f "$p" ]; then if [ "$DRYRUN" = "true" ]; then echo "RESULT: WOULD_MOVE"; else mkdir -p "$BACKUP_DIR$(dirname "$p")"; mv "$p" "$BACKUP_DIR$p"; ls "$p" 2>&1; echo "RESULT: MOVED"; fi; else echo "RESULT: NOTFOUND"; fi; done"/>
 
 					<echo file="${log_dir}/${task_id}.log" append="true"
 						message="${line.separator}===== SERVER: @{server.ip} =====${line.separator}${result.@{server.ip}}${line.separator}"/>
@@ -240,7 +60,7 @@ echo "[완료] 상세 로그는 ${LOG_DIR}/*_${TASK_ID}.log 에서 확인 가능
 	</target>
 </project>
 
+BUILD FAILED
+/Appl/IDES/PmsDeploy/cleanup_build.xml:27: Element type "sshexec" must be followed by either attribute specifications, ">" or "/>".
 
-작업자가 REQUEST_DIR/yyyy/mm/dd/task_id/task_id_online.txt task_id_batch.txt task_id_web.txt 에 두면 
-사람 손이 필요없도록 크론으로 아래 당일 폴더를 돌면서 수행하도록 
-진짜 깔끔하고 완벽하게 수정해줘
+에러가 자꾸뜨니깐 파일을 다시 만들어줘볼래 
