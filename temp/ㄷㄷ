@@ -16,38 +16,39 @@
 			<for list="@{server.list}" param="server.ip" delimiter=" ">
 				<sequential>
 	
-					<sshexec host="@{server.ip}"
-							username="@{user}"
-							password="@{passwd}"
-							trust="true"
-							outputproperty="result.@{server.ip}"
-							command="
-	BACKUP_DIR=${backup.root}/${task_id};
-	DRYRUN=${dryrun};
+				<sshexec host="@{server.ip}"
+						username="@{user}"
+						password="@{passwd}"
+						trust="true"
+						outputproperty="result.@{server.ip}"
+						command="
+				BACKUP_DIR=${backup_root}/${task_id};
+				DRYRUN=${dryrun};
+				
+				echo '${pathlist}' | while read -r p || [ -n "$p" ]; do
+				[ -z "$p" ] && continue;
+				echo "----- $p -----";
+				ls -l "$p" 2>&1;
+				if [ -f "$p" ]; then
+					if [ "$DRYRUN" = "true" ]; then
+					echo "RESULT: WOULD_MOVE";
+					else
+					mkdir -p "$BACKUP_DIR$(dirname "$p")";
+					mv "$p" "$BACKUP_DIR$p";
+					ls "$p" 2>&1;
+					echo "RESULT: MOVED";
+					fi;
+				else
+					echo "RESULT: NOTFOUND";
+				fi;
+				done
+				"/>
+				
 	
-	echo '${pathlist}' | while read -r p || [ -n "$p" ]; do
-	[ -z "$p" ] && continue;
-	echo "----- $p -----";
-	ls -l "$p" 2>&1;
-	if [ -f "$p" ]; then
-		if [ "$DRYRUN" = "true" ]; then
-		echo "RESULT: WOULD_MOVE";
-		else
-		mkdir -p "$BACKUP_DIR$(dirname "$p")";
-		mv "$p" "$BACKUP_DIR$p";
-		ls "$p" 2>&1;
-		echo "RESULT: MOVED";
-		fi;
-	else
-		echo "RESULT: NOTFOUND";
-	fi;
-	done
-	"/>
-	
-					<!-- 로그를 서버별 파일이 아니라 task_id 하나짜리 파일에 이어붙임.
-						어느 서버 결과인지 구분되도록 헤더 라인을 먼저 남김 -->
-					<echo file="${log_dir}/${task_id}.log" append="true"
-						message="${line.separator}===== SERVER: @{server.ip} =====${line.separator}${result.@{server.ip}}${line.separator}"/>
+				<!-- 로그를 서버별 파일이 아니라 task_id 하나짜리 파일에 이어붙임.
+					어느 서버 결과인지 구분되도록 헤더 라인을 먼저 남김 -->
+				<echo file="${log_dir}/${task_id}.log" append="true"
+					message="${line.separator}===== SERVER: @{server.ip} =====${line.separator}${result.@{server.ip}}${line.separator}"/>
 	
 				</sequential>
 			</for>
@@ -79,7 +80,5 @@
 					passwd="${coweb.server.passwd}"/>
 	</target>
 </project>
-
-
 
 /Appl/IDES/PmsDeploy/cleanup_build.xml:28: Element type "sshexec" must be followed by either attribute specifications, ">" or "/>".
