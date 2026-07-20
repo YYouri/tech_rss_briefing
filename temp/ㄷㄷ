@@ -1,8 +1,443 @@
-BUILD FAILED
-/Appl/IDES/PmsDeploy/cleanup_build.xml:45: The following error occurred while executing this line:
-/Appl/IDES/PmsDeploy/cleanup_build.xml:19: Problem: failed to create task or type for
-Cause: The name is undefined.
-Action: Check the spelling.
-Action: Check that any custom tasks/types have been declared.
-Action: Check that any <presetdef>/<macrodef> declarations have taken place.
-거긴 넘어가고 이런에러야 
+cleanup_cron.sh
+#!/bin/bash
+# ==================================================
+# cleanup_cron.sh
+# 레거시 미사용 자원 정리 - 크론 자동 실행 스크립트
+#
+# 사용법 (크론 등록):
+#   0 2 * * * /Appl/IDES/PmsDeploy/cleanup_cron.sh >> /Logs/IDES/PMS/CIS_RM/cron/cron_$(date +\%Y\%m\%d).log 2>&1
+#
+# 전제 (작업자가 미리 이 구조로 파일을 둔다):
+#   REQUEST_DIR/YYYY/MM/DD/TASK_ID/TASK_ID_online.txt
+#   REQUEST_DIR/YYYY/MM/DD/TASK_ID/TASK_ID_batch.txt
+#   REQUEST_DIR/YYYY/MM/DD/TASK_ID/TASK_ID_web.txt
+#   (online/batch/web 중 존재하는 파일만 해당 서버군 실행)
+#
+# 안전장치:
+#   - 동시 실행 방지 (PID 파일 기반, flock 미지원 유닉스 대응)
+#   - 이미 처리한 TASK_ID는 재실행하지 않음 (.processed 마커 파일)
+#   - dry-run 없이 바로 실행되므로, 이 폴더에 파일을 두는 행위 자체가 "승인 완료"라는
+#     전제가 있어야 함 (사람 확인 프롬프트가 없음)
+#   - 실행 종료 후 알림용 메시지를 파일로 저장 (메일/메신저 전송은 별도로 연결)
+# ==================================================
+
+set -euo pipefail
+
+# ==================================================
+# [설정 구역] 환경이 바뀌면 이 블록만 수정하면 된다
+# ==================================================
+WORK_DIR="/Appl/IDES/PmsDeploy"
+ANT_HOME="/Appl/IDES/apache-ant-1.7.1/bin"
+JAVA_HOME="/Product/java/jdk1.8.0_271"
+export JAVA_HOME
+export PATH="$JAVA_HOME/bin:$PATH"
+
+LANG=ko_KR.EUC
+export LANG
+
+REQUEST_DIR="/NFS/IDES/PMS/CIS_RM/TASK_ID"      # 작업의뢰 파일 루트 (이 아래 YYYY/MM/DD/TASK_ID 구조)
+LOG_DIR="/Logs/IDES/PMS/CIS_RM"                 # 실행 로그가 쌓이는 폴더
+BUILD_FILE="cleanup_build.xml"
+BACKUP_ROOT="/NFS/IDES/PMS/CIS_RM/BACK_UP"
+PID_FILE="/tmp/cleanup_cron.pid"
+ADMIN_EMAIL="김유리#IB1117@himsg.com"                 # TASK_ID_email.txt 없을 때 받을 관리자 이메일
+
+# 서버군 이름 -> Ant 타겟 이름 매핑
+declare -A TARGET_MAP=(
+  [online]="cleanup.legacy.resources.online"
+  [batch]="cleanup.legacy.resources.batch"
+  [web]="cleanup.legacy.resources.web"
+)
+# ==================================================
+# [설정 구역 끝]
+# ==================================================
+
+cd "$WORK_DIR" || { echo "[에러] $WORK_DIR 로 이동 실패"; exit 1; }
+
+# --------------------------------------------------
+# [0] 동시 실행 방지 (PID 파일 기반)
+# --------------------------------------------------
+if [ -f "$PID_FILE" ]; then
+  OLD_PID=$(cat "$PID_FILE")
+  if kill -0 "$OLD_PID" 2>/dev/null; then
+    echo "[건너뜀] 이전 실행이 아직 진행 중입니다. (PID: $OLD_PID)"
+    exit 0
+  else
+    echo "[정보] 이전 PID($OLD_PID)는 이미 종료됨. 잔재 PID 파일 정리 후 진행."
+  fi
+fi
+echo $$ > "$PID_FILE"
+trap 'rm -f "$PID_FILE"' EXIT
+
+TODAY_Y=$(date +%Y)
+TODAY_M=$(date +%m)
+TODAY_D=$(date +%d)
+TODAY_STAMP="${TODAY_Y}${TODAY_M}${TODAY_D}"
+TODAY_DIR="${REQUEST_DIR}/${TODAY_Y}/${TODAY_M}/${TODAY_D}"
+
+mkdir -p "$LOG_DIR"
+CRON_LOG_DIR="${LOG_DIR}/cron"
+mkdir -p "$CRON_LOG_DIR"
+
+RUN_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+
+echo "=================================================="
+echo " 실행 시각      : $RUN_TIME"
+echo " 대상 날짜 폴더  : $TODAY_DIR"
+echo "=================================================="
+
+# --------------------------------------------------
+# [1] 오늘 날짜 폴더 존재 확인
+# --------------------------------------------------
+if [ ! -d "$TODAY_DIR" ]; then
+  echo "[정보] 오늘 처리할 작업의뢰 폴더가 없습니다. 종료합니다."
+  exit 0
+fi
+
+# --------------------------------------------------
+# [2] 오늘 폴더 아래 TASK_ID 서브폴더 전체 순회
+# --------------------------------------------------
+PROCESSED_COUNT=0
+SKIPPED_COUNT=0
+FAILED_COUNT=0
+
+# 알림 메시지에 넣을 상세 라인들을 모아둘 배열
+declare -a TASK_RESULT_LINES=()
+declare -a FAILED_TASK_LINES=()
+
+for TASK_DIR in "$TODAY_DIR"/*/; do
+  [ -d "$TASK_DIR" ] || continue
+
+  TASK_ID=$(basename "$TASK_DIR")
+  MARKER_FILE="${TASK_DIR}.processed"
+  COMBINED_LOG="${LOG_DIR}/${TASK_ID}.log"
+
+  # 이미 처리 완료된 작업이면 건너뜀 (같은 날 크론이 여러 번 돌아도 중복 실행 안 되게)
+  if [ -f "$MARKER_FILE" ]; then
+    echo "[건너뜀] $TASK_ID (이미 처리됨: $MARKER_FILE)"
+    SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
+    continue
+  fi
+
+  echo "--------------------------------------------------"
+  echo "[시작] TASK_ID = $TASK_ID"
+
+  # 이 TASK_ID에 대해 online/batch/web 중 존재하는 파일 확인
+  FOUND_ANY="false"
+  for TYPE in "${!TARGET_MAP[@]}"; do
+    REQUEST_FILE="${TASK_DIR}${TASK_ID}_${TYPE}.txt"
+    [ -f "$REQUEST_FILE" ] && FOUND_ANY="true"
+  done
+
+  if [ "$FOUND_ANY" = "false" ]; then
+    echo "[경고] $TASK_ID 폴더에 _online/_batch/_web.txt 파일이 하나도 없습니다. 건너뜁니다."
+    SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
+    continue
+  fi
+
+  # 이전 로그 잔재 있으면 초기화 (같은 TASK_ID로 재시도하는 경우 대비)
+  > "$COMBINED_LOG"
+
+  TASK_FAILED="false"
+
+  for TYPE in "${!TARGET_MAP[@]}"; do
+    REQUEST_FILE="${TASK_DIR}${TASK_ID}_${TYPE}.txt"
+    [ -f "$REQUEST_FILE" ] || continue
+
+    TARGET_NAME="${TARGET_MAP[$TYPE]}"
+    ANT_CONSOLE_LOG="${LOG_DIR}/${TASK_ID}_${TYPE}_ant_console.log"
+
+    echo "  [진행] $TYPE 서버군 실행 중... (target=$TARGET_NAME)"
+
+    if "$ANT_HOME/ant" -f "$BUILD_FILE"  -lib lib:classes  "$TARGET_NAME" \
+        -Dtask_id="$TASK_ID" \
+        -Ddryrun="false" \
+        -Drequest_file="$REQUEST_FILE" \
+        -Dlog_dir="$LOG_DIR" \
+        -Dbackup_root="$BACKUP_ROOT" \
+        -Dverbose=false \
+        > "$ANT_CONSOLE_LOG" 2>&1
+    then
+      echo "  [완료] $TYPE (로그: $ANT_CONSOLE_LOG)"
+    else
+      echo "  [에러] $TYPE 실행 실패. 로그 확인: $ANT_CONSOLE_LOG"
+      tail -n 20 "$ANT_CONSOLE_LOG"
+      TASK_FAILED="true"
+    fi
+  done
+
+  # --------------------------------------------------
+  # 이 TASK_ID 결과 집계 (로그 포맷: mv 원본 -> 대상 [성공]/[실패], 건너뜀: 원본 없음)
+  # --------------------------------------------------
+  MOVED_COUNT=$(grep -c '\[성공\]' "$COMBINED_LOG" 2>/dev/null || true)
+  MOVE_FAIL_COUNT=$(grep -c '\[실패\]' "$COMBINED_LOG" 2>/dev/null || true)
+  NOTFOUND_COUNT=$(grep -c '건너뜀: 원본 없음' "$COMBINED_LOG" 2>/dev/null || true)
+
+  echo "  [결과] 성공=$MOVED_COUNT  실패=$MOVE_FAIL_COUNT  원본없음=$NOTFOUND_COUNT"
+
+  # --------------------------------------------------
+  # 서버(호스트)별 성공/실패/원본없음 집계
+  #   "===== 서버: X =====" 헤더를 기준으로 구간을 나눠서 계산
+  # --------------------------------------------------
+  HOST_BREAKDOWN=$(awk '
+    /^===== 서버: / {
+      if (server != "") {
+        printf "   - %s : 성공=%d건 실패=%d건 원본없음=%d건\n", server, moved, fail, notfound
+      }
+      server = $3
+      moved = 0; fail = 0; notfound = 0
+      next
+    }
+    /\[성공\]/      { moved++ }
+    /\[실패\]/      { fail++ }
+    /건너뜀: 원본 없음/ { notfound++ }
+    END {
+      if (server != "") {
+        printf "   - %s : 성공=%d건 실패=%d건 원본없음=%d건\n", server, moved, fail, notfound
+      }
+    }
+  ' "$COMBINED_LOG" 2>/dev/null)
+  [ -z "$HOST_BREAKDOWN" ] && HOST_BREAKDOWN="   (서버별 상세 없음)"
+
+  # --------------------------------------------------
+  # 이 TASK_ID 요청자 이메일 확인
+  #   TASK_DIR/TASK_ID_email.txt 가 있으면 그 안의 이메일로,
+  #   없으면 관리자 이메일로 전송
+  # --------------------------------------------------
+  EMAIL_FILE="${TASK_DIR}${TASK_ID}_email.txt"
+  if [ -f "$EMAIL_FILE" ]; then
+    TASK_EMAIL=$(head -n 1 "$EMAIL_FILE" | tr -d ' \t\r\n')
+    [ -z "$TASK_EMAIL" ] && TASK_EMAIL="$ADMIN_EMAIL"
+  else
+    TASK_EMAIL="$ADMIN_EMAIL"
+  fi
+
+  if [ "$TASK_FAILED" = "true" ]; then
+    echo "[실패] TASK_ID = $TASK_ID (마커 생성 안 함, 다음 크론에서 재시도됨)"
+    FAILED_COUNT=$((FAILED_COUNT + 1))
+    FAILED_TASK_LINES+=(" - ${TASK_ID} : Ant 빌드 실패 (로그: ${LOG_DIR}/${TASK_ID}_*_ant_console.log)")
+    TASK_RESULT_LINES+=(" - ${TASK_ID} : [실패] 빌드 에러")
+    TASK_NOTIFY_MSG="[자원정리] ${TASK_ID} 실패 - Ant 빌드 에러
+
+로그 위치
+ - 실행 로그 : ${LOG_DIR}/${TASK_ID}_*_ant_console.log
+ - 결과 로그 : ${COMBINED_LOG}
+
+서버별 결과 (빌드 실패 전까지 처리된 부분만 반영됨)
+${HOST_BREAKDOWN}"
+    # 실패 시엔 요청자에게도 알리되, 반드시 관리자에게도 별도 발송
+    NOTIFY_TARGETS=("$TASK_EMAIL")
+    [ "$TASK_EMAIL" != "$ADMIN_EMAIL" ] && NOTIFY_TARGETS+=("$ADMIN_EMAIL")
+  else
+    # 정상 완료된 작업만 마커 생성 -> 다음 크론 실행 때 재처리 안 함
+    touch "$MARKER_FILE"
+    echo "[완료] TASK_ID = $TASK_ID (마커 생성: $MARKER_FILE)"
+    PROCESSED_COUNT=$((PROCESSED_COUNT + 1))
+    TASK_RESULT_LINES+=(" - ${TASK_ID} : [완료] 성공=${MOVED_COUNT}건 실패=${MOVE_FAIL_COUNT}건 원본없음=${NOTFOUND_COUNT}건 (로그: ${COMBINED_LOG})")
+    TASK_NOTIFY_MSG="[자원정리] ${TASK_ID} 완료 - 성공=${MOVED_COUNT}건 실패=${MOVE_FAIL_COUNT}건 원본없음=${NOTFOUND_COUNT}건
+
+로그 위치 : ${COMBINED_LOG}
+
+서버별 결과
+${HOST_BREAKDOWN}"
+    NOTIFY_TARGETS=("$TASK_EMAIL")
+  fi
+
+  # --------------------------------------------------
+  # TASK_ID별 알림 발송 (기존 pmsDeployErrAlert 타겟 재사용)
+  # --------------------------------------------------
+  NOTI_ERR="${LOG_DIR}/${TASK_ID}_NOTI_ERR.log"
+  for TARGET_EMAIL in "${NOTIFY_TARGETS[@]}"; do
+    if "$ANT_HOME/ant" -f "$BUILD_FILE"  -lib lib:classes  notify.task.result \
+        -Dnotify_task="$TASK_ID" \
+		-Dnotify_message="$TASK_NOTIFY_MSG" \
+        -Dnotify_email="$TARGET_EMAIL" \
+         > "$NOTI_ERR" 2>&1
+    then
+      echo "  [알림] 발송 완료 -> $TARGET_EMAIL"
+    else
+      echo "  [경고] 알림 발송 실패 -> $TARGET_EMAIL (TASK_ID=$TASK_ID, LOG=$NOTI_ERR)"
+    fi
+  done
+
+done
+
+# --------------------------------------------------
+# [3] 전체 실행 요약 (콘솔/크론 로그용)
+# --------------------------------------------------
+echo "=================================================="
+echo " 전체 요약 : 처리완료=$PROCESSED_COUNT  건너뜀=$SKIPPED_COUNT  실패=$FAILED_COUNT"
+echo "=================================================="
+
+# --------------------------------------------------
+# [4] 알림 메시지 파일 생성
+#     이 파일을 그대로 mailx나 사내 메신저 CLI에 넣어서 보내면 됨
+#     예) mailx -s "$(head -1 "$NOTIFY_FILE")" 수신자@company.com < "$NOTIFY_FILE"
+# --------------------------------------------------
+NOTIFY_FILE="${CRON_LOG_DIR}/notify_${TODAY_STAMP}.txt"
+
+{
+  if [ "$FAILED_COUNT" -gt 0 ]; then
+    echo "[자원정리] ${TODAY_Y}-${TODAY_M}-${TODAY_D} 실행 결과 - 실패 ${FAILED_COUNT}건 발생"
+  else
+    echo "[자원정리] ${TODAY_Y}-${TODAY_M}-${TODAY_D} 실행 결과 - 전체 성공"
+  fi
+  echo ""
+  echo "=================================================="
+  echo " 실행 시각   : $RUN_TIME"
+  echo " 대상 폴더   : $TODAY_DIR"
+  echo "=================================================="
+  echo " 처리완료 : ${PROCESSED_COUNT}건"
+  echo " 건너뜀   : ${SKIPPED_COUNT}건"
+  echo " 실패     : ${FAILED_COUNT}건"
+  echo "=================================================="
+
+  if [ "${#TASK_RESULT_LINES[@]}" -gt 0 ]; then
+    echo "[작업별 상세]"
+    for LINE in "${TASK_RESULT_LINES[@]}"; do
+      echo "$LINE"
+    done
+    echo "=================================================="
+  fi
+
+  if [ "${#FAILED_TASK_LINES[@]}" -gt 0 ]; then
+    echo "[실패 목록 - 확인 필요]"
+    for LINE in "${FAILED_TASK_LINES[@]}"; do
+      echo "$LINE"
+    done
+    echo "=================================================="
+  fi
+
+  echo " 크론 실행 로그 : ${CRON_LOG_DIR}/cron_${TODAY_STAMP}.log"
+  echo "=================================================="
+} > "$NOTIFY_FILE"
+
+echo "[완료] 알림 메시지 생성됨: $NOTIFY_FILE"
+cat "$NOTIFY_FILE"
+
+if [ "$FAILED_COUNT" -gt 0 ]; then
+  exit 2
+fi
+
+exit 0
+
+
+
+cleanup_build.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ==================================================
+     [공통 로직] 서버 목록을 순회하며 파일 정리
+     로그는 서버별로 3단계 구조로 남는다:
+       1. 작업 전 자원 확인 (ls)
+       2. 이동 결과 (경로별 mv 원본 -> 대상 [성공/실패] + 요약 건수)
+       3. 작업 후 자원 확인 (ls)
+     백업 경로는 서버 호스트명 단위로 분리되어 있어, 서버간 백업 덮어쓰기가 없음
+     요청 목록 파일(PLIST)은 삭제하지 않고 백업 폴더에 request_list.txt로 보관
+     ================================================== -->
+<project name="cleanup_build" basedir="/Appl/IDES/PmsDeploy">
+	<property file="./config/cis.deploy.properties" />
+	<taskdef resource="net/sf/antcontrib/antlib.xml" />
+
+	<taskdef name="pmsAlertSend" classname="hi.deploy.ant.PmsAlertSend" classpath="./classes"/>
+
+
+	<macrodef name="do-cleanup">
+		<attribute name="server.list"/>
+		<attribute name="request.file"/>
+		<attribute name="user"/>
+		<attribute name="passwd"/>
+
+		<sequential>
+			<loadfile property="pathlist" srcFile="@{request.file}"/>
+
+			<for list="@{server.list}" param="server.ip" delimiter=" ">
+				<sequential>
+
+					<sshexec host="@{server.ip}"
+							username="@{user}"
+							password="@{passwd}"
+							trust="true"
+							verbose="false"
+							outputproperty="result.@{server.ip}"
+							command="PLIST=/tmp/cleanup_paths_${task_id}_$$; echo '${pathlist}' > $PLIST; DRYRUN=${dryrun}; BACKUP_DIR=${backup_root}/${task_id}/$(hostname); echo "1. Pre-Check"; while read -r p || [ -n "$p" ]; do p=$(echo "$p" | sed 's/[ \t\r]*$//'); [ -z "$p" ] && continue; ls -l "$p" 2>&1; done < $PLIST; SUCCESS=0; FAIL=0; echo "2. Move Result"; while read -r p || [ -n "$p" ]; do p=$(echo "$p" | sed 's/[ \t\r]*$//'); [ -z "$p" ] && continue; if [ -f "$p" ]; then if [ "$DRYRUN" = "true" ]; then echo "mv $p -> $BACKUP_DIR$p (dry-run, NO RUN)"; SUCCESS=$((SUCCESS+1)); else mkdir -p "$BACKUP_DIR$(dirname "$p")"; mv "$p" "$BACKUP_DIR$p"; if [ -f "$p" ]; then echo "mv $p -> $BACKUP_DIR$p [FAIL]"; FAIL=$((FAIL+1)); else echo "mv $p -> $BACKUP_DIR$p [SUCCESS]"; SUCCESS=$((SUCCESS+1)); fi; fi; else echo "mv $p -> (SKIPPED: NO PAGE)"; FAIL=$((FAIL+1)); fi; done < $PLIST; echo "SUMMARY: SUCCESS=$SUCCESS FAIL=$FAIL"; echo "3. Post Check"; while read -r p || [ -n "$p" ]; do p=$(echo "$p" | sed 's/[ \t\r]*$//'); [ -z "$p" ] && continue; ls -l "$p" 2>&1; done < $PLIST; mkdir -p "$BACKUP_DIR"; mv "$PLIST" "$BACKUP_DIR/request_list.txt""/>
+
+					<echo file="${log_dir}/${task_id}.log" append="true"
+						message="${line.separator}===== 서버: @{server.ip} =====${line.separator}${result.@{server.ip}}${line.separator}"/>
+
+				</sequential>
+			</for>
+		</sequential>
+	</macrodef>
+
+
+	<!-- ==================================================
+	     [타겟 3개] 각자 자기 서버 목록/계정만 지정해서 위 매크로 호출
+	     ================================================== -->
+	<target name="cleanup.legacy.resources.online">
+		<do-cleanup server.list="${cowas.server.ip.list}"
+					request.file="${request_file}"
+					user="${cowas.server.user}"
+					passwd="${cowas.server.passwd}"/>
+	</target>
+
+	<target name="cleanup.legacy.resources.batch">
+		<do-cleanup server.list="${batch.server.ip.list}"
+					request.file="${request_file}"
+					user="${batch.server.user}"
+					passwd="${batch.server.passwd}"/>
+	</target>
+
+	<target name="cleanup.legacy.resources.web">
+		<do-cleanup server.list="${coweb.server.ip.list}"
+					request.file="${request_file}"
+					user="${coweb.server.user}"
+					passwd="${coweb.server.passwd}"/>
+	</target>
+
+
+	<!-- ==================================================
+	     [알림 타겟] 작업 하나(TASK_ID) 처리 결과를 이메일로 발송
+	     쉘 스크립트에서 -Dnotify_message, -Dnotify_email 넘겨서 호출
+	     ================================================== -->
+	<target name="notify.task.result">
+		<echo message="notify_task: ${notify_task}===== notify_message: ${notify_message} ===== notify_email: ${notify_email}"/>
+		<pmsAlertSend title="${notify_task}" message="${notify_message}" email="${notify_email}"/>
+	</target>
+
+</project>
+결과 로그 --------
+==================================================
+ 실행 시각      : 2026-07-20 15:41:55
+ 대상 날짜 폴더  : /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/20
+==================================================
+--------------------------------------------------
+[시작] TASK_ID = TEST
+  [진행] online 서버군 실행 중... (target=cleanup.legacy.resources.online)
+  [완료] online (로그: /Logs/IDES/PMS/CIS_RM/TEST_online_ant_console.log)
+  [진행] batch 서버군 실행 중... (target=cleanup.legacy.resources.batch)
+  [완료] batch (로그: /Logs/IDES/PMS/CIS_RM/TEST_batch_ant_console.log)
+  [결과] 성공=0  실패=0  원본없음=0
+[완료] TASK_ID = TEST (마커 생성: /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/20/TEST/.processed)
+  [알림] 발송 완료 -> 김유리#IB1117@himsg.com
+==================================================
+ 전체 요약 : 처리완료=1  건너뜀=0  실패=0
+==================================================
+[완료] 알림 메시지 생성됨: /Logs/IDES/PMS/CIS_RM/cron/notify_20260720.txt
+[자원정리] 2026-07-20 실행 결과 - 전체 성공
+
+==================================================
+ 실행 시각   : 2026-07-20 15:41:55
+ 대상 폴더   : /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/20
+==================================================
+ 처리완료 : 1건
+ 건너뜀   : 0건
+ 실패     : 0건
+==================================================
+[작업별 상세]
+ - TEST : [완료] 성공=0건 실패=0건 원본없음=0건 (로그: /Logs/IDES/PMS/CIS_RM/TEST.log)
+==================================================
+ 크론 실행 로그 : /Logs/IDES/PMS/CIS_RM/cron/cron_20260720.log
+==================================================
+
+
+실행 결과 - 전체 성공인데 중간에 카운트가 제대로 안찍혀 수정이 필요한부분을 알려줘
