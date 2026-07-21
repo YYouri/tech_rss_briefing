@@ -2,8 +2,7 @@
 
 # 사용법 안내
 if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 <input_list_file>"
-    echo "Example: $0 list.txt"
+    echo "Usage: $0 <input_file> [TASK_ID]"
     exit 1
 fi
 
@@ -11,157 +10,220 @@ INPUT_FILE=$1
 
 # 입력 파일 존재 여부 확인
 if [ ! -f "$INPUT_FILE" ]; then
-    echo "Error: File '$INPUT_FILE' not found!"
+    echo "[에러] 신청서 파일을 찾을 수 없습니다: $INPUT_FILE"
     exit 1
 fi
 
-# 결과 파일들을 저장할 디렉토리 생성
-RESULT_DIR="split_results"
+# TASK_ID 미지정 시 신청서 파일명(확장자 제외)을 그대로 사용
+if [ "$#" -ge 2 ]; then
+    TASK_ID="$2"
+else
+    TASK_ID=$(basename "$INPUT_FILE")
+    TASK_ID="${TASK_ID%.*}"
+fi
+
+# 결과 디렉토리 설정
+REQUEST_DIR="/NFS/IDES/PMS/CIS_RM/TASK_ID"
+RESULT_DIR="${REQUEST_DIR}/$(date +%Y)/$(date +%m)/$(date +%d)/${TASK_ID}"
 mkdir -p "$RESULT_DIR"
 
-echo "-------------------------------------------------------"
-echo " 작업 시작: $INPUT_FILE 분석 및 타입별 경로 분류"
-echo " 결과 저장 위치: ./$RESULT_DIR/"
-echo "-------------------------------------------------------"
+# 상수 설정
+STAGING_JAVA="/NFS/IDES/PMS/CIS/STAGING/JAVA"
+STAGING_BATCH="/NFS/IDES/PMS/CIS/STAGING/JAVA/BATCH"
+STAGING_BATCH_SRC="/NFS/IDES/PMS/CIS/STAGING/JAVA/BATCH_SOURCE"
+STAGING_WEB="/NFS/IDES/PMS/CIS/STAGING/WEB"
+TARGET_COWEB="/NFS/QA/QCOWEB"
+TARGET_DPWEB="/NFS/QA/QDPWEB"
+TARGET_COWAS="/Appl/Online"
+TARGET_BATCH="/Appl/Batch"
 
-# 라인별로 읽기 (파일의 각 라인을 처리)
+echo "=================================================="
+echo " 신청서       : $INPUT_FILE"
+echo " TASK_ID      : $TASK_ID"
+echo " 출력 위치    : $RESULT_DIR"
+echo "=================================================="
+
+# 타입별 배열 초기화
+declare -a ONLINE_PATHS=()
+declare -a BATCH_PATHS=()
+declare -a COWEB_PATHS=()
+declare -a DPWEB_PATHS=()
+declare -a LOCAL_PATHS=()
+declare -a UNKNOWN_LINES=()
+
 while IFS= read -r line || [ -n "$line" ]; do
-    # 빈 라인이나 주석(#)은 건너뜀
     [[ -z "$line" || "$line" == \#* ]] && continue
 
-    # 라인에서 파일명과 경로 추출 (공백 기준)
+    # 파일명과 경로 분리
     FILE_NAME=$(echo "$line" | awk '{print $1}')
     DIR_INFO=$(echo "$line" | awk '{print $2}')
 
-    # 데이터가 유효한지 확인
     if [ -z "$FILE_NAME" ] || [ -z "$DIR_INFO" ]; then
         continue
     fi
 
-    # -----------------------------------------------------------------------------
-    # 1. 분석 로직 (사용자님의 상세 경로 요구사항 반영)
-    # -----------------------------------------------------------------------------
-    
     # 경로 정규화 (\ -> /)
     DIR_PATH=$(echo "$DIR_INFO" | sed 's/\\/\//g')
     FILE_NAME_LOWER=$(echo "$FILE_NAME" | tr '[:upper:]' '[:lower:]')
     BASE_FILE=$(basename "$FILE_NAME")
-    
-    # 상수 설정
-    STAGING_JAVA="/NFS/IDES/PMS/CIS/STAGING/JAVA"
-    STAGING_BATCH="/NFS/IDES/PMS/CIS/STAGING/JAVA/BATCH"
-    STAGING_BATCH_SRC="/NFS/IDES/PMS/CIS/STAGING/JAVA/BATCH_SOURCE"
-    STAGING_WEB="/NFS/IDES/PMS/CIS/STAGING/WEB"
-    
-    TARGET_COWEB="/NFS/QA/QCOWEB"
-    TARGET_DPWEB="/NFS/QA/QDPWEB"
-    TARGET_COWAS="/Appl/Online"
-    TARGET_BATCH="/Appl/Batch"
+    MATCHED="false"
 
-    TYPE="UNKNOWN"
-    OUTPUT_CONTENT=""
-
-    # [CASE 1] WEB 계열 (COWEB/DPWEB)
-    # 문법 수정: [[ "$DIR_PATH" == *"WEB"* ]]
+    # -----------------------------------------------------------------
+    # [CASE 1] WEB 계열 (COWEB / DPWEB)
+    # -----------------------------------------------------------------
     if [[ "$DIR_PATH" == *"WEB"* ]]; then
-        if [[ "$DIR_PATH" == *"distribution"* ]]; then
-            TYPE="dpweb"
-            TARGET_PREFIX="${TARGET_DPWEB}"
-            STAGING_PREFIX="${STAGING_WEB}/DPWEB"
-        else
-            TYPE="coweb"
-            TARGET_PREFIX="${TARGET_COWEB}"
-            STAGING_PREFIX="${STAGING_WEB}/COWEB"
-        fi
+        # WEB/ 이후의 경로 추출
         WEB_REL_PATH=$(echo "$DIR_PATH" | sed -E 's|.*/WEB/||' | sed 's|/*$||')
-        OUTPUT_CONTENT="${TARGET_PREFIX}/${WEB_REL_PATH}/${BASE_FILE}\nStaging: ${STAGING_PREFIX}/${WEB_REL_PATH}/${BASE_FILE}"
 
-    # [CASE 2] ONLINE Java
+        if [[ "$DIR_PATH" == *"distribution"* ]]; then
+            MATCHED="true"
+            TYPE="dpweb"
+            DPWEB_PATHS+=("${TARGET_DPWEB}/${WEB_REL_PATH}/${BASE_FILE}")
+            LOCAL_PATHS+=("${STAGING_WEB}/DPWEB/${WEB_REL_PATH}/${BASE_FILE}")
+        else
+            MATCHED="true"
+            TYPE="coweb"
+            COWEB_PATHS+=("${TARGET_COWEB}/${WEB_REL_PATH}/${BASE_FILE}")
+            LOCAL_PATHS+=("${STAGING_WEB}/COWEB/${WEB_REL_PATH}/${BASE_FILE}")
+        fi
+
+    # -----------------------------------------------------------------
+    # [CASE 2] ONLINE Java (ONLINE + src)
+    # -----------------------------------------------------------------------------
     elif [[ "$FILE_NAME_LOWER" == *".java" && "$DIR_PATH" == *"ONLINE"* && "$DIR_PATH" == *"src"* ]]; then
+        MATCHED="true"
         TYPE="online"
-        CLASS_REPLACE=$(echo "$BASE_FILE" | sed 's/\.java$/.class/')
+        CLASS_REPLACE="${BASE_FILE%.*}.class"
         RELATIVE_PATH=$(echo "$DIR_PATH" | sed -E 's|.*/src/||' | sed 's|/*$||')
-        OUTPUT_CONTENT="${TARGET_COWAS}/EAR/WEB/WEB-INF/classes/${RELATIVE_PATH}/${CLASS_REPLACE}\n${TARGET_COWAS}/EAR/WEB2/WEB-INF/classes/${RELATIVE_PATH}/${CLASS_REPLACE}\n${TARGET_BATCH}/classes/${RELATIVE_PATH}/${CLASS_REPLACE}\n${STAGING_JAVA}/ONLINE/WEB/WEB-INF/classes/${RELATIVE_PATH}/${CLASS_REPLACE}\n${STAGING_JAVA}/ONLINE_SOURCE/${RELATIVE_PATH}/${BASE_FILE}"
+        
+        ONLINE_PATHS+=("${TARGET_COWAS}/EAR/WEB/WEB-INF/classes/${RELATIVE_PATH}/${CLASS_REPLACE}")
+        ONLINE_PATHS+=("${TARGET_COWAS}/EAR/WEB2/WEB-INF/classes/${RELATIVE_PATH}/${CLASS_REPLACE}")
+        BATCH_PATHS+=("${TARGET_BATCH}/classes/${RELATIVE_PATH}/${CLASS_REPLACE}")
+        LOCAL_PATHS+=("${STAGING_JAVA}/ONLINE/WEB/WEB-INF/classes/${RELATIVE_PATH}/${CLASS_REPLACE}")
+        LOCAL_PATHS+=("${STAGING_JAVA}/ONLINE_SOURCE/${RELATIVE_PATH}/${BASE_FILE}")
 
-    # [CASE 3] BATCH Java
+    # -----------------------------------------------------------------
+    # [CASE 3] BATCH Java (BATCH + src)
+    # -----------------------------------------------------------------
     elif [[ "$FILE_NAME_LOWER" == *".java" && "$DIR_PATH" == *"BATCH"* && "$DIR_PATH" == *"src"* ]]; then
+        MATCHED="true"
         TYPE="batch"
-        CLASS_REPLACE=$(echo "$BASE_FILE" | sed 's/\.java$/.class/')
+        CLASS_REPLACE="${BASE_FILE%.*}.class"
         RELATIVE_PATH=$(echo "$DIR_PATH" | sed -E 's|.*/src/||' | sed 's|/*$||')
-        OUTPUT_CONTENT="${TARGET_BATCH}/classes/${RELATIVE_PATH}/${CLASS_REPLACE}\n${STAGING_BATCH}/classes/${RELATIVE_PATH}/${CLASS_REPLACE}\n${STAGING_BATCH_SRC}/${RELATIVE_PATH}/${BASE_FILE}"
+        
+        BATCH_PATHS+=("${TARGET_BATCH}/classes/${RELATIVE_PATH}/${CLASS_REPLACE}")
+        LOCAL_PATHS+=("${STAGING_BATCH}/classes/${RELATIVE_PATH}/${CLASS_REPLACE}")
+        LOCAL_PATHS+=("${STAGING_BATCH_SRC}/${RELATIVE_PATH}/${BASE_FILE}")
 
+    # -----------------------------------------------------------------
     # [CASE 4] BATCH XML (Config)
+    # -----------------------------------------------------------------
     elif [[ "$FILE_NAME_LOWER" == *".xml" && "$DIR_PATH" == *"BATCH"* && "$DIR_PATH" == *"config"* ]]; then
+        MATCHED="true"
         TYPE="batch_config"
         RELATIVE_PATH=$(echo "$DIR_PATH" | sed -E 's|.*/config/||' | sed 's|/*$||')
-        OUTPUT_CONTENT="${TARGET_BATCH}/config/${RELATIVE_PATH}/${BASE_FILE}\n${STAGING_BATCH}/config/${RELATIVE_PATH}/${BASE_FILE}"
+        
+        BATCH_PATHS+=("${TARGET_BATCH}/config/${RELATIVE_PATH}/${BASE_FILE}")
+        LOCAL_PATHS+=("${STAGING_BATCH}/config/${RELATIVE_PATH}/${BASE_FILE}")
 
+    # -----------------------------------------------------------------
     # [CASE 5] 기타 BATCH
+    # -----------------------------------------------------------------
     elif [[ "$DIR_PATH" == *"BATCH"* ]]; then
+        MATCHED="true"
         TYPE="batch"
-        # 기본 BATCH 로직 (상세 경로가 없는 경우를 위한 기본값)
-        OUTPUT_CONTENT="${TARGET_BATCH}/${DIR_PATH##*/}${BASE_FILE}"
+        # BATCH 기본 경로 처리 (src/config 패턴이 없는 경우)
+        RELATIVE_PATH=$(echo "$DIR_PATH" | sed -E 's|.*/BATCH/||' | sed 's|/*$||')
+        BATCH_PATHS+=("${TARGET_BATCH}/${RELATIVE_PATH}/${BASE_FILE}")
     fi
 
-    # -----------------------------------------------------------------------------
-    # 2. 파일 분류 및 저장
-    # -----------------------------------------------------------------------------
-    if [ "$TYPE" != "UNKNOWN" ]; then
-        # 파일명에서 확장자 제거 (예: CLC_online.txt)
-        BASE_NAME=$(echo "$FILE_NAME" | sed 's/\.[^.]*$//')
-        OUTPUT_FILE="${RESULT_DIR}/${BASE_NAME}_${TYPE}.txt"
-        
-        # 분석된 내용을 파일에 저장 (echo -e 사용으로 줄바꿈 적용)
-        echo -e "$OUTPUT_CONTENT" > "$OUTPUT_FILE"
-        echo "[성공] $FILE_NAME -> ${TYPE} 분류 완료"
-    else
-        BASE_NAME=$(echo "$FILE_NAME" | sed 's/\.[^.]*$//')
-        echo "$line" > "${RESULT_DIR}/${BASE_NAME}_unknown.txt"
-        echo "[실패] $FILE_NAME -> UNKNOWN (분류 불가)"
+    if [ "$MATCHED" = "false" ]; then
+        UNKNOWN_LINES+=("$line")
     fi
 
 done < "$INPUT_FILE"
 
-echo "-------------------------------------------------------"
+# --------------------------------------------------
+# 결과 파일 저장 함수
+# --------------------------------------------------
+write_if_any() {
+    local outfile="$1"; shift
+    local arr=("$@")
+    if [ "${#arr[@]}" -gt 0 ]; then
+        printf '%s\n' "${arr[@]}" > "$outfile"
+        echo "[생성] $outfile (${#arr[@]}건)"
+    fi
+}
+
+# 파일 쓰기 실행
+write_if_any "${RESULT_DIR}/${TASK_ID}_online.txt"  "${ONLINE_PATHS[@]}"
+write_if_any "${RESULT_DIR}/${TASK_ID}_batch.txt"   "${BATCH_PATHS[@]}"
+write_if_any "${RESULT_DIR}/${TASK_ID}_coweb.txt"   "${COWEB_PATHS[@]}"
+write_if_any "${RESULT_DIR}/${TASK_ID}_dpweb.txt"   "${DPWEB_PATHS[@]}"
+write_if_any "${RESULT_DIR}/${TASK_ID}_local.txt"   "${LOCAL_PATHS[@]}"
+
+if [ "${#UNKNOWN_LINES[@]}" -gt 0 ]; then
+    printf '%s\n' "${UNKNOWN_LINES[@]}" > "${RESULT_DIR}/${TASK_ID}_unknown.txt"
+    echo "[주의] 미분류 ${#UNKNOWN_LINES[@]}건 -> ${RESULT_DIR}/${TASK_ID}_unknown.txt"
+fi
+
+echo "=================================================="
 echo " 작업 완료!"
-echo " 생성된 파일 목록:"
-ls -R "$RESULT_DIR"
-echo "-------------------------------------------------------"
-
-이쉘의 기능은 작업의뢰 파일명에 삭제가 필요한 자원의 메타 정보가 작성된 파일로 
-
-파일명 (공백) 경로 형태로 작업의뢰 이름의 파일명으로 만들면
-LT0001002.java	\LT\source\ONLINE\LT\src\hi\dbio\cdo\lt\lt0001002\  
-LAYOUT_TF_ZZ_B2015_Header.xml	\TF\source\BATCH\TF\config\layout\tf\z\
-SQL_TFYB0430.xml	\TF\source\BATCH\TF\config\sql\tf\b\04\TFYB0430\
-TFYB03200201BE.java	\TF\source\BATCH\TF\src\hi\taskforce\batch\bank\TFYB0320\step02\
-hi_cis_portal.exe	\CIS_WEB\source\WEB\distribution\namo\
-ActiveSquare7Uninstaller.exe	\CIS_WEB\source\WEB\distribution\namo\namo7\
-report_a_2.mrd	\LT\source\WEB\LT\report\LT\
-TFFR0300G.xrw	\TF\source\WEB\TF\bin\TF\F\
+echo " 결과 확인: ls -l $RESULT_DIR"
+echo "=================================================="
 
 
-이파일을 읽어서 조건대로 _online, batch,coweb,dpweb 파일로 나누어서 /NFS/IDES/PMS/CIS_RM/TASK_ID/2027/08/33/파일명/파일명_online.txt ...등으로 만들기
+실행이 안되서 위의 쉘로 변경해서 수행 했더니 아래처럼 정상파일이 생기지 않아 
 
-바로 cleanup_cron.sh 에서 실행이 가능하도록 txt 파일을 만드는거야 
-지금은 web 만 있는데 이건 coweb, dpweb 으로 아래와 같이 추가할거야 
-
-	<target name="cleanup.legacy.resources.coweb">
-		<do-cleanup server.list="${coweb.server.ip.list}"
-					request.file="${request_file}"
-					user="${coweb.server.user}"
-					passwd="${coweb.server.passwd}"/>
-	</target>
-
-	<target name="cleanup.legacy.resources.dpweb">
-		<do-cleanup server.list="${dpweb.server.ip.list}"
-					request.file="${request_file}"
-					user="${dpweb.server.user}"
-					passwd="${dpweb.server.passwd}"/>
-	</target>
-추기로 위의 쉘에서
- /NFS/IDES/PMS/CIS/STAGING 이란경로가 추가된걸 볼수 있을거야 이건 ssh를 통한 삭제 가 아니라 쉘이 돌고있는 서버에서의 파일도 삭제를 위한거야 
-
-쉘을 분석해서 미비점이나 문제될게 있는지 검토해줘
-
-
+dsdeploy@cisq-cowas02[/Appl/IDES/PmsDeploy]$ ./cleanup_split_file.sh /Appl/IDES/PmsDeploy/TEST_1                    
+==================================================
+ 신청서       : /Appl/IDES/PmsDeploy/TEST_1
+ TASK_ID      : TEST_1
+ 출력 위치    : /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/21/TEST_1
+==================================================
+sed: illegal option -- E
+sed: illegal option -- E
+sed: illegal option -- E
+sed: illegal option -- E
+sed: illegal option -- E
+sed: illegal option -- E
+sed: illegal option -- E
+sed: illegal option -- E
+[생성] /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/21/TEST_1/TEST_1_online.txt (2건)
+[생성] /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/21/TEST_1/TEST_1_batch.txt (4건)
+[생성] /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/21/TEST_1/TEST_1_coweb.txt (2건)
+[생성] /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/21/TEST_1/TEST_1_dpweb.txt (2건)
+[생성] /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/21/TEST_1/TEST_1_local.txt (8건)
+==================================================
+ 작업 완료!
+ 결과 확인: ls -l /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/21/TEST_1
+==================================================
+dsdeploy@cisq-cowas02[/Appl/IDES/PmsDeploy]$ more /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/21/TEST_1/TEST_1_online.txt
+/Appl/Online/EAR/WEB/WEB-INF/classes//LT0001002.class
+/Appl/Online/EAR/WEB2/WEB-INF/classes//LT0001002.class
+dsdeploy@cisq-cowas02[/Appl/IDES/PmsDeploy]$ more /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/21/TEST_1/TEST_1_batch.txt
+/Appl/Batch/classes//LT0001002.class
+/Appl/Batch//LAYOUT_TF_ZZ_B2015_Header.xml
+/Appl/Batch//SQL_TFYB0430.xml
+/Appl/Batch/classes//TFYB03200201BE.class
+dsdeploy@cisq-cowas02[/Appl/IDES/PmsDeploy]$ more /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/21/TEST_1/TEST_1_coweb.txt 
+/NFS/QA/QCOWEB//report_a_2.mrd
+/NFS/QA/QCOWEB//TFFR0300G.xrw
+dsdeploy@cisq-cowas02[/Appl/IDES/PmsDeploy]$ more  /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/21/TEST_1/TEST_1_dpweb.txt
+/NFS/QA/QDPWEB//hi_cis_portal.exe
+amo\
+/NFS/QA/QDPWEB//ActiveSquare7Uninstaller.exe
+amo
+amo7\
+dsdeploy@cisq-cowas02[/Appl/IDES/PmsDeploy]$ more  /NFS/IDES/PMS/CIS_RM/TASK_ID/2026/07/21/TEST_1/TEST_1_local.txt
+/NFS/IDES/PMS/CIS/STAGING/JAVA/ONLINE/WEB/WEB-INF/classes//LT0001002.class
+/NFS/IDES/PMS/CIS/STAGING/JAVA/ONLINE_SOURCE//LT0001002.java
+/NFS/IDES/PMS/CIS/STAGING/JAVA/BATCH/classes//TFYB03200201BE.class
+/NFS/IDES/PMS/CIS/STAGING/JAVA/BATCH_SOURCE//TFYB03200201BE.java
+/NFS/IDES/PMS/CIS/STAGING/WEB/DPWEB//hi_cis_portal.exe
+amo\
+/NFS/IDES/PMS/CIS/STAGING/WEB/DPWEB//ActiveSquare7Uninstaller.exe
+amo
+amo7\
+/NFS/IDES/PMS/CIS/STAGING/WEB/COWEB//report_a_2.mrd
+/NFS/IDES/PMS/CIS/STAGING/WEB/COWEB//TFFR0300G.xrw
