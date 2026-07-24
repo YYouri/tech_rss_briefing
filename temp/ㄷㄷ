@@ -1,488 +1,237 @@
+	
 #!/bin/bash
-# ==================================================
-# cleanup_cron.sh
-# 레거시 미사용 자원 정리 - 크론 자동 실행 스크립트
-#
-# 사용법:
-#   ./cleanup_cron.sh              # 오늘 날짜 폴더 아래 모든 TASK_ID 처리
-#   ./cleanup_cron.sh <TASK_ID>    # 오늘 날짜 폴더 아래 지정한 TASK_ID 하나만 처리
-#
-#   크론 등록 예:
-#   0 2 * * * /Appl/IDES/PmsDeploy/cleanup_cron.sh >> /Logs/IDES/PMS/CIS_RM/cron/cron_$(date +\%Y\%m\%d).log 2>&1
-#
-# 전제 (작업자가 미리 이 구조로 파일을 둔다):
-#   REQUEST_DIR/YYYY/MM/DD/TASK_ID/TASK_ID_online.txt
-#   REQUEST_DIR/YYYY/MM/DD/TASK_ID/TASK_ID_batch.txt
-#   REQUEST_DIR/YYYY/MM/DD/TASK_ID/TASK_ID_coweb.txt
-#   REQUEST_DIR/YYYY/MM/DD/TASK_ID/TASK_ID_dpweb.txt
-#   REQUEST_DIR/YYYY/MM/DD/TASK_ID/TASK_ID_local.txt
-#   (위 5개 중 존재하는 파일만 해당 서버군/로컬 실행)
-#
-# 안전장치:
-#   - 동시 실행 방지 (PID 파일 기반, flock 미지원 유닉스 대응)
-#   - 이미 처리한 TASK_ID는 재실행하지 않음 (.processed 마커 파일)
-#   - 로그 파일명에 실행 타임스탬프가 붙어서, 같은 TASK_ID를 재시도해도
-#     이전 로그를 덮어쓰지 않고 별도 파일로 남음
-# ==================================================
 
 set -euo pipefail
 
 # ==================================================
-# [설정 구역] 환경이 바뀌면 이 블록만 수정하면 된다
+# [설정 구역]
 # ==================================================
-WORK_DIR="/Appl/IDES/PmsDeploy"
-ANT_HOME="/Appl/IDES/apache-ant-1.7.1/bin"
-JAVA_HOME="/Product/java/jdk1.8.0_271"
-export JAVA_HOME
-export PATH="$JAVA_HOME/bin:$PATH"
+REQUEST_DIR="/NFS/IDES/PMS/CIS_RM/TASK_ID"
+STAGING_JAVA="/NFS/IDES/PMS/CIS/STAGING/JAVA"
+STAGING_BATCH="/NFS/IDES/PMS/CIS/STAGING/JAVA/BATCH"
+STAGING_BATCH_SRC="/NFS/IDES/PMS/CIS/STAGING/JAVA/BATCH_SOURCE"
+STAGING_WEB="/NFS/IDES/PMS/CIS/STAGING/WEB"
+TARGET_COWEB="/NFS/QA/QCOWEB"
+TARGET_DPWEB="/NFS/QA/QDPWEB"
+TARGET_COWAS="/Appl/Online"
+TARGET_BATCH="/Appl/Batch"
 
-LANG=ko_KR.EUC
-export LANG
-
-REQUEST_DIR="/NFS/IDES/PMS/CIS_RM/TASK_ID"      # 작업의뢰 파일 루트 (이 아래 YYYY/MM/DD/TASK_ID 구조)
-LOG_DIR="/Logs/IDES/PMS/CIS_RM"                 # 실행 로그가 쌓이는 폴더
-BUILD_FILE="cleanup_build.xml"
-BACKUP_ROOT="/NFS/IDES/PMS/CIS_RM/BACK_UP"
-PID_FILE="/tmp/cleanup_cron.pid"
-ADMIN_EMAIL="IB1117@himsg.com"            # TASK_ID_email.txt 없을 때 받을 관리자 이메일
-
-# 서버군 이름 -> Ant 타겟 이름 매핑 (local은 SSH 없이 별도 함수로 처리하므로 여기 없음)
-declare -A TARGET_MAP=(
-  [online]="cleanup.legacy.resources.online"
-  [batch]="cleanup.legacy.resources.batch"
-  [coweb]="cleanup.legacy.resources.coweb"
-  [dpweb]="cleanup.legacy.resources.dpweb"
-)
 # ==================================================
 # [설정 구역 끝]
 # ==================================================
 
-# --------------------------------------------------
-# [로컬 정리 함수] SSH 없이, 이 스크립트가 실행되는 서버 자체의 자원을 정리
-#   TASK_ID_local.txt 가 있을 때만 호출됨
-#   subshell( ) 로 정의해서 set -e 가 걸려있어도 ls/mv 실패 시 스크립트 전체가
-#   죽지 않고, 실패 여부만 로그에 [FAIL]/[SUCCESS]로 남도록 격리함
-#   ※ 헤더는 반드시 cleanup_build.xml 의 echo 헤더(SERVER:)와 동일한 표기를 써야
-#     아래 HOST_BREAKDOWN 집계 정규식에 걸린다 (한글/영문 표기 불일치 주의)
-# --------------------------------------------------
-do_cleanup_local() (
-  set +e
-  local_request_file="$1"; task_id="$2"; backup_root="$3"; combined_log="$4"
-  host_label="LOCAL_$(hostname)"
-  backup_dir="${backup_root}/${task_id}/${host_label}"
-  {
-    echo ""
-    echo "===== SERVER: ${host_label} ====="
-    echo "1. Pre-Check"
-    while IFS= read -r p || [ -n "$p" ]; do
-      p=$(printf '%s\n' "$p" | sed 's/[ \t\r]*$//'); [ -z "$p" ] && continue
-      ls -l "$p" 2>&1
-    done < "$local_request_file"
-    echo "2. Move Result"
-    while IFS= read -r p || [ -n "$p" ]; do
-      p=$(printf '%s\n' "$p" | sed 's/[ \t\r]*$//'); [ -z "$p" ] && continue
-      if [ -f "$p" ]; then
-        mkdir -p "$backup_dir$(dirname "$p")"
-        mv "$p" "$backup_dir$p"
-        if [ -f "$p" ]; then echo "mv $p -> $backup_dir$p [FAIL]"
-        else echo "mv $p -> $backup_dir$p [SUCCESS]"; fi
-      else
-        echo "mv $p -> (SKIPPED: NO PAGE)"
-      fi
-    done < "$local_request_file"
-    echo "3. Post Check"
-    while IFS= read -r p || [ -n "$p" ]; do
-      p=$(printf '%s\n' "$p" | sed 's/[ \t\r]*$//'); [ -z "$p" ] && continue
-      ls -l "$p" 2>&1
-    done < "$local_request_file"
-    mkdir -p "$backup_dir"
-    cp "$local_request_file" "$backup_dir/request_list.txt"
-  } >> "$combined_log"
-  exit 0
-)
-
-# --------------------------------------------------
-# [파라미터 처리] 인자로 TASK_ID를 주면 오늘 날짜 폴더 중 그 하나만 처리
-# --------------------------------------------------
-TASK_ID_PARAM="${1:-}"
-
-cd "$WORK_DIR" || { echo "[에러] $WORK_DIR 로 이동 실패"; exit 1; }
-
-# --------------------------------------------------
-# [0] 동시 실행 방지 (PID 파일 기반)
-# --------------------------------------------------
-if [ -f "$PID_FILE" ]; then
-  OLD_PID=$(cat "$PID_FILE")
-  if kill -0 "$OLD_PID" 2>/dev/null; then
-    echo "[건너뜀] 이전 실행이 아직 진행 중입니다. (PID: $OLD_PID)"
-    exit 0
-  else
-    echo "[정보] 이전 PID($OLD_PID)는 이미 종료됨. 잔재 PID 파일 정리 후 진행."
-  fi
+if [ "$#" -lt 1 ]; then
+  echo "사용법: $0 <신청서파일> [TASK_ID]"
+  exit 1
 fi
-echo $$ > "$PID_FILE"
-trap 'rm -f "$PID_FILE"' EXIT
 
-TODAY_Y=$(date +%Y)
-TODAY_M=$(date +%m)
-TODAY_D=$(date +%d)
-TODAY_STAMP="${TODAY_Y}${TODAY_M}${TODAY_D}"
-TODAY_DIR="${REQUEST_DIR}/${TODAY_Y}/${TODAY_M}/${TODAY_D}"
+INPUT_FILE="$1"
+if [ ! -f "$INPUT_FILE" ]; then
+  echo "[에러] 신청서 파일을 찾을 수 없습니다: $INPUT_FILE"
+  exit 1
+fi
 
-# 이 스크립트 한 번 실행 전체에 붙는 타임스탬프 (로그 파일명 충돌/덮어쓰기 방지용)
-RUN_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-
-mkdir -p "$LOG_DIR"
-CRON_LOG_DIR="${LOG_DIR}/cron"
-mkdir -p "$CRON_LOG_DIR"
-
-RUN_TIME=$(date '+%Y-%m-%d %H:%M:%S')
-
-echo "=================================================="
-echo " 실행 시각      : $RUN_TIME"
-echo " 실행 태그      : $RUN_TIMESTAMP"
-echo " 대상 날짜 폴더  : $TODAY_DIR"
-[ -n "$TASK_ID_PARAM" ] && echo " 지정 TASK_ID   : $TASK_ID_PARAM (이 작업만 처리)"
-echo "=================================================="
-
-# --------------------------------------------------
-# [1] 처리할 TASK_ID 폴더 목록 구성
-#     파라미터가 있으면 그 폴더 하나만, 없으면 오늘 폴더 아래 전체
-# --------------------------------------------------
-declare -a TASK_DIR_LIST=()
-
-if [ -n "$TASK_ID_PARAM" ]; then
-  SINGLE_TASK_DIR="${TODAY_DIR}/${TASK_ID_PARAM}"
-  if [ ! -d "$SINGLE_TASK_DIR" ]; then
-    echo "[에러] 지정한 작업 폴더를 찾을 수 없습니다: $SINGLE_TASK_DIR"
-    exit 1
-  fi
-  TASK_DIR_LIST=("${SINGLE_TASK_DIR}/")
+if [ "$#" -ge 2 ]; then
+  TASK_ID="$2"
 else
-  if [ ! -d "$TODAY_DIR" ]; then
-    echo "[정보] 오늘 처리할 작업의뢰 폴더가 없습니다. 종료합니다."
-    exit 0
-  fi
-  TASK_DIR_LIST=("$TODAY_DIR"/*/)
+  TASK_ID=$(basename "$INPUT_FILE")
+  TASK_ID="${TASK_ID%.*}"
 fi
 
-if [ ! -d "${TASK_DIR_LIST[0]}" ]; then
-  echo "[정보] 오늘 폴더는 있지만 처리할 TASK_ID가 하나도 없습니다."
-  exit 0
-fi
-# --------------------------------------------------
-# [2] TASK_ID 폴더 순회 처리
-# --------------------------------------------------
-PROCESSED_COUNT=0
-SKIPPED_COUNT=0
-FAILED_COUNT=0
+TODAY_DIR="${REQUEST_DIR}/$(date +%Y)/$(date +%m)/$(date +%d)"
+OUT_DIR="${TODAY_DIR}/${TASK_ID}"
+mkdir -p "$OUT_DIR"
 
-declare -a TASK_RESULT_LINES=()
-declare -a FAILED_TASK_LINES=()
-
-for TASK_DIR in "${TASK_DIR_LIST[@]}"; do
-  [ -d "$TASK_DIR" ] || continue
-
-  TASK_ID=$(basename "$TASK_DIR")
-  MARKER_FILE="${TASK_DIR}.processed"
-  COMBINED_LOG="${LOG_DIR}/${TASK_ID}_${RUN_TIMESTAMP}.log"
-
-  # 이미 처리 완료된 작업이면 건너뜀 (같은 날 크론이 여러 번 돌아도 중복 실행 안 되게)
-  if [ -f "$MARKER_FILE" ]; then
-    echo "[건너뜀] $TASK_ID (이미 처리됨: $MARKER_FILE)"
-    SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
-    continue
-  fi
-
-  echo "--------------------------------------------------"
-  echo "[시작] TASK_ID = $TASK_ID"
-
-  # 이 TASK_ID에 대해 online/batch/coweb/dpweb/local 중 존재하는 파일 확인
-  FOUND_ANY="false"
-  for TYPE in "${!TARGET_MAP[@]}"; do
-    REQUEST_FILE="${TASK_DIR}${TASK_ID}_${TYPE}.txt"
-    [ -f "$REQUEST_FILE" ] && FOUND_ANY="true"
-  done
-  [ -f "${TASK_DIR}${TASK_ID}_local.txt" ] && FOUND_ANY="true"
-
-  if [ "$FOUND_ANY" = "false" ]; then
-    echo "[경고] $TASK_ID 폴더에 _online/_batch/_coweb/_dpweb/_local.txt 파일이 하나도 없습니다. 건너뜁니다."
-    SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
-    continue
-  fi
-
-  # 이전 로그 잔재 있으면 초기화 (파일명 자체가 타임스탬프로 구분되니 사실상
-  # 매번 새 파일이지만, 방어적으로 유지)
-  > "$COMBINED_LOG"
-
-  TASK_FAILED="false"
-
-  for TYPE in "${!TARGET_MAP[@]}"; do
-    REQUEST_FILE="${TASK_DIR}${TASK_ID}_${TYPE}.txt"
-    [ -f "$REQUEST_FILE" ] || continue
-
-    TARGET_NAME="${TARGET_MAP[$TYPE]}"
-
-    echo "  [진행] $TYPE 서버군 실행 중... (target=$TARGET_NAME)"
-
-    if "$ANT_HOME/ant" -f "$BUILD_FILE" -lib lib:classes "$TARGET_NAME" \
-        -Dtask_id="$TASK_ID" \
-        -Ddryrun="false" \
-        -Drequest_file="$REQUEST_FILE" \
-        -Dlog_dir="$LOG_DIR" \
-        -Dcombined_log="$COMBINED_LOG" \		
-        -Dbackup_root="$BACKUP_ROOT" \
-        -Dverbose=false \
-        >> "$COMBINED_LOG" 2>&1
-    then
-      echo "  [완료] $TYPE"
-    else
-      echo "  [에러] $TYPE 실행 실패. 로그 확인: $COMBINED_LOG"
-      TASK_FAILED="true"
-    fi
-  done
-
-  LOCAL_REQUEST_FILE="${TASK_DIR}${TASK_ID}_local.txt"
-  if [ -f "$LOCAL_REQUEST_FILE" ]; then
-    echo "  [진행] local 자원 정리 실행 중..."
-    do_cleanup_local "$LOCAL_REQUEST_FILE" "$TASK_ID" "$BACKUP_ROOT" "$COMBINED_LOG"
-    echo "  [완료] local"
-  fi
-
-  # --------------------------------------------------
-  # 이 TASK_ID 결과 집계 (로그 포맷: mv 원본 -> 대상 [SUCCESS]/[FAIL], SKIPPED: NO PAGE)
-  # --------------------------------------------------
-  MOVED_COUNT=$(grep -c '^mv .*\[SUCCESS\]' "$COMBINED_LOG" 2>/dev/null || true)
-  MOVE_FAIL_COUNT=$(grep -c '^mv .*\[FAIL\]' "$COMBINED_LOG" 2>/dev/null || true)
-  NOTFOUND_COUNT=$(grep -c '^mv .*SKIPPED: NO PAGE' "$COMBINED_LOG" 2>/dev/null || true)
-
-  echo "  [결과] 성공=$MOVED_COUNT  실패=$MOVE_FAIL_COUNT  원본없음=$NOTFOUND_COUNT"
-
-  # --------------------------------------------------
-  # 서버(호스트)별 성공/실패/원본없음 집계
-  #   "===== SERVER: X =====" 헤더를 기준으로 구간을 나눠서 계산
-  #   (do_cleanup_local, cleanup_build.xml 양쪽 헤더 표기가 반드시 SERVER: 로 동일해야 함)
-  # --------------------------------------------------
-  HOST_BREAKDOWN=$(awk '
-    /^===== SERVER: / {
-      if (server != "") {
-        printf "   - %s : SUCCESS=%d, FAIL=%d, SKIPPED=%d\n", server, moved, fail, notfound
-      }
-      server = $3
-      moved = 0; fail = 0; notfound = 0
-      next
-    }
-    /^mv .*\[SUCCESS\]/       { moved++ }
-    /^mv .*\[FAIL\]/          { fail++ }
-    /^mv .*SKIPPED: NO PAGE/  { notfound++ }
-    END {
-      if (server != "") {
-        printf "   - %s : SUCCESS=%d, FAIL=%d, SKIPPED=%d\n", server, moved, fail, notfound
-      }
-    }
-  ' "$COMBINED_LOG" 2>/dev/null)
-  [ -z "$HOST_BREAKDOWN" ] && HOST_BREAKDOWN="   (서버별 상세 없음)"
-
-  # --------------------------------------------------
-  # 이 TASK_ID 요청자 이메일 확인
-  # --------------------------------------------------
-  EMAIL_FILE="${TASK_DIR}${TASK_ID}_email.txt"
-  if [ -f "$EMAIL_FILE" ]; then
-    TASK_EMAIL=$(head -n 1 "$EMAIL_FILE" | tr -d ' \t\r\n')
-    [ -z "$TASK_EMAIL" ] && TASK_EMAIL="$ADMIN_EMAIL"
-  else
-    TASK_EMAIL="$ADMIN_EMAIL"
-  fi
-
-  if [ "$TASK_FAILED" = "true" ]; then
-    echo "[실패] TASK_ID = $TASK_ID (마커 생성 안 함, 다음 크론에서 재시도됨)"
-    FAILED_COUNT=$((FAILED_COUNT + 1))
-    FAILED_TASK_LINES+=(" - ${TASK_ID} : Ant 빌드 실패 (로그: ${COMBINED_LOG}")
-    TASK_RESULT_LINES+=(" - ${TASK_ID} : [실패] 빌드 에러")
-    TASK_NOTIFY_MSG="[자원정리] ${TASK_ID} 실패 - Ant 빌드 에러
-
-로그 위치
- - 결과 로그 : ${COMBINED_LOG}
-
-서버별 결과 (빌드 실패 전까지 처리된 부분만 반영됨)
-${HOST_BREAKDOWN}"
-    NOTIFY_TARGETS=("$TASK_EMAIL")
-    [ "$TASK_EMAIL" != "$ADMIN_EMAIL" ] && NOTIFY_TARGETS+=("$ADMIN_EMAIL")
-  else
-    touch "$MARKER_FILE"
-    echo "[완료] TASK_ID = $TASK_ID (마커 생성: $MARKER_FILE)"
-    PROCESSED_COUNT=$((PROCESSED_COUNT + 1))
-    TASK_RESULT_LINES+=(" - ${TASK_ID} : [완료] 성공=${MOVED_COUNT}건 실패=${MOVE_FAIL_COUNT}건 원본없음=${NOTFOUND_COUNT}건 (로그: ${COMBINED_LOG})")
-    TASK_NOTIFY_MSG="[자원정리] ${TASK_ID} 완료 - 성공=${MOVED_COUNT}건 실패=${MOVE_FAIL_COUNT}건 원본없음=${NOTFOUND_COUNT}건
-
-로그 위치 : ${COMBINED_LOG}
-
-서버별 결과
-${HOST_BREAKDOWN}"
-    NOTIFY_TARGETS=("$TASK_EMAIL")
-  fi
-
-  # --------------------------------------------------
-  # TASK_ID별 알림 발송 (기존 pmsDeployErrAlert 타겟 재사용)
-  # --------------------------------------------------
-  for TARGET_EMAIL in "${NOTIFY_TARGETS[@]}"; do
-    # 이메일별로 로그 파일을 분리 (여러 명에게 보낼 때 서로 덮어쓰지 않도록)
-    SAFE_EMAIL_TAG=$(printf '%s\n' "$TARGET_EMAIL" | tr -c '[:alnum:]' '_')
-    if "$ANT_HOME/ant" -f "$BUILD_FILE" -lib lib:classes notify.task.result \
-        -Dnotify_task="[자원정리] ${TASK_ID}" \
-        -Dnotify_message="$TASK_NOTIFY_MSG" \
-        -Dnotify_email="$TARGET_EMAIL" \
-        >> "$COMBINED_LOG" 2>&1
-    then
-      echo "  [알림] 발송 완료 -> $TARGET_EMAIL"
-    else
-      echo "  [경고] 알림 발송 실패 -> $TARGET_EMAIL (TASK_ID=$TASK_ID, LOG=$COMBINED_LOG)"
-    fi
-  done
-
-done
-
-# --------------------------------------------------
-# [3] 전체 실행 요약 (콘솔/크론 로그용)
-# --------------------------------------------------
 echo "=================================================="
-echo " 전체 요약 : 처리완료=$PROCESSED_COUNT  건너뜀=$SKIPPED_COUNT  실패=$FAILED_COUNT"
+echo " 신청서       : $INPUT_FILE"
+echo " TASK_ID      : $TASK_ID"
+echo " 출력 위치    : $OUT_DIR"
 echo "=================================================="
 
 # --------------------------------------------------
-# [4] 알림 메시지 파일 생성 (파일명에도 타임스탬프 반영 - 재실행 시 덮어쓰기 방지)
+# [핵심 유틸] 대소문자 무관하게 "/키워드/" 뒤의 상대경로를 잘라낸다
+#   awk 프로세스 하나 안에서 위치 찾기(tolower+index) + 자르기(substr)를
+#   전부 처리한다 - awk와 cut을 따로 섞어 쓰면 로케일/인코딩에 따라
+#   둘의 문자 기준이 어긋날 수 있어(중간 경로 누락 원인), 반드시 한 도구로 통일.
+#   반환: 성공 시 상대경로(trailing / 제거), 실패 시 빈 문자열
 # --------------------------------------------------
-NOTIFY_FILE="${CRON_LOG_DIR}/notify_${RUN_TIMESTAMP}.txt"
+extract_after() {
+  # $1 = 원본 경로(대소문자 보존), $2 = 찾을 키워드(슬래시 없이, 예: "src")
+  awk -v orig="$1" -v kw="$2" '
+    BEGIN {
+      lower = tolower(orig)
+      marker = "/" kw "/"
+      pos = index(lower, marker)
+      if (pos > 0) {
+        rel = substr(orig, pos + length(marker))
+        sub(/[ \t\/]+$/, "", rel)
+        print rel
+      } else {
+        print ""
+      }
+    }
+  '
+}
 
-{
-  if [ "$FAILED_COUNT" -gt 0 ]; then
-    echo "[자원정리] ${TODAY_Y}-${TODAY_M}-${TODAY_D} 실행 결과 - 실패 ${FAILED_COUNT}건 발생"
-  else
-    echo "[자원정리] ${TODAY_Y}-${TODAY_M}-${TODAY_D} 실행 결과 - 전체 성공"
+# --------------------------------------------------
+# [핵심 유틸] 대소문자 무관 부분 문자열 포함 여부 (case문 글롭 매칭 - POSIX 호환)
+# --------------------------------------------------
+contains_ci() {
+  # $1 = 원본 문자열, $2 = 찾을 키워드(소문자, 슬래시 포함해서 넘김 예: "/src/")
+  local lower_str
+  lower_str=$(printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]')
+  case "$lower_str" in
+    *"$2"*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# 타입별 경로를 모아둘 배열 (신청서 전체 기준으로 누적 - 취합의 핵심)
+declare -a ONLINE_PATHS=()
+declare -a BATCH_PATHS=()
+declare -a COWEB_PATHS=()
+declare -a DPWEB_PATHS=()
+declare -a LOCAL_PATHS=()
+declare -a UNKNOWN_LINES=()
+
+LINE_NO=0
+
+while IFS= read -r line || [ -n "$line" ]; do
+  LINE_NO=$((LINE_NO + 1))
+
+  # 윈도우 개행(\r) 제거
+  line=$(printf '%s\n' "$line" | tr -d '\r')
+
+  # 빈 줄/주석 건너뜀
+  case "$line" in
+    ""|"#"*) continue ;;
+  esac
+
+  # 공백/탭 기준 파일명 / 경로 분리 (일반 read - here-string 미사용)
+  FILE_NAME=""
+  DIR_INFO=""
+  EXTRA=""
+  # 첫 번째 필드(파일명)만 뽑고, 그 이후 전부(내부 공백 포함)를 경로로 취급.
+  # read로 필드를 나누면 경로 중간에 우연히 공백이 껴있을 때 그 뒤가
+  # 통째로 잘려나가는 문제가 있어(예: "hi\dbio cdo\..." -> "hi\dbio"에서 끊김),
+  # 반드시 "첫 필드 이후 나머지 전체"를 그대로 보존해야 한다.
+  FILE_NAME=$(printf '%s\n' "$line" | awk '{print $1}')
+  DIR_INFO=$(printf '%s\n' "$line" | sed 's/^[^ 	]*[ 	]*//')
+  # 줄 끝에 남은 공백/탭 제거 (신청서 원본에 트레일링 공백이 섞여 오는 경우 대비)
+  DIR_INFO=$(printf '%s\n' "$DIR_INFO" | sed 's/[ 	]*$//')
+
+  if [ -z "$FILE_NAME" ] || [ -z "$DIR_INFO" ]; then
+    echo "[경고] ${LINE_NO}번째 줄 형식 오류, UNKNOWN 처리: $line"
+    UNKNOWN_LINES+=("$line")
+    continue
   fi
-  echo ""
-  echo "=================================================="
-  echo " 실행 시각   : $RUN_TIME"
-  echo " 대상 폴더   : $TODAY_DIR"
-  [ -n "$TASK_ID_PARAM" ] && echo " 지정 TASK_ID : $TASK_ID_PARAM"
-  echo "=================================================="
-  echo " 처리완료 : ${PROCESSED_COUNT}건"
-  echo " 건너뜀   : ${SKIPPED_COUNT}건"
-  echo " 실패     : ${FAILED_COUNT}건"
-  echo "=================================================="
 
-  if [ "${#TASK_RESULT_LINES[@]}" -gt 0 ]; then
-    echo "[작업별 상세]"
-    for LINE in "${TASK_RESULT_LINES[@]}"; do
-      echo "$LINE"
-    done
-    echo "=================================================="
+  # 경로 정규화 (\ -> /)
+  DIR_PATH=$(printf '%s\n' "$DIR_INFO" | tr '\\' '/')
+  BASE_FILE=$(basename "$FILE_NAME")
+
+  MATCHED="false"
+
+  # -----------------------------------------------------------------
+  # [CASE 1] ONLINE Java
+  # -----------------------------------------------------------------
+  LOWER_FILE=$(printf '%s\n' "$BASE_FILE" | tr '[:upper:]' '[:lower:]')
+  case "$LOWER_FILE" in
+    *.java)
+      if contains_ci "$DIR_PATH" "/online/" && contains_ci "$DIR_PATH" "/src/"; then
+        MATCHED="true"
+        CLASS_NAME="${BASE_FILE%.*}.class"
+        RELATIVE_PATH=$(extract_after "$DIR_PATH" "src")
+        ONLINE_PATHS+=("${TARGET_COWAS}/EAR/WEB/WEB-INF/classes/${RELATIVE_PATH}/${CLASS_NAME}")
+        BATCH_PATHS+=("${TARGET_BATCH}/classes/${RELATIVE_PATH}/${CLASS_NAME}")
+        LOCAL_PATHS+=("${STAGING_JAVA}/ONLINE/WEB/WEB-INF/classes/${RELATIVE_PATH}/${CLASS_NAME}")
+        LOCAL_PATHS+=("${STAGING_JAVA}/ONLINE_SOURCE/${RELATIVE_PATH}/${BASE_FILE}")
+      elif contains_ci "$DIR_PATH" "/batch/" && contains_ci "$DIR_PATH" "/src/"; then
+        MATCHED="true"
+        CLASS_NAME="${BASE_FILE%.*}.class"
+        RELATIVE_PATH=$(extract_after "$DIR_PATH" "src")
+        BATCH_PATHS+=("${TARGET_BATCH}/classes/${RELATIVE_PATH}/${CLASS_NAME}")
+        LOCAL_PATHS+=("${STAGING_BATCH}/classes/${RELATIVE_PATH}/${CLASS_NAME}")
+        LOCAL_PATHS+=("${STAGING_BATCH_SRC}/${RELATIVE_PATH}/${BASE_FILE}")
+      fi
+      ;;
+    *.xml)
+      if contains_ci "$DIR_PATH" "/batch/" && contains_ci "$DIR_PATH" "/config/"; then
+        MATCHED="true"
+        RELATIVE_PATH=$(extract_after "$DIR_PATH" "config")
+        BATCH_PATHS+=("${TARGET_BATCH}/config/${RELATIVE_PATH}/${BASE_FILE}")
+        LOCAL_PATHS+=("${STAGING_BATCH}/config/${RELATIVE_PATH}/${BASE_FILE}")
+      fi
+      ;;
+  esac
+
+  # -----------------------------------------------------------------
+  # [CASE] WEB 계열 (COWEB / DPWEB) - 확장자 무관, 위에서 안 걸린 경우만
+  # -----------------------------------------------------------------
+  if [ "$MATCHED" = "false" ] && contains_ci "$DIR_PATH" "/web/"; then
+    MATCHED="true"
+    WEB_REL_PATH=$(extract_after "$DIR_PATH" "web")
+    if contains_ci "$DIR_PATH" "/distribution/"; then
+      DPWEB_PATHS+=("${TARGET_DPWEB}/${WEB_REL_PATH}/${BASE_FILE}")
+      LOCAL_PATHS+=("${STAGING_WEB}/DPWEB/${WEB_REL_PATH}/${BASE_FILE}")
+    else
+      # coweb은 "web/" 바로 다음에 프로젝트 코드(예: LT)가 한 번 더 중복으로
+      # 붙어있어 이 첫 세그먼트는 버리고 그 다음부터를 실제 상대경로로 쓴다.
+      case "$WEB_REL_PATH" in
+        */*) COWEB_REL=$(printf '%s\n' "$WEB_REL_PATH" | sed 's/^[^/]*\///') ;;
+        *)   COWEB_REL="" ;;
+      esac
+      COWEB_PATHS+=("${TARGET_COWEB}/${COWEB_REL}/${BASE_FILE}")
+      LOCAL_PATHS+=("${STAGING_WEB}/COWEB/${COWEB_REL}/${BASE_FILE}")
+    fi
   fi
 
-  if [ "${#FAILED_TASK_LINES[@]}" -gt 0 ]; then
-    echo "[실패 목록 - 확인 필요]"
-    for LINE in "${FAILED_TASK_LINES[@]}"; do
-      echo "$LINE"
-    done
-    echo "=================================================="
+  # -----------------------------------------------------------------
+  # [CASE] 기타 BATCH (src/config 패턴이 없는 경우의 기본값)
+  #   ※ 목적지 규칙이 불명확하여 원본 상대경로를 최대한 보존. 확인 필요.
+  # -----------------------------------------------------------------
+  if [ "$MATCHED" = "false" ] && contains_ci "$DIR_PATH" "/batch/"; then
+    MATCHED="true"
+    RELATIVE_PATH=$(extract_after "$DIR_PATH" "batch")
+    BATCH_PATHS+=("${TARGET_BATCH}/${RELATIVE_PATH}/${BASE_FILE}")
   fi
 
-  echo " 크론 실행 로그 : ${CRON_LOG_DIR}/cron_${TODAY_STAMP}.log"
-  echo "=================================================="
-} > "$NOTIFY_FILE"
+  if [ "$MATCHED" = "false" ]; then
+    echo "[미분류] $FILE_NAME ($DIR_PATH)"
+    UNKNOWN_LINES+=("$line")
+  fi
 
-echo "[완료] 알림 메시지 생성됨: $NOTIFY_FILE"
-cat "$NOTIFY_FILE"
+done < "$INPUT_FILE"
 
-if [ "$FAILED_COUNT" -gt 0 ]; then
-  exit 2
+# --------------------------------------------------
+# 결과 파일 저장 (내용이 있는 타입만 생성)
+# --------------------------------------------------
+write_if_any() {
+  local outfile="$1"; shift
+  if [ "$#" -gt 0 ]; then
+    printf '%s\n' "$@" > "$outfile"
+    echo "[생성] $outfile ($# 줄)"
+  fi
+}
+
+write_if_any "${OUT_DIR}/${TASK_ID}_online.txt" "${ONLINE_PATHS[@]}"
+write_if_any "${OUT_DIR}/${TASK_ID}_batch.txt"  "${BATCH_PATHS[@]}"
+write_if_any "${OUT_DIR}/${TASK_ID}_coweb.txt"  "${COWEB_PATHS[@]}"
+write_if_any "${OUT_DIR}/${TASK_ID}_dpweb.txt"  "${DPWEB_PATHS[@]}"
+write_if_any "${OUT_DIR}/${TASK_ID}_local.txt"  "${LOCAL_PATHS[@]}"
+
+if [ "${#UNKNOWN_LINES[@]}" -gt 0 ]; then
+  printf '%s\n' "${UNKNOWN_LINES[@]}" > "${OUT_DIR}/${TASK_ID}_unknown.txt"
+  echo "[주의] 미분류 ${#UNKNOWN_LINES[@]}건 -> ${OUT_DIR}/${TASK_ID}_unknown.txt (수동 확인 필요)"
 fi
 
-exit 0
+echo "=================================================="
+echo " 완료: online=${#ONLINE_PATHS[@]} batch=${#BATCH_PATHS[@]} coweb=${#COWEB_PATHS[@]} dpweb=${#DPWEB_PATHS[@]} local=${#LOCAL_PATHS[@]} unknown=${#UNKNOWN_LINES[@]}"
+echo "=================================================="
 
 
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- ==================================================
-     [공통 로직] 서버 목록을 순회하며 파일 정리
-     로그는 서버별로 3단계 구조로 남는다:
-       1. 작업 전 자원 확인 (ls)
-       2. 이동 결과 (경로별 mv 원본 -> 대상 [성공/실패] + 요약 건수)
-       3. 작업 후 자원 확인 (ls)
-     백업 경로는 서버 호스트명 단위로 분리되어 있어, 서버간 백업 덮어쓰기가 없음
-     요청 목록 파일(PLIST)은 삭제하지 않고 백업 폴더에 request_list.txt로 보관
-     ================================================== -->
-<project name="cleanup_build" basedir="/Appl/IDES/PmsDeploy">
-	<property file="./config/cis.deploy.properties" />
-	<taskdef resource="net/sf/antcontrib/antlib.xml" />
-
-	<taskdef name="pmsAlertSend" classname="hi.deploy.ant.PmsAlertSend" classpath="./classes"/>
-
-
-	<macrodef name="do-cleanup">
-		<attribute name="server.list"/>
-		<attribute name="request.file"/>
-		<attribute name="user"/>
-		<attribute name="passwd"/>
-
-		<sequential>
-			<loadfile property="pathlist" srcFile="@{request.file}"/>
-			<for list="@{server.list}" param="server.ip" delimiter=" ">
-				<sequential>
-
-					<sshexec host="@{server.ip}"
-							username="@{user}"
-							password="@{passwd}"
-							trust="true"
-							verbose="false"
-							outputproperty="result.@{server.ip}"
-							command="PLIST=/tmp/cleanup_paths_${task_id}_$$; echo '${pathlist}' > $PLIST; DRYRUN=${dryrun}; BACKUP_DIR=${backup_root}/${task_id}/$(hostname); echo "1. Pre-Check"; while read -r p || [ -n "$p" ]; do p=$(echo "$p" | sed "s/^[ '\" ]*//;s/[ '\" ]*$//"); [ -z "$p" ] && continue; ls -l "$p" 2>&1; done < $PLIST; SUCCESS=0; FAIL=0; echo "2. Move Result"; while read -r p || [ -n "$p" ]; do p=$(echo "$p" | sed "s/^[ '\" ]*//;s/[ '\" ]*$//"); [ -z "$p" ] && continue; if [ -f "$p" ]; then if [ "$DRYRUN" = "true" ]; then echo "mv $p -> $BACKUP_DIR$p (dry-run, NO RUN)"; SUCCESS=$((SUCCESS+1)); else mkdir -p "$BACKUP_DIR$(dirname "$p")"; mv "$p" "$BACKUP_DIR$p"; if [ -f "$p" ]; then echo "mv $p -> $BACKUP_DIR$p [FAIL]"; FAIL=$((FAIL+1)); else echo "mv $p -> $BACKUP_DIR$p [SUCCESS]"; SUCCESS=$((SUCCESS+1)); fi; fi; else echo "mv $p -> (SKIPPED: NO PAGE)"; FAIL=$((FAIL+1)); fi; done < $PLIST; echo "SUMMARY: SUCCESS=$SUCCESS FAIL=$FAIL"; echo "3. Post Check"; while read -r p || [ -n "$p" ]; do p=$(echo "$p" | sed "s/^[ '\" ]*//;s/[ '\" ]*$//"); [ -z "$p" ] && continue; ls -l "$p" 2>&1; done < $PLIST; mkdir -p "$BACKUP_DIR"; mv "$PLIST" "$BACKUP_DIR/request_list.txt""/>
-
-					<echo file="${combined_log}" append="true"
-						message="${line.separator}===== SERVER: @{server.ip} =====${line.separator}${result.@{server.ip}}${line.separator}"/>
-
-				</sequential>
-			</for>
-		</sequential>
-	</macrodef>
-
-	<!-- ==================================================
-	     [타겟 3개] 각자 자기 서버 목록/계정만 지정해서 위 매크로 호출
-	     ================================================== -->
-	<target name="cleanup.legacy.resources.online">
-		<do-cleanup server.list="${cowas.server.ip.list}"
-					request.file="${request_file}"
-					user="${cowas.server.user}"
-					passwd="${cowas.server.passwd}"/>
-	</target>
-
-	<target name="cleanup.legacy.resources.batch">
-		<do-cleanup server.list="${batch.server.ip.list}"
-					request.file="${request_file}"
-					user="${batch.server.user}"
-					passwd="${batch.server.passwd}"/>
-	</target>
-
-	<target name="cleanup.legacy.resources.coweb">
-		<do-cleanup server.list="${coweb.server.ip.list}"
-					request.file="${request_file}"
-					user="${coweb.server.user}"
-					passwd="${coweb.server.passwd}"/>
-	</target>
-
-	<target name="cleanup.legacy.resources.dpweb">
-		<do-cleanup server.list="${dpweb.server.ip.list}"
-					request.file="${request_file}"
-					user="${dpweb.server.user}"
-					passwd="${dpweb.server.passwd}"/>
-	</target>
-	<!-- ==================================================
-	     [알림 타겟] 작업 하나(TASK_ID) 처리 결과를 이메일로 발송
-	     쉘 스크립트에서 -Dnotify_message, -Dnotify_email 넘겨서 호출
-	     ================================================== -->
-	<target name="notify.task.result">
-		<echo message="notify_task: ${notify_task}===== notify_message: ${notify_message} ===== notify_email: ${notify_email}"/>
-		<pmsAlertSend title="${notify_task}" message="${notify_message}" email="${notify_email}"/>
-	</target>
-
-</project>
-쉘과 build.xml 이야 마지막 검토해줘
+GIUG0002RRIVO.class		\GI\source\ONLINE\GI\src\hi\generalinsurance\underwriting\get\quotation\entity\							
+						
+GIUQ0216S$1.class		\GI\source\ONLINE\GI\src\hi\generalinsurance\underwriting\get\quotationPackage\service\		
+예시 처럼  파일 쪼개는 쉘인데 입력되는 파일에서 경로 처리는 같고 파일명에서 java 뿐 아니라 class 도 같은 방식으로 처리되게 해줘
+그리고 이너클래스가 있을경우도 출력 경로를 만들어줘
