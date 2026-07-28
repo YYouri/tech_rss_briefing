@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>기간계 자원정리 신청서 분할</title>
+<title>기간계 자원정리 관리</title>
 <link href="../css/bootstrap.min.css" rel="stylesheet">
 <link href="../css/jquery-ui.min.css" rel="stylesheet">
 <link href="../css/custom.css" rel="stylesheet">
@@ -125,6 +125,26 @@
   /* [디자인] 버튼 레이아웃 */
   .btn-group-custom { display: flex; gap: 10px; flex-wrap: wrap; }
   .mono { font-family: 'Cascadia Code', 'Consolas', monospace; }
+  .env-sticky-badge {
+  position: fixed;
+  top: 16px;
+  right: 24px;
+  z-index: 1000;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .env-sticky-qa { background: #007bff; color: #fff; }
+  .env-sticky-prod { background: #e53e3e; color: #fff; animation: env-pulse 1.4s infinite; }
+  @keyframes env-pulse {
+    0%, 100% { box-shadow: 0 2px 8px rgba(229,62,62,0.4); }
+    50% { box-shadow: 0 2px 20px rgba(229,62,62,0.85); }
+  }
+  .path-edit-row { display: flex; align-items: center; gap: 8px; padding: 4px 12px; border-bottom: 1px solid #f7fafc; }
+  .path-edit-input { font-size: 13px; border: 1px solid transparent; background: transparent; flex: 1; }
+  .path-edit-input:focus { border-color: #cbd5e0; background: #fff; }
 </style>
 </head>
 <body>
@@ -132,10 +152,12 @@
 <header id="header"></header>
 
 <div id="app" class="container-fluid">
-  
+  <div class="env-sticky-badge" v-bind:class="env === 'PROD' ? 'env-sticky-prod' : 'env-sticky-qa'">
+  {{ env === 'PROD' ? '● 운영(PROD) 작업 중' : '● 검증(QA) 작업 중' }}
+  </div>
   <!-- 메인 타이틀 영역 -->
   <div class="main-header">
-    <h4 class="mb-1">기간계 자원정리 신청</h4>
+    <h4 class="mb-1">기간계 자원정리 관리</h4>
     <p class="text-muted mb-0" style="font-size:13px;">삭제 대상 자원 목록을 붙여넣고, 확인/편집 후 타입별로 변환하여 배포서버로 전송합니다.</p>
   </div>
 
@@ -222,9 +244,17 @@
       </div>
       <div style="max-height:300px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; background:#fff;">
         <template v-if="classifyResult && classifyResult[activeTab].length > 0">
-          <div class="path-line" v-for="(p, i) in classifyResult[activeTab]" v-bind:key="i">{{ p }}</div>
+          <div class="path-edit-row" v-for="(p, i) in classifyResult[activeTab]" v-bind:key="i">
+            <input type="text" class="form-control form-control-sm mono path-edit-input" v-model="classifyResult[activeTab][i]">
+            <button type="button" class="btn btn-link text-danger p-0 path-edit-del" v-on:click="deletePathRow(i)">✕</button>
+          </div>
         </template>
-      </div>
+        <div class="text-center text-muted p-4" v-else style="font-size:13px;">해당 없음</div>
+	</div>
+
+	  <div class="mt-2">
+ 	   <button type="button" class="btn btn-outline-secondary btn-sm" v-on:click="addPathRow">행 추가</button>
+	  </div>
     </div>
   </div>
 
@@ -257,12 +287,12 @@
 
       <!-- 실행 컨트롤 버튼 -->
       <div class="btn-group-custom">
-        <button type="button" class="btn btn-success btn-sm px-3 shadow-sm" v-bind:disabled="uploading" v-on:click="handleUpload">
-          {{ uploading ? '업로드 중...' : '배포서버 업로드' }}
-        </button>
-        <button type="button" class="btn btn-warning btn-sm px-3 shadow-sm" v-bind:disabled="!executeEnabled || executing" v-on:click="handleExecute">
-          {{ executing ? '실행 중...' : 'Cleanup 실행' }}
-        </button>
+		<button type="button" class="btn btn-success btn-sm px-3 shadow-sm" v-bind:disabled="uploading" v-on:click="handleUpload">
+		  {{ uploading ? '업로드 중...' : (env === 'PROD' ? '[운영] 배포서버 업로드' : '[검증] 배포서버 업로드') }}
+		</button>
+		<button type="button" class="btn btn-warning btn-sm px-3 shadow-sm" v-bind:disabled="!executeEnabled || executing" v-on:click="handleExecute">
+		  {{ executing ? '실행 중...' : (env === 'PROD' ? '[운영] Cleanup 실행' : '[검증] Cleanup 실행') }}
+		</button>
         <button type="button" class="btn btn-outline-secondary btn-sm px-3" v-bind:disabled="!executed || fetchingLog" v-on:click="handleFetchLog">
           로그 조회
         </button>
@@ -528,33 +558,69 @@ new Vue({
         .finally(function () { self.uploading = false; });
     },
     handleExecute: function () {
-      var self = this;
-      var tid = (this.taskId || "").trim();
-      if (this.env === "PROD") {
-        var ok = window.confirm("운영(PROD) 서버에서 cleanup_cron.sh 를 실행합니다. 실제 자원이 이동/삭제됩니다. 계속하시겠습니까?");
-        if (!ok) return;
-      }
-      this.executing = true;
-      this.agentStatus = { text: "실행 중... (" + this.env + " 배포서버에서 cleanup_cron.sh 수행)", isError: false };
-      fetch("/api/resource-cleanup/execute.json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ env: this.env, taskId: tid }),
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          self.agentStatus = {
-            text: data.success ? ("실행 완료 (exit=" + data.exitCode + ")") : ("실행 실패 (exit=" + data.exitCode + ")"),
-            isError: !data.success,
-          };
-          self.agentLog = data.output || data.message || "(출력 없음)";
-          self.executed = true;
-        })
-        .catch(function (err) {
-          self.agentStatus = { text: "실행 요청 실패: " + err.message, isError: true };
-        })
-        .finally(function () { self.executing = false; });
-    },
+    	  var self = this;
+    	  var tid = (this.taskId || "").trim();
+    	  if (this.env === "PROD") {
+    	    var ok = window.confirm("운영(PROD) 서버에서 cleanup_cron.sh 를 실행합니다. 실제 자원이 이동/삭제됩니다. 계속하시겠습니까?");
+    	    if (!ok) return;
+    	  }
+    	  this.executing = true;
+    	  this.agentStatus = { text: "실행 시작 중... (" + this.env + ")", isError: false };
+    	  fetch("/api/resource-cleanup/execute.json", {
+    	    method: "POST",
+    	    headers: { "Content-Type": "application/json" },
+    	    body: JSON.stringify({ env: this.env, taskId: tid }),
+    	  })
+    	    .then(function (res) { return res.json(); })
+    	    .then(function (data) {
+    	      if (data.success) {
+    	        self.agentStatus = { text: "실행 중... (" + self.env + " 배포서버에서 cleanup_cron.sh 수행)", isError: false };
+    	        self.pollExecuteStatus(tid);
+    	      } else {
+    	        self.agentStatus = { text: "실행 시작 실패: " + (data.message || "알 수 없는 오류"), isError: true };
+    	        self.executing = false;
+    	      }
+    	    })
+    	    .catch(function (err) {
+    	      self.agentStatus = { text: "실행 요청 실패: " + err.message, isError: true };
+    	      self.executing = false;
+    	    });
+    	},
+    	pollExecuteStatus: function (taskId) {
+    	  var self = this;
+    	  var intervalMs = 3000; // 3초 간격 폴링
+
+    	  var timer = setInterval(function () {
+    	    fetch("/api/resource-cleanup/execute-status.json?env=" + encodeURIComponent(self.env) + "&taskId=" + encodeURIComponent(taskId))
+    	      .then(function (res) { return res.json(); })
+    	      .then(function (data) {
+    	        if (!data.success) {
+    	          clearInterval(timer);
+    	          self.executing = false;
+    	          self.agentStatus = { text: "상태 조회 실패: " + (data.message || "알 수 없는 오류"), isError: true };
+    	          return;
+    	        }
+    	        if (data.status === "RUNNING") {
+    	          return; // 계속 폴링
+    	        }
+    	        // SUCCESS 또는 FAILED - 종료
+    	        clearInterval(timer);
+    	        self.executing = false;
+    	        self.executed = true;
+    	        var ok = data.status === "SUCCESS";
+    	        self.agentStatus = {
+    	          text: ok ? ("실행 완료 (exit=" + data.exitCode + ")") : ("실행 실패 (exit=" + data.exitCode + ")"),
+    	          isError: !ok,
+    	        };
+    	        self.agentLog = data.output || "(출력 없음)";
+    	      })
+    	      .catch(function (err) {
+    	        clearInterval(timer);
+    	        self.executing = false;
+    	        self.agentStatus = { text: "상태 폴링 실패: " + err.message, isError: true };
+    	      });
+    	  }, intervalMs);
+    	},
     handleFetchLog: function () {
       var self = this;
       var tid = (this.taskId || "").trim();
@@ -584,580 +650,9 @@ new Vue({
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
     },
+    
   },
 });
 </script>
 </body>
 </html>
-package hi.framework.deploymanager.server.controller;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import hi.framework.deploymanager.server.service.CleanupResourceService;
-
-@RestController
-@RequestMapping("/api/resource-cleanup")
-public class CleanupResourceServiceController {
-	private Logger logger = LogManager.getLogger(this.getClass().getName());
-
-	private final CleanupResourceService deployAgentService;
-
-	public CleanupResourceServiceController(CleanupResourceService deployAgentService) {
-		this.deployAgentService = deployAgentService;
-	}
-
-	@PostMapping("/upload.json")
-	public ResponseEntity<Map<String, Object>> upload(@RequestBody UploadRequest request) {
-		logger.info("[Upload Request] env: {}, taskId: {}, fileCount: {}", 
-				request.getEnv(), request.getTaskId(), request.getFiles() != null ? request.getFiles().size() : 0);
-		Map<String, Object> body = new HashMap<>();
-		try {
-			deployAgentService.validateTaskId(request.getTaskId());
-			deployAgentService.validateEnv(request.getEnv());
-
-			Map<String, String> uploaded = deployAgentService.uploadTaskFiles(request.getEnv(), request.getTaskId(), request.getFiles());
-
-			logger.info("[Upload Success] env: {}, taskId: {}, uploadedFiles: {}", request.getEnv(), request.getTaskId(), uploaded);
-			body.put("success", true);
-			body.put("uploadedFiles", uploaded);
-			return ResponseEntity.ok(body);
-		} catch (IllegalArgumentException badRequest) {
-			logger.warn("[Upload Validation Failed] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), badRequest.getMessage());
-			body.put("success", false);
-			body.put("message", badRequest.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
-		} catch (Exception e) {
-			logger.error("[Upload Error] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), e.getMessage(), e);
-			body.put("success", false);
-			body.put("message", "업로드 실패: " + e.getMessage());
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
-		}
-	}
-
-	@PostMapping("/execute.json")
-	public ResponseEntity<Map<String, Object>> execute(@RequestBody ExecuteRequest request) {
-		logger.info("[Execute Request] env: {}, taskId: {}", request.getEnv(), request.getTaskId());
-		Map<String, Object> body = new HashMap<>();
-		try {
-			deployAgentService.validateTaskId(request.getTaskId());
-			deployAgentService.validateEnv(request.getEnv());
-
-			CleanupResourceService.ExecResult result = deployAgentService.executeCleanup(request.getEnv(), request.getTaskId());
-
-			logger.info("[Execute Result] env: {}, taskId: {}, exitCode: {}, success: {}", 
-					request.getEnv(), request.getTaskId(), result.getExitCode(), result.isSuccess());
-
-			body.put("success", result.isSuccess());
-			body.put("exitCode", result.getExitCode());
-			body.put("output", result.getOutput());
-			return ResponseEntity.ok(body);
-		} catch (IllegalArgumentException badRequest) {
-			logger.warn("[Execute Validation Failed] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), badRequest.getMessage());
-			body.put("success", false);
-			body.put("message", badRequest.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
-		} catch (Exception e) {
-			logger.error("[Execute Error] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), e.getMessage(), e);
-			body.put("success", false);
-			body.put("message", "실행 실패: " + e.getMessage());
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
-		}
-	}
-
-	@GetMapping("/log.json")
-	public ResponseEntity<Map<String, Object>> log(@RequestParam("env") String env, @RequestParam("taskId") String taskId) {
-		logger.info("[Log Fetch Request] env: {}, taskId: {}", env, taskId);
-		Map<String, Object> body = new HashMap<>();
-		try {
-			deployAgentService.validateTaskId(taskId);
-			deployAgentService.validateEnv(env);
-
-			CleanupResourceService.ExecResult result = deployAgentService.fetchLatestLog(env, taskId);
-
-			if (result.isSuccess()) {
-				logger.info("[Log Fetch Success] env: {}, taskId: {}", env, taskId);
-				body.put("success", true);
-				body.put("log", result.getOutput());
-			} else {
-				logger.warn("[Log Fetch Failed] env: {}, taskId: {}, reason: {}", env, taskId, "No log file found or exit code: " + result.getExitCode());
-				body.put("success", false);
-				body.put("message", "로그 파일을 찾을 수 없습니다.");
-			}
-			return ResponseEntity.ok(body);
-		} catch (IllegalArgumentException badRequest) {
-			logger.warn("[Log Fetch Validation Failed] env: {}, taskId: {}, message: {}", env, taskId, badRequest.getMessage());
-			body.put("success", false);
-			body.put("message", badRequest.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
-		} catch (Exception e) {
-			logger.error("[Log Fetch Error] env: {}, taskId: {}, message: {}", env, taskId, e.getMessage(), e);
-			body.put("success", false);
-			body.put("message", "로그 조회 실패: " + e.getMessage());
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
-		}
-
-	}
-	public static class UploadRequest {
-		private String env;
-		private String taskId;
-		private Map<String, String> files;
-
-		public String getEnv() { return env; }
-		public void setEnv(String env) { this.env = env; }
-		public String getTaskId() { return taskId; }
-		public void setTaskId(String taskId) { this.taskId = taskId; }
-		public Map<String, String> getFiles() { return files; }
-		public void setFiles(Map<String, String> files) { this.files = files; }
-	}
-
-	public static class ExecuteRequest {
-		private String env;
-		private String taskId;
-
-		public String getEnv() { return env; }
-		public void setEnv(String env) { this.env = env; }
-		public String getTaskId() { return taskId; }
-		public void setTaskId(String taskId) { this.taskId = taskId; }
-	}
-}
-
-package hi.framework.deploymanager.server.controller;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import hi.framework.deploymanager.server.service.CleanupResourceService;
-
-@RestController
-@RequestMapping("/api/resource-cleanup")
-public class CleanupResourceServiceController {
-	private Logger logger = LogManager.getLogger(this.getClass().getName());
-
-	private final CleanupResourceService deployAgentService;
-
-	public CleanupResourceServiceController(CleanupResourceService deployAgentService) {
-		this.deployAgentService = deployAgentService;
-	}
-
-	@PostMapping("/upload.json")
-	public ResponseEntity<Map<String, Object>> upload(@RequestBody UploadRequest request) {
-		logger.info("[Upload Request] env: {}, taskId: {}, fileCount: {}", 
-				request.getEnv(), request.getTaskId(), request.getFiles() != null ? request.getFiles().size() : 0);
-		Map<String, Object> body = new HashMap<>();
-		try {
-			deployAgentService.validateTaskId(request.getTaskId());
-			deployAgentService.validateEnv(request.getEnv());
-
-			Map<String, String> uploaded = deployAgentService.uploadTaskFiles(request.getEnv(), request.getTaskId(), request.getFiles());
-
-			logger.info("[Upload Success] env: {}, taskId: {}, uploadedFiles: {}", request.getEnv(), request.getTaskId(), uploaded);
-			body.put("success", true);
-			body.put("uploadedFiles", uploaded);
-			return ResponseEntity.ok(body);
-		} catch (IllegalArgumentException badRequest) {
-			logger.warn("[Upload Validation Failed] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), badRequest.getMessage());
-			body.put("success", false);
-			body.put("message", badRequest.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
-		} catch (Exception e) {
-			logger.error("[Upload Error] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), e.getMessage(), e);
-			body.put("success", false);
-			body.put("message", "업로드 실패: " + e.getMessage());
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
-		}
-	}
-
-	@PostMapping("/execute.json")
-	public ResponseEntity<Map<String, Object>> execute(@RequestBody ExecuteRequest request) {
-		logger.info("[Execute Request] env: {}, taskId: {}", request.getEnv(), request.getTaskId());
-		Map<String, Object> body = new HashMap<>();
-		try {
-			deployAgentService.validateTaskId(request.getTaskId());
-			deployAgentService.validateEnv(request.getEnv());
-
-			CleanupResourceService.ExecResult result = deployAgentService.executeCleanup(request.getEnv(), request.getTaskId());
-
-			logger.info("[Execute Result] env: {}, taskId: {}, exitCode: {}, success: {}", 
-					request.getEnv(), request.getTaskId(), result.getExitCode(), result.isSuccess());
-
-			body.put("success", result.isSuccess());
-			body.put("exitCode", result.getExitCode());
-			body.put("output", result.getOutput());
-			return ResponseEntity.ok(body);
-		} catch (IllegalArgumentException badRequest) {
-			logger.warn("[Execute Validation Failed] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), badRequest.getMessage());
-			body.put("success", false);
-			body.put("message", badRequest.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
-		} catch (Exception e) {
-			logger.error("[Execute Error] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), e.getMessage(), e);
-			body.put("success", false);
-			body.put("message", "실행 실패: " + e.getMessage());
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
-		}
-	}
-
-	@GetMapping("/log.json")
-	public ResponseEntity<Map<String, Object>> log(@RequestParam("env") String env, @RequestParam("taskId") String taskId) {
-		logger.info("[Log Fetch Request] env: {}, taskId: {}", env, taskId);
-		Map<String, Object> body = new HashMap<>();
-		try {
-			deployAgentService.validateTaskId(taskId);
-			deployAgentService.validateEnv(env);
-
-			CleanupResourceService.ExecResult result = deployAgentService.fetchLatestLog(env, taskId);
-
-			if (result.isSuccess()) {
-				logger.info("[Log Fetch Success] env: {}, taskId: {}", env, taskId);
-				body.put("success", true);
-				body.put("log", result.getOutput());
-			} else {
-				logger.warn("[Log Fetch Failed] env: {}, taskId: {}, reason: {}", env, taskId, "No log file found or exit code: " + result.getExitCode());
-				body.put("success", false);
-				body.put("message", "로그 파일을 찾을 수 없습니다.");
-			}
-			return ResponseEntity.ok(body);
-		} catch (IllegalArgumentException badRequest) {
-			logger.warn("[Log Fetch Validation Failed] env: {}, taskId: {}, message: {}", env, taskId, badRequest.getMessage());
-			body.put("success", false);
-			body.put("message", badRequest.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
-		} catch (Exception e) {
-			logger.error("[Log Fetch Error] env: {}, taskId: {}, message: {}", env, taskId, e.getMessage(), e);
-			body.put("success", false);
-			body.put("message", "로그 조회 실패: " + e.getMessage());
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
-		}
-
-	}
-	public static class UploadRequest {
-		private String env;
-		private String taskId;
-		private Map<String, String> files;
-
-		public String getEnv() { return env; }
-		public void setEnv(String env) { this.env = env; }
-		public String getTaskId() { return taskId; }
-		public void setTaskId(String taskId) { this.taskId = taskId; }
-		public Map<String, String> getFiles() { return files; }
-		public void setFiles(Map<String, String> files) { this.files = files; }
-	}
-
-	public static class ExecuteRequest {
-		private String env;
-		private String taskId;
-
-		public String getEnv() { return env; }
-		public void setEnv(String env) { this.env = env; }
-		public String getTaskId() { return taskId; }
-		public void setTaskId(String taskId) { this.taskId = taskId; }
-	}
-}
-
-package hi.framework.deploymanager.server.service;
-
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.regex.Pattern;
-
-/**
- * 배포서버(QA/PROD)로 신청서 분할 결과를 SFTP 업로드하고,
- * cleanup_cron.sh 실행을 SSH로 트리거하고, 결과 로그 파일을 조회하는 서비스.
- *
- * server.properties 를 이 클래스가 직접 읽어온다 (기존 serverprops 빈 참조 방식 대신).
- * root/servlet 컨텍스트 분리 여부와 무관하게 항상 동작하도록 하기 위함
- * (BeanExpressionException 등 컨텍스트 간 빈 참조 문제 회피).
- *
- * server.properties 에 아래 키들을 추가해야 함:
- *   deploy.qa.ssh.host=cisq-cowas02
- *   deploy.qa.ssh.port=22
- *   deploy.qa.ssh.user=dsdeploy
- *   deploy.qa.ssh.passwd=****
- *   deploy.qa.request-dir=/NFS/IDES/PMS/CIS_RM/TASK_ID
- *   deploy.qa.work-dir=/Appl/IDES/PmsDeploy
- *   deploy.qa.log-dir=/Logs/IDES/PMS/CIS_RM
- *   deploy.prod.* 도 동일한 키로 별도 정의
- */
-@Service
-public class CleanupResourceService {
-	private static final Logger log = LogManager.getLogger(CleanupResourceService.class);
-    private static final Pattern SAFE_TASK_ID = Pattern.compile("^[A-Za-z0-9_-]{1,64}$");
-    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-    private static final String PROPERTIES_CLASSPATH = "server.properties"; // 실제 파일 위치에 맞게 수정
-
-    private Properties props;
-
-    @PostConstruct
-    public void init() throws Exception {
-        // classpath:server.properties 를 직접 로딩 (Spring 컨텍스트 빈 참조 없이)
-        props = PropertiesLoaderUtils.loadAllProperties(PROPERTIES_CLASSPATH);
-    }
-
-    private String get(String key) {
-        String v = props.getProperty(key);
-        if (v == null) {
-            throw new IllegalStateException("server.properties 에 " + key + " 값이 없습니다.");
-        }
-        return v;
-    }
-
-    private int getInt(String key, int defaultValue) {
-        String v = props.getProperty(key);
-        return v == null ? defaultValue : Integer.parseInt(v.trim());
-    }
-
-    /** env("QA"/"PROD")에 맞는 접속/경로 정보를 조립해서 반환. 잘못된 값이면 예외 */
-    private EnvConfig resolveEnv(String env) {
-        if ("QA".equals(env)) {
-            return new EnvConfig(
-                get("deploy.qa.ssh.host"),
-                getInt("deploy.qa.ssh.port", 22),
-                get("deploy.qa.ssh.user"),
-                get("deploy.qa.ssh.passwd"),
-                get("deploy.qa.request-dir"),
-                get("deploy.qa.work-dir"),
-                get("deploy.qa.log-dir")
-            );
-        }
-        if ("PROD".equals(env)) {
-            return new EnvConfig(
-                get("deploy.prod.ssh.host"),
-                getInt("deploy.prod.ssh.port", 22),
-                get("deploy.prod.ssh.user"),
-                get("deploy.prod.ssh.passwd"),
-                get("deploy.prod.request-dir"),
-                get("deploy.prod.work-dir"),
-                get("deploy.prod.log-dir")
-            );
-        }
-        throw new IllegalArgumentException("잘못된 env 값입니다: " + env + " (QA 또는 PROD만 허용)");
-    }
-
-    public void validateTaskId(String taskId) {
-        if (taskId == null || !SAFE_TASK_ID.matcher(taskId).matches()) {
-            throw new IllegalArgumentException("잘못된 TASK_ID 형식입니다: " + taskId);
-        }
-    }
-
-    /** env 값 자체만 검증하고 싶을 때 컨트롤러에서 호출 (예외 발생 여부로 판단) */
-    public void validateEnv(String env) {
-        resolveEnv(env);
-    }
-
-    /**
-     * 타입별 파일 내용을 배포서버의 REQUEST_DIR/YYYY/MM/DD/TASK_ID/ 아래
-     * TASK_ID_<type>.txt 로 SFTP 업로드한다. 내용이 비어있는 타입은 건너뛴다.
-     */
-    public Map<String, String> uploadTaskFiles(String env, String taskId, Map<String, String> filesByType) throws Exception {
-        validateTaskId(taskId);
-        EnvConfig cfg = resolveEnv(env);
-
-        log.info("[자원정리-업로드 시작] env={} taskId={} 대상서버={} 유형={}", env, taskId, cfg.host, filesByType.keySet());
-
-        String todayPath = LocalDate.now().format(DATE_FMT);
-        String remoteDir = cfg.requestDir + "/" + todayPath + "/" + taskId;
-
-        Map<String, String> uploaded = new LinkedHashMap<>();
-
-        Session session = null;
-        ChannelSftp sftp = null;
-        try {
-            session = openSession(cfg);
-            sftp = (ChannelSftp) session.openChannel("sftp");
-            sftp.connect(10_000);
-
-            mkdirsRecursive(sftp, remoteDir);
-
-            for (Map.Entry<String, String> entry : filesByType.entrySet()) {
-                String type = entry.getKey();
-                String content = entry.getValue();
-                if (content == null || content.trim().isEmpty()) continue;
-
-                String remoteFile = remoteDir + "/" + taskId + "_" + type + ".txt";
-                String normalized = content.endsWith("\n") ? content : content + "\n";
-                try (InputStream in = new ByteArrayInputStream(normalized.getBytes(StandardCharsets.UTF_8))) {
-                    sftp.put(in, remoteFile);
-                }
-                uploaded.put(type, remoteFile);
-            }
-
-            log.info("[자원정리-업로드 완료] env={} taskId={} 업로드파일수={} 경로={}", env, taskId, uploaded.size(), remoteDir);
-            return uploaded;
-        } catch (Exception e) {
-            log.error("[자원정리-업로드 실패] env={} taskId={} 원인={}", env, taskId, e.getMessage(), e);
-            throw e;
-        } finally {
-            if (sftp != null && sftp.isConnected()) sftp.disconnect();
-            if (session != null && session.isConnected()) session.disconnect();
-        }
-    }
-
-    /** 배포서버에서 cleanup_cron.sh <taskId> 를 실행하고 결과(stdout+stderr, exit code)를 반환 */
-    public ExecResult executeCleanup(String env, String taskId) throws Exception {
-        validateTaskId(taskId);
-        EnvConfig cfg = resolveEnv(env);
-
-        log.info("[자원정리-실행 시작] env={} taskId={} 대상서버={}", env, taskId, cfg.host);
-
-        String remoteCommand = "cd '" + cfg.workDir + "' && ./cleanup_cron.sh '" + taskId + "'";
-        ExecResult result;
-        try {
-            result = runRemoteCommand(cfg, remoteCommand);
-        } catch (Exception e) {
-            log.error("[자원정리-실행 실패] env={} taskId={} 원인={}", env, taskId, e.getMessage(), e);
-            throw e;
-        }
-        log.info("[자원정리-실행 완료] env={} taskId={} exitCode={}", env, taskId, result.getExitCode());
-        return result;
-    }
-
-    /**
-     * 이 TASK_ID의 가장 최근 결과 로그 파일(<LOG_DIR>/<taskId>_<timestamp>.log)을 찾아
-     * 내용을 그대로 읽어온다. ant_console/NOTI_ERR 로그는 제외.
-     */
-    public ExecResult fetchLatestLog(String env, String taskId) throws Exception {
-        validateTaskId(taskId);
-        EnvConfig cfg = resolveEnv(env);
-
-        log.info("[자원정리-로그조회] env={} taskId={}", env, taskId);
-
-        String remoteCommand =
-            "cd '" + cfg.logDir + "' && " +
-            "f=$(ls -t '" + taskId + "'_*.log 2>/dev/null | grep -v '_ant_console' | grep -v '_NOTI_ERR' | head -1); " +
-            "if [ -z \"$f\" ]; then echo '__NO_LOG_FOUND__'; exit 1; fi; " +
-            "cat \"$f\"";
-
-        try {
-            return runRemoteCommand(cfg, remoteCommand);
-        } catch (Exception e) {
-            log.error("[자원정리-로그조회 실패] env={} taskId={} 원인={}", env, taskId, e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    private ExecResult runRemoteCommand(EnvConfig cfg, String remoteCommand) throws Exception {
-        Session session = null;
-        ChannelExec exec = null;
-        try {
-            session = openSession(cfg);
-            exec = (ChannelExec) session.openChannel("exec");
-            exec.setCommand(remoteCommand);
-            exec.setErrStream(System.err, true);
-
-            ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-            exec.setOutputStream(stdout);
-
-            exec.connect(10_000);
-            while (!exec.isClosed()) {
-                Thread.sleep(200);
-            }
-
-            int exitCode = exec.getExitStatus();
-            String output = stdout.toString("euc-kr");
-            return new ExecResult(exitCode, output);
-        } finally {
-            if (exec != null && exec.isConnected()) exec.disconnect();
-            if (session != null && session.isConnected()) session.disconnect();
-        }
-    }
-
-    private Session openSession(EnvConfig cfg) throws Exception {
-        JSch jsch = new JSch();
-        Session session = jsch.getSession(cfg.user, cfg.host, cfg.port);
-        session.setPassword(cfg.password);
-        session.setConfig("StrictHostKeyChecking", "no"); // 사내 폐쇄망 전제. 가능하면 known_hosts 등록 후 "yes" 권장
-        session.connect(10_000);
-        return session;
-    }
-
-    private void mkdirsRecursive(ChannelSftp sftp, String path) throws Exception {
-        String[] parts = path.split("/");
-        StringBuilder current = new StringBuilder();
-        for (String part : parts) {
-            if (part.isEmpty()) continue;
-            current.append("/").append(part);
-            try {
-                sftp.stat(current.toString());
-            } catch (Exception notExists) {
-                sftp.mkdir(current.toString());
-            }
-        }
-    }
-
-    /** env별 접속/경로 정보를 담는 단순 값 객체 (Spring Boot 바인딩 아닌 순수 POJO) */
-    private static class EnvConfig {
-        final String host;
-        final int port;
-        final String user;
-        final String password;
-        final String requestDir;
-        final String workDir;
-        final String logDir;
-
-        EnvConfig(String host, int port, String user, String password, String requestDir, String workDir, String logDir) {
-            this.host = host;
-            this.port = port;
-            this.user = user;
-            this.password = password;
-            this.requestDir = requestDir;
-            this.workDir = workDir;
-            this.logDir = logDir;
-        }
-    }
-
-    public static class ExecResult {
-        private final int exitCode;
-        private final String output;
-
-        public ExecResult(int exitCode, String output) {
-            this.exitCode = exitCode;
-            this.output = output;
-        }
-
-        public int getExitCode() { return exitCode; }
-        public String getOutput() { return output; }
-        public boolean isSuccess() { return exitCode == 0; }
-    }
-}
