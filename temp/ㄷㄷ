@@ -20,7 +20,7 @@
   .mono { font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 13px; }
 
   / 검색 영역 /
-  .search-row { display: flex; gap: 15px; align-items: flex-end; }
+  .search-row { display: flex; gap: 15px; align-items: flex-end; justify-content: flex-start;}
   .search-item { flex: 1; }
   .search-item label { font-size: 13px; font-weight: 600; color: #4a5568; margin-bottom: 5px; display: block; }
 
@@ -36,7 +36,7 @@
   #context-menu div { padding: 8px 15px; cursor: pointer; font-size: 13px; }
   #context-menu div:hover { background-color: #007bff; color: white; }
 
-  / DIFF 모달 (대용량 가상 스크롤 대응) */
+  / DIFF 모달 (대용량 가상 스크롤 대응) /
   .diff-container { display: flex; height: 600px; gap: 10px; background: #f1f3f5; padding: 10px; }
   .diff-pane { flex: 1; background: white; border: 1px solid #dee2e6; border-radius: 4px; overflow-y: auto; position: relative; }
   .diff-header { position: sticky; top: 0; background: #e9ecef; padding: 6px 12px; font-size: 12px; font-weight: bold; z-index: 5; border-bottom: 1px solid #dee2e6; }
@@ -45,6 +45,30 @@
   .line-content { flex: 1; }
   .line-added { background-color: #e6ffec; }
   .line-removed { background-color: #ffebe9; }
+  .diff-content-area { position: relative; }
+  / 모달의 최대 너비를 강제로 제어 /
+   @media (min-width: 1200px) {
+     .modal-xl .modal-content {
+       / 원하는 최대 너비를 입력하세요 (예: 1600px) /
+       max-width: 95% !important; 
+     }
+   }
+
+   / 만약 모달의 높이(Height)를 조절하고 싶다면 /
+   .modal-body {
+     / diff-container의 높이가 600px이므로, 모달 본문도 적절히 조절 /
+     min-height: 650px; 
+   }
+
+   / DIFF 영역이 모달 밖으로 나가지 않도록 설정 /
+   .diff-container {
+     display: flex;
+     height: 600px; / 이 높이가 모달의 전체 높이를 결정합니다 /
+     gap: 10px;
+     background: #f1f3f5;
+     padding: 10px;
+     overflow: hidden; / 내부 스크롤을 위해 필요 */
+   }
 </style>
 </head>
 <body>
@@ -60,18 +84,14 @@
   <div class="section-box">
     <div class="section-head">
       <span class="badge-num">1</span>
-      <span class="title">작업의뢰 검색 (날짜 기준)</span>
+      <span class="title">작업의뢰 검색 (배포 날짜 기준)</span>
     </div>
     <div class="section-body">
       <div class="search-row">
         <div class="search-item" style="flex: 0; width: 220px;">
-          <label>조회 날짜</label>
+          <label>배포 날짜</label>
           <!-- input type="date"는 기본적으로 달력과 텍스트 입력을 모두 지원합니다 -->
           <input type="date" class="form-control form-control-sm" v-model="searchForm.date">
-        </div>
-        <div class="search-item">
-          <label>작업의뢰 키워드</label>
-          <input type="text" class="form-control form-control-sm" v-model="searchForm.descr" placeholder="작업의뢰번호 입력">
         </div>
         <div class="search-item" style="flex: 0; width: 100px;">
           <button class="btn btn-primary btn-sm w-100" @click="searchTasks">FIND</button>
@@ -119,7 +139,7 @@
     <div class="section-head">
       <span class="badge-num">3</span>
       <span class="title">상세 자원 목록 ({{ selectedTask.fileNameCount }} 건)</span>
-      <span class="ml-auto small text-muted">파일 우클릭 $\rightarrow$ [이전 버전 비교]</span>
+      <span class="ml-auto small text-muted">파일 우클릭 후 [이전 버전 비교] 메뉴 선택</span>
     </div>
     <div class="section-body">
       <div class="table-container-large">
@@ -149,7 +169,6 @@
 
   <!-- 우클릭 메뉴 -->
   <div id="context-menu" ref="contextMenu">
-    <div v-if="menuMode === 'TASK'" @click="loadFileList"><i class="fa fa-list"></i> 상세 자원 보기</div>
     <div v-if="menuMode === 'FILE'" @click="handleDiff"><i class="fa fa-code-compare"></i> 이전 버전 비교</div>
   </div>
 
@@ -169,7 +188,7 @@
           <div class="diff-container">
             <div class="diff-pane">
               <div class="diff-header">Current Version</div>
-              <div class="diff-content-area">
+             <div class="diff-content-area" :style="{ height: (diffData.current.length ? (Math.max(...diffData.current.map(l => l.absoluteIndex)) + 1) * 22 + 'px' : '0') }">
                 <div class="diff-line" v-for="(line, idx) in diffData.current" :class="{'line-removed': line.type === 'removed'}" :style="{ top: line.top + 'px', position: 'absolute', width: '100%' }">
                   <span class="line-num">{{ line.absoluteIndex + 1 }}</span>
                   <span class="line-content">{{ line.text }}</span>
@@ -178,7 +197,7 @@
             </div>
             <div class="diff-pane">
               <div class="diff-header">Previous Version</div>
-              <div class="diff-content-area">
+              <div class="diff-content-area" :style="{ height: (diffData.current.length ? (Math.max(...diffData.current.map(l => l.absoluteIndex)) + 1) * 22 + 'px' : '0') }">
                 <div class="diff-line" v-for="(line, idx) in diffData.previous" :class="{'line-added': line.type === 'added'}" :style="{ top: line.top + 'px', position: 'absolute', width: '100%' }">
                   <span class="line-num">{{ line.absoluteIndex + 1 }}</span>
                   <span class="line-content">{{ line.text }}</span>
@@ -216,6 +235,8 @@ new Vue({
     selectedFile: null,
     loadingFiles: false,
     menuMode: '',
+    diffTotalCurrent: 0,
+    diffTotalPrevious: 0,
     diffTarget: { fileName: '', verIndex: '', prevVerIndex: '' },
     diffData: { current: [], previous: [] }
   },
@@ -256,17 +277,31 @@ new Vue({
 
     loadFileList: function() {
       this.loadingFiles = true;
-      console.log("Loading Files for:", this.selectedTask.prj_mng_no);
+      console.log("Loading Files for:", this.selectedTask.prj_mng_no+ "- "+this.selectedTask.sdlc_seq);
 
-      // TODO: fetch("/api/resource-management/search-files.json", { method: 'POST', body: JSON.stringify({ prj_mng_no: this.selectedTask.prj_mng_no }) })
-      setTimeout(() => {
-        this.fileList = [
-          { dirInfo: '/LT/source/ONLINE/', fileName: 'LT0001002.java', verIndex: '5', realName: '홍길동' },
-          { dirInfo: '/LT/source/ONLINE/', fileName: 'LT0001003.java', verIndex: '2', realName: '홍길동' }
-        ];
-        this.selectedTask.fileNameCount = this.fileList.length;
-        this.loadingFiles = false;
-      }, 500);
+      fetch("/api/resource-management/search-files.json", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+               prj_mng_no: this.selectedTask.prj_mng_no, 
+               sdlc_seq: this.selectedTask.sdlc_seq 
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+              this.fileList=data.list;
+              this.selectedTask.fileNameCount=this.fileList.length;
+          } else {
+            alert("자원조회 목록 실패: " + data.message);
+          }
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            this.loadingFiles = true;
+            }
+        );
+
     },
 
     // [우클릭 핸들러]
@@ -279,38 +314,76 @@ new Vue({
       menu.style.top = e.pageY + 'px';
     },
 
-    // [STEP 3] 파일 버전 비교 (대용량 대응)
+ // [STEP 3] 파일 버전 비교 (handleDiff 함수 내부 수정)
     handleDiff: function() {
-      this.hideContextMenu();
-      if (!this.selectedFile) return;
+       this.hideContextMenu();
+       if (!this.selectedFile) return;
+       const target = this.selectedFile;
+       this.diffTarget.fileName = target.fileName;
+       this.diffTarget.verIndex = target.verIndex;
+       this.diffTarget.prevVerIndex = (parseInt(target.verIndex) - 1).toString();
 
-      const target = this.selectedFile;
-      this.diffTarget.fileName = target.fileName;
-      this.diffTarget.verIndex = target.verIndex;
-      this.diffTarget.prevVerIndex = (parseInt(target.verIndex) - 1).toString();
+       // --- [수정된 부분] Bootstrap 4 전용 방식 ---
+       // jQuery가 덮어씌워졌을 경우를 대비하여, 
+       // 전역 변수인 bootstrap 객체를 통해 직접 모달을 제어합니다.
+       try {
+         var modalElement = document.getElementById('diffModal');
+         // Bootstrap 4는 jQuery 플러그인 방식이 기본이지만, 
+         // 만약 jQuery 충돌로 .modal()이 안 된다면 아래와 같이 직접 호출합니다.
+         if (typeof jQuery.fn.modal === 'function') {
+             // 정상적인 경우 (jQuery 플러그인 사용)
+             $(modalElement).modal('show');
+         } else {
+             // jQuery 플러그인이 깨진 경우 (Bootstrap 4의 기본 객체 사용 시도)
+             // Bootstrap 4는 전역 bootstrap 객체를 제공합니다.
+             new bootstrap.Modal(modalElement).show();
+         }
+       } catch (e) {
+         // 위 방법들이 모두 실패할 경우를 대비한 최후의 수단 (직접 호출)
+         // 만약 위 코드에서도 에러가 난다면, 결국 bootstrap.bundle.min.js를 
+         // menu.html 로드 직후에 다시 로드하는 방법뿐입니다.
+         console.error("Bootstrap 호출 실패:", e);
+         // fallback: 일단 jQuery로 다시 시도
+         $(modalElement).modal('show');
+       }
+       // ------------------------------------------
 
-      $('#diffModal').modal('show');
+       fetch("/api/resource-management/compare-diff-range.json", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({
+           dirInfo: target.dirInfo,
+           fileName: target.fileName,
+           currVer: this.diffTarget.verIndex,
+           prevVer: this.diffTarget.prevVerIndex,
+           startLine: 0,
+           endLine: 200
+         })
+       })
+       .then(res => res.json())
+       .then(data => {
+       if (data.success) {
+           this.diffTotalCurrent = data.totalCurrentLines;
+           this.diffTotalPrevious = data.totalPreviousLines;
 
-      // TODO: fetch("/api/resource-management/compare-diff-range.json", { method: 'POST', body: JSON.stringify({ dirInfo: target.dirInfo, fileName: target.fileName, currVer: target.verIndex, prevVer: this.diffTarget.prevVerIndex, startLine: 0, endLine: 100 }) })
+           const LINE_HEIGHT = 22; // .diff-line 의 height: 22px 와 일치해야 함
 
-      // 데모용 데이터 (서버 통신 실패 시 시각적 확인용)
-      setTimeout(() => {
-        this.diffData.current = [
-          { text: "public class LT0001002 {", type: "normal", absoluteIndex: 0 },
-          { text: "    public void process() {", type: "normal", absoluteIndex: 1 },
-          { text: "        System.out.println(\"OLD_VALUE\");", type: "removed", absoluteIndex: 2 },
-          { text: "        System.out.println(\"NEW_VALUE\");", type: "normal", absoluteIndex: 3 },
-          { text: "    }", type: "normal", absoluteIndex: 4 },
-          { text: "}", type: "normal", absoluteIndex: 5 }
-        ];
-        this.diffData.previous = [
-          { text: "public class LT0001002 {", type: "normal", absoluteIndex: 0 },
-          { text: "    public void process() {", type: "normal", absoluteIndex: 1 },
-          { text: "        System.out.println(\"OLD_VALUE\");", type: "normal", absoluteIndex: 2 },
-          { text: "    }", type: "normal", absoluteIndex: 3 },
-          { text: "}", type: "normal", absoluteIndex: 4 }
-        ];
-      }, 500);
+           // 데이터를 한 번만 매핑하여 처리합니다.
+           this.diffData.current = data.currentLines.map(line => ({
+               ...line,
+               top: line.absoluteIndex * LINE_HEIGHT
+           }));
+
+           this.diffData.previous = data.previousLines.map(line => ({
+               ...line,
+               top: line.absoluteIndex * LINE_HEIGHT
+           }));
+       } else {
+           alert("비교 실패: " + data.message);
+       }
+   })
+
+       .catch(err => console.error("Error:", err));
     },
 
     hideContextMenu: function() { this.$refs.contextMenu.style.display = 'none'; }
@@ -319,11 +392,5 @@ new Vue({
 </script>
 </body>
 </html>
-
-이게 지금 내가 만든 html 인데 여기에 니가 준 
-
-2번째 섹션 정보를 백엔드로 던지면 
-
-백앤드에서 선택된 자원의 버전과 그 이전 버전을 비교하는걸 만드는거야 - 
-
-그리고 그다음 file diff 모달을 연결하면 되는데 
+지금 버전인데 모달 사이즈가 바뀌지 않아 
+변경이 필요한 부분도 점검해줘
