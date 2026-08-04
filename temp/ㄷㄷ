@@ -1,371 +1,194 @@
-니가 알려준대로 했는데 똑같이 메뉴가 두번눌리면 그이상 안눌려..
-
-1.menu-dropdown.js
-/* ============================================================
-   menu-dropdown.js (Fixed Version)
-   Bootstrap Popper.js 없이 jQuery만으로 드롭다운을 제어합니다.
-============================================================ */
-(function ($) {
-    if (!$) {
-        console.error("[menu-dropdown.js] jQuery가 로드되지 않았습니다.");
-        return;
-    }
-
-// [CSS 주입] 메뉴가 보이지 않는 문제를 방지하기 위해 강제로 display 설정을 추가합니다.
-if ($('<style>').text('.custom-navbar .dropdown-menu.show { display: block !important; }').length === 0) {
-    $('<style>.custom-navbar .dropdown-menu.show { display: block !important; }</style>').appendTo('head');
-}
-
-$(document).ready(function () {
-    
-    // 1. 메뉴 토글 (클릭 시)
-    $(document).on("click", ".custom-navbar .dropdown-toggle", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        var $this = $(this);
-        var $menu = $this.siblings(".dropdown-menu");
-        
-        // 현재 클릭한 메뉴가 이미 열려있는지 확인
-        var isCurrentlyOpen = $menu.hasClass("show");
-
-        // [핵심] 일단 모든 메뉴를 닫음 (다른 메뉴가 열려있을 경우를 대비)
-        $(".custom-navbar .dropdown-menu").removeClass("show");
-        $(".custom-navbar .dropdown-toggle").attr("aria-expanded", "false").removeClass("show");
-
-        // [핵심] 만약 방금 클릭한 게 닫혀있던 상태였다면, 이제 '열기'
-        if (!isCurrentlyOpen) {
-            $menu.addClass("show");
-            $this.attr("aria-expanded", "true").addClass("show");
-        }
-    });
-
-    // 2. 드롭다운 내부 영역 클릭 시 (메뉴가 닫히지 않게 함)
-    $(document).on("click", ".custom-navbar .dropdown-menu", function (e) {
-        e.stopPropagation();
-    });
-
-    // 3. 메뉴 바깥(Body/Content) 클릭 시 모든 메뉴 닫기
-    $(document).on("click", function () {
-        $(".custom-navbar .dropdown-menu").removeClass("show");
-        $(".custom-navbar .dropdown-toggle").attr("aria-expanded", "false").removeClass("show");
-    });
-
-    // 4. ESC 키로 닫기
-    $(document).on("keydown", function (e) {
-        if (e.key === "Escape" || e.keyCode === 27) {
-            $(".custom-navbar .dropdown-menu").removeClass("show");
-            $(".custom-navbar .dropdown-toggle").attr("aria-expanded", "false").removeClass("show");
-        }
-    });
-});
-})(window.jQuery || window.$);
-
-app-theme.css
-/* ============================================================
-   app-theme.css
-
-menu.jsp / menu.html이 반드시 이 파일 하나만 링크해서 씁니다.
-여기 있는 값이 두 화면 모두에 동시 적용되는 "단일 소스"입니다.
-각 파일 안에 <style> 로 새로 색상/네브바 스타일을 만들지 마세요. ============================================================ */
-:root {
-  --bg: #fafafa;
-  --card: #ffffff;
-  --border: #e4e4e7;
-  --border-strong: #d4d4d8;
-  --text: #18181b;
-  --text-muted: #71717a;
-  --text-faint: #a1a1aa;
-  --primary: #18181b;
-  --primary-hover: #27272a;
-  --danger: #dc2626;
-  --danger-bg: #fef2f2;
-  --danger-border: #fecaca;
-  --success: #16a34a;
-  --info-bg: #f4f4f5;
-  --radius-lg: 10px;
-  --radius-md: 6px;
-  --radius-pill: 999px;
-}
-
-body {
-  background-color: var(--bg);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--text);
-  margin: 0;
-}
-
-/* ------------------------------------------------------------
-   메뉴바 (navbar)
-   ------------------------------------------------------------ */
-
-#menuItem { padding: 0; margin: 0; }
-
-.custom-navbar {
-  background-color: var(--card) !important;
-  border-bottom: 1px solid var(--border);
-  padding: 0 16px !important;
-  display: flex;
-  align-items: center;
-  height: 56px;
-  min-height: 56px;
-  max-height: 56px;
-  box-sizing: border-box;
-  overflow: visible !important;
-}
-
-#menuItem,
-.custom-navbar,
-.custom-navbar .collapse.navbar-collapse,
-.custom-navbar .navbar-nav {
-  overflow: visible !important; /* 드롭다운 패널이 잘리지 않도록 체인 전체에 명시 */
-}
-
-/* 레거시 화면에 남아있기 쉬운 잔재 태그/유틸리티 클래스를 네브바 안에서는 전부 무력화
-   (font 태그, mt-5, float-right 등 - 이런 게 남아있어도 높이에 영향을 주지 않도록 방어) /
-.custom-navbar * {
-  box-sizing: border-box;
-  line-height: 1.2;
-}
-.custom-navbar font { font: inherit; color: inherit; vertical-align: middle; }
-.custom-navbar [class="mt-"],
-.custom-navbar [class="mb-"],
-.custom-navbar [class="pt-"],
-.custom-navbar [class="pb-"] {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}
-.custom-navbar .float-right,
-.custom-navbar .float-left {
-  float: none !important;
-}
-.custom-navbar > .navbar-toggler {
-  display: none !important; / 데스크톱 전용 화면이므로 토글 버튼은 항상 숨김 - 높이에 관여 못하게 */
-}
-.custom-navbar .collapse.navbar-collapse {
-  display: flex !important;
-  align-items: center;
-  height: 100%;
-}
-.custom-navbar .navbar-nav {
-  flex-direction: row;
-  align-items: center;
-  height: 100%;
-  margin: 0;
-}
-.custom-navbar .nav-item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
-.custom-navbar .navbar-brand {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text) !important;
-  text-decoration: none;
-}
-.custom-navbar .nav-link {
-  color: var(--text-muted) !important;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 8px 12px !important;
-  transition: color 0.15s ease;
-  display: flex;
-  align-items: center;
-}
-.custom-navbar .nav-link i {
-  margin-right: 6px;
-  font-size: 13px;
-  color: var(--text-faint);
-  width: 15px;
-  text-align: center;
-}
-.custom-navbar .nav-link:hover { color: var(--text) !important; }
-.custom-navbar .nav-link:hover i { color: var(--text); }
-.custom-navbar .nav-link.active { color: var(--text) !important; font-weight: 600; }
-
-.custom-navbar .dropdown-menu {
-  background-color: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-  padding: 4px;
-  margin-top: 5px !important;
-}
-.custom-navbar .dropdown-item {
-  font-size: 14px;
-  color: var(--text-muted);
-  padding: 6px 12px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-}
-.custom-navbar .dropdown-item i {
-  width: 16px;
-  margin-right: 8px;
-  text-align: center;
-  font-size: 13px;
-}
-.custom-navbar .dropdown-item:hover { background-color: var(--info-bg); color: var(--text); }
-.custom-navbar .dropdown-header {
-  font-size: 12px; font-weight: 600; color: var(--text-faint);
-  text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 12px;
-}
-.custom-navbar .dropdown-divider { height: 1px; background-color: var(--border); margin: 4px 0; }
-
-.custom-navbar .btn-action {
-  background-color: var(--primary) !important;
-  color: #ffffff !important;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px 14px;
-  transition: opacity 0.15s;
-}
-.custom-navbar .btn-action:hover { opacity: 0.9; }
-.custom-navbar .navbar-user { color: var(--text-muted); font-size: 13px; margin-right: 10px; }
-.custom-navbar .ml-auto,
-.custom-navbar .float-right {
-  margin-left: auto !important;
-  display: flex !important;
-  align-items: center;
-  height: 100%;
-}
-
-/* ------------------------------------------------------------
-   헤더-본문 간격 규칙 (핵심)
-
-jsp는 #imagesAuthList, html은 #app 처럼 본문 컨테이너 id가 서로 달라도 "네브바 바로 다음에 오는 요소"를 기준으로 여백을 주기 때문에 항상 동일하게 적용됩니다.
-본문 쪽 컨테이너에 padding-top을 따로 주지 마세요. 이 규칙 하나로 통일합니다. ------------------------------------------------------------ */ #menuItem + * { margin-top: 32px !important; }
-/* 구버전 화면에 남아있는 <hr> 구분선은 더 이상 쓰지 않음 (네브바 자체 border-bottom으로 대체) */
-
-#menuItem hr,
-
-#menuItem + hr {
-  display: none;
-}
-
-menu.html
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ page import="java.util.List"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <!DOCTYPE html>
 
-<html lang="ko">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu Test</title>
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-    <link href="../css/font-awesome/css/all.min.css" rel="stylesheet">
-    <link href="../css/app-theme.css" rel="stylesheet">
+<meta charset="UTF-8">
+<title>이미지 배포</title>
 </head>
+<script type="text/javascript" src="/js/vue.js"></script>
+<script type="text/javascript" src="/js/vue-router.js"></script>
+<script type="text/javascript" src="/js/axios.js"></script>
+<script type="text/javascript" src="/js/moment.js"></script>
+
+<script type="text/javascript" src="/js/jquery-3.6.0.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.js"></script>
+<script type="text/javascript" src="/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/js/zTree/jquery.ztree.all-3.5.js"></script>
+<script type="text/javascript" src="/js/sweetalert/sweetalert2.all.js"></script>
+<script type="text/javascript" src="/js/sweetalert/promise.min.js"></script>
+
+<link rel="stylesheet" href="../../../css/zTreeStyle/zTreeStyle.css" type="text/css">
+<style type="text/css">
+  .radioBtn {height: 16px;vertical-align: middle;}
+  .checkboxBtn {vertical-align: middle;margin-right: 2px;}
+    div#rMenu {position:absolute; visibility:hidden; top:0; background-color: #555;text-align: left;padding: 2px;}
+    div#rMenu ul li{
+        margin: 1px 0;
+        padding: 0 15px;
+        cursor: pointer;
+        list-style: none outside none;
+        background-color: #DFDFDF;
+    }
+    {
+        margin:0;
+        padding:0;
+    }
+    .swal2-title {
+        font-size: 1.475rem !important;
+    }
+    .swal2-content {
+          z-index: 1;
+          justify-content: center;
+          margin: 0;
+          padding: 0 1.6em;
+          color: #545454;
+          font-size: 1em;
+          font-weight: normal;
+          line-height: normal;
+          text-align: left;
+          word-wrap: break-word;
+          max-height: 6em;
+          overflow-y: scroll;
+          width: 100%;
+}
+</style>
+
+<script type="text/javascript" src="/js/view/zTree.js"></script>
+<script type="text/javascript" src="/js/view/image.js"></script>
+
+<link href="../css/bootstrap.min.css" rel="stylesheet">
+<link href="../css/jquery-ui.min.css" rel="stylesheet">
+<link href="../css/zTreeStyle/zTreeStyle.css" rel="stylesheet">
+<%@ page import="hi.framework.deploymanager.login.entity." %>
+<%@ page import="hi.framework.deploymanager.image.entity.*" %>
 <body>
-    <script src="/js/menu-dropdown.js"></script>
-    <form id="Form" name="Form" action="" method="post">
-        <div id="menuItem" class="container-fluid">
-            <nav class="navbar navbar-expand-lg custom-navbar">
-                <a class="navbar-brand" href="#">배포 관리 시스템</a>
-
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav mr-auto">
-                        <li class="nav-item active">
-                            <a class="nav-link" href="#"><i class="fas fa-home"></i>Home</a>
-                        </li>
-                        <!-- 권한 로직 대신 정적 메뉴 배치 (admin/user 통합 미리보기) -->
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="fas fa-history"></i>(구)배포 로그 조회</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="fas fa-list-alt"></i>배포 로그 조회</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="fas fa-desktop"></i>Agent 모니터링</a>
-                        </li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown1" role="button" >
-                                <i class="fas fa-cogs"></i>배포 설정 관리
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown1">
-                                <a class="dropdown-item" href="#"><i class="fas fa-info-circle"></i>메타 정보 관리</a>
-                                <a class="dropdown-item" href="#"><i class="fas fa-server"></i>시스템별 정보 관리</a>
-                                <a class="dropdown-item" href="#"><i class="fas fa-user-shield"></i>Agent 정보 관리</a>
-                                <a class="dropdown-item" href="#"><i class="fas fa-key"></i>이미지 배포 관리</a>
-                                <a class="dropdown-item" href="#"><i class="fas fa-calendar-alt"></i>AP스케줄 관리</a>
-                            </div>
-                        </li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" >
-                                <i class="fas fa-stream"></i>배포 이력 관리
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown2">
-                                <a class="dropdown-item" href="#"><i class="fas fa-search"></i>배포 이력 조회</a>
-                                <a class="dropdown-item" href="#"><i class="fas fa-clock"></i>스케쥴 배포 이력 조회</a>
-                                <a class="dropdown-item" href="#"><i class="fas fa-file-alt"></i>설정 변경 이력 조회</a>
-                            </div>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="fas fa-vial"></i>테스트</a>
-                        </li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown3" role="button" >
-                                <i class="fas fa-rocket"></i>이미지 배포
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown3">
-                                <a class="dropdown-item" href="#"><i class="fas fa-upload"></i>이미지 배포</a>
-                            </div>
-                        </li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown4" role="button" >
-                                <i class="fas fa-download"></i>자원 다운로드
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown4">
-                                <a class="dropdown-item" href="#"><i class="fas fa-file-download"></i>자원 다운로드</a>
-                                <a class="dropdown-item" href="#"><i class="fas fa-cloud-download-alt"></i>형상 서버 자원 다운로드</a>
-                            </div>
-                        </li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown5" role="button" >
-                                <i class="fas fa-trash-alt"></i>자원정리 관리
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown5">
-                                <a class="dropdown-item" href="#"><i class="fas fa-trash-alt"></i>기간계 자원정리 관리</a>
-                                <a class="dropdown-item" href="#"><i class="fas fa-broom"></i>형상 자원정리 관리</a>
-                            </div>
-                        </li>
-
-                        <!-- IB1192 / IB1117 전용 메뉴 (미리보기에서는 항상 표시) -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown6" role="button" >
-                                <i class="fas fa-terminal"></i>Query Execute
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown6">
-                                <a class="dropdown-item" href="#"><i class="fas fa-code"></i>Query Execute</a>
-                            </div>
-                        </li>
-                    </ul>
+    <header id="header"><jsp:include page="/bin/menu.jsp" flush="false"/></header>
+      <div id="images" class="container-fluid content_wrap" style="float:left;">
+        <div class="container">
+            <div class="row" >
+                  <div class="float-right" style="width:30%">
+                      <h5 class="card-title">
+                        <span class='font-weight-bold'>이미지 배포 등록 - ${loginInfo.getResponse_username()} </span>
+                    </h5>
+                  </div>
+                  <div class="float-right" style="width:30%; "></div>
+                <div style="width:38%; text-align:right;">
+                       <a href="http://developer.cis.co.kr/devkit/temp/ImageDeployManual/%ec%9d%b4%eb%af%b8%ec%a7%80_%eb%b0%b0%ed%8f%ac_%ec%8b%9c%ec%8a%a4%ed%85%9c_%ec%82%ac%ec%9a%a9_%eb%a9%94%eb%89%b4%ec%96%bc.pptx" >
+                           <button type="button" class="btn-sm btn btn-primary"  style="width:120px; vertical-align:middle;">사용자 메뉴얼</button>
+                       </a>
                 </div>
-
-                <div class="ml-auto">
-                    <span class="navbar-user">홍길동</span>
-                    <button class="btn-action" type="button">
-                        <i class="fas fa-sign-out-alt" style="margin-right:4px; font-size:12px;"></i>로그아웃
-                    </button>
-                </div>
-            </nav>
-        </div>
-    </form>
+            </div>
+            <div class="">
+            <form id="imageUploadForm" method="get">
+                <input type="hidden" id="pmsno" name="pmsno" value=""/>
+                <input type="hidden" id="sdlc" name="sdlc" value=""/>
+                <input type="hidden" id="shell" name="shell" value=""/>
+                <input type="hidden" id="syscode" name="syscode" value=""/>
+                <input type="hidden" id="content" name="content" value=""/>
+                <input type="hidden" id="existQA" name="existQA" value=""/>
+                <%-- <input type="hidden" id="deptId" name="deptId" value="${loginInfo.getResponse_deptId()}"/> --%>
+                <c:if test="${imageDeployUserInfo.size() > 0}">
+                    <input type="hidden" id="operatorConfirm" name="operatorConfirm" value="${imageDeployUserInfo.get(0).getOperator_id()}"/>
+                </c:if>
+                
+                  <table class="table table-bordered" style="width:100%; font-size:15pt; font-weight: bold;">
+                    <tbody>
+                           <tr class="text-center" >
+                              <td style="width:50%; vertical-align:middle;" colspan=2>배포 정보</td>
+                               <td style="width:50%; vertical-align:middle;" colspan=3>FTP 디렉토리</td>
+                        </tr>
+                        <tr>
+                               <td style="vertical-align:middle; text-align: center">서버 구분</td>
+                               <td class="text-center" style="vertical-align:middle; text-align:center; margin-left: 20px; font-size:10pt;">
+                                   <input class="form-check-input" type="radio" id="serverType" name="serverType" value="QA" checked>
+                                   <label for="serverType1">검증(QA)</label>          
+                                   <input class="form-check-input" type="radio" id="serverType" name="serverType" value="PROD" >
+                                   <label for="serverType2">운영(PROD)</label>
+                               </td>
+                               <td id="zTreeTd" style="vertical-align:top; " rowspan=6  colspan=3>
+                                   <ul class="ztree" id="treeDemo" class="ztree" style="overflow: auto; height:515px;"></ul>
+                               </td>
+                        </tr>
+                           <tr class="text-center" >
+                               <td style="vertical-align:middle;">기능 선택</td>
+                               <td class="text-center" style="vertical-align:middle; text-align:center; margin-left: 20px; font-size:10pt;">
+                                   <input class="form-check-input" type="radio" id="uploadType" name="uploadType" value="fileUpload" checked>
+                                   <label for="uploadType1">파일업로드</label>          
+                                   <input class="form-check-input" type="radio" id="uploadType" name="uploadType" value="prodUpload" >
+                                   <label for="uploadType2">검증배포</label>
+                               </td>
+                        </tr>
+                           <tr class="text-center" id="projectNo" >
+                               <td style="vertical-align:middle; text-align: center;">프로젝트번호</td>
+                               <td style="vertical-align:middle;" height="55px">
+                                  <select id="projectMno"  name="projectMno" style="width:345px;" class="btn btn-light btn-light-sm" disabled>
+                                      <option value="none">※ 당일 등록 프로젝트 번호만 조회 됩니다.</option>
+                                  <c:forEach var="item" items="${projectMngNo}">
+                                      <option value="${item.getFORM_ID()}">
+                                          ${item.getFORM_ID()} / ${item.getFORM_NAME()} 
+                                      </option>
+                                  </c:forEach>
+                                  </select>
+                            </td>
+                        </tr>
+                        <tr class="text-center" >
+                               <td style="vertical-align:middle; text-align: center">대상 시스템</td>
+                               <td style="vertical-align:middle;">
+                                  <select id="targetSystem"  name="targetSystem" style="width:345px;" class="btn btn-light btn-light-sm" >
+                                      <option value="none">시스템 이름</option>
+                                  <c:forEach var="item" items="${imageDeployUserInfo}">
+                                      <option value="${item.getSys_code()}/${item.getSys_name()}/${item.getValue()}">
+                                        ${item.getSys_code()} (${item.getSys_name()}) 
+                                      </option>
+                                  </c:forEach>
+                                  </select>
+                            </td>
+                        </tr>
+                           <tr class="text-center" >
+                              <td style="vertical-align:middle;" rowspan=2>업로드 목록</td>
+                               <td style="vertical-align:middle;" >
+                                   <div class="text-left data_file_txt" id="data_file_txt" style="margin:5px; height:280px; overflow: auto;">
+                                      <div id="articlefileChange"></div>
+                                   </div>
+                              </td>
+                        </tr>
+                           <tr class="text-center" >
+                               <td class="text-left" style="vertical-align:middle; margin-left: 20px; font-size:10pt;">
+                                   <button id="btn-upload" type="button">파일추가</button>
+                                   <input id="input_file" name="input_file" multiple="multiple" type="file" style="display:none;" >
+                                   <span style="font-size:10pxl color:gray;"> ※ 첨부파일은 최대 10개, 최대 용량은 50M 입니다.</span>
+                               </td>
+                        </tr>
+                           <tr class="text-center" >
+                              <td style="vertical-align:middle; text-align: center; ">업로드 경로</td>
+                               <td class="text-left" style="vertical-align:middle;" colspan=4>
+                                   <input id="filePath" name="filePath" type="text" readonly  style="font-size:18px; vertical-align:middle; width:85%;" value="" />
+                                   <button type="button" class="btn-sm btn btn-warning" id="upload" name="upload" onclick="javascript:registerAction();" style="width:120px; vertical-align:middle; display:;">파일 업로드</button>
+                                   <button type="button" class="btn-sm btn btn-primary" id="prodDeploy" name="prodDeploy" onclick="" style="width:120px; vertical-align:middle; display:none;">검증계 배포</button>
+                              </td>
+                        </tr>
+                    </tbody>
+                  </table>
+              </form>
+              </div>
+          </div>
+      </div>
+    <div id="rMenu" style="height:106px;">
+        <ul>
+            <li id="m_add" onclick="">폴더 생성</li>
+            <li id="m_del" onclick="">폴더 삭제</li>
+            <li id="m_modi" onclick="">폴더 수정</li>
+            <li id="m_reset" onclick="">새로 고침</li>
+            <li id="mf_del" onclick="">파일 삭제</li>
+        </ul>
+    </div>
 </body>
 </html>
 
+한화면에서 스크롤 최소화 되게  사용자 불편 없이 쓰도록 전환해줘
