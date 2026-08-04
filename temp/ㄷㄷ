@@ -1,194 +1,78 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
-<%@ page import="java.util.List"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
-<!DOCTYPE html>
-
-<html>
-<head>
-<meta charset="UTF-8">
-<title>이미지 배포</title>
-</head>
-<script type="text/javascript" src="/js/vue.js"></script>
-<script type="text/javascript" src="/js/vue-router.js"></script>
-<script type="text/javascript" src="/js/axios.js"></script>
-<script type="text/javascript" src="/js/moment.js"></script>
-
-<script type="text/javascript" src="/js/jquery-3.6.0.js"></script>
-<script type="text/javascript" src="/js/jquery-ui.js"></script>
-<script type="text/javascript" src="/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="/js/zTree/jquery.ztree.all-3.5.js"></script>
-<script type="text/javascript" src="/js/sweetalert/sweetalert2.all.js"></script>
-<script type="text/javascript" src="/js/sweetalert/promise.min.js"></script>
-
-<link rel="stylesheet" href="../../../css/zTreeStyle/zTreeStyle.css" type="text/css">
-<style type="text/css">
-  .radioBtn {height: 16px;vertical-align: middle;}
-  .checkboxBtn {vertical-align: middle;margin-right: 2px;}
-    div#rMenu {position:absolute; visibility:hidden; top:0; background-color: #555;text-align: left;padding: 2px;}
-    div#rMenu ul li{
-        margin: 1px 0;
-        padding: 0 15px;
-        cursor: pointer;
-        list-style: none outside none;
-        background-color: #DFDFDF;
-    }
-    {
-        margin:0;
-        padding:0;
-    }
-    .swal2-title {
-        font-size: 1.475rem !important;
-    }
-    .swal2-content {
-          z-index: 1;
-          justify-content: center;
-          margin: 0;
-          padding: 0 1.6em;
-          color: #545454;
-          font-size: 1em;
-          font-weight: normal;
-          line-height: normal;
-          text-align: left;
-          word-wrap: break-word;
-          max-height: 6em;
-          overflow-y: scroll;
-          width: 100%;
-}
-</style>
-
-<script type="text/javascript" src="/js/view/zTree.js"></script>
-<script type="text/javascript" src="/js/view/image.js"></script>
-
-<link href="../css/bootstrap.min.css" rel="stylesheet">
-<link href="../css/jquery-ui.min.css" rel="stylesheet">
-<link href="../css/zTreeStyle/zTreeStyle.css" rel="stylesheet">
-<%@ page import="hi.framework.deploymanager.login.entity." %>
-<%@ page import="hi.framework.deploymanager.image.entity.*" %>
-<body>
-    <header id="header"><jsp:include page="/bin/menu.jsp" flush="false"/></header>
-      <div id="images" class="container-fluid content_wrap" style="float:left;">
-        <div class="container">
-            <div class="row" >
-                  <div class="float-right" style="width:30%">
-                      <h5 class="card-title">
-                        <span class='font-weight-bold'>이미지 배포 등록 - ${loginInfo.getResponse_username()} </span>
-                    </h5>
-                  </div>
-                  <div class="float-right" style="width:30%; "></div>
-                <div style="width:38%; text-align:right;">
-                       <a href="http://developer.cis.co.kr/devkit/temp/ImageDeployManual/%ec%9d%b4%eb%af%b8%ec%a7%80_%eb%b0%b0%ed%8f%ac_%ec%8b%9c%ec%8a%a4%ed%85%9c_%ec%82%ac%ec%9a%a9_%eb%a9%94%eb%89%b4%ec%96%bc.pptx" >
-                           <button type="button" class="btn-sm btn btn-primary"  style="width:120px; vertical-align:middle;">사용자 메뉴얼</button>
-                       </a>
-                </div>
-            </div>
-            <div class="">
-            <form id="imageUploadForm" method="get">
-                <input type="hidden" id="pmsno" name="pmsno" value=""/>
-                <input type="hidden" id="sdlc" name="sdlc" value=""/>
-                <input type="hidden" id="shell" name="shell" value=""/>
-                <input type="hidden" id="syscode" name="syscode" value=""/>
-                <input type="hidden" id="content" name="content" value=""/>
-                <input type="hidden" id="existQA" name="existQA" value=""/>
-                <%-- <input type="hidden" id="deptId" name="deptId" value="${loginInfo.getResponse_deptId()}"/> --%>
-                <c:if test="${imageDeployUserInfo.size() > 0}">
-                    <input type="hidden" id="operatorConfirm" name="operatorConfirm" value="${imageDeployUserInfo.get(0).getOperator_id()}"/>
-                </c:if>
-                
-                  <table class="table table-bordered" style="width:100%; font-size:15pt; font-weight: bold;">
-                    <tbody>
-                           <tr class="text-center" >
-                              <td style="width:50%; vertical-align:middle;" colspan=2>배포 정보</td>
-                               <td style="width:50%; vertical-align:middle;" colspan=3>FTP 디렉토리</td>
-                        </tr>
-                        <tr>
-                               <td style="vertical-align:middle; text-align: center">서버 구분</td>
-                               <td class="text-center" style="vertical-align:middle; text-align:center; margin-left: 20px; font-size:10pt;">
-                                   <input class="form-check-input" type="radio" id="serverType" name="serverType" value="QA" checked>
-                                   <label for="serverType1">검증(QA)</label>          
-                                   <input class="form-check-input" type="radio" id="serverType" name="serverType" value="PROD" >
-                                   <label for="serverType2">운영(PROD)</label>
-                               </td>
-                               <td id="zTreeTd" style="vertical-align:top; " rowspan=6  colspan=3>
-                                   <ul class="ztree" id="treeDemo" class="ztree" style="overflow: auto; height:515px;"></ul>
-                               </td>
-                        </tr>
-                           <tr class="text-center" >
-                               <td style="vertical-align:middle;">기능 선택</td>
-                               <td class="text-center" style="vertical-align:middle; text-align:center; margin-left: 20px; font-size:10pt;">
-                                   <input class="form-check-input" type="radio" id="uploadType" name="uploadType" value="fileUpload" checked>
-                                   <label for="uploadType1">파일업로드</label>          
-                                   <input class="form-check-input" type="radio" id="uploadType" name="uploadType" value="prodUpload" >
-                                   <label for="uploadType2">검증배포</label>
-                               </td>
-                        </tr>
-                           <tr class="text-center" id="projectNo" >
-                               <td style="vertical-align:middle; text-align: center;">프로젝트번호</td>
-                               <td style="vertical-align:middle;" height="55px">
-                                  <select id="projectMno"  name="projectMno" style="width:345px;" class="btn btn-light btn-light-sm" disabled>
-                                      <option value="none">※ 당일 등록 프로젝트 번호만 조회 됩니다.</option>
-                                  <c:forEach var="item" items="${projectMngNo}">
-                                      <option value="${item.getFORM_ID()}">
-                                          ${item.getFORM_ID()} / ${item.getFORM_NAME()} 
-                                      </option>
-                                  </c:forEach>
-                                  </select>
-                            </td>
-                        </tr>
-                        <tr class="text-center" >
-                               <td style="vertical-align:middle; text-align: center">대상 시스템</td>
-                               <td style="vertical-align:middle;">
-                                  <select id="targetSystem"  name="targetSystem" style="width:345px;" class="btn btn-light btn-light-sm" >
-                                      <option value="none">시스템 이름</option>
-                                  <c:forEach var="item" items="${imageDeployUserInfo}">
-                                      <option value="${item.getSys_code()}/${item.getSys_name()}/${item.getValue()}">
-                                        ${item.getSys_code()} (${item.getSys_name()}) 
-                                      </option>
-                                  </c:forEach>
-                                  </select>
-                            </td>
-                        </tr>
-                           <tr class="text-center" >
-                              <td style="vertical-align:middle;" rowspan=2>업로드 목록</td>
-                               <td style="vertical-align:middle;" >
-                                   <div class="text-left data_file_txt" id="data_file_txt" style="margin:5px; height:280px; overflow: auto;">
-                                      <div id="articlefileChange"></div>
-                                   </div>
-                              </td>
-                        </tr>
-                           <tr class="text-center" >
-                               <td class="text-left" style="vertical-align:middle; margin-left: 20px; font-size:10pt;">
-                                   <button id="btn-upload" type="button">파일추가</button>
-                                   <input id="input_file" name="input_file" multiple="multiple" type="file" style="display:none;" >
-                                   <span style="font-size:10pxl color:gray;"> ※ 첨부파일은 최대 10개, 최대 용량은 50M 입니다.</span>
-                               </td>
-                        </tr>
-                           <tr class="text-center" >
-                              <td style="vertical-align:middle; text-align: center; ">업로드 경로</td>
-                               <td class="text-left" style="vertical-align:middle;" colspan=4>
-                                   <input id="filePath" name="filePath" type="text" readonly  style="font-size:18px; vertical-align:middle; width:85%;" value="" />
-                                   <button type="button" class="btn-sm btn btn-warning" id="upload" name="upload" onclick="javascript:registerAction();" style="width:120px; vertical-align:middle; display:;">파일 업로드</button>
-                                   <button type="button" class="btn-sm btn btn-primary" id="prodDeploy" name="prodDeploy" onclick="" style="width:120px; vertical-align:middle; display:none;">검증계 배포</button>
-                              </td>
-                        </tr>
-                    </tbody>
-                  </table>
-              </form>
-              </div>
-          </div>
-      </div>
-    <div id="rMenu" style="height:106px;">
-        <ul>
-            <li id="m_add" onclick="">폴더 생성</li>
-            <li id="m_del" onclick="">폴더 삭제</li>
-            <li id="m_modi" onclick="">폴더 수정</li>
-            <li id="m_reset" onclick="">새로 고침</li>
-            <li id="mf_del" onclick="">파일 삭제</li>
-        </ul>
-    </div>
-</body>
-</html>
-
-한화면에서 스크롤 최소화 되게  사용자 불편 없이 쓰도록 전환해줘
+항목명		
+DBMS 조회 및 결과 검증	1	
+XML 조회 및 결과 검증	2	XML,XXE
+디렉토리 서비스 조회 및 결과 검증	1	
+시스템 자원 접근 및 명령어 수행 입력값 검증	4	코드삽입, 경로, 명령어, SSRF
+웹 서비스 요청 및 결과 검증	1	
+웹 기반 중요 기능 수행 요청 유효성 검증	1	
+HTTP 프로토콜 유효성 검증	2	"HTTP응답분할->XSS, 
+신뢰없는URL"
+허용된 범위내 메모리 접근	2	버퍼(스택,힙),포맷( `%x`, `%p`, `%n`->`%s` : 포맷 지정자를 통해 메모리 스택의 값을 읽거나(Read) 쓰는(Write) 행위)
+보안기능 입력값 검증	3	"보안기능(보안기능결정입력값은서버에서),
+정수형(프로그램의 논리적 흐름을 조작,`int` 대신 `long`을 사용, Math.class ),
+널(`NullPointerException`(NPE)이 발생하며 프로그램이 비정상 종료->Optional.class,"
+업로드·다운로드 파일 검증	3	위험한형식(asp,jsp,php),전자서명,무결성
+인증 대상 및 방식	4	"SSRF,
+인증(관리자),
+인증서유효성(SSL/TLS),
+DNSlookup(특정 도메인에서 오는 요청만 인증)"
+인증 수행 제한	1	반복된(capcha)
+비밀번호 관리	2	"하드코드,
+비밀번호(정책)"
+중요자원 접근통제	2	인가(접근제어검사x->접근가능실행경로로 정보유출,잘못된권한설정
+암호키 관리	2	하드코드,주석문
+암호연산	5	알고리즘(->SEED,RSA,ECC),짧은키길이(->RSA 2048bit 이상 / 대칭키 128bit 이상),인증서 유효성,난수,솔트없는 일방향해시
+중요정보 저장	2	평문,쿠키노출,
+중요정보 전송	1	평문,
+예외처리	1	노출(에러페이지), 대응, 예외
+세션통제	1	세션관리(타임아웃)
+SQL 삽입		PreparedStatement,#{keyword},? 또는 :명명된 파라미터 변수
+코드 삽입		new Function(),eval()->화이트리스트 방식,정규화
+경로 조작 및 자원 삽입		검증,“ / \ .. 등제거
+크로스사이트 스크립트(XSS)		"외부입력값에 스크립트가 삽입되지 못하도록,< > & “ ->&lt; &gt; &amp; &quot;로 치환, HTML 태그들을 화이트리스트로
+Reflected(일회성,링크 클릭한 특정인), Stored(DB, 모든사용자게시글열람), Dom(브라우저내 DOM조작)"
+운영체제 명령어 삽입		검증(특수문자(| ; & :)나 파일 리다이렉트 특수문자(> >>)등을 제거), 화이트 리스트 방식
+위험한 형식 파일 업로드		타입,크기 제한, 화이트 리스트 방식, 저장 경로는 ‘webdocument root’ 밖에 위치시켜,실행 속성을 제거
+신뢰되지 않는 URL 자동접속 연결		사용자 브라우저로 피싱 사이트 접속, 화이트 리스트로,HttpRequest.getContextPath() 함수는내장함수로 안전
+부적절한 XML 외부개체 참조(XXE)		로컬 정적 DTD를 사용,외부에서 전송된 DTD 비활성화,PHP에서는 libxml_disable_entity_loader 함수를 이용하여 외부 엔티티 사용을 비활성화
+XML 삽입		특수문자 및 쿼리 예약어를 필터링,파라미터화된 쿼리문을 지원하는 XQuery를 사용
+LDAP 삽입		DN과 필터에 사용되는 입력값의 특수문자 제거, 특수문자( = + < > # ; \ 등)가 실행 명령이 아닌 일반문자로 인식되도록 처리
+크로스사이트 요청위조(CSRF)		POST 방식을 사용, CSRF토큰확인,히든필드, 중요기능은 재인증 유도 
+서버사이드 요청위조(SSRF)		내부 취약한 서버의 데이터 해킹 목적, 화이트 리스트,블랙리스트 
+HTTP 응답분할		두 번째 응답에 악의적인 코드를 주입하여 XSS 및 캐시 훼손(Cache Poisoning) 공격 ->CR, LF와 같은 개행문자를 제거 .. 5: lastLogin = lastLogin.replaceAll("[\\r\\n]", ""); 6: Cookie c = new Cookie("LASTLOGIN", lastLogin);, HttpRequest.getContextPath() 함수는 내장함수로 context path를 리턴 하므로 HTTP응답 분할이 이루어지지 않는다
+정수형 오버플로우		범위체크, 코드에서 반환값이 정수 값 한계를 벗어나는지를 확인
+보안기능 결정에 사용되는 부적절한 입력값		중요정보는 서버에저장, 확인도 서버에서 실행
+메모리 버퍼 오버플로우		문자열 종료를 위해 널 문자를 삽입함: cv_struct.x[(sizeof(cv_struct.x)/sizeof(char))-1] = '\0';
+포맷 스트링 삽입		%n, %hn->%s 포맷 문자열을 지정,fprintf() 대신에 fputs()를 사용
+적절한 인증 없는 중요기능 허용		로그인 과정 자체가 없거나, 인증 체크 로직이 누락된 경우, 검증된 라이브러리나 프레임워크(OpenSSL이나 ESAPI의 보안기능 등)를 사용, 모든 중요 기능에 `Interceptor/Filter`로 로그인 체크
+부적절한 인가		그인은 했지만, 그 사용자가 해당 기능을 수행할 권한이 있는지 확인, checkAccessControlList(user,action)
+중요한 자원에 대한 잘못된 권한 설정		허가받지 않은 사용자가 중요한 자원에 접근 가능한지, umask(077);
+취약한 암호화 알고리즘 사용		RC2, RC4, RC5, RC6, MD4, MD5, SHA1, DES->SHA-256, AES, 3DES, SEED, ARIA, Base64 encoding을 사용하는 경우는 암호화 목적이 아닌 가시성과 보관성을 위해서
+암호화되지 않은 중요정보		쿠키에 값을 저장하는 경우에는 중요정보를 저장하지 않거나 또는 저장을 하더라도 암호화로 저장해야, MessageDigest md = MessageDigest.getInstance("SHA-256");md.reset();md.update(salt);md.digest(pwd.getBytes());
+하드코드된 중요정보		하드코드된비밀번호,하드코드된 암호화키
+충분하지 않은 키 길이 사용		대칭키 암호알고리즘(예,AES, ARID, SEED 등)의 경우 128bit 이상,해시 함수(예, SHA 등)의 경우 128bit 이상, 공개키 암호알고리즘(예, RSA, DSA 등) 2,048bit 이상(ECC의 경우, 256 이상)
+적절하지 않은 난수 값 사용		Random()과 Math.random() -> java.security.SecureRandom SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");secureRandom.generateSeed(128);
+취약한 비밀번호 허용		2가지 10자, 3가지 8자 복잡도, 변경 규칙
+부적절한 전자서명 확인		JarEntry.getCodeSigners(); 전자서명 주체 검증 여부를 확인
+부적절한 인증서 유효성 검증		인증서 DN 일치여부와 유효기간 등을 검증
+사용자 하드디스크에 저장되는 쿠키를 통한 정보노출		쿠키의 만료시간은 해당 기능에 맞춰 최소로 사용(loginCookie.setMaxAge(60*60*24);),
+주석문 안에 포함된 시스템 주요정보		ID, 비밀번호등의 중요 정보는 주석에 삭제
+솔트 없이 일방향 해쉬 함수 사용		비밀번호만을 해시함수의 입력으로 사용하기에 레인보우 테이블을 이용한 사전 공격이 가능 -> 원문을 찾을 수 없도록 솔트를 사용하여야 (md.update(salt);)
+무결성 검사 없는 코드 다운로드		DNS lookup을 수행, 암호 기법을 이용하여 코드를 암호화, 최소한의권한으로 실행
+반복된 인증시도 제한 기능 부재		무차별대입공격 -> 인증시도 제한, 
+경쟁조건: 검사시점과 사용시점(TOCTOU)		
+종료되지 않는 반복문 또는 재귀 함수		재귀호출횟수 제한, 초기값 설정
+오류 메시지 정보노출		최소한의 정보에러만. 민감정보 오류 출력 안함,e.printStackTrace();System.err.print(e.getMessage());XX
+오류상황 대응 부재		예외 사항에 대해 적절한 조치를 수행하여야 , try-catch해
+부적절한 예외 처리		발생할 수 있는 오류의 종류와 순서에 맞춰서 예외 처리
+Null Pointer 역참조		참조하기 전에 널 값인지를 검사,String url = reuqest.getParamter("url"); if ( url != null || url.equals("") )
+부적절한 자원 해제		(파일기술자, 힙메모리, 소켓) 반드시 자원을 해제하여 반환, finally close
+해제된 자원 사용		메모리 해제 후, 포인터에 널(Null)값을 저장하거나 다른 적절한 값을 저장하면
+초기화되지 않은 변수 사용		변수의 초기값은 항상 지정하여야
+신뢰할 수 없는 데이터의 역직렬화		사용자 입력 값, 소켓으로 입력받은 값 등 출처를 신뢰할 수 없는 데이터를 검증하는 절차가 없으면 취약하다고-ObjectStreamClass의 클래스명이 화이트리스트에 있는지 확인
+잘못된 세션에 의한 데이터 정보노출		HttpServlet 클래스의 하위클래스에서 멤버 필드를 선언, final이 아닌 경우는 취약,지역 변수를 선언, private int currentPage = 1;(멤버 변수로 선언되어 스레드간에 공유), Spring 프레임워크 기반의 eGov 프레임워크는안전
+제거되지 않고 남은 디버그 코드		main() 메서드를 삭제
+Public 메소드부터 반환된 Private 배열		clone() 메소드로 복사된 원소를 저장,배열의원소가 String 타입 등과 같이 변경이 되지 않는 경우에는 Private 배열의 복사본을 만들고 이를 반환가능함.private Color[] colors; public Color[]getUserColors(Color[] userColors) { return colors; }
+Private 배열에 Public 데이터 할당		객체가 클래스의 private member를 수정하지 않도록,public void setUserRoles(UserRole[] userRoles) { this.userRoles = new UserRole[userRoles.length]; for (int i = 0; i < userRoles.length; ++i) this.userRoles[i] = userRoles[i].clone();
+DNS lookup에 의존한 보안결정		보안결정에서 도메인명을 이용한 DNS lookup을 하지 않도록, if (addr.getCanonicalHostName().endsWith("trustme.com")) {->String trustedAddr = "127.0.0.1";if (ip.equals(trustedAddr)) {
+취약한 API 사용		strcat(), strcpy(), strncat(), strncpy(), sprintf(), gets()->strcat_s(), strcpy_s(), strncat_s(), strncpy_s(), sprintf_s(), gets_s(), new Socket("kisa.or.kr", 8080);->URLConnection urlConn = url.openConnection();, System.exit(1);Application.Exit(); 사용지양
