@@ -1,130 +1,938 @@
-<!DOCTYPE html>
+여러 개발자를 통해 화면이 유지 보수 퇴면서  jsp , html 두가지로 화면이 개발되고 있어 
+menu.jsp + logview.jsp , menu.html+resourcediff.html 
+이런식으로 menu.jsp 와 menu.html 내용은 같지만 다른 확장자 화면을 렌더링 하지. 
+난 화면 리디자인 프롬프트 내용처럼 화면을 변경하고 싶어 다만 jsp와 html 화면 모두 동일 하게 화면을 구성하고싶어 
+가장 눈에 거실리는 부분은 
+메뉴바의 위치야. - 위아래 여백을 둬도 jsp와 html은 다르게 보여지고 있어 
+메뉴바와 본문 간의 여백 공간 
+메뉴바에서 아이콘 안보이는 현상 
+그외 jsp 인지 html 의 menu 인지 모를정도록 일관성 있도록 맞춰줄수 가 있을까 
+첨부 파일은 menu.jsp + logview.jsp , menu.html+resourcediff.html  이야 
+넌 사람이 만든 화면 디자이너 답게 역할을 다해줘 
 
+1. logview.jsp 화면 소스 
+<%@page import="org.h2.engine.SysProperties"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.util.List"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>통합배포 로그 조회</title>
+</head>
+<script type="text/javascript" src="/js/vue.js"></script>
+<script type="text/javascript" src="/js/vue-router.js"></script>
+<script type="text/javascript" src="/js/axios.js"></script>
+<script type="text/javascript" src="/js/moment.js"></script>
+
+<script type="text/javascript" src="/js/jquery.min.3.4.1.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+<script type="text/javascript" src="/js/bootstrap.min.js"></script>
+
+<script src="/js/sweetalert/sweetalert2.all.js"></script>
+<script src="/js/sweetalert/promise.min.js"></script>
+<script src="/js/bootstrap-datepicker.js"></script>
+
+<link href="../css/bootstrap.min.css" rel="stylesheet">
+<link href="../css/jquery-ui.min.css" rel="stylesheet">
+<%@ page import="hi.framework.deploymanager.login.entity.*" %>
+<%
+	LoginInfoVO loginInfo = (LoginInfoVO) request.getAttribute("loginInfo");
+%>
+<body>
+	<header id="header"><jsp:include page="/bin/menu.jsp" flush="false"/></header>	
+  	<div id="imagesAuthList" class="container-fluid" style="float:left;">
+		<div class="container logSearchForm_Area">			
+			<form id="logSearchForm">
+				<input type="hidden" style="display:inline;" id="userId" name="userId" placeholder="" value="${userId}">
+				<input type="hidden" style="display:inline;" id="interval" name="interval" placeholder="" value="${interval}">
+				<div class="row">
+					<div class="col-6 " style="vertical-align: middle;">
+						<h5 class="card-title" >
+							<%-- <span class='font-weight-bold'>통합배포 로그 조회 (성공 : ${resultTrueCount} / 실패 : ${resultFalseCount})</span> --%>
+							<span class='font-weight-bold'>통합배포 로그 조회</span>
+						</h5>
+					</div>
+					<div class="col-5" style="vertical-align: middle; text-align: right">
+						<span>자동갱신 : </span>
+			    		<select id="refreashInterval" name="refreashInterval" class=" btn btn-light btn-light-sm" >  
+			      			<option value="9999999999999" <c:if test='${refreashInterval eq "9999999999999"}'>selected</c:if>>갱신안함</option>  
+            				<option value="60000" <c:if test='${refreashInterval eq "60000"}'>selected</c:if>>1분</option>  
+            				<option value="300000" <c:if test='${refreashInterval eq "300000"}'>selected</c:if>>5분</option>  
+            				<option value="600000" <c:if test='${refreashInterval eq "600000"}'>selected</c:if>>10분</option>
+			    		</select> 
+					</div>
+					<div class="col-1" style="vertical-align: right;">
+						<button id="searchBtn" type="button" class="btn-md btn btn-primary" style="text-align:right; margin-left:5px; margin-bottom:5px; float:right;">검색</button> 
+					</div>
+				</div>
+				<div class="row">
+					<a id="back-to-top"></a>
+					<table id="searchTable" class="table table-bordered text-center text-middle" style="width:100%; font-size:10pt; font-weight: bold; text-align: center; vertical-align:middle;">
+		    			<tbody>
+	      					<tr>
+		        				<td style="width:15%; vertical-align:middle;">시스템명</td>        						
+        						<td style="width:5%; vertical-align:middle;">
+									<input type="text" class="form-control" style="width:70px; display:inline; font-size:12px;" id="sys_name" name="sys_name" placeholder="" value="${sys_name}">
+								</td>
+        						<td style="width:17%; vertical-align:middle;">작업의뢰번호</td>
+        						<td style="width:3%; vertical-align:middle;">
+									<input type="text" class="form-control" style="width:115px; display:inline; font-size:12px;" id=prj_mng_no name="prj_mng_no" placeholder="" value="${prj_mng_no}">        						
+        						</td>	
+        						<td style="width:17%; vertical-align:middle;">배포실행기능</td>
+        						<td style="width:5%; vertical-align:middle;">
+									<select id="shell" name="shell" style="width:140px; font-size:12px; text-align: left;" class="btn btn-light btn-light-sm">
+  										<option value="" <c:if test='${shell eq ""}'>selected</c:if>>전체조회</option>
+				  						<option value="pms.qa.all" <c:if test='${shell eq "pms.qa.all"}'>selected</c:if> >체크인 (pms.qa.all)</option>
+  										<option value="pms.prod.compile" <c:if test='${shell eq "pms.prod.compile"}'>selected</c:if> >운영계 컴파일 (pms.prod.compile)</option>
+  										<option value="pms.prod.checkin" <c:if test='${shell eq "pms.prod.checkin"}'>selected</c:if> >운영계 이행승인 (pms.prod.checkin)</option> 
+  										<option value="pms.prod.scheduler" <c:if test='${shell eq "pms.prod.scheduler"}'>selected</c:if> >정기배포 (pms.prod.scheduler)</option>  
+  										<option value="pms.prod.quick.deploy" <c:if test='${shell eq "pms.prod.quick.deploy"}'>selected</c:if> >긴급배포 (pms.prod.quick.deploy)</option> 
+  										<option value="pms.prod.scheduler.quartz" <c:if test='${shell eq "pms.prod.scheduler.quartz"}'>selected</c:if> >운영계 스케줄 배포 (pms.prod.scheduler.quartz)</option>  	 
+  										<option value="pms.staging.all" <c:if test='${shell eq "pms.staging.all"}'>selected</c:if> >배포 수집 (pms.staging.all)</option>  		 		  		
+  										<option value="pms.img.qa.deploy" <c:if test='${shell eq "pms.img.qa.deploy"}'>selected</c:if> >검증계 이미지 배포 (pms.img.qa.deploy)</option> 		  		  		
+  										<option value="pms.img.prod.deploy" <c:if test='${shell eq "pms.img.prod.deploy"}'>selected</c:if> >운영계 이미지 배포 (pms.img.prod.deploy)</option> 		  		  		
+  										<option value="pms.checkout" <c:if test='${shell eq "pms.checkout"}'>selected</c:if> >운영계 체크아웃 (pms.checkout)</option> 				
+  									</select>									
+								</td>		
+        						<td style="width:17%; vertical-align:middle;">로그생성일자</td>
+        						<td style="width:10%; vertical-align:middle;">
+									<input type="text" class="form-control" style="width:110px; display:inline; font-size:12px; text-align: center;" id="regDate" name="regDate" placeholder="연월일입력" value="${regDate}" maxlength="8" >
+									<input type="hidden" class="form-control" style="width:100px; display:inline;" id="fileDirectory" name="fileDirectory" placeholder="" value="">
+        						</td>		
+        						<td style="width:14%; vertical-align:middle; padding-left:9px; padding-right:9px;">실행결과</td>
+        						<td style="width:9%; vertical-align:middle;">
+        							<select id="result" name="result" style="width:80px; font-size:15px; text-align: left;" class="btn btn-light btn-light-sm">
+  										<option value="" <c:if test='${result eq ""}'>selected</c:if>>전체</option>
+				  						<option value="TRUE" <c:if test='${result eq "TRUE"}'>selected</c:if> >성공</option>
+  										<option value="FALSE" <c:if test='${result eq "FALSE"}'>selected</c:if> >실패</option>				
+  									</select>
+        						</td>
+      						</tr>
+      					</tbody>
+    				</table>
+				</div>
+			</form>
+			<div class="row">
+				<table id="imageAuthTable" class="table table-bordered text-center" style="width:100%; font-size:12pt; font-weight: bold; vertical-align:middle;">
+	    			<thead>
+      					<tr style="padding-left:3px; padding-right:3px; font-size:11pt;">
+      						<td style="width:3%; vertical-align:middle;">No</td>
+	        				<th style="width:7%; height:25px;">시스템명</th>
+        					<th style="width:10%; height:25px;">작업의뢰번호</th>
+        					<th style="width:4%; height:25px; padding-left:2px; padding-right:2px;">차수</th>		
+        					<th style="width:18%; height:25px;">배포실행기능</th>		
+        					<th style="width:12%; height:25px;">로그생성시간</th>		
+        					<th style="width:6%; height:25px; padding-left:3px; padding-right:3px;">실행결과</th>
+        					<th style="width:11%; height:25px;">배포건수</th>	
+        					<th style="width:15%; height:25px;">로그조회</th>
+      					</tr>
+    				</thead>
+    				<tbody style="overflow: auto;">
+    				<c:choose>
+		      			<c:when test="${fileInfoListForMongo.size() == 0 }">
+	      					<tr>
+    							<td colspan="9">[ 조회 결과 없음 ]</td>
+    						</tr>
+	      				</c:when>
+						<c:otherwise>
+	    					<c:forEach var="item" items="${fileInfoListForMongo}" varStatus="status">
+    							<fmt:parseDate var="dateString" value="${item.getRegDate()}" pattern="yyyyMMddHHmmss" />
+    							<tr style=" font-size:10pt; font-size:10pt;">
+									<td style="width:3%;  vertical-align:middle;">${status.index + 1}</td>
+	    							<td style="width:7%; padding-top:1px; padding-bottom:1px; padding-left:1px; padding-right:1px; white-space: nowrap; vertical-align:middle; font-size:10pt;">
+	    								${item.getSysname()}<br> (${item.getSys_code()})
+	    							</td>
+    								<td style="width:10%; padding-top:1px; padding-bottom:1px; padding-left:3px; padding-right:3px; vertical-align:middle; font-size:10pt;">${item.getPrj_mng_no()}</td>
+    								<td style="width:4%;  vertical-align:middle;">${item.getSdlc_seq()}</td>
+    								<td style="width:18%; padding-top:1px; padding-bottom:1px; padding-top:1px; padding-bottom:1px; padding-left:2px; padding-right:2px; vertical-align:middle; ">${item.getShell()}</td>
+    								<%-- <td style="width:20%"><input id="regDate_${status.index}" class="form-control mr-sm-2 text-center" type="text" readonly value="${item.getRegDate()}" /> --%>
+    								<td style="width:12%; padding-top:1px; padding-bottom:1px; padding-left:5px; padding-right:5px; vertical-align:middle;"><fmt:formatDate value="${dateString}" pattern="yyyy-MM-dd HH:mm:ss" /></td>
+									<td style="width:6%; padding-top:1px; padding-bottom:1px; padding-left:7px; padding-right:7px; vertical-align:middle;">${item.getResult()}</td>
+									<c:choose>
+		      							<c:when test="${item.getResult() eq '성공' }">
+		      								<td style="width:11%; padding-top:1px; padding-bottom:1px; padding-left:4px; padding-right:4px; vertical-align:middle; font-size:5pt;">${item.getFilecount()}</td>
+											<td style="width:15%; padding-top:1px; padding-bottom:1px; padding-left:3px; padding-right:3px; padding-top:5px; padding-bottom:5px; vertical-align:middle;"><a href="${item.getFileDirectory()}" target="_blank" class="btn-md btn btn-success" style="width:190px;">전체로그</a></td>
+										</c:when>
+										<c:otherwise>
+											<td style="width:11%; padding-top:1px; padding-bottom:1px; padding-left:4px; padding-right:4px; vertical-align:middle; font-size:5pt;">${item.getFilecount()}</td>
+											<td style="width:15%; padding-top:1px; padding-bottom:1px; padding-left:1px; padding-right:1px; padding-top:5px; padding-bottom:5px; vertical-align:middle;">
+											<a class=" btn btn-warning" id="errorOpen" onclick="errorOpen('${item.getErrDetail()}')">에러로그</a>
+											&nbsp;<a href="${item.getFileDirectory()}" target="_blank" class="btn btn-success">전체로그</a></td>
+										</c:otherwise>									
+									</c:choose>
+									
+    							</tr>
+    						</c:forEach>
+						</c:otherwise>
+	      			</c:choose>
+    				</tbody>
+    			</table>
+    		</div>
+  		</div>
+	</div>
+</body>
+<script type="text/javascript">
+
+var logSearchForm = $("#logSearchForm");
+var timer;
+
+$(document).ready(function(){
+
+	var interval = $("#refreashInterval");
+	console.log("[Changed refreashInterval] : " + interval.val());
+	timer = setInterval(init, interval.val());
+});
+
+$(".logSearchForm_Area button").on("click", function(e){
+	if($('#regDate').val().length != 0 && $('#regDate').val().length != 8 ){
+		Swal.fire("생성일자 8자리를 입력하세요", "", "info");
+		return false;
+	}
+	
+	e.preventDefault();
+	logSearchForm.attr("method", "post");
+	logSearchForm.attr("action", "logSearchProcess.json");
+	logSearchForm.submit();
+});
+
+function errorOpen(eMessage){
+	errorAlert("배포에러로그", eMessage, "error", "", false);
+}
+
+//SweetAlert 함수
+function errorAlert(title, text, icon, link, flag){
+	Swal.fire({
+		  title: title,
+		  html: text,
+		  icon: icon
+	}).then((result) => {
+		if(flag == true){
+			location.href=link;
+		}
+	})
+}
+
+function myFunc() {
+	  window.open("../logs/","_blank");
+}
+
+function logout() {
+	document.Form.action = "logoutProcess.json";
+	document.Form.submit();
+}
+$(function() {	
+	$('#regDate').datepicker({
+	    format: "yyyymmdd",	//데이터 포맷 형식(yyyy : 년 mm : 월 dd : 일 )
+	    //startDate: '-10d',	//달력에서 선택 할 수 있는 가장 빠른 날짜. 이전으로는 선택 불가능 ( d : 일 m : 달 y : 년 w : 주)
+	    //endDate: '+10d',	//달력에서 선택 할 수 있는 가장 느린 날짜. 이후로 선택 불가 ( d : 일 m : 달 y : 년 w : 주)
+	    autoclose : true,	//사용자가 날짜를 클릭하면 자동 캘린더가 닫히는 옵션
+	    calendarWeeks : false, //캘린더 옆에 몇 주차인지 보여주는 옵션 기본값 false 보여주려면 true
+	    clearBtn : false, //날짜 선택한 값 초기화 해주는 버튼 보여주는 옵션 기본값 false 보여주려면 true
+	    //datesDisabled : ['2019-06-24','2019-06-26'],//선택 불가능한 일 설정 하는 배열 위에 있는 format 과 형식이 같아야함.
+	    //daysOfWeekDisabled : [0,6],	//선택 불가능한 요일 설정 0 : 일요일 ~ 6 : 토요일
+	    //daysOfWeekHighlighted : [3], //강조 되어야 하는 요일 설정
+	    disableTouchKeyboard : false,	//모바일에서 플러그인 작동 여부 기본값 false 가 작동 true가 작동 안함.
+	    immediateUpdates: false,	//사용자가 보는 화면으로 바로바로 날짜를 변경할지 여부 기본값 :false 
+	    multidate : false, //여러 날짜 선택할 수 있게 하는 옵션 기본값 :false 
+	    multidateSeparator :",", //여러 날짜를 선택했을 때 사이에 나타나는 글짜 2019-05-01,2019-06-01
+	    templates : {
+	        leftArrow: '&laquo;',
+	        rightArrow: '&raquo;'
+	    }, //다음달 이전달로 넘어가는 화살표 모양 커스텀 마이징 
+	    showWeekDays : true ,// 위에 요일 보여주는 옵션 기본값 : true
+	    title: "로그생성일자",	//캘린더 상단에 보여주는 타이틀
+	    todayHighlight : true ,	//오늘 날짜에 하이라이팅 기능 기본값 :false 
+	    toggleActive : true,	//이미 선택된 날짜 선택하면 기본값 : false인경우 그대로 유지 true인 경우 날짜 삭제
+	    weekStart : 0 ,//달력 시작 요일 선택하는 것 기본값은 0인 일요일 
+	    
+	}).on("changeDate", function(e){
+		console.log("달력 입력");
+	});
+});   //ready end
+
+$(function(){
+	  $('#back-to-top').on('click',function(e){
+	      e.preventDefault();
+	      $('html,body').animate({scrollTop:0},600);
+	  });
+	  
+	  $(window).scroll(function() {
+	    if ($(document).scrollTop() > 100) {
+	      $('#back-to-top').addClass('show');
+	    } else {
+	      $('#back-to-top').removeClass('show');
+	    }
+	  });
+});
+
+
+function init(){
+	var now = new Date();
+	console.log("[Excute RealTime JobList] 갱신시간  : " + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds());
+	  
+	if($('#regDate').val().length != 0 && $('#regDate').val().length != 8 ){
+		Swal.fire("생성일자 8자리를 입력하세요", "", "info");
+		return false;
+	}
+
+	logSearchForm.attr("method", "post");
+	logSearchForm.attr("action", "logSearchProcess.json");
+	logSearchForm.submit(); 
+	
+}
+
+$(function(){
+	$('#refreashInterval').change(function(e){
+		var interval = $("#refreashInterval");
+		console.log("[Changed refreashInterval] : " + interval.val() / 60000 + "분");
+		clearInterval(timer);
+		
+		$("#interval").val(timer);		
+		timer = setInterval(init(), interval.val());		
+		
+		console.log("리스트 갱신시간이 " + (interval.val()/60000) + "분으로 변경 되었습니다." );
+
+	});
+});
+
+</script>
+<link href="../css/datepicker/bootstrap-datepicker.css" rel="stylesheet">
+<link href="../css/font-awesome/css/fontawesome.min.css" rel="stylesheet">
+<style type="text/css">
+.pageInfo{
+	list-style : none;
+	display: inline-block;
+	margin: 50px 0 0 0x;
+  }
+  .pageInfo li{
+    float: left;
+    font-size: 20px;
+    margin-left: 18px;
+    padding: 7px;
+    font-weight: 500;
+  }
+ a:link {color:black; text-decoration: none;}
+ a:visited {color:black; text-decoration: none;}
+ a:hover {color:black; text-decoration: underline;}
+ .swal2-html-container {
+ 	text-align: left;
+ }
+ #wrap{
+  margin:0 auto;
+  width:300px;
+}
+#back-to-top {
+  display: inline-block;
+  background-color: #FF9800;
+  width: 70px;
+  height: 50px;
+  text-align: center;
+  vertical-align: middle;
+  border-radius: 4px;
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  transition: background-color .3s, 
+    opacity .5s, visibility .5s;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 1000;
+}
+#back-to-top::after {
+  content: "Top";
+  font-family: FontAwesome;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 2em;
+  line-height: 50px;
+  color: #fff;
+}
+#back-to-top:hover {
+  cursor: pointer;
+  background-color: #333;
+}
+#back-to-top:active {
+  background-color: #555;
+}
+#back-to-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+ 
+</style>
+</html>
+2. menu.jsp 화면 소스 
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ page import="hi.framework.deploymanager.login.entity.*" %>
+<%
+	LoginInfoVO loginInfo = (LoginInfoVO) request.getAttribute("loginInfo");
+%>
+<form id="Form" name="Form" action="" method="post">
+		<div id="menuItem" class="container-fluid" style="margin-top: 5px;">
+			<nav class="navbar navbar-expand-lg navbar-dark bg-dark ">
+		        <a class="navbar-brand" href="javascript:void(0)" onclick="location.href='./imageHomeProcess.json'"><font style="font-style: normal; font-weight: bold; vertical-align:middle;">배포 관리 시스템</font></a>
+	  				<button class="navbar-toggler mt-5" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+	    				<span class="navbar-toggler-icon"></span>
+	  				</button>
+	
+		  		<div class="collapse navbar-collapse" id="navbarSupportedContent">
+	    			<ul class="navbar-nav mr-auto">
+		      			<li class="nav-item active order-lg-first">
+		        			<a class="nav-link" href="javascript:void(0)" onclick="location.href='./imageHomeProcess.json'">Home</a>
+	      				</li>
+	      				<%
+	      				if(loginInfo.getResponse_group_id().equals("admin") || loginInfo.getResponse_group_id().equals("user")){
+	      				%>
+	      				<li class="nav-item">	
+		        			<a class="nav-link" onclick="myFunc()">(구)배포 로그 조회</a>
+	      				</li>
+	      				<li class="nav-item">
+		        			<a class="nav-link" href="javascript:void(0)" onclick="location.href='./logViewerProcess.json'">배포 로그 조회</a>
+	      				</li>
+	      				<%
+	      				}
+	      				if(loginInfo.getResponse_group_id().equals("admin")){
+	      				%>
+	      				<li class="nav-item">
+		        			<a class="nav-link" href="javascript:void(0)" onclick="location.href='./AgentCheckProcess.json'">Agent 모니터링</a>
+	      				</li>	        
+	      				<li class="nav-item dropdown">
+		        			<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	          					배포 설정 관리
+	        				</a>
+	        				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+		        				<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./MetaProcess.json'">메타 정보 관리</a>
+		        				<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./ConfigProcess.json'">시스템별 정보 관리</a>
+		        				<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./AgentProcess.json'">Agent 정보 관리</a>
+		        				<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./imageAuthProcess.json'">이미지 배포 관리</a>
+		        				<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./ApSchedule.json'">AP스케줄 관리</a>
+	        				</div>
+	      				</li>
+	      				<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="javascript:void(0)">
+								배포  이력 관리
+							</a>
+	        				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+		        				<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./ApHistoryProcess.json'">배포 이력 조회</a>
+		        				<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./ScheduleProcess.json'">스케쥴 배포 이력 조회</a>
+		        				<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./ApLogProcess.json'">설정 변경 이력 조회</a>
+	        				</div>
+	      				</li>
+	      				<li class="nav-item">
+	      					<a class="nav-link" href="javascript:void(0)" onclick="location.href='./TestProcess.json'">테스트</a>
+	      				</li>
+	      				<%
+	      				}
+	      				if(loginInfo.getResponse_group_id().equals("admin") || loginInfo.getResponse_group_id().equals("user")){
+	      				%>
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="javascript:void(0)">
+								이미지 배포
+							</a>
+	        				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+	        					<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/imageProcess.json'">이미지 배포</a>
+	        				</div>
+	      				</li>
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="javascript:void(0)">
+								자원 다운로드
+							</a>
+	        				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+	        					<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/resDownloadProcess.json'">자원 다운로드</a>
+	        					<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/DiffSoftmResource.json'">형상 서버 자원 다운로드</a>
+	        				</div>
+	      				</li>
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="javascript:void(0)">
+								자원정리 관리
+							</a>
+	        				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+	        					<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./CleanCisResource.json'">기간계 자원정리 관리</a>
+	        					<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./CleanSoftmResource.json'">형상 자원정리 관리</a>
+	        				</div>
+	      				</li>	      				
+	      				<%
+	      				}
+	      				%>
+	      				<%
+	      				if(loginInfo.getResponse_user_Id().equals("IB1192") || loginInfo.getResponse_user_Id().equals("IB1117")){
+	      				%>
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="javascript:void(0)">
+								Query Execute
+							</a>
+	        				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+	        					<a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/queryProcess.json'">Query Execute</a>
+	        				</div>
+	      				</li>
+	      				<%
+	      				}
+	      				%>
+	     		</ul>	
+	  			</div>
+				<div class="float-right" style="padding-right:5px;">
+					<font color="white" style="vertical-align:middle;">${loginInfo.getResponse_username()}</font>
+					<button class="btn btn-sm btn-primary" type="button"  style="margin-top:5px;" onclick="logout()">로그아웃</button>
+				</div>
+			</nav>
+			<hr>
+		</div>
+	</form>
+
+3. menu.html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Test</title>
+    <!-- Bootstrap & FontAwesome (테스트를 위해 CDN 사용) -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/font-awesome/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* menu.jsp의 스타일과 100% 동일하게 유지 */
+        body {
+            background-color: #fafafa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", Roboto, sans-serif;
+            color: #18181b;
+            margin: 0;
+        }
+        #menuItem {
+            padding: 0;
+        }
+        .custom-navbar {
+            background-color: #ffffff !important;
+            border-bottom: 1px solid #e4e4e7;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            height: 56px;
+        }
+        .navbar-brand {
+            font-size: 16px;
+            font-weight: 600;
+            color: #18181b !important;
+            text-decoration: none;
+        }
+        .nav-link {
+            color: #71717a !important;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 12px !important;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        .nav-link i {
+            margin-right: 6px;
+            font-size: 13px;
+            color: #a1a1aa;
+        }
+        .nav-link:hover {
+            color: #18181b !important;
+        }
+        .nav-link:hover i {
+            color: #18181b;
+        }
+        .nav-link.active {
+            color: #18181b !important;
+            font-weight: 600;
+        }
+        .dropdown-menu {
+            background-color: #ffffff;
+            border: 1px solid #e4e4e7;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 4px;
+            margin-top: 5px !important;
+        }
+        .dropdown-item {
+            font-size: 14px;
+            color: #71717a;
+            padding: 6px 12px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .dropdown-item i {
+            width: 16px;
+            margin-right: 8px;
+            text-align: center;
+            font-size: 13px;
+        }
+        .dropdown-item:hover {
+            background-color: #f4f4f5;
+            color: #18181b;
+        }
+        .dropdown-header {
+            font-size: 12px;
+            font-weight: 600;
+            color: #a1a1aa;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 8px 12px;
+        }
+        .dropdown-divider {
+            height: 1px;
+            background-color: #e4e4e7;
+            margin: 4px 0;
+        }
+        .btn-action {
+            background-color: #18181b !important;
+            color: #ffffff !important;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 14px;
+            transition: opacity 0.2s;
+        }
+        .btn-action:hover {
+            opacity: 0.9;
+        }
+        .ml-auto {
+            margin-left: auto !important;
+        }
+    </style>
+</head>
+<body>
+    <form id="Form" name="Form" action="" method="post">
+        <div id="menuItem" class="container-fluid">
+            <nav class="navbar navbar-expand-lg custom-navbar">
+                <a class="navbar-brand" href="#">배포 관리 시스템</a>
+    
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+                    <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav mr-auto">
+                        <!-- Home -->
+                        <li class="nav-item active">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-home"></i>Home
+                            </a>
+                        </li>
+                        <!-- 권한 로직 대신 정적 메뉴 배치 (admin/user 통합) -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-history"></i>(구)배포 로그 조회
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-list-alt"></i>배포 로그 조회
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-desktop"></i>Agent 모니터링
+                            </a>
+                        </li>
+    
+                        <!-- 배포 설정 관리 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown1" role="button" data-toggle="dropdown">
+                                <i class="fas fa-cogs"></i>배포 설정 관리
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown1">
+                                <a class="dropdown-item" href="#"><i class="fas fa-info-circle"></i>메타 정보 관리</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-server"></i>시스템별 정보 관리</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-user-shield"></i>Agent 정보 관리</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-key"></i>이미지 배포 관리</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-calendar-alt"></i>AP스케줄 관리</a>
+                            </div>
+                        </li>
+
+                        <!-- 배포 이력 관리 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-toggle="dropdown">
+                                <i class="fas fa-stream"></i>배포 이력 관리
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown2">
+                                <a class="dropdown-item" href="#"><i class="fas fa-search"></i>배포 이력 조회</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-clock"></i>스케쥴 배포 이력 조회</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-file-alt"></i>설정 변경 이력 조회</a>
+                            </div>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-vial"></i>테스트
+                            </a>
+                        </li>
+
+                        <!-- 이미지 배포 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown3" role="button" data-toggle="dropdown">
+                                <i class="fas fa-rocket"></i>이미지 배포
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown3">
+                                <a class="dropdown-item" href="#"><i class="fas fa-upload"></i>이미지 배포</a>
+                            </div>
+                        </li>
+
+                        <!-- 자원 관리 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" id="resourceManagementDropdown" role="button" data-toggle="dropdown">
+                                <i class="fas fa-database"></i>자원 관리
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="resourceManagementDropdown">
+                                <h6 class="dropdown-header">자원 조회 및 비교</h6>
+                                <a class="dropdown-item" href="#"><i class="fas fa-download"></i>배포 자원 다운로드</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-exchange-alt"></i>배포 자원 버전 비교</a>
+                                <div class="dropdown-divider"></div>
+                                <h6 class="dropdown-header">자원 정리 및 삭제</h6>
+                                <a class="dropdown-item" href="#"><i class="fas fa-trash-alt"></i>기간계 자원 정리</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-trash-alt"></i>형상 자원 정리</a>
+                            </div>
+                        </li>
+
+                        <!-- Query Execute -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown4" role="button" data-toggle="dropdown">
+                                <i class="fas fa-terminal"></i>Query Execute
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown4">
+                                <a class="dropdown-item" href="#"><i class="fas fa-code"></i>Query Execute</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 로그아웃 버튼 -->
+                <div class="ml-auto" style="padding-right:5px;">
+                    <a class="btn btn-action" href="#">
+                        <i class="fas fa-sign-out-alt" style="margin-right:4px; font-size:12px;"></i>로그아웃
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </form>
+</body>
+</html>
+4. 자원 비교 화면.html
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <title>소프트매니저 자원 관리 시스템</title>
+<!-- 기존 라이브러리 유지 -->
 <link href="../css/bootstrap.min.css" rel="stylesheet">
 <link href="../css/jquery-ui.min.css" rel="stylesheet">
 <link href="../css/custom.css" rel="stylesheet">
+<link href="../css/font-awesome/css/all.min.css" rel="stylesheet">
+
 <style>
-  /* 전체 레이아웃 및 디자인 스타일 /
-  body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; color: #333; padding: 20px; }
-  #app { max-width: 1300px; margin: 0 auto; }
-  .main-header { margin-bottom: 20px; border-left: 5px solid #007bff; padding-left: 20px; }
-  .section-box { background: #ffffff; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; }
-  .section-head { padding: 15px 20px; border-bottom: 1px solid #edf2f7; display: flex; align-items: center; }
-  .section-head .badge-num { background: #34495e; color: #fff; width: 24px; height: 24px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; margin-right: 10px; }
-  .section-head .title { font-weight: 600; font-size: 16px; color: #2d3748; }
+  /* [shadcn/ui 기반 리디자인 스타일] */
+  :root {
+    --background: #fafafa;
+    --card: #ffffff;
+    --card-border: #e4e4e7;
+    --card-border-dark: #d4d4d8;
+    --text-main: #18181b;
+    --text-muted: #71717a;
+    --text-faint: #a1a1aa;
+    --primary: #18181b;
+    --primary-hover: #27272a;
+    --accent: #f59e0b; /* 경고/주의용 */
+    --radius-lg: 10px;
+    --radius-md: 6px;
+    --radius-pill: 999px;
+    --shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+
+  body { 
+    background-color: var(--background); 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", Roboto, sans-serif; 
+    color: var(--text-main); 
+    margin: 0; 
+  }
+
+  /* 본문 컨테이너 */
+  #app { 
+    max-width: 980px; 
+    margin: 0 auto; 
+    padding: 40px 24px 80px; 
+  }
+
+  /* 페이지 타이틀 블록 */
+  .page-header { margin-bottom: 32px; }
+  .eyebrow { font-size: 12px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; margin-bottom: 4px; }
+  .page-title { font-size: 1.4rem; font-weight: 600; color: var(--text-main); margin: 0; }
+  .page-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+  /* 섹션 카드 스타일 */
+  .section-card { 
+    background: var(--card); 
+    border: 1px solid var(--card-border); 
+    border-radius: var(--radius-lg); 
+    margin-bottom: 32px; 
+    box-shadow: var(--shadow); 
+    overflow: hidden; 
+  }
+  .section-head { 
+    padding: 16px 20px; 
+    border-bottom: 1px solid var(--card-border); 
+    display: flex; 
+    align-items: center; 
+  }
+  .section-head .badge-step { 
+    background: var(--text-main); 
+    color: #fff; 
+    width: 22px; 
+    height: 22px; 
+    border-radius: 4px; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 11px; 
+    font-weight: 700; 
+    margin-right: 10px; 
+  }
+  .section-head .title { font-weight: 600; font-size: 15px; color: var(--text-main); }
   .section-body { padding: 20px; }
-  .mono { font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 13px; }
 
-  / 검색 영역 /
-  .search-row { display: flex; gap: 15px; align-items: flex-end; justify-content: flex-start;}
+  /* 검색 필터 */
+  .search-row { display: flex; gap: 16px; align-items: flex-end; }
   .search-item { flex: 1; }
-  .search-item label { font-size: 13px; font-weight: 600; color: #4a5568; margin-bottom: 5px; display: block; }
+  .search-item label { font-size: 13px; font-weight: 500; color: var(--text-main); margin-bottom: 8px; display: block; }
+  .search-item input { height: 38px; border-radius: var(--radius-md); border: 1px solid var(--card-border); font-size: 14px; }
 
-  / 테이블 스타일 /
-  .table-container { max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
-  .table-container-large { max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
-  .table thead th { position: sticky; top: 0; background-color: #f8f9fa; z-index: 10; font-size: 13px; border-bottom: 2px solid #dee2e6; }
-  .table tbody tr:hover { background-color: #f8f9fa; cursor: pointer; }
-  .table tbody tr.selected-row { background-color: #e7f1ff !important; }
+  /* 버튼 스타일 */
+  .btn-primary-custom {
+    background-color: var(--primary);
+    color: #ffffff !important;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 20px;
+  }
+  .btn-accent-custom {
+    background-color: var(--accent);
+    color: #ffffff !important;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 20px;
+  }
 
-  / 우클릭 컨텍스트 메뉴 /
-  #context-menu { position: absolute; display: none; background: white; border: 1px solid #ccc; box-shadow: 2px 2px 10px rgba(0,0,0,0.2); z-index: 3000; width: 160px; border-radius: 4px; padding: 5px 0; }
-  #context-menu div { padding: 8px 15px; cursor: pointer; font-size: 13px; }
-  #context-menu div:hover { background-color: #007bff; color: white; }
+  /* 테이블 스타일 */
+  .table-container { max-height: 350px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: var(--radius-md); }
+  .table-container-large { max-height: 500px; overflow-y: auto; border: 1px solid var(--card-border); border-radius: var(--radius-md); }
+  
+  .table { margin-bottom: 0; }
+  .table thead th { 
+    position: sticky; top: 0; background-color: #f8f9fa; z-index: 10; 
+    font-size: 13px; color: var(--text-muted); border-bottom: 1px solid var(--card-border); 
+    text-align: center; padding: 12px 8px; cursor: pointer; font-weight: 500;
+  }
+  .table thead th:hover { background-color: #f1f5f9; }
+  .sort-icon { margin-left: 5px; font-size: 11px; color: #d1d5db; }
+  .sort-asc { color: var(--text-main) !important; }
+  .sort-desc { color: var(--text-main) !important; }
+  
+  .table tbody td { font-size: 14px; padding: 12px; vertical-align: middle; border-bottom: 1px solid #f1f3f5; color: var(--text-main); }
+  .table tbody tr:hover { background-color: #f4f4f5; cursor: pointer; }
+  .table tbody tr.selected-row { background-color: #f4f4f5 !important; font-weight: 600; }
+  .mono { font-family: 'Cascadia Code', 'Consolas', monospace; }
 
-  / DIFF 모달 (대용량 가상 스크롤 대응) /
-  .diff-container { display: flex; height: 600px; gap: 10px; background: #f1f3f5; padding: 10px; }
-  .diff-pane { flex: 1; background: white; border: 1px solid #dee2e6; border-radius: 4px; overflow-y: auto; position: relative; }
-  .diff-header { position: sticky; top: 0; background: #e9ecef; padding: 6px 12px; font-size: 12px; font-weight: bold; z-index: 5; border-bottom: 1px solid #dee2e6; }
-  .diff-line { display: flex; height: 22px; line-height: 22px; font-family: monospace; font-size: 13px; white-space: pre; }
-  .line-num { width: 45px; color: #adb5bd; text-align: right; padding-right: 5px; flex-shrink: 0; border-right: 1px solid #eee; margin-right: 8px; }
-  .line-content { flex: 1; }
-  .line-added { background-color: #e6ffec; }
-  .line-removed { background-color: #ffebe9; }
-  .diff-content-area { position: relative; }
-  / 모달의 최대 너비를 강제로 제어 /
-   @media (min-width: 1200px) {
-     .modal-xl .modal-content {
-       / 원하는 최대 너비를 입력하세요 (예: 1600px) /
-       max-width: 95% !important; 
-     }
-   }
+  /* 컨텍스트 메뉴 */
+  #context-menu { position: absolute; display: none; background: #ffffff; border: 1px solid var(--card-border); box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 3000; width: 180px; border-radius: var(--radius-md); padding: 4px; }
+  #context-menu div { padding: 8px 12px; cursor: pointer; font-size: 14px; color: var(--text-main); border-radius: 4px; }
+  #context-menu div:hover { background-color: #f4f4f5; color: var(--text-main); }
 
-   / 만약 모달의 높이(Height)를 조절하고 싶다면 /
-   .modal-body {
-     / diff-container의 높이가 600px이므로, 모달 본문도 적절히 조절 /
-     min-height: 650px; 
-   }
-
-   / DIFF 영역이 모달 밖으로 나가지 않도록 설정 /
-   .diff-container {
-     display: flex;
-     height: 600px; / 이 높이가 모달의 전체 높이를 결정합니다 /
-     gap: 10px;
-     background: #f1f3f5;
-     padding: 10px;
-     overflow: hidden; / 내부 스크롤을 위해 필요 */
-   }
+  /* Diff 모달 */
+  .modal-content { border-radius: var(--radius-lg); border: 1px solid var(--card-border); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+  .modal-header { border-bottom: 1px solid var(--card-border); background-color: #fff; }
+  .diff-container { display: flex; height: 700px; gap: 15px; background: #fafafa; padding: 15px; border-radius: var(--radius-md); }
+  .diff-pane { flex: 1; background: white; border: 1px solid var(--card-border); border-radius: var(--radius-md); overflow-y: auto; position: relative; display: flex; flex-direction: column; }
+  .diff-header { position: sticky; top: 0; background: #f8f9fa; padding: 8px 16px; font-size: 13px; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--card-border); text-align: center; z-index: 5; }
+  .diff-content-area { position: relative; width: 100%; }
+  .diff-line { display: flex; height: 24px; line-height: 24px; font-family: 'Consolas', monospace; font-size: 13px; white-space: pre; width: 100%; }
+  .line-num { width: 50px; color: #a1a1aa; text-align: right; padding-right: 10px; flex-shrink: 0; border-right: 1px solid #f1f3f5; margin-right: 10px; user-select: none; }
+  .line-content { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  .line-added { background-color: #f0fdf4; color: #166534; }
+  .line-removed { background-color: #fef2f2; color: #991b1b; }
 </style>
 </head>
-<body>
+<body class="container-fluid">
 <header id="header"></header>
 
-<div id="app" class="container-fluid">
-  <div class="main-header">
-    <h4 class="mb-1">소프트매니저 자원 관리 시스템</h4>
-    <p class="text-muted mb-0" style="font-size:13px;">날짜별 작업의뢰 조회 및 파일 버전 비교</p>
+<div id="app">
+  <!-- 페이지 타이틀 블록 -->
+  <div class="page-header">
+    <div class="eyebrow">Resource Management</div>
+    <h4 class="page-title">소프트매니저 자원 관리 시스템</h4>
+    <p class="page-desc">날짜별 작업의뢰 조회 및 파일 버전 비교</p>
+  </div>
+
+  <!-- 상단 유저 정보 및 조회 버튼 영역 -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="user-badge" style="font-size:14px; color:#71717a;">
+      접속자: <strong style="color:#18181b;">${loginInfo.getResponse_username()}</strong>
+    </div>
+    <button type="button" class="btn-accent-custom" id="downloadSearch" onclick="">
+      <i class="fa fa-search"></i> 조회하기
+    </button>
   </div>
 
   <!-- STEP 1: 날짜 검색 -->
-  <div class="section-box">
+  <div class="section-card">
     <div class="section-head">
-      <span class="badge-num">1</span>
-      <span class="title">작업의뢰 검색 (배포 날짜 기준)</span>
+      <span class="badge-step">01</span>
+      <span class="title">작업의뢰 검색</span>
     </div>
     <div class="section-body">
-      <div class="search-row">
-        <div class="search-item" style="flex: 0; width: 220px;">
-          <label>배포 날짜</label>
-          <!-- input type="date"는 기본적으로 달력과 텍스트 입력을 모두 지원합니다 -->
-          <input type="date" class="form-control form-control-sm" v-model="searchForm.date">
+      <form id="resourceDownForm">
+        <input type="hidden" id="ftpRootDir" name="ftpRootDir" value=""/>
+        <input type="hidden" id="userAuth" name="userAuth" value="${loginInfo.getResponse_group_id()}"/>
+        <div class="search-row">
+          <div class="search-item">
+            <label>배포 날짜</label>
+            <input type="date" class="form-control form-control-sm" v-model="searchForm.date">
+          </div>
+          <div class="search-item" style="flex: 0 0 100px;">
+            <button class="btn-primary-custom w-100" @click="searchTasks">조회</button>
+          </div>
         </div>
-        <div class="search-item" style="flex: 0; width: 100px;">
-          <button class="btn btn-primary btn-sm w-100" @click="searchTasks">FIND</button>
-        </div>
-      </div>
+      </form>
     </div>
   </div>
 
-  <!-- STEP 2: 작업의뢰 목록 (클릭 시 상세자원 호출) -->
-  <div class="section-box" v-if="tasks.length > 0">
+  <!-- STEP 2: 작업의뢰 목록 -->
+  <div class="section-card" v-if="tasks.length > 0">
     <div class="section-head">
-      <span class="badge-num">2</span>
-      <span class="title">작업의뢰 목록 (행 클릭 시 상세 조회)</span>
+      <span class="badge-step">02</span>
+      <span class="title">작업의뢰 목록</span>
     </div>
     <div class="section-body">
       <div class="table-container">
-        <table class="table table-sm table-hover mb-0" @contextmenu.prevent="onContextMenuTask">
-          <thead class="thead-light">
-            <tr style="font-size:13px;">
-              <th class="text-center" style="width:50px;">No</th>
-              <th>작업의뢰번호</th>
-              <th>SDLC 번호</th>
-              <th>작업의뢰 정보</th>
-              <th class="text-center">배포일</th>
+        <table class="table table-hover mb-0" @contextmenu.prevent="onContextMenuTask">
+          <thead class="mono">
+            <tr>
+              <th @click="sortTasks('id')" style="width:60px;">No <span class="sort-icon" :class="getSortClass('id')"><i class="fas" :class="getSortIcon('id')"></i></span></th>
+              <th @click="sortTasks('system_name')" style="width:150px;">시스템명 <span class="sort-icon" :class="getSortClass('system_name')"><i class="fas" :class="getSortIcon('system_name')"></i></span></th>
+              <th @click="sortTasks('prj_mng_no')" style="width:150px;">작업의뢰번호 <span class="sort-icon" :class="getSortClass('prj_mng_no')"><i class="fas" :class="getSortIcon('prj_mng_no')"></i></span></th>
+              <th @click="sortTasks('sdlc_seq')" style="width:100px;">SDLC 번호 <span class="sort-icon" :class="getSortClass('sdlc_seq')"><i class="fas" :class="getSortIcon('sdlc_seq')"></i></span></th>
+              <th @click="sortTasks('transf_name')" style="width:auto;">작업의뢰 정보 <span class="sort-icon" :class="getSortClass('transf_name')"><i class="fas" :class="getSortIcon('transf_name')"></i></span></th>
+              <th @click="sortTasks('transf_cmpl_date')" style="width:130px;">배포일 <span class="sort-icon" :class="getSortClass('transf_cmpl_date')"><i class="fas" :class="getSortIcon('transf_cmpl_date')"></i></span></th>
             </tr>
           </thead>
           <tbody class="mono">
-            <tr v-for="(task, idx) in tasks" :key="idx" 
-                @click="selectTask(task)"
-                :class="{ 'selected-row': selectedTask === task }">
+            <tr v-for="(task, idx) in tasks" :key="idx" @click="selectTask(task)" :class="{ 'selected-row': selectedTask === task }">
               <td class="text-center">{{ idx + 1 }}</td>
-              <td>{{ task.prj_mng_no }}</td>
-              <td>{{ task.sdlc_seq }}</td>
+              <td class="text-center">{{ task.system_name }}</td>
+              <td class="text-center">{{ task.prj_mng_no }}</td>
+              <td class="text-center">{{ task.sdlc_seq }}</td>
               <td>{{ task.transf_name }}</td>
               <td class="text-center">{{ task.transf_cmpl_date }}</td>
             </tr>
@@ -134,32 +942,32 @@
     </div>
   </div>
 
-  <!-- STEP 3: 상세 자원 목록 (작업의뢰 선택 후 출력) -->
-  <div class="section-box" v-if="selectedTask" v-bind:class="{ 'opacity-50': loadingFiles }">
+  <!-- STEP 3: 상세 자원 목록 -->
+  <div class="section-card" v-if="selectedTask" v-bind:class="{ 'opacity-50': loadingFiles }">
     <div class="section-head">
-      <span class="badge-num">3</span>
+      <span class="badge-step">03</span>
       <span class="title">상세 자원 목록 ({{ selectedTask.fileNameCount }} 건)</span>
-      <span class="ml-auto small text-muted">파일 우클릭 후 [이전 버전 비교] 메뉴 선택</span>
+      <span class="ml-auto small text-muted" style="font-size:13px;">파일 우클릭 → [이전 버전 비교]</span>
     </div>
     <div class="section-body">
       <div class="table-container-large">
-        <table class="table table-sm table-hover mb-0" @contextmenu.prevent="onContextMenuFile">
-          <thead class="thead-light">
-            <tr style="font-size:13px;">
-              <th class="text-center" style="width:50px;">No</th>
-              <th class="text-truncate" style="max-width:250px;">저장경로</th>
-              <th>파일명</th>
-              <th class="text-center">버전</th>
-              <th>작업자</th>
+        <table class="table table-hover mb-0" @contextmenu.prevent="onContextMenuFile">
+          <thead class="mono">
+            <tr>
+              <th style="width:60px;">No</th>
+              <th style="width:250px;">저장경로</th>
+              <th @click="sortFile('fileName')" style="width:auto;">파일명 <span class="sort-icon" :class="getSortClass('fileName')"><i class="fas" :class="getSortIcon('fileName')"></i></span></th>
+              <th @click="sortFile('verIndex')" style="width:80px;">버전 <span class="sort-icon" :class="getSortClass('verIndex')"><i class="fas" :class="getSortIcon('verIndex')"></i></span></th>
+              <th @click="sortFile('realName')" style="width:120px;">작업자 <span class="sort-icon" :class="getSortClass('realName')"><i class="fas" :class="getSortIcon('realName')"></i></span></th>
             </tr>
           </thead>
           <tbody class="mono">
             <tr v-for="(file, idx) in fileList" :key="idx" @click="selectedFile = file" :class="{ 'selected-row': selectedFile === file }">
               <td class="text-center">{{ idx + 1 }}</td>
               <td class="text-truncate">{{ file.dirInfo }}</td>
-              <td class="font-weight-bold">{{ file.fileName }}</td>
+              <td class="font-weight-bold text-primary">{{ file.fileName }}</td>
               <td class="text-center">{{ file.verIndex }}</td>
-              <td>{{ file.realName }}</td>
+              <td class="text-center">{{ file.realName }}</td>
             </tr>
           </tbody>
         </table>
@@ -169,35 +977,41 @@
 
   <!-- 우클릭 메뉴 -->
   <div id="context-menu" ref="contextMenu">
-    <div v-if="menuMode === 'FILE'" @click="handleDiff"><i class="fa fa-code-compare"></i> 이전 버전 비교</div>
+    <div v-if="menuMode === 'FILE'" @click="handleDiff">
+       <i class="fa fa-code-compare mr-2"></i> 이전 버전 비교
+    </div>
   </div>
 
   <!-- DIFF 모달 -->
   <div class="modal fade" id="diffModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog modal-xl resizable-modal" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">파일 버전 비교 (Current vs Previous)</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
+          <h5 class="modal-title font-weight-bold text-dark">파일 버전 비교 (Current vs Previous)</h5>
+          <button type="button" class="close" @click="closeModalDirectly" aria-label="Close">&times;</button>
         </div>
         <div class="modal-body">
-          <div class="mb-2 d-flex justify-content-between">
-            <span><strong>대상:</strong> {{ diffTarget.fileName }}</span>
-            <span class="small text-muted">버전: {{ diffTarget.verIndex }} $\rightarrow$ {{ diffTarget.prevVerIndex }}</span>
+          <div class="mb-3 d-flex justify-content-between align-items-center">
+            <div>
+              <span class="badge badge-dark p-2" style="font-size:13px;">대상: {{ diffTarget.fileName }}</span>
+              <span class="ml-2 text-muted" style="font-size:13px;">버전: {{ diffTarget.verIndex }} &rarr; {{ diffTarget.prevVerIndex }}</span>
+            </div>
           </div>
           <div class="diff-container">
+            <!-- Current Pane -->
             <div class="diff-pane">
               <div class="diff-header">Current Version</div>
-             <div class="diff-content-area" :style="{ height: (diffData.current.length ? (Math.max(...diffData.current.map(l => l.absoluteIndex)) + 1) * 22 + 'px' : '0') }">
+              <div class="diff-content-area" :style="{ height: (diffData.current.length ? (Math.max(...diffData.current.map(l => l.absoluteIndex)) + 1) * 24 + 'px' : '0') }">
                 <div class="diff-line" v-for="(line, idx) in diffData.current" :class="{'line-removed': line.type === 'removed'}" :style="{ top: line.top + 'px', position: 'absolute', width: '100%' }">
                   <span class="line-num">{{ line.absoluteIndex + 1 }}</span>
                   <span class="line-content">{{ line.text }}</span>
                 </div>
               </div>
             </div>
+            <!-- Previous Pane -->
             <div class="diff-pane">
               <div class="diff-header">Previous Version</div>
-              <div class="diff-content-area" :style="{ height: (diffData.current.length ? (Math.max(...diffData.current.map(l => l.absoluteIndex)) + 1) * 22 + 'px' : '0') }">
+              <div class="diff-content-area" :style="{ height: (diffData.previous.length ? (Math.max(...diffData.previous.map(l => l.absoluteIndex)) + 1) * 24 + 'px' : '0') }">
                 <div class="diff-line" v-for="(line, idx) in diffData.previous" :class="{'line-added': line.type === 'added'}" :style="{ top: line.top + 'px', position: 'absolute', width: '100%' }">
                   <span class="line-num">{{ line.absoluteIndex + 1 }}</span>
                   <span class="line-content">{{ line.text }}</span>
@@ -206,8 +1020,8 @@
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">닫기</button>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary px-4" @click="closeModalDirectly">닫기</button>
         </div>
       </div>
     </div>
@@ -217,7 +1031,6 @@
 <script src="/js/vue.js"></script>
 <script src="/js/jquery.min.3.4.1.js"></script>
 <script src="/js/bootstrap.bundle.min.js"></script>
-
 <script>
 $(document).ready(function(){
   $("#header").load("/bin/html/menu.html", function(){
@@ -228,8 +1041,9 @@ $(document).ready(function(){
 new Vue({
   el: "#app",
   data: {
-    searchForm: { date: '' }, // 초기값은 빈값, mounted에서 오늘날짜 할당
+    searchForm: { date: '' },
     tasks: [],
+    sortConfig: { key: null, order: null },
     selectedTask: null,
     fileList: [],
     selectedFile: null,
@@ -238,18 +1052,62 @@ new Vue({
     diffTotalCurrent: 0,
     diffTotalPrevious: 0,
     diffTarget: { fileName: '', verIndex: '', prevVerIndex: '' },
-    diffData: { current: [], previous: [] }
+    diffData: { current: [], previous: [] },
+    fileSortConfig: { key: null, order: null } // 3번째 섹션용 정렬 상태
   },
   mounted: function() {
-    // [추가] 오늘 날짜를 기본값으로 설정 (YYYY-MM-DD 형식)
     const today = new Date().toISOString().split('T')[0];
     this.searchForm.date = today;
   },
   methods: {
-    // [STEP 1] 작업의뢰 검색
+    // [공통 정렬 로직]
+    applySort: function(list, key, config) {
+      if (config.key === key) {
+        config.order = config.order === 'asc' ? 'desc' : 'asc';
+      } else {
+        config.key = key;
+        config.order = 'asc';
+      }
+      list.sort((a, b) => {
+        let valA = a[key];
+        let valB = b[key];
+        if (typeof valA === 'string') {
+            valA = valA.toLowerCase();
+            valB = valB.toLowerCase();
+        }
+        if (valA < valB) return config.order === 'asc' ? -1 : 1;
+        if (valA > valB) return config.order === 'asc' ? 1 : -1;
+        return 0;
+      });
+    },
+
+    // [STEP 2 정렬]
+    sortTasks: function(key) {
+      this.applySort(this.tasks, key, this.sortConfig);
+    },
+    getSortClass: function(key) {
+      if (this.sortConfig.key !== key) return '';
+      return this.sortConfig.order === 'asc' ? 'sort-asc' : 'sort-desc';
+    },
+    getSortIcon: function(key) {
+      if (this.sortConfig.key !== key) return 'fa-sort';
+      return this.sortConfig.order === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down';
+    },
+
+    // [STEP 3 정렬]
+    sortFile: function(key) {
+      this.applySort(this.fileList, key, this.fileSortConfig);
+    },
+    getSortClass: function(key) {
+      if (this.fileSortConfig.key !== key) return '';
+      return this.fileSortConfig.order === 'asc' ? 'sort-asc' : 'sort-desc';
+    },
+    getSortIcon: function(key) {
+      if (this.fileSortConfig.key !== key) return 'fa-sort';
+      return this.fileSortConfig.order === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down';
+    },
+
     searchTasks: function() {
-      console.log("Searching Tasks:", this.searchForm.date);
-      // [1] 서버 통신 코드 (주석을 풀고, 결과를 변수에 할당)
       fetch("/api/resource-management/search-tasks.json", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -258,55 +1116,56 @@ new Vue({
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          this.tasks = data.list; // 서버에서 가져온 실제 데이터로 교체!
+          this.tasks = data.list;
+          this.sortConfig = { key: null, order: null };
         } else {
           alert("조회 실패: " + data.message);
         }
       })
-      .catch(err => {
-        console.error("Error:", err);
-      });
+      .catch(err => console.error("Error:", err));
     },
-
-    // [STEP 2] 작업의뢰 클릭 시 상세 자원 목록 호출
     selectTask: function(task) {
       this.selectedTask = task;
       this.selectedFile = null;
       this.loadFileList();
     },
-
     loadFileList: function() {
       this.loadingFiles = true;
-      console.log("Loading Files for:", this.selectedTask.prj_mng_no+ "- "+this.selectedTask.sdlc_seq);
-
       fetch("/api/resource-management/search-files.json", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-               prj_mng_no: this.selectedTask.prj_mng_no, 
-               sdlc_seq: this.selectedTask.sdlc_seq 
-          })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-              this.fileList=data.list;
-              this.selectedTask.fileNameCount=this.fileList.length;
-          } else {
-            alert("자원조회 목록 실패: " + data.message);
-          }
-        })
-        .catch(err => {
-            console.error("Error:", err);
-            this.loadingFiles = true;
-            }
-        );
-
+       method: "POST",
+       headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({
+        prj_mng_no: this.selectedTask.prj_mng_no,
+        sdlc_seq: this.selectedTask.sdlc_seq
+       })
+     })
+     .then(res => res.json())
+     .then(data => {
+       if (data.success) {
+        this.fileList = data.list;
+        this.selectedTask.fileNameCount = this.fileList.length;
+       } else {
+         alert("자원조회 목록 실패: " + data.message);
+       }
+       this.loadingFiles = false;
+     })
+     .catch(err => {
+       console.error("Error:", err);
+       this.loadingFiles = false;
+     });
     },
-
-    // [우클릭 핸들러]
     onContextMenuTask: function(e) { this.menuMode = 'TASK'; this.showContextMenu(e); },
-    onContextMenuFile: function(e) { this.menuMode = 'FILE'; this.showContextMenu(e); },
+    onContextMenuFile: function(e) {
+       if (!this.selectedFile) return;
+       const allowedExt = ['java','xml','jsp','js','css','html','properties','sql','txt','json','yml','yaml','sh','bat','md'];
+       const ext = this.selectedFile.fileName.split('.').pop().toLowerCase();
+       if (!allowedExt.includes(ext)) {
+         alert("이 파일 형식(." + ext + ")은 비교를 지원하지 않습니다.");
+         return;
+       }
+       this.menuMode = 'FILE';
+       this.showContextMenu(e);
+     },
     showContextMenu: function(e) {
       const menu = this.$refs.contextMenu;
       menu.style.display = 'block';
@@ -314,83 +1173,120 @@ new Vue({
       menu.style.top = e.pageY + 'px';
     },
 
- // [STEP 3] 파일 버전 비교 (handleDiff 함수 내부 수정)
-    handleDiff: function() {
-       this.hideContextMenu();
-       if (!this.selectedFile) return;
-       const target = this.selectedFile;
-       this.diffTarget.fileName = target.fileName;
-       this.diffTarget.verIndex = target.verIndex;
-       this.diffTarget.prevVerIndex = (parseInt(target.verIndex) - 1).toString();
-
-       // --- [수정된 부분] Bootstrap 4 전용 방식 ---
-       // jQuery가 덮어씌워졌을 경우를 대비하여, 
-       // 전역 변수인 bootstrap 객체를 통해 직접 모달을 제어합니다.
-       try {
-         var modalElement = document.getElementById('diffModal');
-         // Bootstrap 4는 jQuery 플러그인 방식이 기본이지만, 
-         // 만약 jQuery 충돌로 .modal()이 안 된다면 아래와 같이 직접 호출합니다.
-         if (typeof jQuery.fn.modal === 'function') {
-             // 정상적인 경우 (jQuery 플러그인 사용)
-             $(modalElement).modal('show');
-         } else {
-             // jQuery 플러그인이 깨진 경우 (Bootstrap 4의 기본 객체 사용 시도)
-             // Bootstrap 4는 전역 bootstrap 객체를 제공합니다.
-             new bootstrap.Modal(modalElement).show();
-         }
-       } catch (e) {
-         // 위 방법들이 모두 실패할 경우를 대비한 최후의 수단 (직접 호출)
-         // 만약 위 코드에서도 에러가 난다면, 결국 bootstrap.bundle.min.js를 
-         // menu.html 로드 직후에 다시 로드하는 방법뿐입니다.
-         console.error("Bootstrap 호출 실패:", e);
-         // fallback: 일단 jQuery로 다시 시도
-         $(modalElement).modal('show');
-       }
-       // ------------------------------------------
-
-       fetch("/api/resource-management/compare-diff-range.json", {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({
-           dirInfo: target.dirInfo,
-           fileName: target.fileName,
-           currVer: this.diffTarget.verIndex,
-           prevVer: this.diffTarget.prevVerIndex,
-           startLine: 0,
-           endLine: 200
-         })
-       })
-       .then(res => res.json())
-       .then(data => {
-       if (data.success) {
-           this.diffTotalCurrent = data.totalCurrentLines;
-           this.diffTotalPrevious = data.totalPreviousLines;
-
-           const LINE_HEIGHT = 22; // .diff-line 의 height: 22px 와 일치해야 함
-
-           // 데이터를 한 번만 매핑하여 처리합니다.
-           this.diffData.current = data.currentLines.map(line => ({
-               ...line,
-               top: line.absoluteIndex * LINE_HEIGHT
-           }));
-
-           this.diffData.previous = data.previousLines.map(line => ({
-               ...line,
-               top: line.absoluteIndex * LINE_HEIGHT
-           }));
-       } else {
-           alert("비교 실패: " + data.message);
-       }
-   })
-
-       .catch(err => console.error("Error:", err));
+    // [핵심] 모달 직접 닫기 (Bootstrap 충돌 방지)
+    closeModalDirectly: function() {
+      const modalEl = document.getElementById('diffModal');
+      modalEl.style.display = 'none';
+      modalEl.classList.remove('show');
+      document.body.classList.remove('modal-open');
     },
 
+    handleDiff: function() {
+      this.hideContextMenu();
+      if (!this.selectedFile) return;
+
+      const target = this.selectedFile;
+      this.diffTarget.fileName = target.fileName;
+      this.diffTarget.verIndex = target.verIndex;
+      this.diffTarget.prevVerIndex = (parseInt(target.verIndex) - 1).toString();
+
+      const modalEl = document.getElementById('diffModal');
+      const modalDialogEl = modalEl.querySelector('.modal-dialog');
+
+      modalEl.style.display = 'block';
+      modalEl.classList.add('show');
+      document.body.classList.add('modal-open');
+      modalEl.removeAttribute('aria-hidden');
+
+      this.initAbsoluteResize(modalDialogEl);
+
+      fetch("/api/resource-management/compare-diff-range.json", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dirInfo: target.dirInfo,
+          fileName: target.fileName,
+          currVer: this.diffTarget.verIndex,
+          prevVer: this.diffTarget.prevVerIndex,
+          startLine: 0,
+          endLine: 200
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const LINE_HEIGHT = 22;
+          this.diffData.current = data.currentLines.map(line => ({
+              ...line,
+              top: line.absoluteIndex * LINE_HEIGHT
+          }));
+          this.diffData.previous = data.previousLines.map(line => ({
+              ...line,
+              top: line.absoluteIndex * LINE_HEIGHT
+          }));
+        } else {
+          alert("비교 실패: " + data.message);
+        }
+      })
+      .catch(err => console.error("Error:", err));
+    },
+
+    initAbsoluteResize: function(el) {
+      const oldHandle = el.querySelector('.custom-resize-handle');
+      if (oldHandle) oldHandle.remove();
+
+      const handle = document.createElement('div');
+      handle.className = 'custom-resize-handle';
+      Object.assign(handle.style, {
+        width: '30px',
+        height: '30px',
+        position: 'absolute',
+        right: '0',
+        bottom: '0',
+        cursor: 'nwse-resize',
+        backgroundColor: '#007bff',
+        clipPath: 'polygon(100% 0, 100% 100%, 0 100%)',
+        zIndex: '10000',
+        pointerEvents: 'auto'
+      });
+
+      el.style.position = 'relative';
+      el.appendChild(handle);
+
+      handle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startWidth = el.offsetWidth;
+        const startHeight = el.offsetHeight;
+
+        const onMouseMove = (moveEvent) => {
+          const newWidth = startWidth + (moveEvent.clientX - startX);
+          const newHeight = startHeight + (moveEvent.clientY - startY);
+
+          if (newWidth > 500) el.style.width = newWidth + 'px';
+          if (newHeight > 400) {
+            el.style.height = newHeight + 'px';
+            const container = el.querySelector('.diff-container');
+            if (container) {
+                container.style.height = (newHeight - 140) + 'px';
+            }
+          }
+        };
+
+        const onMouseUp = () => {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      }, true);
+    },
     hideContextMenu: function() { this.$refs.contextMenu.style.display = 'none'; }
   }
 });
 </script>
 </body>
 </html>
-지금 버전인데 모달 사이즈가 바뀌지 않아 
-변경이 필요한 부분도 점검해줘
