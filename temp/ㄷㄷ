@@ -1,736 +1,284 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<title>기간계 자원정리 관리</title>
-<link href="../css/bootstrap.min.css" rel="stylesheet">
-<link href="../css/jquery-ui.min.css" rel="stylesheet">
-<link href="../css/custom.css" rel="stylesheet">
-<style>
-  /* shadcn/ui 기반 리디자인 스타일 가이드 적용 */
-  :root {
-    --background: #fafafa;
-    --card: #ffffff;
-    --card-border: #e4e4e7;
-    --card-border-dark: #d4d4d8;
-    --text-main: #18181b;
-    --text-muted: #71717a;
-    --text-faint: #a1a1aa;
-    --primary: #18181b;
-    --primary-hover: #27272a;
-    --danger: #dc2626;
-    --success: #16a34a;
-    --warning: #f59e0b;
-    --warning-bg: #fffbeb;
-    --warning-border: #fde68a;
-    --radius-lg: 10px;
-    --radius-md: 6px;
-    --radius-pill: 999px;
-    --shadow: 0 1px 2px rgba(0,0,0,0.03);
-  }
+package hi.framework.deploymanager.server.controller;
 
-  body {
-    background-color: var(--background);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", Roboto, sans-serif;
-    color: var(--text-main);
-    margin: 0;
-  }
+import java.util.HashMap;
+import java.util.Map;
 
-  /* 본문 컨테이너: 입력 위주 화면이므로 860px 제한 */
-  #app { 
-    max-width: 860px; 
-    margin: 0 auto; 
-    padding: 40px 24px 80px; 
-  }
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-  /* Header 영역 (메뉴바 include 부분은 건드리지 않음) */
-  .main-header { margin-bottom: 32px; }
-  .eyebrow { font-size: 12px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; margin-bottom: 4px; }
-  .main-header h4 { font-size: 1.4rem; font-weight: 600; color: var(--text-main); margin: 0; }
-  .main-header .desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+import hi.framework.deploymanager.server.service.CleanupResourceService;
 
-  /* Card & Section Style */
-  .section-card {
-    background: var(--card);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-lg);
-    margin-bottom: 32px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
-  }
-  .section-disabled { opacity: 0.5; pointer-events: none; }
+@RestController
+@RequestMapping("/api/resource-cleanup")
+public class CleanupResourceServiceController {
+    private Logger logger = LogManager.getLogger(this.getClass().getName());
 
-  .section-head {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--card-border);
-    display: flex;
-    align-items: center;
-  }
-  .badge-step {
-    background: var(--text-main);
-    color: #fff;
-    width: 22px;
-    height: 22px;
-    border-radius: 4px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    margin-right: 10px;
-  }
-  .section-title { font-weight: 600; font-size: 15px; color: var(--text-main); }
-  .section-hint { margin-left: auto; font-size: 13px; color: var(--text-muted); }
+private final CleanupResourceService cleanupResourceService;
 
-  .section-body { padding: 20px; }
-
-  /* Environment Toggle */
-  .env-btn-group { display: flex; gap: 8px; }
-  .env-btn {
-    padding: 6px 16px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--card-border);
-    background: #fff;
-    color: var(--text-main);
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
-  }
-  .env-btn:hover { background-color: #f4f4f5; }
-  .env-btn-active-qa { background-color: var(--primary) !important; color: white !important; border-color: var(--primary); }
-  .env-btn-active-prod { background-color: var(--danger) !important; color: white !important; border-color: var(--danger); }
-
-  /* Sticky Env Badge */
-  .env-sticky-badge {
-    position: fixed;
-    top: 20px;
-    right: 24px;
-    z-index: 1000;
-    padding: 6px 14px;
-    border-radius: var(--radius-pill);
-    font-weight: 600;
-    font-size: 12px;
-    box-shadow: var(--shadow);
-  }
-  .env-sticky-qa { background: var(--primary); color: #fff; }
-  .env-sticky-prod { background: var(--danger); color: #fff; animation: env-pulse 1.5s infinite; }
-  @keyframes env-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-
-  /* Form & Input */
-  .form-control {
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-md);
-    font-size: 14px;
-    transition: border-color 0.2s;
-  }
-  .form-control:focus { border-color: var(--text-main); outline: none; box-shadow: 0 0 0 2px rgba(0,0,0,0.05); }
-  .mono { font-family: 'Cascadia Code', 'Consolas', monospace; }
-
-  /* Table */
-  .table-container {
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-md);
-    overflow: auto;
-  }
-  .table { margin-bottom: 0; font-size: 14px; }
-  .table thead th {
-    position: sticky; top: 0; background: #f8f9fa;
-    color: var(--text-muted); font-weight: 600;
-    border-bottom: 1px solid var(--card-border);
-    padding: 12px 8px; font-size: 13px; text-align: center;
-  }
-  .table tbody td { padding: 10px 12px; border-bottom: 1px solid #f4f4f5; color: var(--text-main); }
-  .table tbody tr:hover { background-color: #f8f9fa; }
-
-  /* Tabs */
-  .tab-btn {
-    border-radius: var(--radius-pill);
-    padding: 4px 14px;
-    font-size: 13px;
-    font-weight: 500;
-    margin-right: 6px;
-    margin-bottom: 8px;
-    border: 1px solid var(--card-border);
-    background: #fff;
-    color: var(--text-muted);
-    transition: all 0.2s;
-  }
-  .tab-btn.active { background-color: var(--text-main); color: #fff; border-color: var(--text-main); }
-  .tab-btn.warn { border-color: var(--warning); color: var(--warning); }
-
-  /* Export/Path Items */
-  .export-item {
-    background: #f8f9fa;
-    padding: 10px 14px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--card-border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-  .path-edit-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border-bottom: 1px solid #f4f4f5;
-  }
-  .path-edit-input {
-    border: 1px solid transparent;
-    background: transparent;
-    font-size: 13px;
-    padding: 4px 8px;
-    width: 100%;
-  }
-  .path-edit-input:focus { border-color: var(--card-border); background: #fff; }
-
-  /* Log Viewers */
-  .log-container {
-    border-radius: var(--radius-md);
-    font-size: 13px;
-    line-height: 1.5;
-    border: 1px solid var(--card-border);
-    padding: 12px;
-  }
-  .log-agent { background-color: #18181b; color: #e4e4e7; }
-  .log-full { background-color: #fffbeb; color: #451a03; }
-
-  /* Action Buttons */
-  .btn { border-radius: var(--radius-md); font-weight: 500; transition: all 0.2s; }
-  .btn-primary { background-color: var(--primary); color: #fff; border: none; }
-  .btn-primary:hover { background-color: var(--primary-hover); color: #fff; }
-  .btn-outline-secondary { color: var(--text-muted); border-color: var(--card-border); }
-  .btn-outline-secondary:hover { background-color: #f4f4f5; color: var(--text-main); }
-  .btn-success { background-color: var(--success); color: #fff; border: none; }
-  .btn-warning { background-color: var(--warning); color: #fff; border: none; }
-  .btn-link { text-decoration: none; }
-
-  /* Empty/Loading State */
-  .empty-state { padding: 40px; text-align: center; color: var(--text-muted); font-size: 13px; }
-
-  .btn-group-custom { display: flex; gap: 8px; flex-wrap: wrap; }
-  .text-primary { color: #2563eb !important; }
-</style>
-</head>
-<body>
-<header id="header"></header>
-<div id="app">
-  <!-- 환경 경고 배지 -->
-  <div class="env-sticky-badge" v-bind:class="env === 'PROD' ? 'env-sticky-prod' : 'env-sticky-qa'">
-    {{ env === 'PROD' ? '● 운영 환경 (PROD)' : '● 개발/검증 환경 (QA)' }}
-  </div>
-
-  <!-- 메인 타이틀 블록 -->
-  <div class="main-header">
-    <div class="eyebrow">System Administration</div>
-    <h4 class="mb-1">기간계 서버 자원정리 관리</h4>
-    <p class="desc">삭제 대상 자원을 분류하여 배포 서버로 전송 및 정리합니다.</p>
-  </div>
-
-  <!-- 환경 선택 섹션 -->
-  <div class="section-card">
-    <div class="section-body">
-      <label class="font-weight-bold mb-2 d-block" style="font-size:14px; color:var(--text-muted);">대상 서버 환경</label>
-      <div class="env-btn-group">
-        <button type="button" class="env-btn" v-bind:class="{ 'env-btn-active-qa': env === 'QA' }" v-on:click="env = 'QA'">개발/검증 환경</button>
-        <button type="button" class="env-btn" v-bind:class="{ 'env-btn-active-prod': env === 'PROD' }" v-on:click="env = 'PROD'">운영 환경</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 1: 입력 -->
-  <div class="section-card">
-    <div class="section-head">
-      <span class="badge-step">01</span>
-      <span class="section-title">삭제 자원 데이터 입력</span>
-      <span class="section-hint">파일명 [탭/공백] 경로</span>
-    </div>
-    <div class="section-body">
-      <p class="text-muted mb-2" style="font-size:12px;">엑셀에서 복사한 "파일명 [탭/공백] 경로"를 아래에 붙여넣으세요.</p>
-      <textarea class="form-control mono" rows="7" v-model="pasteText" placeholder="예: LT0001002.class  \LT\source\ONLINE\LT\src\hi\dbio\cdo\lt\lt0001002\"></textarea>
-      <div class="mt-3">
-        <button type="button" class="btn btn-primary btn-sm px-3" v-on:click="handleImport">테이블로 가져오기</button>
-        <button type="button" class="btn btn-outline-secondary btn-sm px-3" v-on:click="handleSample">샘플 데이터 채우기</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 2: 편집 -->
-  <div class="section-card" v-bind:class="{ 'section-disabled': !imported }">
-    <div class="section-head">
-      <span class="badge-step">02</span>
-      <span class="section-title">데이터 검증 및 편집</span>
-      <span class="section-hint">{{ tableRows.length }} 건 추출됨</span>
-    </div>
-    <div class="section-body">
-      <div class="table-container" style="max-height:300px;">
-        <table class="table table-hover mb-0" v-if="tableRows.length > 0">
-          <thead class="mono">
-            <tr style="font-size:13px;">
-              <th style="width:30%;">파일명</th>
-              <th>대상 경로</th>
-              <th style="width:50px;">삭제</th>
-            </tr>
-          </thead>
-          <tbody class="mono">
-            <tr v-for="(row, index) in tableRows" :key="index">
-              <td><input type="text" class="form-control form-control-sm border-0 bg-transparent" v-model="row.fileName"></td>
-              <td><input type="text" class="form-control form-control-sm border-0 bg-transparent" v-model="row.dirInfo"></td>
-              <td class="text-center">
-                <button type="button" class="btn btn-link text-danger p-0" v-on:click="deleteRow(index)">✕</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="empty-state" v-else>데이터를 가져오면 목록이 표시됩니다.</div>
-      </div>
-      <div class="mt-3 d-flex justify-content-between">
-        <button type="button" class="btn btn-outline-secondary btn-sm px-3" v-on:click="addRow">행 추가</button>
-        <button type="button" class="btn btn-primary btn-sm px-4" v-on:click="handleConvert">분류 및 변환 실행</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 3: 결과 -->
-  <div class="section-card" v-bind:class="{ 'section-disabled': !classifyResult }">
-    <div class="section-head">
-      <span class="badge-step">03</span>
-      <span class="section-title">타입별 분류 결과</span>
-    </div>
-    <div class="section-body">
-      <div class="mb-3">
-        <button type="button" class="tab-btn"
-          v-for="key in order" :key="key"
-          :class="{ 'active': activeTab === key, 'warn': key === 'unknown' && classifyResult && classifyResult.unknown.length > 0 }"
-          v-on:click="activeTab = key">
-          {{ labels[key] }} <small class="ml-1" style="opacity:0.7;">({{ classifyResult ? classifyResult[key].length : 0 }})</small>
-        </button>
-      </div>
-      <div class="table-container" style="max-height:300px; background:#fff;">
-        <template v-if="classifyResult && classifyResult[activeTab].length > 0">
-          <div class="path-edit-row" v-for="(p, i) in classifyResult[activeTab]" :key="activeTab + '-' + i">
-            <input type="text" class="form-control form-control-sm mono path-edit-input" v-model="classifyResult[activeTab][i]">
-            <button type="button" class="btn btn-link text-danger p-0" v-on:click="deletePathRow(i)">✕</button>
-          </div>
-        </template>
-        <div class="empty-state" v-else>해당 없음</div>
-      </div>
-      <div class="mt-3">
-        <button type="button" class="btn btn-outline-secondary btn-sm" v-on:click="addPathRow">행 추가</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 4: 실행 -->
-  <div class="section-card" v-bind:class="{ 'section-disabled': !classifyResult }">
-    <div class="section-head">
-      <span class="badge-step">04</span>
-      <span class="section-title">배포 서버 전송 및 실행</span>
-      <span class="section-hint">TASK_ID_online.txt 형식</span>
-    </div>
-    <div class="section-body">
-      <div class="row mb-3 align-items-center">
-        <div class="col-auto"><label class="font-weight-bold mb-0" style="font-size:14px;">신청서 번호</label></div>
-        <div class="col-auto">
-          <input type="text" class="form-control form-control-sm mono" style="width:220px;" v-model="taskId" placeholder="예: F20260724-0031">
-        </div>
-      </div>
-      <div class="row no-gutters mb-4" style="gap:12px;">
-        <div class="export-item" style="flex:1 1 160px;" v-for="key in order.filter(k => k !== 'unknown')" :key="key">
-          <span><b style="font-size:13px;">{{ labels[key] }}</b> <small class="text-muted ml-1">{{ classifyResult ? classifyResult[key].length : 0 }}</small></span>
-          <button type="button" class="btn btn-sm btn-outline-primary py-0" :disabled="!classifyResult || classifyResult[key].length === 0" @click="downloadType(key)">다운로드</button>
-        </div>
-      </div>
-      <hr class="my-4" style="border-top: 1px dashed var(--card-border);">
-      <div class="btn-group-custom">
-        <button type="button" class="btn btn-success btn-sm px-3" :disabled="uploading" @click="handleUpload">
-          {{ uploading ? '업로드 중...' : (env === 'PROD' ? '[운영] 배포서버 업로드' : '[개발/검증] 배포서버 업로드') }}
-        </button>
-        <button type="button" class="btn btn-warning btn-sm px-3" :disabled="!executeEnabled || executing" @click="handleExecute">
-          {{ executing ? '실행 중...' : (env === 'PROD' ? '[운영] Cleanup 실행' : '[개발/검증] Cleanup 실행') }}
-        </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm px-3" :disabled="!executed || fetchingLog" @click="handleFetchLog">로그 조회</button>
-        <button type="button" class="btn btn-outline-secondary btn-sm px-3" :disabled="!fullLog" @click="downloadFullLog">로그 다운로드</button>
-      </div>
-      <div class="mt-3" v-if="agentStatus.text" :class="agentStatus.isError ? 'alert alert-danger py-2' : 'alert alert-info py-2'" style="font-size:13px; border-radius:6px;">
-        {{ agentStatus.text }}
-      </div>
-      <div v-if="agentLog" class="mt-3">
-        <small class="text-muted mb-1 d-block">실행 결과 로그 (Agent Output)</small>
-        <pre class="mono log-container log-agent p-3" style="max-height:260px; overflow-y:auto; white-space:pre-wrap;">{{ agentLog }}</pre>
-      </div>
-      <div v-if="fullLog" class="mt-3">
-        <small class="text-muted mb-1 d-block">전체 로그 파일 내용 (Full Log)</small>
-        <pre class="mono log-container log-full p-3" style="max-height:400px; overflow-y:auto; white-space:pre-wrap;">{{ fullLog }}</pre>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SCRIPTS (기존 로직 100% 유지) -->
-<script type="text/javascript" src="/js/vue.js"></script>
-<script type="text/javascript" src="/js/axios.js"></script>
-<script type="text/javascript" src="/js/moment.js"></script>
-<script type="text/javascript" src="/js/jquery.min.3.4.1.js"></script>
-<script>
-/* ===================== 로직 (기존과 동일) ===================== */
-$(document).ready(function(){
-  $("#header").load("/bin/html/menu.html", function(){
-    $("#menuName").html("기간계 자원정리 신청서 분할 도구");
-  });
-});
-var TARGETS_BY_ENV = {
-  QA: { cowas: "/Appl/Online", batch: "/Appl/Batch", coweb: "/NFS/QA/QCOWEB", dpweb: "/NFS/QA/QDPWEB" },
-  PROD: { cowas: "/Appl/Online", batch: "/Appl/Batch", coweb: "/Appl/OnlineWeb", dpweb: "/Appl/OnlineWeb" },
-};
-var STAGING_BY_ENV = {
-  QA: { javaOnline: "/NFS/IDES/PMS/CIS/STAGING/JAVA/ONLINE", javaOnlineSource: "/NFS/IDES/PMS/CIS/STAGING/JAVA/ONLINE_SOURCE", batch: "/NFS/IDES/PMS/CIS/STAGING/JAVA/BATCH", batchSource: "/NFS/IDES/PMS/CIS/STAGING/JAVA/BATCH_SOURCE", web: "/NFS/IDES/PMS/CIS/STAGING/WEB" },
-  PROD: { javaOnline: "/DEPLOY/IDES/PMS/CIS/STAGING/JAVA/ONLINE", javaOnlineSource: "/DEPLOY/IDES/PMS/CIS/STAGING/JAVA/ONLINE_SOURCE", batch: "/DEPLOY/IDES/PMS/CIS/STAGING/JAVA/BATCH", batchSource: "/DEPLOY/IDES/PMS/CIS/STAGING/JAVA/BATCH_SOURCE", web: "/DEPLOY/IDES/PMS/CIS/STAGING/WEB" },
-};
-function extractAfter(original, keyword) {
-  var lower = original.toLowerCase();
-  var marker = "/" + keyword + "/";
-  var pos = lower.indexOf(marker);
-  if (pos === -1) return "";
-  var rel = original.substring(pos + marker.length);
-  rel = rel.replace(/[ \t\/]+$/, "");
-  return rel;
+public CleanupResourceServiceController(CleanupResourceService cleanupResourceService) {
+    this.cleanupResourceService = cleanupResourceService;
 }
-function containsCi(str, keyword
-<!-- SCRIPTS (기존 로직 100% 유지) -->
-<script type="text/javascript" src="/js/vue.js"></script>
-<script type="text/javascript" src="/js/axios.js"></script>
-<script type="text/javascript" src="/js/moment.js"></script>
-<script type="text/javascript" src="/js/jquery.min.3.4.1.js"></script>
-<script>
-/* ===================== 로직 (기존과 동일) ===================== */
-$(document).ready(function(){
-  $("#header").load("/bin/html/menu.html", function(){
-    $("#menuName").html("기간계 자원정리 신청서 분할 도구");
-  });
-});
-var TARGETS_BY_ENV = {
-  QA: { cowas: "/Appl/Online", batch: "/Appl/Batch", coweb: "/NFS/QA/QCOWEB", dpweb: "/NFS/QA/QDPWEB" },
-  PROD: { cowas: "/Appl/Online", batch: "/Appl/Batch", coweb: "/Appl/OnlineWeb", dpweb: "/Appl/OnlineWeb" },
-};
-var STAGING_BY_ENV = {
-  QA: { javaOnline: "/NFS/IDES/PMS/CIS/STAGING/JAVA/ONLINE", javaOnlineSource: "/NFS/IDES/PMS/CIS/STAGING/JAVA/ONLINE_SOURCE", batch: "/NFS/IDES/PMS/CIS/STAGING/JAVA/BATCH", batchSource: "/NFS/IDES/PMS/CIS/STAGING/JAVA/BATCH_SOURCE", web: "/NFS/IDES/PMS/CIS/STAGING/WEB" },
-  PROD: { javaOnline: "/DEPLOY/IDES/PMS/CIS/STAGING/JAVA/ONLINE", javaOnlineSource: "/DEPLOY/IDES/PMS/CIS/STAGING/JAVA/ONLINE_SOURCE", batch: "/DEPLOY/IDES/PMS/CIS/STAGING/JAVA/BATCH", batchSource: "/DEPLOY/IDES/PMS/CIS/STAGING/JAVA/BATCH_SOURCE", web: "/DEPLOY/IDES/PMS/CIS/STAGING/WEB" },
-};
-function extractAfter(original, keyword) {
-  var lower = original.toLowerCase();
-  var marker = "/" + keyword + "/";
-  var pos = lower.indexOf(marker);
-  if (pos === -1) return "";
-  var rel = original.substring(pos + marker.length);
-  rel = rel.replace(/[ \t\/]+$/, "");
-  return rel;
+
+@PostMapping("/upload.json")
+public ResponseEntity<Map<String, Object>> upload(@RequestBody UploadRequest request) {
+    logger.info("[Upload Request] env: {}, taskId: {}, fileCount: {}", 
+            request.getEnv(), request.getTaskId(), request.getFiles() != null ? request.getFiles().size() : 0);
+    Map<String, Object> body = new HashMap<>();
+    try {
+        cleanupResourceService.validateTaskId(request.getTaskId());
+        cleanupResourceService.validateEnv(request.getEnv());
+
+        Map<String, String> uploaded = cleanupResourceService.uploadTaskFiles(request.getEnv(), request.getTaskId(), request.getFiles());
+
+        logger.info("[Upload Success] env: {}, taskId: {}, uploadedFiles: {}", request.getEnv(), request.getTaskId(), uploaded);
+        body.put("success", true);
+        body.put("uploadedFiles", uploaded);
+        return ResponseEntity.ok(body);
+    } catch (IllegalArgumentException badRequest) {
+        logger.warn("[Upload Validation Failed] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), badRequest.getMessage());
+        body.put("success", false);
+        body.put("message", badRequest.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    } catch (Exception e) {
+        logger.error("[Upload Error] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), e.getMessage(), e);
+        body.put("success", false);
+        body.put("message", "업로드 실패: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
 }
-function containsCi(str, keyword) { return str.toLowerCase().indexOf(keyword.toLowerCase()) !== -1; }
-function basenameOf(p) { var parts = p.split("/"); return parts[parts.length - 1]; }
-function parseToRows(rawText) {
-  var rows = [];
-  var lines = rawText.split(/\r\n|\n|\r/);
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i].replace(/\r/g, "");
-    if (line.trim() === "" || line.trim().indexOf("#") === 0) continue;
-    var m = line.match(/^(\S+)[ \t]+(.*)$/);
-    if (!m) continue;
-    var fileName = m[1];
-    var dirInfo = m[2].replace(/[ \t]+$/, "");
-    if (!fileName || !dirInfo) continue;
-    rows.push({ fileName: fileName, dirInfo: dirInfo });
-  }
-  return rows;
+
+@PostMapping("/execute.json")
+public ResponseEntity<Map<String, Object>> execute(@RequestBody ExecuteRequest request) {
+    logger.info("[Execute Request-Async] env: {}, taskId: {}", request.getEnv(), request.getTaskId());
+    Map<String, Object> body = new HashMap<>();
+    try {
+        cleanupResourceService.validateTaskId(request.getTaskId());
+        cleanupResourceService.validateEnv(request.getEnv());
+
+        cleanupResourceService.startExecuteAsync(request.getEnv(), request.getTaskId());
+
+        body.put("success", true);
+        body.put("status", "RUNNING");
+        return ResponseEntity.ok(body);
+    } catch (IllegalStateException alreadyRunning) {
+        // 이미 실행 중인 경우 (중복 클릭 등)
+        logger.warn("[Execute Already Running] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), alreadyRunning.getMessage());
+        body.put("success", false);
+        body.put("message", alreadyRunning.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    } catch (IllegalArgumentException badRequest) {
+        logger.warn("[Execute Validation Failed] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), badRequest.getMessage());
+        body.put("success", false);
+        body.put("message", badRequest.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    } catch (Exception e) {
+        logger.error("[Execute Error] env: {}, taskId: {}, message: {}", request.getEnv(), request.getTaskId(), e.getMessage(), e);
+        body.put("success", false);
+        body.put("message", "실행 시작 실패: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
 }
-function classifyRows(rows, env) {
-  var TARGETS = TARGETS_BY_ENV[env] || TARGETS_BY_ENV.QA;
-  var STAGING = STAGING_BY_ENV[env] || STAGING_BY_ENV.QA;
-  var result = { online: [], batch: [], coweb: [], dpweb: [], local: [], unknown: [] };
-  for (var idx = 0; idx < rows.length; idx++) {
-    var row = rows[idx];
-    var fileName = (row.fileName || "").trim();
-    var dirInfo = (row.dirInfo || "").trim();
-    if (!fileName || !dirInfo) { result.unknown.push(fileName + "\t" + dirInfo); continue; }
-    var dirPath = dirInfo.replace(/\\/g, "/");
-    var baseFile = basenameOf(fileName);
-    var lowerFile = baseFile.toLowerCase();
-    var matched = false;
-    if (lowerFile.slice(-5) === ".java" || lowerFile.slice(-6) === ".class") {
-      var isJavaSrc = lowerFile.slice(-5) === ".java";
-      var className = baseFile.replace(/\.[^.]+$/, ".class");
-      if (containsCi(dirPath, "/online/") && containsCi(dirPath, "/src/")) {
-        matched = true;
-        var rel1 = extractAfter(dirPath, "src");
-        result.online.push(TARGETS.cowas + "/EAR/WEB/WEB-INF/classes/" + rel1 + "/" + className);
-        if (env === 'QA') {
-          result.online.push(TARGETS.cowas + "/EAR/WEB2/WEB-INF/classes/" + rel1 + "/" + className);
+
+@GetMapping("/execute-status.json")
+public ResponseEntity<Map<String, Object>> executeStatus(@RequestParam("env") String env, @RequestParam("taskId") String taskId) {
+    Map<String, Object> body = new HashMap<>();
+    try {
+        cleanupResourceService.validateTaskId(taskId);
+        cleanupResourceService.validateEnv(env);
+
+        CleanupResourceService.TaskExecution exec = cleanupResourceService.getExecutionStatus(env, taskId);
+
+        body.put("success", true);
+        body.put("status", exec.getStatus()); // RUNNING / SUCCESS / FAILED
+        if (!exec.isRunning()) {
+            body.put("exitCode", exec.getExitCode());
+            body.put("output", exec.getOutput() != null ? exec.getOutput() : exec.getErrorMessage());
         }
-        result.batch.push(TARGETS.batch + "/classes/" + rel1 + "/" + className);
-        result.local.push(STAGING.javaOnline + "/WEB/WEB-INF/classes/" + rel1 + "/" + className);
-        if (isJavaSrc) result.local.push(STAGING.javaOnlineSource + "/" + rel1 + "/" + baseFile);
-      } else if (containsCi(dirPath, "/batch/") && containsCi(dirPath, "/src/")) {
-        matched = true;
-        var rel2 = extractAfter(dirPath, "src");
-        result.batch.push(TARGETS.batch + "/classes/" + rel2 + "/" + className);
-        result.local.push(STAGING.batch + "/classes/" + rel2 + "/" + className);
-        if (isJavaSrc) result.local.push(STAGING.batchSource + "/" + rel2 + "/" + baseFile);
-      }
-    } else if (lowerFile.slice(-4) === ".xml") {
-      if (containsCi(dirPath, "/batch/") && containsCi(dirPath, "/config/")) {
-        matched = true;
-        var rel3 = extractAfter(dirPath, "config");
-        result.batch.push(TARGETS.batch + "/config/" + rel3 + "/" + baseFile);
-        result.local.push(STAGING.batch + "/config/" + rel3 + "/" + baseFile);
-      }
+        return ResponseEntity.ok(body);
+    } catch (IllegalStateException notFound) {
+        body.put("success", false);
+        body.put("message", notFound.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    } catch (IllegalArgumentException badRequest) {
+        body.put("success", false);
+        body.put("message", badRequest.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    } catch (Exception e) {
+        logger.error("[Execute Status Error] env: {}, taskId: {}, message: {}", env, taskId, e.getMessage(), e);
+        body.put("success", false);
+        body.put("message", "상태 조회 실패: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
-    if (!matched && containsCi(dirPath, "/web/")) {
-      matched = true;
-      var webRel = extractAfter(dirPath, "web");
-      if (containsCi(dirPath, "/distribution/")) {
-        result.dpweb.push(TARGETS.dpweb + "/" + webRel + "/" + baseFile);
-        result.local.push(STAGING.web + "/DPWEB/" + webRel + "/" + baseFile);
-      } else {
-        var cowebRel = "";
-        var slashIdx = webRel.indexOf("/");
-        if (slashIdx !== -1) cowebRel = webRel.substring(slashIdx + 1);
-        result.coweb.push(TARGETS.coweb + "/" + cowebRel + "/" + baseFile);
-        result.local.push(STAGING.web + "/COWEB/" + cowebRel + "/" + baseFile);
-      }
-    }
-    if (!matched && containsCi(dirPath, "/batch/")) {
-      matched = true;
-      var rel4 = extractAfter(dirPath, "batch");
-      result.batch.push(TARGETS.batch + "/" + rel4 + "/" + baseFile);
-    }
-    if (!matched) result.unknown.push(fileName + "\t" + dirInfo);
-  }
-  return result;
 }
-var TASK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
-new Vue({
-  el: "#app",
-  data: {
-    env: "QA",
-    pasteText: "",
-    tableRows: [],
-    imported: false,
-    classifyResult: null,
-    activeTab: "online",
-    order: ["online", "batch", "coweb", "dpweb", "local", "unknown"],
-    labels: { online: "ONLINE", batch: "BATCH", coweb: "COWEB", dpweb: "DPWEB", local: "LOCAL", unknown: "UNKNOWN" },
-    taskId: "",
-    uploading: false,
-    executing: false,
-    executeEnabled: false,
-    executed: false,
-    fetchingLog: false,
-    fullLog: "",
-    agentStatus: { text: "", isError: false },
-    agentLog: "",
-  },
-  watch: {
-    env: function () {
-      this.classifyResult = null;
-      this.executeEnabled = false;
-      this.executed = false;
-      this.fullLog = "";
-      this.agentStatus = { text: "", isError: false };
-      this.agentLog = "";
-    },
-  },
-  methods: {
-    handleImport: function () {
-      this.tableRows = parseToRows(this.pasteText);
-      this.imported = true;
-      this.classifyResult = null;
-      this.executeEnabled = false;
-      this.executed = false;
-      this.fullLog = "";
-      this.agentStatus = { text: "", isError: false };
-      this.agentLog = "";
-    },
-    handleSample: function () {
-      this.pasteText =
-        "LT0001002.java\t\\LT\\source\\ONLINE\\LT\\src\\hi\\dbio\\cdo\\lt\\lt0001002\\\n" +
-        "GIUQ0216S$1.class\t\\GI\\source\\ONLINE\\GI\\src\\hi\\generalinsurance\\underwriting\\get\\quotationPackage\\service\\\n" +
-        "LAYOUT_TF_ZZ_B2015_Header.xml\t\\TF\\source\\BATCH\\TF\\config\\layout\\tf\\z\\\n" +
-        "TFYB03200201BE.java\t\\TF\\source\\BATCH\\TF\\src\\hi\\taskforce\\batch\\bank\\TFYB0320\\step02\\\n" +
-        "hi_cis_portal.exe\t\\CIS_WEB\\source\\WEB\\distribution\\namo\\\n" +
-        "report_a_2.mrd\t\\LT\\source\\WEB\\LT\\report\\LT\\";
-    },
-    addRow: function () { this.tableRows.push({ fileName: "", dirInfo: "" }); },
-    deleteRow: function (index) { this.tableRows.splice(index, 1); },
-    handleConvert: function () {
-      this.classifyResult = classifyRows(this.tableRows, this.env);
-      var order = this.order, result = this.classifyResult;
-      var first = order.find(function (k) { return result[k].length > 0; });
-      this.activeTab = first || "online";
-      this.executeEnabled = false;
-      this.executed = false;
-      this.fullLog = "";
-      this.agentStatus = { text: "", isError: false };
-      this.agentLog = "";
-    },
-    downloadType: function (key) {
-      var tid = (this.taskId || "TASK_ID").trim();
-      var items = this.classifyResult[key];
-      var content = items.join("\n") + (items.length ? "\n" : "");
-      var filename = tid + "_" + key + ".txt";
-      var blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a");
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    },
-    handleUpload: function () {
-      var self = this;
-      var tid = (this.taskId || "").trim();
-      if (!tid) { this.agentStatus = { text: "TASK_ID를 먼저 입력하세요.", isError: true }; return; }
-      if (!TASK_ID_PATTERN.test(tid)) {
-        this.agentStatus = { text: "TASK_ID는 영문/숫자/-/_ 만 가능해요.", isError: true };
-        return;
-      }
-      var files = {};
-      this.order.filter(function (k) { return k !== "unknown"; }).forEach(function (k) {
-        if (self.classifyResult[k].length > 0) files[k] = self.classifyResult[k].join("\n") + "\n";
-      });
-      if (Object.keys(files).length === 0) {
-        this.agentStatus = { text: "업로드할 항목이 없어요 (변환 결과가 전부 비어있음).", isError: true };
-        return;
-      }
-      if (this.env === "PROD") {
-        var ok = window.confirm("운영(PROD) 서버로 업로드합니다. 계속하시겠습니까?");
-        if (!ok) return;
-      }
-      this.uploading = true;
-      this.agentStatus = { text: "업로드 중... (" + this.env + ")", isError: false };
-      fetch("/api/resource-cleanup/upload.json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ env: this.env, taskId: tid, files: files }),
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          if (data.success) {
-            self.agentStatus = { text: "업로드 완료 (" + Object.keys(data.uploadedFiles || {}).length + "개 파일)", isError: false };
-            self.agentLog = JSON.stringify(data.uploadedFiles, null, 2);
-            self.executeEnabled = true;
-          } else {
-            self.agentStatus = { text: "업로드 실패: " + (data.message || "알 수 없는 오류"), isError: true };
-          }
-        })
-        .catch(function (err) {
-          self.agentStatus = { text: "업로드 요청 실패: " + err.message, isError: true };
-        })
-        .finally(function () { self.uploading = false; });
-    },
-    handleExecute: function () {
-       var self = this;
-       var tid = (this.taskId || "").trim();
-       if (this.env === "PROD") {
-         var ok = window.confirm("운영(PROD) 서버에서 cleanup_cron.sh 를 실행합니다. 실제 자원이 이동/삭제됩니다. 계속하시겠습니까?");
-         if (!ok) return;
-       }
-       this.executing = true;
-       this.agentStatus = { text: "실행 시작 중... (" + this.env + ")", isError: false };
-       fetch("/api/resource-cleanup/execute.json", {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ env: this.env, taskId: tid }),
-       })
-         .then(function (res) { return res.json(); })
-         .then(function (data) {
-           if (data.success) {
-             self.agentStatus = { text: "실행 중... (" + self.env + " 배포서버에서 cleanup_cron.sh 수행)", isError: false };
-             self.pollExecuteStatus(tid);
-           } else {
-             self.agentStatus = { text: "실행 시작 실패: " + (data.message || "알 수 없는 오류"), isError: true };
-             self.executing = false;
-           }
-         })
-         .catch(function (err) {
-           self.agentStatus = { text: "실행 요청 실패: " + err.message, isError: true };
-           self.executing = false;
-         });
-     },
-     pollExecuteStatus: function (taskId) {
-       var self = this;
-       var intervalMs = 3000; // 3초 간격 폴링
-       var timer = setInterval(function () {
-         fetch("/api/resource-cleanup/execute-status.json?env=" + encodeURIComponent(self.env) + "&taskId=" + encodeURIComponent(taskId))
-           .then(function (res) { return res.json(); })
-           .then(function (data) {
-             if (!data.success) {
-               clearInterval(timer);
-               self.executing = false;
-               self.agentStatus = { text: "상태 조회 실패: " + (data.message || "알 수 없는 오류"), isError: true };
-               return;
-             }
-             if (data.status === "RUNNING") {
-               return; // 계속 폴링
-             }
-             clearInterval(timer);
-             self.executing = false;
-             self.executed = true;
-             var ok = data.status === "SUCCESS";
-             self.agentStatus = {
-               text: ok ? ("실행 완료 (exit=" + data.exitCode + ")") : ("실행 실패 (exit=" + data.exitCode + ")"),
-               isError: !ok,
-             };
-             self.agentLog = data.output || "(출력 없음)";
-           })
-           .catch(function (err) {
-             clearInterval(timer);
-             self.executing = false;
-             self.agentStatus = { text: "상태 폴링 실패: " + err.message, isError: true };
-           });
-       }, intervalMs);
-     },
-        handleFetchLog: function () {
-          var self = this;
-          var tid = (this.taskId || "").trim();
-          this.fetchingLog = true;
-          this.agentStatus = { text: "로그 조회 중...", isError: false };
-          fetch("/api/resource-cleanup/log.json?env=" + encodeURIComponent(this.env) + "&taskId=" + encodeURIComponent(tid))
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-              if (data.success) {
-                self.fullLog = data.log;
-                self.agentStatus = { text: "로그 조회 완료", isError: false };
-              } else {
-                self.agentStatus = { text: "로그 조회 실패: " + (data.message || "알 수 없는 오류"), isError: true };
-              }
-            })
-            .catch(function (err) {
-              self.agentStatus = { text: "로그 조회 요청 실패: " + err.message, isError: true };
-            })
-            .finally(function () { self.fetchingLog = false; });
-        },
-        downloadFullLog: function () {
-          var tid = (this.taskId || "TASK_ID").trim();
-          var blob = new Blob([this.fullLog], { type: "text/plain;charset=utf-8" });
-          var url = URL.createObjectURL(blob);
-          var a = document.createElement("a");
-          a.href = url; a.download = tid + "_result.log";
-          document.body.appendChild(a); a.click(); document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        },
-        addPathRow: function () {
-           if (!this.classifyResult) return;
-           this.classifyResult[this.activeTab].push("");
-         },
-       deletePathRow: function (index) {
-         if (!this.classifyResult) return;
-         this.classifyResult[this.activeTab].splice(index, 1);
-       },
-  },
-});
-</script>
-</body>
-</html>
-1. 전체적으로 화면을 검토해주고 (백앤드 기능은 현재 되는상태니깐 기능에 이상이 생기면안돼)
-2. 배포 서버전송 시 내가 선택한 타입의 파일만 전송되게 
-3. 니가 전에 만들어준 cleanup_rollback.sh 을 별도로 호출할수 있는 메뉴가 있으면 좋겠는데 
+
+
+@GetMapping("/log.json")
+public ResponseEntity<Map<String, Object>> log(@RequestParam("env") String env, @RequestParam("taskId") String taskId) {
+    logger.info("[Log Fetch Request] env: {}, taskId: {}", env, taskId);
+    Map<String, Object> body = new HashMap<>();
+    try {
+        cleanupResourceService.validateTaskId(taskId);
+        cleanupResourceService.validateEnv(env);
+
+        CleanupResourceService.ExecResult result = cleanupResourceService.fetchLatestLog(env, taskId);
+
+        if (result.isSuccess()) {
+            logger.info("[Log Fetch Success] env: {}, taskId: {}", env, taskId);
+            body.put("success", true);
+            body.put("log", result.getOutput());
+        } else {
+            logger.warn("[Log Fetch Failed] env: {}, taskId: {}, reason: {}", env, taskId, "No log file found or exit code: " + result.getExitCode());
+            body.put("success", false);
+            body.put("message", "로그 파일을 찾을 수 없습니다.");
+        }
+        return ResponseEntity.ok(body);
+    } catch (IllegalArgumentException badRequest) {
+        logger.warn("[Log Fetch Validation Failed] env: {}, taskId: {}, message: {}", env, taskId, badRequest.getMessage());
+        body.put("success", false);
+        body.put("message", badRequest.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    } catch (Exception e) {
+        logger.error("[Log Fetch Error] env: {}, taskId: {}, message: {}", env, taskId, e.getMessage(), e);
+        body.put("success", false);
+        body.put("message", "로그 조회 실패: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+
+}
+
+@PostMapping("/config-backup.json")
+public ResponseEntity<Map<String, Object>> configBackup(@RequestBody BackupRequest request) {
+    logger.info("[Config Backup Start] env: {}, taskId: {}, count: {}",
+            request.getEnv(), request.getTaskId(), request.getPaths() != null ? request.getPaths().size() : 0);
+    Map<String, Object> body = new HashMap<>();
+    try {
+        cleanupResourceService.startConfigBackupAsync(request.getEnv(), request.getTaskId(), request.getPaths());
+        body.put("success", true);
+        body.put("status", "RUNNING");
+        return ResponseEntity.ok(body);
+    } catch (IllegalStateException alreadyRunning) {
+        body.put("success", false);
+        body.put("message", alreadyRunning.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    } catch (IllegalArgumentException badRequest) {
+        body.put("success", false);
+        body.put("message", badRequest.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    } catch (Exception e) {
+        logger.error("[Config Backup Start Error] message: {}", e.getMessage(), e);
+        body.put("success", false);
+        body.put("message", "백업 시작 실패: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+}
+
+@GetMapping("/config-backup-status.json")
+public ResponseEntity<Map<String, Object>> configBackupStatus(
+        @RequestParam("env") String env,
+        @RequestParam("taskId") String taskId,
+        @RequestParam(value = "since", defaultValue = "0") int since) {
+    return configJobStatus("backup", env, taskId, since);
+}
+
+@PostMapping("/config-cleanup.json")
+public ResponseEntity<Map<String, Object>> configCleanup(@RequestBody BackupRequest request) {
+    logger.info("[Config Cleanup Start] env: {}, taskId: {}, count: {}",
+            request.getEnv(), request.getTaskId(), request.getPaths() != null ? request.getPaths().size() : 0);
+    Map<String, Object> body = new HashMap<>();
+    try {
+        cleanupResourceService.startConfigCleanupAsync(request.getEnv(), request.getTaskId(), request.getPaths());
+        body.put("success", true);
+        body.put("status", "RUNNING");
+        return ResponseEntity.ok(body);
+    } catch (IllegalStateException alreadyRunning) {
+        body.put("success", false);
+        body.put("message", alreadyRunning.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    } catch (IllegalArgumentException badRequest) {
+        body.put("success", false);
+        body.put("message", badRequest.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    } catch (Exception e) {
+        logger.error("[Config Cleanup Start Error] message: {}", e.getMessage(), e);
+        body.put("success", false);
+        body.put("message", "자원정리 시작 실패: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+}
+
+@GetMapping("/config-cleanup-status.json")
+public ResponseEntity<Map<String, Object>> configCleanupStatus(
+        @RequestParam("env") String env,
+        @RequestParam("taskId") String taskId,
+        @RequestParam(value = "since", defaultValue = "0") int since) {
+    return configJobStatus("cleanup", env, taskId, since);
+}
+
+private ResponseEntity<Map<String, Object>> configJobStatus(String jobType, String env, String taskId, int since) {
+    Map<String, Object> body = new HashMap<>();
+    try {
+        CleanupResourceService.AsyncJobStatus job = cleanupResourceService.getConfigJobStatus(jobType, env, taskId);
+        body.put("success", true);
+        body.put("status", job.getStatus()); // RUNNING / SUCCESS / FAILED
+        body.put("log", job.getLogSince(since));   // since 이후 새로 쌓인 부분만
+        body.put("logLength", job.getLogLength());  // 다음 폴링 때 since로 그대로 넘기면 됨
+        if (!job.isRunning()) {
+            body.put("exitCode", job.getExitCode());
+        }
+        return ResponseEntity.ok(body);
+    } catch (IllegalStateException notFound) {
+        body.put("success", false);
+        body.put("message", notFound.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    } catch (Exception e) {
+        logger.error("[Config Job Status Error] jobType: {}, env: {}, taskId: {}, message: {}", jobType, env, taskId, e.getMessage(), e);
+        body.put("success", false);
+        body.put("message", "상태 조회 실패: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+}
+
+public static class BackupRequest {
+    private String env;
+    private String taskId;
+    private java.util.List<String> paths;
+    public String getEnv() {return env;}
+    public void setEnv(String env) { this.env = env; }
+    public String getTaskId() {    return taskId; }
+    public void setTaskId(String taskId) { this.taskId = taskId; }
+    public java.util.List<String> getPaths() { return paths; }
+    public void setPaths(java.util.List<String> paths) { this.paths = paths; }
+}
+
+public static class UploadRequest {
+    private String env;
+    private String taskId;
+    private Map<String, String> files;
+
+    public String getEnv() { return env; }
+    public void setEnv(String env) { this.env = env; }
+    public String getTaskId() { return taskId; }
+    public void setTaskId(String taskId) { this.taskId = taskId; }
+    public Map<String, String> getFiles() { return files; }
+    public void setFiles(Map<String, String> files) { this.files = files; }
+}
+
+public static class ExecuteRequest {
+    private String env;
+    private String taskId;
+
+    public String getEnv() { return env; }
+    public void setEnv(String env) { this.env = env; }
+    public String getTaskId() { return taskId; }
+    public void setTaskId(String taskId) { this.taskId = taskId; }
+}
+}
+따로 컨트롤러 만들필요없이 여기에 만들면되겠는데 ? 
