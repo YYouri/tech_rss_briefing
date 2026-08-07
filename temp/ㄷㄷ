@@ -1,659 +1,162 @@
-package hi.framework.deploymanager.server.service;
-
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
-import com.wbjsoft.module.WBJConstant;
-
-import hi.framework.deploymanager.ApplicationContextProvider;
-import hi.framework.deploymanager.server.entity.DeployInfo;
-import hi.framework.deploymanager.server.job.CommonSyncService;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.regex.Pattern;
-
-/**
- * 배포서버(QA/PROD)로 신청서 분할 결과를 SFTP 업로드하고,
- * cleanup_cron.sh 실행을 SSH로 트리거하고, 결과 로그 파일을 조회하는 서비스.
- *
- * server.properties 를 이 클래스가 직접 읽어온다 (기존 serverprops 빈 참조 방식 대신).
- * root/servlet 컨텍스트 분리 여부와 무관하게 항상 동작하도록 하기 위함
- * (BeanExpressionException 등 컨텍스트 간 빈 참조 문제 회피).
- *
- * server.properties 에 아래 키들을 추가해야 함:
- *   deploy.qa.ssh.host=cisq-cowas02
- *   deploy.qa.ssh.port=22
- *   deploy.qa.ssh.user=dsdeploy
- *   deploy.qa.ssh.passwd=****
- *   deploy.qa.request-dir=/NFS/IDES/PMS/CIS_RM/TASK_ID
- *   deploy.qa.work-dir=/Appl/IDES/PmsDeploy
- *   deploy.qa.log-dir=/Logs/IDES/PMS/CIS_RM
- *   deploy.prod.* 도 동일한 키로 별도 정의
- */
-@Service
-public class CleanupResourceService {
-	private static final Logger logger = LogManager.getLogger(CleanupResourceService.class);
-	private static final Pattern SAFE_TASK_ID = Pattern.compile("^[A-Za-z0-9_-]{1,64}$");
-	private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-	private static final String PROPERTIES_CLASSPATH = "server.properties"; // 실제 파일 위치에 맞게 수정
-	@Autowired
-	private CommonSyncService commonSyncService;
-	
-	private Properties props;
-
-	@PostConstruct
-	public void init() throws Exception {
-		props = PropertiesLoaderUtils.loadAllProperties(PROPERTIES_CLASSPATH);
-	}
-
-	private String get(String key) {
-		String v = props.getProperty(key);
-		if (v == null) {
-			throw new IllegalStateException("server.properties 에 " + key + " 값이 없습니다.");
-		}
-		return v;
-	}
-
-	private int getInt(String key, int defaultValue) {
-		String v = props.getProperty(key);
-		return v == null ? defaultValue : Integer.parseInt(v.trim());
-	}
-
-	/** env("QA"/"PROD")에 맞는 접속/경로 정보를 조립해서 반환. 잘못된 값이면 예외 */
-	private EnvConfig resolveEnv(String env) {
-		if ("QA".equals(env)) {
-			return new EnvConfig(
-					get("deploy.qa.ssh.host"),
-					getInt("deploy.qa.ssh.port", 22),
-					get("deploy.qa.ssh.user"),
-					get("deploy.qa.ssh.passwd"),
-					get("deploy.qa.request-dir"),
-					get("deploy.qa.work-dir"),
-					get("deploy.qa.log-dir"),
-					get("deploy.qa.softm_back")
-					);
-		}
-		if ("PROD".equals(env)) {
-			return new EnvConfig(
-					get("deploy.prod.ssh.host"),
-					getInt("deploy.prod.ssh.port", 22),
-					get("deploy.prod.ssh.user"),
-					get("deploy.prod.ssh.passwd"),
-					get("deploy.prod.request-dir"),
-					get("deploy.prod.work-dir"),
-					get("deploy.prod.log-dir"),
-					get("deploy.prod.softm_back")
-					);
-		}
-		throw new IllegalArgumentException("잘못된 env 값입니다: " + env + " (QA 또는 PROD만 허용)");
-	}
-
-	public void validateTaskId(String taskId) {
-		if (taskId == null || !SAFE_TASK_ID.matcher(taskId).matches()) {
-			throw new IllegalArgumentException("잘못된 TASK_ID 형식입니다: " + taskId);
-		}
-	}
-
-	/** env 값 자체만 검증하고 싶을 때 컨트롤러에서 호출 (예외 발생 여부로 판단) */
-	public void validateEnv(String env) {
-		resolveEnv(env);
-	}
-
-	/**
-	 * 타입별 파일 내용을 배포서버의 REQUEST_DIR/YYYY/MM/DD/TASK_ID/ 아래
-	 * TASK_ID_<type>.txt 로 SFTP 업로드한다. 내용이 비어있는 타입은 건너뛴다.
-	 */
-	public Map<String, String> uploadTaskFiles(String env, String taskId, Map<String, String> filesByType) throws Exception {
-		validateTaskId(taskId);
-		EnvConfig cfg = resolveEnv(env);
-		if(filesByType == null || filesByType.isEmpty())
-			throw new IllegalArgumentException("업로드할 파일 내용이 없습니다.");
-
-		logger.info("[자원정리-업로드 시작] env={} taskId={} 대상서버={} 유형={}", env, taskId, cfg.host, filesByType.keySet());
-
-		String todayPath = LocalDate.now().format(DATE_FMT);
-		String remoteDir = cfg.requestDir + "/" + todayPath + "/" + taskId;
-
-		Map<String, String> uploaded = new LinkedHashMap<>();
-
-		Session session = null;
-		ChannelSftp sftp = null;
-		try {
-			session = openSession(cfg);
-			sftp = (ChannelSftp) session.openChannel("sftp");
-			sftp.connect(10_000);
-
-			mkdirsRecursive(sftp, remoteDir);
-
-			for (Map.Entry<String, String> entry : filesByType.entrySet()) {
-				String type = entry.getKey();
-				String content = entry.getValue();
-				if (content == null || content.trim().isEmpty()) continue;
-
-				String remoteFile = remoteDir + "/" + taskId + "_" + type + ".txt";
-				String normalized = content.endsWith("\n") ? content : content + "\n";
-				try (InputStream in = new ByteArrayInputStream(normalized.getBytes(StandardCharsets.UTF_8))) {
-					sftp.put(in, remoteFile);
-				}
-				uploaded.put(type, remoteFile);
-			}
-
-			logger.info("[자원정리-업로드 완료] env={} taskId={} 업로드파일수={} 경로={}", env, taskId, uploaded.size(), remoteDir);
-			return uploaded;
-		} catch (Exception e) {
-			logger.error("[자원정리-업로드 실패] env={} taskId={} 원인={}", env, taskId, e.getMessage(), e);
-			throw e;
-		} finally {
-			if (sftp != null && sftp.isConnected()) sftp.disconnect();
-			if (session != null && session.isConnected()) session.disconnect();
-		}
-	}
-
-	/** 배포서버에서 cleanup_cron.sh <taskId> 를 실행하고 결과(stdout+stderr, exit code)를 반환 */
-	public ExecResult executeCleanup(String env, String taskId) throws Exception {
-		validateTaskId(taskId);
-		EnvConfig cfg = resolveEnv(env);
-
-		logger.info("[자원정리-실행 시작] env={} taskId={} 대상서버={}", env, taskId, cfg.host);
-
-		String remoteCommand = "cd '" + cfg.workDir + "' && ./cleanup_cron.sh '" + taskId + "'";
-		ExecResult result;
-		try {
-			result = runRemoteCommand(cfg, remoteCommand);
-		} catch (Exception e) {
-			logger.error("[자원정리-실행 실패] env={} taskId={} 원인={}", env, taskId, e.getMessage(), e);
-			throw e;
-		}
-		logger.info("[자원정리-실행 완료] env={} taskId={} exitCode={}", env, taskId, result.getExitCode());
-		return result;
-	}
-
-	/**
-	 * 이 TASK_ID의 가장 최근 결과 로그 파일(<LOG_DIR>/<taskId>_<timestamp>.log)을 찾아
-	 * 내용을 그대로 읽어온다. ant_console/NOTI_ERR 로그는 제외.
-	 */
-	public ExecResult fetchLatestLog(String env, String taskId) throws Exception {
-		validateTaskId(taskId);
-		EnvConfig cfg = resolveEnv(env);
-
-		logger.info("[자원정리-로그조회] env={} taskId={}", env, taskId);
-
-		String remoteCommand =
-				"cd '" + cfg.logDir + "' && " +
-						"f=$(ls -t '" + taskId + "'_*.log 2>/dev/null | grep -v '_ant_console' | grep -v '_NOTI_ERR' | head -1); " +
-						"if [ -z \"$f\" ]; then echo '__NO_LOG_FOUND__'; exit 1; fi; " +
-						"cat \"$f\"";
-
-		try {
-			return runRemoteCommand(cfg, remoteCommand);
-		} catch (Exception e) {
-			logger.error("[자원정리-로그조회 실패] env={} taskId={} 원인={}", env, taskId, e.getMessage(), e);
-			throw e;
-		}
-	}
-
-	private ExecResult runRemoteCommand(EnvConfig cfg, String remoteCommand) throws Exception {
-		Session session = null;
-		ChannelExec exec = null;
-		try {
-			session = openSession(cfg);
-			exec = (ChannelExec) session.openChannel("exec");
-			exec.setCommand(remoteCommand);
-			exec.setErrStream(System.err, true);
-
-			ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-			exec.setOutputStream(stdout);
-
-			exec.connect(10_000);
-			while (!exec.isClosed()) {
-				Thread.sleep(200);
-			}
-
-			int exitCode = exec.getExitStatus();
-			String output = stdout.toString("euc-kr");
-			return new ExecResult(exitCode, output);
-		} finally {
-			if (exec != null && exec.isConnected()) exec.disconnect();
-			if (session != null && session.isConnected()) session.disconnect();
-		}
-	}
-
-	private Session openSession(EnvConfig cfg) throws Exception {
-		JSch jsch = new JSch();
-		Session session = jsch.getSession(cfg.user, cfg.host, cfg.port);
-		session.setPassword(cfg.password);
-		session.setConfig("StrictHostKeyChecking", "no"); // 사내 폐쇄망 전제. 가능하면 known_hosts 등록 후 "yes" 권장
-		session.connect(10_000);
-		return session;
-	}
-
-	private void mkdirsRecursive(ChannelSftp sftp, String path) throws Exception {
-		String[] parts = path.split("/");
-		StringBuilder current = new StringBuilder();
-		for (String part : parts) {
-			if (part.isEmpty()) continue;
-			current.append("/").append(part);
-			try {
-				sftp.stat(current.toString());
-			} catch (Exception notExists) {
-				sftp.mkdir(current.toString());
-			}
-		}
-	}
-	private final ExecutorService executor = Executors.newCachedThreadPool();
-	private final ConcurrentHashMap<String, TaskExecution> executions = new ConcurrentHashMap<>();
-
-	/**
-	 * cleanup_cron.sh 실행을 백그라운드 스레드로 시작하고 즉시 리턴한다.
-	 * 이미 같은 (env,taskId) 조합이 실행 중이면 중복 시작하지 않는다.
-	 */
-	public void startExecuteAsync(String env, String taskId) {
-		validateTaskId(taskId);
-		validateEnv(env); // 잘못된 env면 스레드 띄우기 전에 여기서 바로 예외
-
-		String key = env + "_" + taskId;
-		TaskExecution existing = executions.get(key);
-		if (existing != null && existing.isRunning()) {
-			throw new IllegalStateException("이미 실행 중인 작업입니다: " + taskId);
-		}
-
-		TaskExecution exec = new TaskExecution();
-		executions.put(key, exec);
-
-		executor.submit(() -> {
-			try {
-				ExecResult result = executeCleanup(env, taskId); // 기존 동기 메서드 그대로 재사용
-				exec.complete(result.getExitCode(), result.getOutput());
-			} catch (Exception e) {
-				logger.error("[자원정리-비동기실행 실패] env={} taskId={} 원인={}", env, taskId, e.getMessage(), e);
-				exec.fail(e.getMessage());
-			}
-		});
-	}
-
-	/** 실행 상태 조회. 시작한 적 없는 taskId면 예외 */
-	public TaskExecution getExecutionStatus(String env, String taskId) {
-		validateTaskId(taskId);
-		String key = env + "_" + taskId;
-		TaskExecution exec = executions.get(key);
-		if (exec == null) {
-			throw new IllegalStateException("해당 TASK_ID의 실행 이력이 없습니다: " + taskId);
-		}
-		return exec;
-	}
-
-	/** 실행 상태를 담는 값 객체 (WAS 메모리에만 보관, DB 아님) */
-	public static class TaskExecution {
-		private volatile String status = "RUNNING"; // RUNNING, SUCCESS, FAILED
-		private volatile Integer exitCode;
-		private volatile String output;
-		private volatile String errorMessage;
-		private final long startedAt = System.currentTimeMillis();
-
-		void complete(int exitCode, String output) {
-			this.exitCode = exitCode;
-			this.output = output;
-			this.status = (exitCode == 0) ? "SUCCESS" : "FAILED";
-		}
-
-		void fail(String errorMessage) {
-			this.errorMessage = errorMessage;
-			this.status = "FAILED";
-		}
-
-		public boolean isRunning() { return "RUNNING".equals(status); }
-		public String getStatus() { return status; }
-		public Integer getExitCode() { return exitCode; }
-		public String getOutput() { return output; }
-		public String getErrorMessage() { return errorMessage; }
-		public long getStartedAt() { return startedAt; }
-	}
-
-	/** env별 접속/경로 정보를 담는 단순 값 객체 (Spring Boot 바인딩 아닌 순수 POJO) */
-	private static class EnvConfig {
-		final String host;
-		final int port;
-		final String user;
-		final String password;
-		final String requestDir;
-		final String workDir;
-		final String logDir;
-		private String softm_back;
-
-		EnvConfig(String host, int port, String user, String password, String requestDir, String workDir, String logDir, String softm_back) {
-			this.host = host;
-			this.port = port;
-			this.user = user;
-			this.password = password;
-			this.requestDir = requestDir;
-			this.workDir = workDir;
-			this.logDir = logDir;
-			this.softm_back = softm_back;
-		}
-	}
-
-	public static class ExecResult {
-		private final int exitCode;
-		private final String output;
-
-		public ExecResult(int exitCode, String output) {
-			this.exitCode = exitCode;
-			this.output = output;
-		}
-
-		public int getExitCode() { return exitCode; }
-		public String getOutput() { return output; }
-		public boolean isSuccess() { return exitCode == 0; }
-	}
-	// 필드로 추가:
-	private final ExecutorService configJobExecutor = Executors.newCachedThreadPool();
-	private final ConcurrentHashMap<String, AsyncJobStatus> configJobs = new ConcurrentHashMap<>();
-	
-	/** 백업 작업을 백그라운드로 시작
-	 * @throws Exception */
-	public void startConfigBackupAsync(String env, String taskId, List<String> paths) throws Exception {
-		validateTaskId(taskId);
-		validateEnv(env);
-		EnvConfig cfg = resolveEnv(env);
-		if (paths == null || paths.isEmpty()) {
-			throw new IllegalArgumentException("백업할 자원 목록이 없습니다.");
-		}
-		String key = "backup_" + env + "_" + taskId;
-		AsyncJobStatus existing = configJobs.get(key);
-		if (existing != null && existing.isRunning()) {
-			throw new IllegalStateException("이미 백업이 진행 중입니다: " + taskId);
-		}
-
-		AsyncJobStatus job = new AsyncJobStatus();
-		configJobs.put(key, job);
-
-		logger.info("[형상자원-백업시작] env={} taskId={} 건수={}", env, taskId, paths.size());
-		if(commonSyncService == null) {
-			commonSyncService = (CommonSyncService) ApplicationContextProvider.getApplicationContext().getBean(CommonSyncService.class);
-		}
-		try {
-			final DeployInfo deployInfo = commonSyncService.getDeployInfo();
-			String BACKUP_ROOT = cfg.softm_back+File.separator+taskId+File.separator;
-			if(deployInfo == null ) {
-				logger.warn("[형상자원-백업로그인실패] env={} taskId={} 원인={}", env, taskId, "deployInfo is null..");
-			}
-
-			configJobExecutor.submit(() -> {
-				int success = 0, fail = 0;
-
-				// ==================================================================================
-				// TODO: 아래 SolutionApiClient 부분을 실제 SDK 클래스/메서드 시그니처로 교체
-				// ==================================================================================
-				String token;
-				try {
-					token = login(deployInfo); 
-					job.appendLog("[형상서버 연결 성공] "+deployInfo.getSoftmanager_ip() +" \n");
-					if(token.equals("NONE")){
-						throw new Exception("");
-					}
-				} catch (Exception loginError) {
-					job.appendLog("[FAIL] 소프트매니저 로그인 실패 {frmadmin1} -\n");
-					job.appendLog("SUMMARY: SUCCESS=0 FAIL=" + paths.size() + "\n");
-					job.complete(1);
-					logger.error("[형상자원-백업로그인실패] env={} taskId={} 원인={}", env, taskId, loginError.getMessage(), loginError);
-					return;
-				}
-				try {
-					for (int i = 0; i < paths.size(); i++) {
-						String dirInfo = paths.get(i).replace("/", "\\");
-						if(dirInfo.startsWith("\\")){
-							dirInfo = dirInfo.substring(1);
-						}
-						String localFile = (BACKUP_ROOT + dirInfo).replace("\\", "/");
-
-						if(logger.isDebugEnabled()){
-							logger.debug("\t localFile: \n\t" + localFile);
-							logger.debug("\t repoFile: \n\t" + dirInfo);
-						}
-
-						String filePath = localFile.replaceAll("//", "/");
-						boolean isSuccess = false;
-
-						try {
-							int nRet = com.wbjsoft.module.softmanagerapi.CheckOut(token, dirInfo, localFile);
-
-							if (nRet == WBJConstant.SMC_OK) {
-								logger.info("[성공] Check Out 파일 정보 : " + filePath);
-								job.appendLog("[SUCCESS] " + filePath + "\n");
-								success++;
-								isSuccess = true;
-							} else {
-								String failMsg = "[FAIL] " + filePath + " - " + nRet + " 코드 반환 됨";
-								job.appendLog(failMsg + "\n");
-								logger.error("[실패] Check Out 파일 정보 : " + filePath + " (Return Code: " + nRet + ")");
-							}
-						} catch (Exception e) {
-							logger.error("[오류] Check Out 처리 중 예외 발생. 파일 경로: " + filePath, e);
-							job.appendLog("[ERROR] " + filePath + " - 예외 발생\n");
-						} finally {
-							if (!isSuccess) {
-								fail++;
-							}
-						}
-
-					}
-
-				} finally {
-					try {
-						logout(token); 
-					} catch (Exception logoutError) {
-						logger.warn("[형상자원-백업로그아웃실패] env={} taskId={} 원인={}", env, taskId, logoutError.getMessage());
-					}
-				}
-
-				job.appendLog("SUMMARY: SUCCESS=" + success + " FAIL=" + fail + "\n");
-				job.complete(fail == 0 ? 0 : 1);
-				logger.info("[형상자원-백업완료] env={} taskId={} success={} fail={}", env, taskId, success, fail);
-			});
-		} catch (Exception e) {
-			logger.error("[형상자원-백업로그인실패] env={} taskId={} 원인={}", env, taskId, e.getMessage(), e);
-			throw e;
-		}
-	}
-	public void startConfigCleanupAsync(String env, String taskId, List<String> paths) throws Exception {
-		validateTaskId(taskId);
-		validateEnv(env);
-		if (paths == null || paths.isEmpty()) {
-			throw new IllegalArgumentException("정리할 자원 목록이 없습니다.");
-		}
-		String key = "cleanup_" + env + "_" + taskId;
-		AsyncJobStatus existing = configJobs.get(key);
-		if (existing != null && existing.isRunning()) {
-			throw new IllegalStateException("이미 자원정리가 진행 중입니다: " + taskId);
-		}
-
-		AsyncJobStatus job = new AsyncJobStatus();
-		configJobs.put(key, job);
-
-		logger.info("[형상자원-정리 시작] env={} taskId={} 건수={}", env, taskId, paths.size());
-		if(commonSyncService == null) {
-			commonSyncService = (CommonSyncService) ApplicationContextProvider.getApplicationContext().getBean(CommonSyncService.class);
-		}
-		try {
-			final DeployInfo deployInfo = commonSyncService.getDeployInfo();
-			if(deployInfo == null ) {
-				throw new Exception("[형상자원-정리 시작] deployInfo is null..");
-			}
-
-			configJobExecutor.submit(() -> {
-				int success = 0, fail = 0;
-
-				String token;
-				try {
-					token = login(deployInfo); 
-					job.appendLog("[형상서버 연결 성공] "+deployInfo.getSoftmanager_ip() +" \n");
-					if(token.equals("NONE")){
-						throw new Exception("형상서버 연결 실패");
-					}
-				} catch (Exception loginError) {
-					job.appendLog("[FAIL] 소프트매니저 로그인 실패 {frmadmin1} -\n");
-					job.appendLog("SUMMARY: SUCCESS=0 FAIL=" + paths.size() + "\n");
-					job.complete(1);
-					logger.error("[형상자원-정리로그인실패] env={} taskId={} 원인={}", env, taskId, loginError.getMessage(), loginError);
-					return;
-				}
-				try {
-					for (int i = 0; i < paths.size(); i++) {
-						String path = paths.get(i);
-						int idx = path.lastIndexOf("/");
-
-						String dir = (idx == -1) ? "" : path.substring(0, idx);
-						String fileName = (idx == -1) ? path : path.substring(idx + 1);
-						
-						String dirInfo = dir.replace("/", "\\");
-						if(dirInfo.startsWith("\\")){
-							dirInfo = dirInfo.substring(1);
-						}
-						
-						if(!dirInfo.endsWith("\\")) {
-							dirInfo = dirInfo+"\\";
-						}
-						
-						if(logger.isDebugEnabled()){
-							logger.debug("\t repoFile: \n\t" + dirInfo+".."+fileName);
-						}
-
-						boolean isSuccess = false;
-
-						try {
-							int nRet = com.wbjsoft.module.softmanagerapi.RemoveFile(token, dirInfo, fileName);
-
-							if (nRet == -1) {
-								String failMsg = "[FAIL] " + dirInfo+fileName + " - " + nRet + " 코드 반환 됨";
-								job.appendLog(failMsg + "\n");
-								logger.error("[실패] RemoveFile 파일 정보 : " + dirInfo+fileName + " (Return Code: " + nRet + ")");
-								
-							} else {
-								logger.info("[성공] RemoveFile 파일 정보 : " + dirInfo+fileName);
-								job.appendLog("[SUCCESS] " + dirInfo+fileName +"="+ nRet+"\n");
-								success++;
-								isSuccess = true;
-							}
-						} catch (Exception e) {
-							logger.error("[오류] RemoveFile 처리 중 예외 발생. 파일 경로: " + dirInfo+fileName, e);
-							job.appendLog("[ERROR] " + dirInfo+fileName + " - 예외 발생\n");
-						} finally {
-							if (!isSuccess) {
-								fail++;
-							}
-						}
-
-					}
-
-				} finally {
-					try {
-						logout(token); 
-					} catch (Exception logoutError) {
-						logger.warn("[형상자원-정리로그아웃실패] env={} taskId={} 원인={}", env, taskId, logoutError.getMessage());
-					}
-				}
-
-				job.appendLog("SUMMARY: SUCCESS=" + success + " FAIL=" + fail + "\n");
-				job.complete(fail == 0 ? 0 : 1);
-				logger.info("[형상자원-정리완료] env={} taskId={} success={} fail={}", env, taskId, success, fail);
-			});
-		} catch (Exception e) {
-			logger.error("[형상자원-정리 실패] env={} taskId={} 원인={}", env, taskId, e.getMessage(), e);
-			throw e;
-		}
-	}
-	/** 삭제(자원정리) 작업을 백그라운드로 시작 (이 작업만의 로그인 -> 건건이 delete -> 이 작업만의 로그아웃) */
-	protected String login(DeployInfo deployInfo) {
-		String session = "";
-		try {
-			session = com.wbjsoft.module.softmanagerapi.LoginSession(deployInfo.getSoftmanager_ip(), deployInfo.getSoftmanager_port(), "frmadmin1", "admin1!@");
-			if (session.equals("NONE")) {
-				// logger.error("로그인되지 않았습니다.");
-			}
-			// logger.info("로그인 했습니다");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return session;
-	}
-
-	protected void logout(String session) {
-		try {
-			if (com.wbjsoft.module.softmanagerapi.LogOutSession(session)) {
-				// logger.error("연결을 종료합니다.");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	/** 작업 상태 + 지금까지의 로그 조회 (진행 중이어도 조회 가능). jobType: "backup" 또는 "cleanup" */
-	public AsyncJobStatus getConfigJobStatus(String jobType, String env, String taskId) {
-		validateTaskId(taskId);
-		String key = jobType + "_" + env + "_" + taskId;
-		AsyncJobStatus job = configJobs.get(key);
-		if (job == null) {
-			throw new IllegalStateException("해당 작업 이력이 없습니다: " + taskId);
-		}
-		return job;
-	}
-
-	/** 건건이 작업 상태 + 누적 로그를 담는 값 객체 (기존 TaskExecution과는 별개) */
-	public static class AsyncJobStatus {
-		private volatile String status = "RUNNING"; // RUNNING, SUCCESS, FAILED
-		private volatile Integer exitCode;
-		private final StringBuilder logBuffer = new StringBuilder();
-
-		synchronized void appendLog(String line) {
-			logBuffer.append(line);
-		}
-
-		/** 전체 로그 (하위 호환용) */
-		public synchronized String getLog() {
-			return logBuffer.toString();
-		}
-
-		/** fromIndex 이후에 새로 쌓인 부분만 반환 (매 폴링마다 전체를 다시 안 보내도록) */
-		public synchronized String getLogSince(int fromIndex) {
-			int len = logBuffer.length();
-			if (fromIndex < 0) fromIndex = 0;
-			if (fromIndex >= len) return "";
-			return logBuffer.substring(fromIndex);
-		}
-
-		public synchronized int getLogLength() {
-			return logBuffer.length();
-		}
-
-		void complete(int exitCode) {
-			this.exitCode = exitCode;
-			this.status = (exitCode == 0) ? "SUCCESS" : "FAILED";
-		}
-
-		public boolean isRunning() { return "RUNNING".equals(status); }
-		public String getStatus() { return status; }
-		public Integer getExitCode() { return exitCode; }
-	}
-
-}
-여기에 맞춰줘야할것같은데 ? 
+<!-- 수정된 menu.html -->
+
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu Test</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/font-awesome/css/all.min.css" rel="stylesheet">
+    <link href="/css/app-theme.css" rel="stylesheet">
+    <style>
+        /* 권한에 따라 메뉴를 숨기기 위한 기본 스타일 /
+        .auth-menu { display: none; }
+        / 메뉴바가 본문과 겹치지 않도록 설정 */
+        #menuItem { width: 100%; }
+    </style>
+</head>
+<body>
+    <!-- [수정] <form> 태그를 제거했습니다. 메뉴는 데이터를 전송하는 양식이 아니므로 form이 있으면 동작이 꼬입니다. -->
+    <div id="menuItem" class="container-fluid">
+        <nav class="navbar navbar-expand-lg custom-navbar">
+            <!-- 브랜드 영역 -->
+            <a class="navbar-brand" href="javascript:void(0)" onclick="location.href='/imageHomeProcess.json'">배포 관리 시스템</a>
+            
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto" id="main-menu-list">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='/imageHomeProcess.json'"><i class="fas fa-home"></i> Home</a>
+                    </li>
+                    
+                    <!-- [권한: admin OR user] 공통 메뉴 -->
+                    <li class="nav-item auth-menu user-admin-menu">
+                        <a class="nav-link" href="javascript:void(0)" onclick="myFunc()"> (구)배포 로그 조회</a>
+                    </li>
+                    <li class="nav-item auth-menu user-admin-menu">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='/logViewerProcess.json'">배포 로그 조회</a>
+                    </li>
+
+                    <!-- [권한: admin] 전용 메뉴 -->
+                    <li class="nav-item auth-menu admin-only-menu">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='/AgentCheckProcess.json'">Agent 모니터링</a>
+                    </li>
+
+                    <!-- 배포 설정 관리 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu admin-only-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown1" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 
+                            배포 설정 관리 
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown1">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/MetaProcess.json'">메타 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/ConfigProcess.json'">시스템별 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/AgentProcess.json'">Agent 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/imageAuthProcess.json'">이미지 배포 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/ApSchedule.json'">AP스케줄 관리</a>
+                        </div>
+                    </li>
+
+                    <!-- 계정 관리 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu admin-only-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAcc" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">계정 관리</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownAcc">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/Imsync.json'">계정 동기화 관리</a>
+                        </div>
+                    </li>
+
+                    <!-- 자원 관리 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu admin-only-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownRes" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">자원 관리</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownRes">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/resDownloadProcess.json'">배포 자원 다운로드</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/DiffSoftmResource.json'">배포 자원 조회</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/CleanCisResource.json'">기간계 서버 자원 정리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/CleanSoftmResource.json'">형상 서버 자원 정리</a>
+                        </div>
+                    </li>
+
+                    <!-- 이미지 배포 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu user-admin-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown3" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 이미지 배포 </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown3">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/imageProcess.json'">이미지 배포</a>
+                        </div>
+                    </li>
+
+                    <!-- 배포 지원 기능 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu special-user-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownSpecial" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">배포 지원 기능</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownSpecial">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/TestProcess.json'">배포 태스크 호출</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/queryProcess.json'">Query Execute</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 사용자 영역 -->
+            <div class="ml-auto">
+                <span class="navbar-user" id="user-name" style="color: var(--text-main); padding-right: 15px;"></span>
+                <button class="btn-action" type="button" onclick="location.href='/logoutProcess.json'">
+                    <i class="fas fa-sign-out-alt" style="margin-right:4px; font-size:12px;"></i> 로그아웃
+                </button>
+            </div>
+        </nav>
+    </div>
+    <script src="/js/jquery.min.3.4.1.js"></script> 
+    <script src="/js/popper.min.1.16.1.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        function loadUserInfoAndMenu() {
+            $.ajax({
+                url: '/getUserInfo.json',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data) {
+                        $('#user-name').text(data.response_username);
+                        const groupId = data.response_group_id;
+                        const userId = data.response_user_Id;
+                        if (groupId === 'admin' || groupId === 'user') {
+                            $('.user-admin-menu').show();
+                        }
+                        if (groupId === 'admin') {
+                            $('.admin-only-menu').show();
+                        }
+                        if (userId === 'IB1192' || userId === 'IB1117') {
+                            $('.special-user-menu').show();
+                        }
+                    } else {
+                        $('#user-name').text("Guest");
+                    }
+                },
+                error: function() {
+                    $('#user-name').text("Error");
+                }
+            });
+        }
+
+        // [핵심 수정 부분]
+        $(document).ready(function() {
+            // 1. 권한 로드
+            loadUserInfoAndMenu();
+
+            // 2. [이벤트 위임] 메뉴 클릭(Dropdown)이 안 될 때를 대비한 강제 바인딩
+            // 메뉴가 나중에 로드되어도 'document'가 클릭을 감지해서 처리합니다.
+            $(document).on('click', '.dropdown-toggle', function (e) {
+                // Bootstrap의 기본 동작을 실행시킵니다.
+                $(this).parent().find('.dropdown-menu').toggleClass('show');
+            });
+        });
+
+        function myFunc() {
+            alert("기존 배포 로그 조회 기능을 실행합니다.");
+        }
+    </script>
+</body>
+</html>
