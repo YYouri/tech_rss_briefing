@@ -1,15 +1,14 @@
-1. 자원비교 화면
+1. 형상 서버 정리 화면 
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>소프트매니저 자원 관리 시스템</title>
+<title>형상 서버 자원 정리</title>
 <link href="../css/bootstrap.min.css" rel="stylesheet">
 <link href="../css/jquery-ui.min.css" rel="stylesheet">
 <link href="../css/custom.css" rel="stylesheet">
-<link href="../css/font-awesome/css/all.min.css" rel="stylesheet">
 <style>
-  /* shadcn/ui 기반 리디자인 스타일 적용 */
+  /* shadcn/ui 기반 리디자인 스타일 */
   :root {
     --background: #fafafa;
     --card: #ffffff;
@@ -31,17 +30,18 @@
     --shadow: 0 1px 2px rgba(0,0,0,0.03);
   }
 
-  body { 
-    background-color: var(--background); 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", Roboto, sans-serif; 
-    color: var(--text-main); 
+  body {
+    background-color: var(--background);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", Roboto, sans-serif;
+    color: var(--text-main);
     margin: 0;
   }
 
+  /* 본문 컨테이너: 입력/워크플로우 화면이므로 860px 제한 */
   #app { 
-    max-width: 1200px; 
+    max-width: 860px; 
     margin: 0 auto; 
-    padding: 40px 24px; 
+    padding: 40px 24px 80px; 
   }
 
   /* Header Area */
@@ -49,6 +49,17 @@
   .eyebrow { font-size: 12px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; margin-bottom: 4px; }
   .main-header h4 { font-size: 1.4rem; font-weight: 600; color: var(--text-main); margin: 0; }
   .main-header .desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Notice Box (Warning Style) */
+  .notice-box {
+    background-color: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-bottom: 32px;
+    font-size: 13px;
+    color: #78350f;
+  }
 
   /* Card Style */
   .section-card {
@@ -67,7 +78,7 @@
     display: flex;
     align-items: center;
   }
-  .section-head .badge-num {
+  .section-head .badge-step {
     background: var(--text-main);
     color: #fff;
     width: 22px;
@@ -81,41 +92,47 @@
     margin-right: 10px;
   }
   .section-title { font-weight: 600; font-size: 15px; color: var(--text-main); }
+  .section-hint { margin-left: auto; font-size: 13px; color: var(--text-muted); }
   .section-body { padding: 20px; }
 
-  /* Search Layout */
-  .search-row { display: flex; gap: 16px; align-items: flex-end; }
-  .search-item { flex: 0 0 250px; }
-  .search-item label { font-size: 14px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; display: block; }
+  /* Environment Selection */
+  .env-btn-group { display: flex; gap: 8px; }
+  .env-btn {
+    padding: 6px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--card-border);
+    background: #fff;
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .env-btn:hover:not(:disabled) { background-color: #f4f4f5; }
+  .env-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .env-btn-active-qa { background-color: var(--primary) !important; color: white !important; border-color: var(--primary); }
+  .env-btn-active-prod { background-color: var(--danger) !important; color: white !important; border-color: var(--danger); }
 
-  /* Table Design */
-  .table-container { 
-    max-height: 350px; 
-    overflow-y: auto; 
-    border: 1px solid var(--card-border); 
-    border-radius: var(--radius-md); 
-  }
-  .table-container-large { 
-    max-height: 500px; 
-    overflow-y: auto; 
-    border: 1px solid var(--card-border); 
-    border-radius: var(--radius-md); 
-  }
+  /* Sticky Badge */
+  .env-sticky-badge { position: fixed; top: 66px; right: 24px; z-index: 900; padding: 6px 14px; border-radius: var(--radius-pill); font-weight: 600; font-size: 12px; box-shadow: var(--shadow); background: var(--primary); color: #fff; }
+  .env-sticky-qa { background: var(--primary); color: #fff; }
+  .env-sticky-prod { background: var(--danger); color: #fff; animation: env-pulse 1.5s infinite; }
+  @keyframes env-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
 
-  .table { margin-bottom: 0; font-size: 14px; }
-  .table thead th { 
-    position: sticky; top: 0; background-color: #f8f9fa; z-index: 10; 
-    color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--card-border); 
-    padding: 12px 8px; text-align: center; cursor: pointer; user-select: none; 
-  }
-  .table thead th:hover { background-color: #f4f4f5; }
-  .sort-icon { margin-left: 5px; font-size: 11px; color: #d1d1d6; }
-  .sort-asc { color: var(--primary) !important; }
-  .sort-desc { color: var(--primary) !important; }
-  .table tbody td { padding: 12px; border-bottom: 1px solid #f4f4f5; color: var(--text-main); }
-  .table tbody tr:hover { background-color: #f8f9fa; cursor: pointer; }
-  .table tbody tr.selected-row { background-color: #f4f4f5 !important; font-weight: 600; }
+  /* Form & Table */
+  .form-control { border: 1px solid var(--card-border); border-radius: var(--radius-md); font-size: 14px; }
+  .form-control:focus { border-color: var(--text-main); outline: none; box-shadow: 0 0 0 2px rgba(0,0,0,0.05); }
   .mono { font-family: 'Cascadia Code', 'Consolas', monospace; }
+
+  .table-container { border: 1px solid var(--card-border); border-radius: var(--radius-md); overflow: auto; }
+  .table { margin-bottom: 0; font-size: 14px; }
+  .table thead th {
+    position: sticky; top: 0; background: #f8f9fa;
+    color: var(--text-muted); font-weight: 600;
+    border-bottom: 1px solid var(--card-border);
+    padding: 12px 8px; font-size: 13px; text-align: center;
+  }
+  .table tbody td { padding: 10px 12px; border-bottom: 1px solid #f4f4f5; color: var(--text-main); }
+  .table tbody tr:hover { background-color: #f8f9fa; }
 
   /* Action Buttons */
   .btn { border-radius: var(--radius-md); font-weight: 500; transition: all 0.2s; }
@@ -123,670 +140,365 @@
   .btn-primary:hover { background-color: var(--primary-hover); color: #fff; }
   .btn-outline-secondary { color: var(--text-muted); border-color: var(--card-border); }
   .btn-outline-secondary:hover { background-color: #f4f4f5; color: var(--text-main); }
+  .btn-success { background-color: var(--success); color: #fff; border: none; }
+  .btn-warning { background-color: var(--warning); color: #fff; border: none; }
+  .btn-info { background-color: #0ea5e9; color: #fff; border: none; }
+  .btn-group-custom { display: flex; gap: 8px; flex-wrap: wrap; }
 
-  /* Context Menu */
-  #context-menu { 
-    position: absolute; display: none; background: white; 
-    border: 1px solid var(--card-border); box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-    z-index: 3000; width: 180px; border-radius: var(--radius-md); padding: 6px; 
-  }
-  #context-menu div { padding: 10px 15px; cursor: pointer; font-size: 14px; color: var(--text-main); border-radius: 4px; }
-  #context-menu div:hover { background-color: var(--primary); color: white; }
-
-  /* Modal & Diff UI */
-  .modal-content { border-radius: var(--radius-lg); border: none; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
-  .modal-header { border-bottom: 1px solid var(--card-border); padding: 16px 24px; }
-  .modal-footer { border-top: 1px solid var(--card-border); padding: 12px 24px; }
-  
-  .diff-container {
-    display: flex; height: 700px; gap: 15px; background: #f8f9fa; padding: 15px; border-radius: var(--radius-md);
-  }
-  .diff-pane { 
-    flex: 1; background: white; border: 1px solid var(--card-border); border-radius: 6px; 
-    overflow-y: auto; position: relative; display: flex; flex-direction: column; 
-  }
-  .diff-header { 
-    position: sticky; top: 0; background: #f8f9fa; padding: 8px 16px; 
-    font-size: 13px; font-weight: 700; color: var(--text-muted); 
-    border-bottom: 1px solid var(--card-border); z-index: 5; text-align: center; 
-  }
-  .diff-content-area { position: relative; width: 100%; }
-  .diff-line { 
-    display: flex; height: 24px; line-height: 24px; 
-    font-family: 'Consolas', monospace; font-size: 13px; white-space: pre; width: 100%; 
-  }
-  .line-num { 
-    width: 50px; color: #a1a1aa; text-align: right; padding-right: 10px; 
-    flex-shrink: 0; border-right: 1px solid #f4f4f5; margin-right: 10px; user-select: none; 
-  }
-  .line-content { flex: 1; overflow: hidden; text-overflow: ellipsis; }
-  .line-added { background-color: #f0fdf4; color: #166534; }
-  .line-removed { background-color: #fef2f2; color: #991b1b; }
-
-  /* Responsive & Modal Adjustments */
-  @media (min-width: 1200px) { .modal-xl { max-width: 95vw !important; } }
-  .modal-dialog.modal-xl { margin-top: 40px !important; }
-  .resizable-modal { overflow: hidden; }
-  .text-primary { color: #2563eb !important; }
+  /* Log Viewers */
+  .log-container { border-radius: var(--radius-md); font-size: 13px; line-height: 1.5; border: 1px solid var(--card-border); padding: 12px; }
+  .log-agent { background-color: #18181b; color: #e4e4e7; }
+  .log-full { background-color: #fffbeb; color: #78350f; }
 </style>
 </head>
-<body class="container-fluid">
+<body>
 <header id="header"></header>
 <div id="app">
-  <div class="main-header">
-    <div class="eyebrow">Resource Management System</div>
-    <h4 class="mb-1">소프트매니저 자원 관리 시스템</h4>
-    <p class="desc">날짜별 작업의뢰 조회 및 파일 버전 비교</p>
+  <!-- 환경 경고 배지 -->
+  <div class="env-sticky-badge" v-bind:class="env === 'PROD' ? 'env-sticky-prod' : 'env-sticky-qa'">
+    {{ env === 'PROD' ? '● 운영 환경 (PROD)' : '● 개발 환경 (DEV)' }}
   </div>
 
-  <!-- STEP 1: 날짜 검색 -->
+  <!-- 메인 타이틀 블록 -->
+  <div class="main-header">
+    <div class="eyebrow">Configuration Management</div>
+    <h4 class="mb-1">형상 자원 정리</h4>
+    <p class="desc">소프트매니저의 개별 자원(파일 단위)을 백업 후 정리합니다.</p>
+  </div>
+
+  <!-- 주의사항 박스 -->
+  <div class="notice-box">
+    ※ <b>시스템(전체) 삭제</b>의 경우 이 화면이 아니라 <b>서버에서 직접 처리</b>하세요. 이 화면은 개별 자원 단위 처리 전용입니다.
+  </div>
+
+  <!-- 환경 선택 -->
+  <div class="section-card">
+    <div class="section-body">
+      <label class="font-weight-bold mb-2 d-block" style="font-size:14px; color:var(--text-muted);">대상 서버 환경</label>
+      <div class="env-btn-group">
+        <button type="button" class="env-btn" disabled title="개발 프로세스 준비 중입니다">개발 환경 (DEV)</button>
+        <button type="button" class="env-btn" v-bind:class="{ 'env-btn-active-prod': env === 'PROD' }" v-on:click="env = 'PROD'">운영 환경 (PROD)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: 입력 -->
   <div class="section-card">
     <div class="section-head">
-      <span class="badge-num">1</span>
-      <span class="section-title">작업의뢰 검색</span>
+      <span class="badge-step">01</span>
+      <span class="section-title">삭제 자원 데이터 입력</span>
+      <span class="section-hint">자원명 [탭/공백] 경로</span>
     </div>
     <div class="section-body">
-      <div class="search-row">
-        <div class="search-item">
-          <label>배포 날짜</label>
-          <input type="date" class="form-control form-control-sm" v-model="searchForm.date">
-        </div>
-        <div class="search-item" style="flex: 0 0 100px;">
-          <button class="btn btn-primary btn-sm w-100" @click="searchTasks">조회</button>
-        </div>
+      <p class="text-muted mb-2" style="font-size:12px;">삭제할 자원 목록을 "파일명 [탭 또는 공백] 경로" 형식으로 붙여넣으세요.</p>
+      <textarea class="form-control mono" rows="7" v-model="pasteText" placeholder="예: LT0001002.java  \LT\source\ONLINE\LT\src\hi\dbio\cdo\lt\lt0001002\"></textarea>
+      <div class="mt-3">
+        <button type="button" class="btn btn-primary btn-sm px-3" v-on:click="handleImport">테이블로 가져오기</button>
       </div>
     </div>
   </div>
 
-  <!-- STEP 2: 작업의뢰 목록 -->
-  <div class="section-card" v-if="tasks.length > 0">
+  <!-- STEP 2: 편집 -->
+  <div class="section-card" v-bind:class="{ 'section-disabled': !imported }">
     <div class="section-head">
-      <span class="badge-num">2</span>
-      <span class="section-title">작업의뢰 목록</span>
+      <span class="badge-step">02</span>
+      <span class="section-title">데이터 검증 및 편집</span>
+      <span class="section-hint">{{ tableRows.length }} 건</span>
     </div>
     <div class="section-body">
-      <div class="table-container">
-        <table class="table table-hover mb-0" @contextmenu.prevent="onContextMenuTask">
+      <div class="table-container" style="max-height:300px;">
+        <table class="table table-hover mb-0" v-if="tableRows.length > 0">
           <thead class="mono">
-            <tr>
-              <th @click="sortTasks('id')" style="width:60px;">No <span class="sort-icon" :class="getSortClass('id')"><i class="fas" :class="getSortIcon('id')"></i></span></th>
-              <th @click="sortTasks('system_name')" style="width:150px;">시스템명 <span class="sort-icon" :class="getSortClass('system_name')"><i class="fas" :class="getSortIcon('system_name')"></i></span></th>
-              <th @click="sortTasks('prj_mng_no')" style="width:150px;">작업의뢰번호 <span class="sort-icon" :class="getSortClass('prj_mng_no')"><i class="fas" :class="getSortIcon('prj_mng_no')"></i></span></th>
-              <th @click="sortTasks('sdlc_seq')" style="width:100px;">SDLC 번호 <span class="sort-icon" :class="getSortClass('sdlc_seq')"><i class="fas" :class="getSortIcon('sdlc_seq')"></i></span></th>
-              <th @click="sortTasks('transf_name')" style="width:auto;">작업의뢰 정보 <span class="sort-icon" :class="getSortClass('transf_name')"><i class="fas" :class="getSortIcon('transf_name')"></i></span></th>
-              <th @click="sortTasks('transf_cmpl_date')" style="width:130px;">배포일 <span class="sort-icon" :class="getSortClass('transf_cmpl_date')"><i class="fas" :class="getSortIcon('transf_cmpl_date')"></i></span></th>
+            <tr style="font-size:13px;">
+              <th style="width:30%;">자원명</th>
+              <th>경로 (디렉토리)</th>
+              <th style="width:50px;">삭제</th>
             </tr>
           </thead>
           <tbody class="mono">
-            <tr v-for="(task, idx) in tasks" :key="idx" @click="selectTask(task)" :class="{ 'selected-row': selectedTask === task }">
-              <td class="text-center">{{ idx + 1 }}</td>
-              <td class="text-center">{{ task.system_name }}</td>
-              <td class="text-center">{{ task.prj_mng_no }}</td>
-              <td class="text-center">{{ task.sdlc_seq }}</td>
-              <td>{{ task.transf_name }}</td>
-              <td class="text-center">{{ task.transf_cmpl_date }}</td>
+            <tr v-for="(row, index) in tableRows" :key="index">
+              <td><input type="text" class="form-control form-control-sm border-0 bg-transparent" v-model="row.fileName"></td>
+              <td><input type="text" class="form-control form-control-sm border-0 bg-transparent" v-model="row.dirInfo"></td>
+              <td class="text-center">
+                <button type="button" class="btn btn-link text-danger p-0" v-on:click="deleteRow(index)">✕</button>
+              </td>
             </tr>
           </tbody>
         </table>
+        <div class="text-center text-muted p-5" v-else style="font-size:13px;">데이터를 가져오면 목록이 표시됩니다.</div>
+      </div>
+      <div class="mt-3">
+        <button type="button" class="btn btn-outline-secondary btn-sm px-3" v-on:click="addRow">행 추가</button>
       </div>
     </div>
   </div>
 
-  <!-- STEP 3: 상세 자원 목록 -->
-  <div class="section-card" v-if="selectedTask" v-bind:class="{ 'section-disabled': loadingFiles }">
+  <!-- STEP 3: 백업 + 자원정리 -->
+  <div class="section-card" v-bind:class="{ 'section-disabled': tableRows.length === 0 }">
     <div class="section-head">
-      <span class="badge-num">3</span>
-      <span class="section-title">상세 자원 목록 ({{ selectedTask.fileNameCount }} 건)</span>
-      <span class="ml-auto small text-muted" style="font-size:13px;">파일 우클릭 &rarr; [이전 버전 비교]</span>
+      <span class="badge-step">03</span>
+      <span class="section-title">백업 및 자원정리</span>
+      <span class="section-hint">신청서 번호 입력 필수</span>
     </div>
     <div class="section-body">
-      <!-- 2번 섹션과 동일하게 테이블 너비를 100%로 채우기 위해 table-container-details 클래스 사용 -->
-      <div class="table-container-details">
-        <table class="table table-hover mb-0" @contextmenu.prevent="onContextMenuFile">
-          <thead class="mono">
-            <tr>
-              <th style="width:60px;">No</th>
-              <th style="width:250px;">저장경로</th>
-              <th @click="sortFile('fileName')" style="width:auto;">파일명 <span class="sort-icon" :class="getSortClass('fileName')"><i class="fas" :class="getSortIcon('fileName')"></i></span></th>
-              <th @click="sortFile('verIndex')" style="width:80px;">버전 <span class="sort-icon" :class="getSortClass('verIndex')"><i class="fas" :class="getSortIcon('verIndex')"></i></span></th>
-              <th @click="sortFile('realName')" style="width:120px;">작업자 <span class="sort-icon" :class="getSortClass('realName')"><i class="fas" :class="getSortIcon('realName')"></i></span></th>
-            </tr>
-          </thead>
-          <tbody class="mono">
-            <tr v-for="(file, idx) in fileList" :key="idx" @click="selectedFile = file" :class="{ 'selected-row': selectedFile === file }">
-              <td class="text-center">{{ idx + 1 }}</td>
-              <td class="text-left text-truncate" style="max-width: 300px;">{{ file.dirInfo }}</td>
-              <td class="text-left font-weight-bold text-primary">{{ file.fileName }}</td>
-              <td class="text-center">{{ file.verIndex }}</td>
-              <td class="text-center">{{ file.realName }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="row mb-3 align-items-center">
+        <div class="col-auto"><label class="font-weight-bold mb-0" style="font-size:14px;">신청서 번호</label></div>
+        <div class="col-auto">
+          <input type="text" class="form-control form-control-sm mono" style="width:220px;" v-model="taskId" placeholder="예: F20260724-0031">
+        </div>
       </div>
-    </div>
-  </div>
+      <p class="text-muted mb-3" style="font-size:12px;">※ 백업/자원정리 진행 중에 화면을 벗어나면 작업 진행 상황을 확인할 수 없습니다.</p>
 
-  <!-- 우클릭 메뉴 -->
-  <div id="context-menu" ref="contextMenu">
-    <div v-if="menuMode === 'FILE'" @click="handleDiff">
-       <i class="fa fa-code-compare mr-2"></i> 이전 버전 비교
-    </div>
-  </div>
+      <div class="btn-group-custom">
+        <button type="button" class="btn btn-info btn-sm px-3" v-bind:disabled="backingUp" v-on:click="handleBackup">
+          {{ backingUp ? '백업 중...' : (env === 'PROD' ? '[운영] 백업' : '[검증] 백업') }}
+        </button>
+        <button type="button" class="btn btn-success btn-sm px-3" v-bind:disabled="!backedUp || cleaning" v-on:click="handleCleanup">
+          {{ cleaning ? '자원정리 중...' : (env === 'PROD' ? '[운영] 자원정리' : '[검증] 자원정리') }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm px-3" v-bind:disabled="!executed || fetchingLog" v-on:click="handleFetchLog">로그 조회</button>
+      </div>
 
-  <!-- DIFF 모달 -->
-  <div class="modal fade" id="diffModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl resizable-modal" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title font-weight-bold text-dark">파일 버전 비교 (Current vs Previous)</h5>
-          <button type="button" class="close" @click="closeModalDirectly" aria-label="Close">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3 d-flex justify-content-between align-items-center">
-            <div>
-              <span class="badge badge-dark p-2" style="font-size:13px;">대상: {{ diffTarget.fileName }}</span>
-              <span class="ml-2 text-muted" style="font-size:13px;">버전: {{ diffTarget.verIndex }} &rarr; {{ diffTarget.prevVerIndex }}</span>
-            </div>
-          </div>
-          <div class="diff-container">
-            <div class="diff-pane">
-              <div class="diff-header">Current Version</div>
-              <div class="diff-content-area" :style="{ height: (diffData.current.length ? (Math.max(...diffData.current.map(l => l.absoluteIndex)) + 1) * 24 + 'px' : '0') }">
-                <div class="diff-line" v-for="(line, idx) in diffData.current" :class="{'line-removed': line.type === 'removed'}" :style="{ top: line.top + 'px', position: 'absolute', width: '100%' }">
-                  <span class="line-num">{{ line.absoluteIndex + 1 }}</span>
-                  <span class="line-content">{{ line.text }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="diff-pane">
-              <div class="diff-header">Previous Version</div>
-              <div class="diff-content-area" :style="{ height: (diffData.previous.length ? (Math.max(...diffData.previous.map(l => l.absoluteIndex)) + 1) * 24 + 'px' : '0') }">
-                <div class="diff-line" v-for="(line, idx) in diffData.previous" :class="{'line-added': line.type === 'added'}" :style="{ top: line.top + 'px', position: 'absolute', width: '100%' }">
-                  <span class="line-num">{{ line.absoluteIndex + 1 }}</span>
-                  <span class="line-content">{{ line.text }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary px-4" @click="closeModalDirectly">닫기</button>
-        </div>
+      <div class="mt-3" v-if="agentStatus.text" :class="agentStatus.isError ? 'alert alert-danger py-2' : 'alert alert-info py-2'" style="font-size:13px; border-radius:6px;">
+        {{ agentStatus.text }}
+      </div>
+
+      <div v-if="backupLog" class="mt-3">
+        <small class="text-muted mb-1 d-block">백업 결과</small>
+        <pre class="mono log-container log-agent p-3" style="max-height:220px; overflow-y:auto; white-space:pre-wrap;">{{ backupLog }}</pre>
+      </div>
+      <div v-if="agentLog" class="mt-3">
+        <small class="text-muted mb-1 d-block">자원정리 실행 결과</small>
+        <pre class="mono log-container log-agent p-3" style="max-height:260px; overflow-y:auto; white-space:pre-wrap;">{{ agentLog }}</pre>
+      </div>
+      <div v-if="fullLog" class="mt-3">
+        <small class="text-muted mb-1 d-block">전체 로그 파일 내용</small>
+        <pre class="mono log-container p-3" style="background:#fdfcf0; max-height:400px; overflow-y:auto; white-space:pre-wrap;">{{ fullLog }}</pre>
       </div>
     </div>
   </div>
 </div>
 
-<script src="/js/vue.js"></script>
-<script src="/js/jquery.min.3.4.1.js"></script>
-<script src="/js/bootstrap.min.js"></script>
+<!-- SCRIPTS (기존 로직 100% 유지) -->
+<script type="text/javascript" src="/js/vue.js"></script>
+<script type="text/javascript" src="/js/jquery.min.3.4.1.js"></script>
 <script>
 /* ===================== 로직 (기존과 동일) ===================== */
 $(document).ready(function(){
   $("#header").load("/bin/html/menu.html", function(){
-    $("#menuName").html("소프트매니저 자원 관리");
+    $("#menuName").html("형상 자원 정리");
   });
 });
+var TASK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+function buildFullPath(fileName, dirInfo) {
+  var dir = (dirInfo || "").replace(/\\/g, "/").replace(/\/+$/, "");
+  var name = (fileName || "").trim();
+  return dir + "/" + name;
+}
+function parseToRows(rawText) {
+  var rows = [];
+  var lines = rawText.split(/\r\n|\n|\r/);
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].replace(/\r/g, "");
+    if (line.trim() === "" || line.trim().indexOf("#") === 0) continue;
+    var m = line.match(/^(\S+)[ \t]+(.*)$/);
+    if (!m) continue;
+    var fileName = m[1];
+    var dirInfo = m[2].replace(/[ \t]+$/, "");
+    if (!fileName || !dirInfo) continue;
+    rows.push({ fileName: fileName, dirInfo: dirInfo });
+  }
+  return rows;
+}
 new Vue({
   el: "#app",
   data: {
-    searchForm: { date: '' },
-    tasks: [],
-    sortConfig: { key: null, order: null },
-    selectedTask: null,
-    fileList: [],
-    selectedFile: null,
-    loadingFiles: false,
-    menuMode: '',
-    diffTotalCurrent: 0,
-    diffTotalPrevious: 0,
-    diffTarget: { fileName: '', verIndex: '', prevVerIndex: '' },
-    diffData: { current: [], previous: [] },
-    fileSortConfig: { key: null, order: null } 
+    env: "PROD",
+    pasteText: "",
+    tableRows: [],
+    imported: false,
+    taskId: "",
+    backingUp: false,
+    backedUp: false,
+    cleaning: false,
+    executed: false,
+    fetchingLog: false,
+    backupLog: "",
+    agentLog: "",
+    fullLog: "",
+    agentStatus: { text: "", isError: false },
   },
-  mounted: function() {
-    const today = new Date().toISOString().split('T')[0];
-    this.searchForm.date = today;
+  watch: {
+    env: function () {
+      this.backedUp = false;
+      this.executed = false;
+      this.backupLog = "";
+      this.agentLog = "";
+      this.fullLog = "";
+      this.agentStatus = { text: "", isError: false };
+    },
   },
   methods: {
-    applySort: function(list, key, config) {
-      if (config.key === key) {
-        config.order = config.order === 'asc' ? 'desc' : 'asc';
-      } else {
-        config.key = key;
-        config.order = 'asc';
+    handleImport: function () {
+      this.tableRows = parseToRows(this.pasteText);
+      this.imported = true;
+      this.backedUp = false;
+      this.executed = false;
+      this.backupLog = "";
+      this.agentLog = "";
+      this.fullLog = "";
+      this.agentStatus = { text: "", isError: false };
+    },
+    addRow: function () { this.tableRows.push({ fileName: "", dirInfo: "" }); },
+    deleteRow: function (index) { this.tableRows.splice(index, 1); },
+    handleBackup: function () {
+      var self = this;
+      if (this.backingUp) return;
+      var tid = (this.taskId || "").trim();
+      if (!tid) { this.agentStatus = { text: "TASK_ID를 먼저 입력하세요.", isError: true }; return; }
+      if (!TASK_ID_PATTERN.test(tid)) {
+        this.agentStatus = { text: "TASK_ID는 영문/숫자/-/_ 만 가능해요.", isError: true };
+        return;
       }
-      list.sort((a, b) => {
-        let valA = a[key];
-        let valB = b[key];
-        if (typeof valA === 'string') {
-            valA = valA.toLowerCase();
-            valB = valB.toLowerCase();
-        }
-        if (valA < valB) return config.order === 'asc' ? -1 : 1;
-        if (valA > valB) return config.order === 'asc' ? 1 : -1;
-        return 0;
-      });
-    },
-    sortTasks: function(key) {
-      this.applySort(this.tasks, key, this.sortConfig);
-    },
-    getSortClass: function(key) {
-      if (this.sortConfig.key !== key) return '';
-      return this.sortConfig.order === 'asc' ? 'sort-asc' : 'sort-desc';
-    },
-    getSortIcon: function(key) {
-      if (this.sortConfig.key !== key) return 'fa-sort';
-      return this.sortConfig.order === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down';
-    },
-    sortFile: function(key) {
-      this.applySort(this.fileList, key, this.fileSortConfig);
-    },
-    getSortClass: function(key) {
-      if (this.fileSortConfig.key !== key) return '';
-      return this.fileSortConfig.order === 'asc' ? 'sort-asc' : 'sort-desc';
-    },
-    getSortIcon: function(key) {
-      if (this.fileSortConfig.key !== key) return 'fa-sort';
-      return this.fileSortConfig.order === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down';
-    },
-    searchTasks: function() {
-      fetch("/api/resource-management/search-tasks.json", {
+      if (this.tableRows.length === 0) {
+        this.agentStatus = { text: "백업할 자원이 없어요.", isError: true };
+        return;
+      }
+      if (this.env === "PROD") {
+        var ok = window.confirm("운영(PROD) 자원을 백업합니다. 계속하시겠습니까?");
+        if (!ok) return;
+      }
+      var paths = this.tableRows.map(function (row) { return buildFullPath(row.fileName, row.dirInfo); });
+      this.backingUp = true;
+      this.backupLog = "";
+      this.agentStatus = { text: "백업 시작 중... (" + this.env + ")", isError: false };
+      fetch("/api/resource-cleanup/config-backup.json", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(this.searchForm)
+        body: JSON.stringify({ env: this.env, taskId: tid, paths: paths }),
       })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          this.tasks = data.list;
-          this.sortConfig = { key: null, order: null };
-        } else {
-          alert("조회 실패: " + data.message);
-        }
-      })
-      .catch(err => console.error("Error:", err));
-    },
-    selectTask: function(task) {
-      this.selectedTask = task;
-      this.selectedFile = null;
-      this.loadFileList();
-    },
-    loadFileList: function() {
-      this.loadingFiles = true;
-      fetch("/api/resource-management/search-files.json", {
-       method: "POST",
-       headers: { "Content-Type": "application/json" },
-       body: JSON.stringify({
-        prj_mng_no: this.selectedTask.prj_mng_no,
-        sdlc_seq: this.selectedTask.sdlc_seq
-       })
-     })
-     .then(res => res.json())
-     .then(data => {
-       if (data.success) {
-        this.fileList = data.list;
-        this.selectedTask.fileNameCount = this.fileList.length;
-       } else {
-         alert("자원조회 목록 실패: " + data.message);
-       }
-       this.loadingFiles = false;
-     })
-     .catch(err => {
-       console.error("Error:", err);
-       this.loadingFiles = false;
-     });
-    },
-    onContextMenuTask: function(e) { this.menuMode = 'TASK'; this.showContextMenu(e); },
-    onContextMenuFile: function(e) {
-       if (!this.selectedFile) return;
-       const allowedExt = ['java','xml','jsp','js','css','html','properties','sql','txt','json','yml','yaml','sh','bat','md'];
-       const ext = this.selectedFile.fileName.split('.').pop().toLowerCase();
-       if (!allowedExt.includes(ext)) {
-         alert("이 파일 형식(." + ext + ")은 비교를 지원하지 않습니다.");
-         return;
-       }
-       this.menuMode = 'FILE';
-       this.showContextMenu(e);
-     },
-    showContextMenu: function(e) {
-      const menu = this.$refs.contextMenu;
-      menu.style.display = 'block';
-      menu.style.left = e.pageX + 'px';
-      menu.style.top = e.pageY + 'px';
-    },
-    closeModalDirectly: function() {
-      const modalEl = document.getElementById('diffModal');
-      modalEl.style.display = 'none';
-      modalEl.classList.remove('show');
-      document.body.classList.remove('modal-open');
-    },
-    handleDiff: function() {
-      this.hideContextMenu();
-      if (!this.selectedFile) return;
-      const target = this.selectedFile;
-      this.diffTarget.fileName = target.fileName;
-      this.diffTarget.verIndex = target.verIndex;
-      this.diffTarget.prevVerIndex = (parseInt(target.verIndex) - 1).toString();
-      const modalEl = document.getElementById('diffModal');
-      const modalDialogEl = modalEl.querySelector('.modal-dialog');
-      modalEl.style.display = 'block';
-      modalEl.classList.add('show');
-      document.body.classList.add('modal-open');
-      modalEl.removeAttribute('aria-hidden');
-      this.initAbsoluteResize(modalDialogEl);
-      fetch("/api/resource-management/compare-diff-range.json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          dirInfo: target.dirInfo,
-          fileName: target.fileName,
-          currVer: this.diffTarget.verIndex,
-          prevVer: this.diffTarget.prevVerIndex,
-          startLine: 0,
-          endLine: 200
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          const LINE_HEIGHT = 22;
-          this.diffData.current = data.currentLines.map(line => ({
-              ...line,
-              top: line.absoluteIndex * LINE_HEIGHT
-          }));
-          this.diffData.previous = data.previousLines.map(line => ({
-              ...line,
-              top: line.absoluteIndex * LINE_HEIGHT
-          }));
-        } else {
-          alert("비교 실패: " + data.message);
-        }
-      })
-      .catch(err => console.error("Error:", err));
-    },
-    initAbsoluteResize: function(el) {
-      const oldHandle = el.querySelector('.custom-resize-handle');
-      if (oldHandle) oldHandle.remove();
-      const handle = document.createElement('div');
-      handle.className = 'custom-resize-handle';
-      Object.assign(handle.style, {
-        width: '30px',
-        height: '30px',
-        position: 'absolute',
-        right: '0',
-        bottom: '0',
-        cursor: 'nwse-resize',
-        backgroundColor: '#18181b',
-        clipPath: 'polygon(100% 0, 100% 100%, 0 100%)',
-        zIndex: '10000',
-        pointerEvents: 'auto'
-      });
-      el.style.position = 'relative';
-      el.appendChild(handle);
-      handle.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const startX = e.clientX;
-        const startY = e.clientY;
-        const startWidth = el.offsetWidth;
-        const startHeight = el.offsetHeight;
-        const onMouseMove = (moveEvent) => {
-          const newWidth = startWidth + (moveEvent.clientX - startX);
-          const newHeight = startHeight + (moveEvent.clientY - startY);
-          if (newWidth > 500) el.style.width = newWidth + 'px';
-          if (newHeight > 400) {
-            el.style.height = newHeight + 'px';
-            const container = el.querySelector('.diff-container');
-            if (container) {
-                container.style.height = (newHeight - 140) + 'px';
-            }
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (!data.success) {
+            self.agentStatus = { text: "백업 시작 실패: " + (data.message || "알 수 없는 오류"), isError: true };
+            self.backingUp = false;
+            return;
           }
-        };
-        const onMouseUp = () => {
-          document.removeEventListener('mousemove', onMouseMove);
-          document.removeEventListener('mouseup', onMouseUp);
-        };
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-      }, true);
+          self.agentStatus = { text: "백업 중... (" + self.env + ", 건건이 처리라 시간이 걸릴 수 있어요)", isError: false };
+          self.pollJobStatus("backup", tid, function (finalData) {
+            self.backingUp = false;
+            self.backedUp = true;
+            var ok = finalData.status === "SUCCESS";
+            self.agentStatus = { text: ok ? "백업 완료" : "백업 일부 실패 (로그 확인)", isError: !ok };
+          });
+        })
+        .catch(function (err) {
+          self.agentStatus = { text: "백업 요청 실패: " + err.message, isError: true };
+          self.backingUp = false;
+        });
     },
-    hideContextMenu: function() { this.$refs.contextMenu.style.display = 'none'; }
-  }
+    handleCleanup: function () {
+      var self = this;
+      if (this.cleaning) return;
+      var tid = (this.taskId || "").trim();
+      if (this.env === "PROD") {
+        var ok = window.confirm("운영(PROD) 자원을 실제로 정리(삭제)합니다. 계속하시겠습니까?");
+        if (!ok) return;
+      }
+      var paths = this.tableRows.map(function (row) { return buildFullPath(row.fileName, row.dirInfo); });
+      this.cleaning = true;
+      this.agentLog = "";
+      this.agentStatus = { text: "자원정리 시작 중... (" + this.env + ")", isError: false };
+      fetch("/api/resource-cleanup/config-cleanup.json", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ env: this.env, taskId: tid, paths: paths }),
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (!data.success) {
+            self.agentStatus = { text: "자원정리 시작 실패: " + (data.message || "알 수 없는 오류"), isError: true };
+            self.cleaning = false;
+            return;
+          }
+          self.agentStatus = { text: "자원정리 중... (" + self.env + ", 건건이 처리라 시간이 걸릴 수 있어요)", isError: false };
+          self.pollJobStatus("cleanup", tid, function (finalData) {
+            self.cleaning = false;
+            self.executed = true;
+            var ok = finalData.status === "SUCCESS";
+            self.agentStatus = { text: ok ? "자원정리 완료" : "자원정리 일부 실패 (로그 확인)", isError: !ok };
+          });
+        })
+        .catch(function (err) {
+          self.agentStatus = { text: "요청 실패: " + err.message, isError: true };
+          self.cleaning = false;
+        });
+    },
+    pollJobStatus: function (jobType, taskId, onDone) {
+      var self = this;
+      var statusUrl = jobType === "backup"
+        ? "/api/resource-cleanup/config-backup-status.json"
+        : "/api/resource-cleanup/config-cleanup-status.json";
+      var lastLogLength = 0;
+      this._pollTimer = setInterval(function () {
+        fetch(statusUrl + "?env=" + encodeURIComponent(self.env) + "&taskId=" + encodeURIComponent(taskId) + "&since=" + lastLogLength)
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (!data.success) {
+              clearInterval(self._pollTimer);
+              if (jobType === "backup") self.backingUp = false; else self.cleaning = false;
+              self.agentStatus = { text: "상태 조회 실패: " + (data.message || "알 수 없는 오류"), isError: true };
+              return;
+            }
+            if (data.log) {
+              if (jobType === "backup") self.backupLog += data.log;
+              else self.agentLog += data.log;
+            }
+            if (typeof data.logLength === "number") lastLogLength = data.logLength;
+            if (data.status === "RUNNING") return;
+            clearInterval(self._pollTimer);
+            onDone(data);
+          })
+          .catch(function (err) {
+            clearInterval(self._pollTimer);
+            if (jobType === "backup") self.backingUp = false; else self.cleaning = false;
+            self.agentStatus = { text: "상태 폴링 실패: " + err.message, isError: true };
+          });
+      }, 3000);
+    },
+    handleFetchLog: function () {
+      var self = this;
+      var tid = (this.taskId || "").trim();
+      this.fetchingLog = true;
+      this.agentStatus = { text: "로그 조회 중...", isError: false };
+      fetch("/api/resource-cleanup/log.json?env=" + encodeURIComponent(this.env) + "&taskId=" + encodeURIComponent(tid))
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.success) {
+            self.fullLog = data.log;
+            self.agentStatus = { text: "로그 조회 완료", isError: false };
+          } else {
+            self.agentStatus = { text: "로그 조회 실패: " + (data.message || "알 수 없는 오류"), isError: true };
+          }
+        })
+        .catch(function (err) {
+          self.agentStatus = { text: "로그 조회 요청 실패: " + err.message, isError: true };
+        })
+        .finally(function () { self.fetchingLog = false; });
+    },
+  },
+  beforeDestroy: function () {
+    if (this._pollTimer) clearInterval(this._pollTimer);
+  },
 });
 </script>
 </body>
 </html>
-2. 관련 클래스 
-package hi.framework.deploymanager.resourceDown.service;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.stereotype.Service;
-
-import com.wbjsoft.lib.StFileInfo;
-
-import hi.framework.deploymanager.image.dao.ProjectMngNoDao;
-import hi.framework.deploymanager.resourceDown.entity.FileDTO;
-import hi.framework.deploymanager.resourceDown.entity.TaskDTO;
-import hi.framework.deploymanager.server.entity.DeployInfo;
-import hi.framework.deploymanager.server.job.CommonSyncService;
-
-@Service
-public class DiffResourceService {
-	private static final Logger logger = LogManager.getLogger(DiffResourceService.class);
-	private static final String PROPERTIES_CLASSPATH = "server.properties"; 
-	@Autowired
-	private CommonSyncService commonSyncService;
-	@Autowired
-	private ProjectMngNoDao projectMngNoDao;
-	
-	private Properties props;
-	@PostConstruct
-	public void init() throws Exception {
-		props = PropertiesLoaderUtils.loadAllProperties(PROPERTIES_CLASSPATH);
-	}
-	private String get(String key) {
-		String v = props.getProperty(key);
-		if (v == null) {
-			throw new IllegalStateException("server.properties 에 " + key + " 값이 없습니다.");
-		}
-		return v;
-	}
-	private String resolveTmpCheckoutPath() {
-		return get("deploy.checkout.path");
-	}
-	/** 삭제(자원정리) 작업을 백그라운드로 시작 (이 작업만의 로그인 -> 건건이 delete -> 이 작업만의 로그아웃) */
-	protected String login(DeployInfo deployInfo) {
-		String session = "";
-		try {
-			session = com.wbjsoft.module.softmanagerapi.LoginSession(deployInfo.getSoftmanager_ip(), deployInfo.getSoftmanager_port(), "frmadmin1", "admin1!@");
-			
-			if (session.equals("NONE")) {
-				// logger.error("로그인되지 않았습니다.");
-			}
-			// logger.info("로그인 했습니다");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return session;
-	}
-
-	protected void logout(String session) {
-		try {
-			if (com.wbjsoft.module.softmanagerapi.LogOutSession(session)) {
-				// logger.error("연결을 종료합니다.");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public List<TaskDTO> selectTasksByDate(String searchDate) throws Exception {
-		try {
-			List<TaskDTO> selectTasksByDate = projectMngNoDao.selectTasksByDate(searchDate);
-			
-			logger.info("[작업의뢰 조회 ] searchDate={} size={} ", searchDate, selectTasksByDate.size() );
-			return selectTasksByDate;
-		} catch (Exception e) {
-			logger.error("[작업의뢰 조회 실패] searchDate={} 원인={} ", searchDate, e.getMessage(), e);
-			return null;
-		}
-	}
-	
-	public List<FileDTO> selectFilesByDescr(String descr) throws Exception {
-		logger.info("[형상자원 비교- 시작] taskId={} ", descr );
-		List<FileDTO> fileList = new ArrayList<>();
-		String token = null;
-		try {
-			DeployInfo deployInfo  = commonSyncService.getDeployInfo();
-			if(deployInfo == null ) {
-				throw new Exception("[형상자원-비교 실패] deployInfo is null..");
-			}
-			try {
-				token = login(deployInfo); 
-				if(token.equals("NONE")){
-					throw new Exception("형상서버 연결 실패");
-				}
-				logger.info("[형상서버 연결 성공] "+deployInfo.getSoftmanager_ip());
-			} catch (Exception loginError) {
-				logger.error("[형상자원 비교- 실패] taskId={} 원인={}", descr, loginError.getMessage(), loginError);
-			}
-			// 1. 데이터 결과물을 담을 리스트
-			// 2. 배포 마스터 정보 조회 (UPTDID와 USID 추출)
-			String masterSql = "SELECT UPTDID, USID FROM softmanager.dbo.updatetd WHERE DESCR = '" + descr + "'";
-			String[][] masterArray = com.wbjsoft.module.softmanagerapi.DBSelect(token, masterSql);
-
-			// 데이터가 없는 경우 체크 (헤더 제외하고 데이터가 있는지 확인)
-			if (masterArray == null || masterArray.length <= 2) {
-				logger.error("[형상자원 비교- 실패] 배포 마스터 정보가 없습니다.");
-			}
-			logger.info("[형상자원 비교- 1.배포 마스터 정보 조회] taskId={} masterArray.length={}", descr ,masterArray.length);
-			// 3. 마스터 데이터를 순회하며 상세/사용자 정보 매칭
-			for (int i = 2; i < masterArray.length; i++) {
-				String uptdid = masterArray[i][0];
-				String usid = masterArray[i][1];
-
-				// [STEP 1] 상세 정보 조회 (updatedtd)
-				// 조건: DESTDIR NOT LIKE 'QA%' AND VERINDEX IS NOT NULL
-				String detailSql = "SELECT DESTDIR, FILENAME, VERINDEX FROM softmanager.dbo.updatedtd "
-						+ "WHERE UPTDID = '" + uptdid + "' "
-						+ "AND DESTDIR NOT LIKE 'QA%' "
-						+ "AND VERINDEX IS NOT NULL";
-				String[][] detailArray = com.wbjsoft.module.softmanagerapi.DBSelect(token, detailSql);
-
-				// 상세 데이터가 없으면 다음 마스터로 넘어감
-				if (detailArray == null || detailArray.length <= 1) continue;
-				logger.info("[형상자원 비교- 2.정보 매칭] taskId={} uptdid={} usid={}", descr, uptdid, usid);
-
-				// [STEP 2] 사용자 정보 조회 (usermt)
-				String userSql = "SELECT LOGINID, REALNAME FROM softmanager.dbo.usermt WHERE USID = '" + usid + "'";
-				String[][] userArray = com.wbjsoft.module.softmanagerapi.DBSelect(token, userSql);
-
-				// 사용자 정보가 없을 경우를 대비한 기본값
-				String realName = ""; 
-				if (userArray != null && userArray.length > 2) {
-					realName = userArray[2][1]; // REALNAME 추출
-				}
-				// [STEP 3] 상세 데이터(파일 단위)를 순회하며 DTO 생성
-				for (int j = 2; j < detailArray.length; j++) {
-					String destDir = detailArray[j][0];
-					String fileName = detailArray[j][1];
-					String verIndex = detailArray[j][2];
-
-					// 요청하신 생성자 호출: public FileDTO(String dirInfo, String fileName, String verIndex, String realName)
-					FileDTO dto = new FileDTO(destDir, fileName, verIndex, realName);
-					logger.info("[형상자원 비교- 3.상세 데이터] taskId={} destDir={} fileName={} verIndex={}", descr, destDir, fileName, verIndex);
-
-					fileList.add(dto);
-				}
-			}
-
-			if(fileList.size() >0 )
-				Collections.sort(fileList, (a, b) -> a.getFileName().compareTo(b.getFileName()));
-
-		} catch (Exception e) {
-			logger.error("[형상자원 비교-실패] taskId={} 원인={}", descr, e.getMessage(), e);
-			throw e;
-		} finally {
-			try {
-				logout(token); 
-			} catch (Exception logoutError) {
-				logger.error("[형상자원 비교-실패] taskId={} 원인={}", descr, logoutError.getMessage(), logoutError);
-			}
-		}
-		return fileList;
-	}
-	
-	public String resolveCheckedOutPath(String dirInfoi, String fileName, String ver) throws Exception {
-		
-		String checkoutRootPath = resolveTmpCheckoutPath()+File.separator+UUID.randomUUID().toString();
-		String checkedOutPath = "";
-		logger.info("[형상자원 체크아웃] dirInfo={} fileName={} version={}", dirInfoi,fileName,ver );
-		String token = null;
-		String dirInfo = null;
-		try {
-			DeployInfo deployInfo  = commonSyncService.getDeployInfo();
-			if(deployInfo == null ) {
-				throw new Exception("[형상자원 체크아웃] deployInfo is null..");
-			}
-			try {
-				token = login(deployInfo); 
-				if(token.isEmpty() || token.equals("NONE")){
-					throw new Exception("형상서버 연결 실패");
-				}
-			} catch (Exception loginError) {
-				logger.error("[형상자원 체크아웃] 형상서버 Login 에러. 원인={}", loginError.getMessage(), loginError);
-			}
-			
-			dirInfo = dirInfoi.replace("/", "\\");
-			if(dirInfo.startsWith("\\")){
-				dirInfo = dirInfo.substring(1);
-			}
-			if(!dirInfo.endsWith("\\")) {
-				dirInfo = dirInfo+"\\";
-			}
-			StFileInfo cInfo = com.wbjsoft.module.softmanagerapi.GetFileInfo(token, dirInfo, fileName); 
-			cInfo.setLASTVERINDEX(Integer.valueOf(ver)); //[파일버전인덱스] -1
-			checkedOutPath = checkoutRootPath + dirInfo + fileName;
-			cInfo.setLocalFileName(checkedOutPath);
-			int checkOut = com.wbjsoft.module.softmanagerapi.CheckOutByFileInfo(token, cInfo);
-			if(checkOut >= 0 && new File(checkedOutPath).exists()) {
-				logger.info("[형상자원 체크아웃 성공] dirInfo={} fileName={} version={} checkedOutPath={}", dirInfo,fileName,ver, checkedOutPath );
-			}else {
-				logger.error("[형상자원 체크아웃 실패] dirInfo={} fileName={} version={} result={} checkedOutPath={}", dirInfo,fileName,ver, checkOut, checkedOutPath );
-			}
-		} catch (Exception e) {
-			logger.error("[형상자원 체크아웃]  dirInfo={} fileName={} version={} 원인={}", dirInfo,fileName,ver, e.getMessage(), e);
-			throw e;
-		} finally {
-			try {
-				logout(token); 
-			} catch (Exception logoutError) {
-				logger.error("[형상자원 체크아웃] 형상서버 Logout 에러. 원인={}", logoutError.getMessage(), logoutError);
-			}
-		}
-		return checkedOutPath;
-	
-	}
-
-
-}
-
-
-
-내가 원하는 사항은 
-모달 화면에 두파일의 차이가 노란색으로 차이가 나야하고 
-스크롤을 했을때 동시에 파일 위치가 바뀌도록 
-일반적인  머지 툴로 진화했음좋겠어 
+자원 정리 화면 마냥 두번째 탭에 당일 이력 조회 탭을 두어 
+ cleanupResourceService.saveUploadRecords(
+	                request.getEnv(), request.getTaskId(), request.getApplicant(), regUser, uploaded);
+					 이런식으로 데이터를 넣을거야 
+					 이걸 넣으려면 
+					 첫번째 탭에도 신청자 텍스트 박스가 하나더 생겨야해
+					 
