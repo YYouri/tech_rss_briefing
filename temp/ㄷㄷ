@@ -1,162 +1,702 @@
-<!-- 수정된 menu.html -->
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.util.List"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 
 <!DOCTYPE html>
-
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>Menu Test</title>
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/css/font-awesome/css/all.min.css" rel="stylesheet">
-    <link href="/css/app-theme.css" rel="stylesheet">
-    <style>
-        /* 권한에 따라 메뉴를 숨기기 위한 기본 스타일 /
-        .auth-menu { display: none; }
-        / 메뉴바가 본문과 겹치지 않도록 설정 */
-        #menuItem { width: 100%; }
-    </style>
-</head>
-<body>
-    <!-- [수정] <form> 태그를 제거했습니다. 메뉴는 데이터를 전송하는 양식이 아니므로 form이 있으면 동작이 꼬입니다. -->
-    <div id="menuItem" class="container-fluid">
-        <nav class="navbar navbar-expand-lg custom-navbar">
-            <!-- 브랜드 영역 -->
-            <a class="navbar-brand" href="javascript:void(0)" onclick="location.href='/imageHomeProcess.json'">배포 관리 시스템</a>
-            
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+<meta charset="UTF-8">
+<title>이미지 배포</title>
 
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto" id="main-menu-list">
-                    <li class="nav-item active">
-                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='/imageHomeProcess.json'"><i class="fas fa-home"></i> Home</a>
-                    </li>
-                    
-                    <!-- [권한: admin OR user] 공통 메뉴 -->
-                    <li class="nav-item auth-menu user-admin-menu">
-                        <a class="nav-link" href="javascript:void(0)" onclick="myFunc()"> (구)배포 로그 조회</a>
-                    </li>
-                    <li class="nav-item auth-menu user-admin-menu">
-                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='/logViewerProcess.json'">배포 로그 조회</a>
-                    </li>
+<script type="text/javascript" src="/js/vue.js"></script>
+<script type="text/javascript" src="/js/vue-router.js"></script>
+<script type="text/javascript" src="/js/axios.js"></script>
+<script type="text/javascript" src="/js/moment.js"></script>
+<script type="text/javascript" src="/js/jquery-3.6.0.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.js"></script>
+<script type="text/javascript" src="/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/js/zTree/jquery.ztree.all-3.5.js"></script>
+<script type="text/javascript" src="/js/sweetalert/sweetalert2.all.js"></script>
+<script type="text/javascript" src="/js/sweetalert/promise.min.js"></script>
 
-                    <!-- [권한: admin] 전용 메뉴 -->
-                    <li class="nav-item auth-menu admin-only-menu">
-                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='/AgentCheckProcess.json'">Agent 모니터링</a>
-                    </li>
+<link href="../css/bootstrap.min.css" rel="stylesheet">
+<link href="../css/jquery-ui.min.css" rel="stylesheet">
+<link href="../css/zTreeStyle/zTreeStyle.css" rel="stylesheet">
+<link href="../css/app-theme.css" rel="stylesheet">
+<link href="../css/font-awesome/css/all.min.css" rel="stylesheet">
 
-                    <!-- 배포 설정 관리 (Dropdown) -->
-                    <li class="nav-item dropdown auth-menu admin-only-menu">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown1" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 
-                            배포 설정 관리 
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdown1">
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/MetaProcess.json'">메타 정보 관리</a>
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/ConfigProcess.json'">시스템별 정보 관리</a>
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/AgentProcess.json'">Agent 정보 관리</a>
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/imageAuthProcess.json'">이미지 배포 관리</a>
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/ApSchedule.json'">AP스케줄 관리</a>
-                        </div>
-                    </li>
+<style>
+    :root {
+        --bg-main: #fafafa;
+        --card: #ffffff;
+        --border: #e4e4e7;
+        --border-strong: #d4d4d8;
+        --text: #18181b;
+        --text-muted: #71717a;
+        --text-faint: #a1a1aa;
+        --primary: #18181b;
+        --primary-hover: #27272a;
+        --radius-md: 6px;
+        --radius-lg: 10px;
+    }
 
-                    <!-- 계정 관리 (Dropdown) -->
-                    <li class="nav-item dropdown auth-menu admin-only-menu">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAcc" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">계정 관리</a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdownAcc">
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/Imsync.json'">계정 동기화 관리</a>
-                        </div>
-                    </li>
+    body { background-color: var(--bg-main); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin:0; }
+    #pageWrap { max-width: 1600px; margin: 30px auto; padding: 0 24px; }
 
-                    <!-- 자원 관리 (Dropdown) -->
-                    <li class="nav-item dropdown auth-menu admin-only-menu">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownRes" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">자원 관리</a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdownRes">
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/resDownloadProcess.json'">배포 자원 다운로드</a>
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/DiffSoftmResource.json'">배포 자원 조회</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/CleanCisResource.json'">기간계 서버 자원 정리</a>
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/CleanSoftmResource.json'">형상 서버 자원 정리</a>
-                        </div>
-                    </li>
+    .page-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .page-header .eyebrow { font-size: 12px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; }
+    .page-header h4 { font-size: 1.5rem; font-weight: 600; margin: 0; }
 
-                    <!-- 이미지 배포 (Dropdown) -->
-                    <li class="nav-item dropdown auth-menu user-admin-menu">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown3" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 이미지 배포 </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdown3">
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/imageProcess.json'">이미지 배포</a>
-                        </div>
-                    </li>
+    /* [수정] 좌우 섹션 너비를 동일하게: flex 비율 1:1, min-width도 동일 */
+    .main-content-layout { display: flex; gap: 24px; align-items: stretch; }
+    .card-left { flex: 1; min-width: 480px; display: flex; flex-direction: column; }
+    .card-right { flex: 1; min-width: 480px; display: flex; flex-direction: column; }
 
-                    <!-- 배포 지원 기능 (Dropdown) -->
-                    <li class="nav-item dropdown auth-menu special-user-menu">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownSpecial" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">배포 지원 기능</a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdownSpecial">
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/TestProcess.json'">배포 태스크 호출</a>
-                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/queryProcess.json'">Query Execute</a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
+    .section-box {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    .section-head {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+    }
+    .section-head .badge-num {
+        background: var(--info-bg); color: var(--text); border: 1px solid var(--border);
+        width: 22px; height: 22px; border-radius: 6px;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 600; margin-right: 10px;
+    }
+    .section-head .title { font-weight: 600; font-size: 14px; }
+    .section-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
 
-            <!-- 사용자 영역 -->
-            <div class="ml-auto">
-                <span class="navbar-user" id="user-name" style="color: var(--text-main); padding-right: 15px;"></span>
-                <button class="btn-action" type="button" onclick="location.href='/logoutProcess.json'">
-                    <i class="fas fa-sign-out-alt" style="margin-right:4px; font-size:12px;"></i> 로그아웃
-                </button>
-            </div>
-        </nav>
+    .config-row-1 { display: flex; gap: 15px; margin-bottom: 20px; }
+    .config-row-1 .form-group { flex: 1; margin-bottom: 0; }
+
+    .vertical-stack { display: flex; flex-direction: column; gap: 20px; margin-top: 10px; }
+
+    .btn-group-custom { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--radius-md); overflow: hidden; width: 100%; }
+    .btn-group-custom input[type="radio"] { display: none; }
+    .btn-group-custom label {
+        flex: 1; text-align: center; padding: 6px 0; font-size: 13px; cursor: pointer; margin-bottom: 0;
+        background-color: #fff; color: var(--text-muted); transition: all 0.2s;
+        border-right: 1px solid var(--border-strong); line-height: 1.5;
+    }
+    .btn-group-custom label:last-child { border-right: none; }
+    .btn-group-custom input[type="radio"]:checked + label { background-color: var(--primary); color: #fff; font-weight: 500; }
+
+    .form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+    .form-control-custom { width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); font-size: 13px; box-sizing: border-box; }
+
+    .file-list-area { height: 180px; border: 1px solid var(--border); border-radius: var(--radius-md); overflow-y: auto; background: #fafafa; padding: 10px; }
+    #treeDemo { height: 100%; min-height: 550px; border: none; padding: 10px; }
+
+    #rMenu { position: absolute; display: none; background-color: #ffffff; border: 1px solid var(--border-strong); box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; border-radius: var(--radius-md); padding: 4px; min-width: 130px; }
+    #rMenu ul { list-style: none; padding: 0; margin: 0; }
+    #rMenu ul li { padding: 8px 12px; cursor: pointer; font-size: 13px; color: var(--text); border-radius: 4px; white-space: nowrap; }
+    #rMenu ul li:hover { background-color: var(--accent); color: var(--primary); }
+
+    .btn-primary-custom { background: var(--primary); color: white; border: none; width: 100%; }
+    .btn-primary-custom:hover { background: var(--primary-hover); color: white; }
+    /* [삭제됨] .tree-overlay - 안 쓰이는 데다, 켜지면 트리 전체 클릭/우클릭을 가로채서 문제를 일으키는 요소라 제거함 */
+</style>
+
+<script type="text/javascript" src="/js/view/zTree.js"></script>
+<script type="text/javascript" src="/js/view/image.js"></script>
+
+<body >
+<header id="header"><jsp:include page="/bin/menu.jsp" flush="false"/></header>
+
+<div id="pageWrap">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">이미지 배포</div>
+            <h4>이미지 배포 등록 - ${loginInfo.getResponse_username()}</h4>
+        </div>
+        <a href="http://developer.cis.co.kr/devkit/temp/ImageDeployManual/%ec%9d%b4%eb%af%b8%ec%a7%80%20%eb%b0%b0%ed%8f%ac%20%ec%82%ac%ec%9a%a9%20%eb%a9%94%eb%89%b4%ec%96%bc.pptx" target="_blank" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-book"></i> 사용자 매뉴얼
+        </a>
     </div>
-    <script src="/js/jquery.min.3.4.1.js"></script> 
-    <script src="/js/popper.min.1.16.1.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script type="text/javascript">
-        function loadUserInfoAndMenu() {
-            $.ajax({
-                url: '/getUserInfo.json',
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    if (data) {
-                        $('#user-name').text(data.response_username);
-                        const groupId = data.response_group_id;
-                        const userId = data.response_user_Id;
-                        if (groupId === 'admin' || groupId === 'user') {
-                            $('.user-admin-menu').show();
-                        }
-                        if (groupId === 'admin') {
-                            $('.admin-only-menu').show();
-                        }
-                        if (userId === 'IB1192' || userId === 'IB1117') {
-                            $('.special-user-menu').show();
-                        }
-                    } else {
-                        $('#user-name').text("Guest");
-                    }
-                },
-                error: function() {
-                    $('#user-name').text("Error");
-                }
-            });
-        }
 
-        // [핵심 수정 부분]
-        $(document).ready(function() {
-            // 1. 권한 로드
-            loadUserInfoAndMenu();
+    <form id="imageUploadForm" method="post">
+        <input type="hidden" id="pmsno" name="pmsno" value=""/>
+        <input type="hidden" id="sdlc" name="sdlc" value=""/>
+        <input type="hidden" id="shell" name="shell" value=""/>
+        <input type="hidden" id="syscode" name="syscode" value=""/>
+        <input type="hidden" id="content" name="content" value=""/>
+        <input type="hidden" id="existQA" name="existQA" value=""/>
+        <c:if test="${imageDeployUserInfo.size() > 0}">
+            <input type="hidden" id="operatorConfirm" name="operatorConfirm" value="${imageDeployUserInfo.get(0).getOperator_id()}"/>
+        </c:if>
 
-            // 2. [이벤트 위임] 메뉴 클릭(Dropdown)이 안 될 때를 대비한 강제 바인딩
-            // 메뉴가 나중에 로드되어도 'document'가 클릭을 감지해서 처리합니다.
-            $(document).on('click', '.dropdown-toggle', function (e) {
-                // Bootstrap의 기본 동작을 실행시킵니다.
-                $(this).parent().find('.dropdown-menu').toggleClass('show');
-            });
-        });
+        <div class="main-content-layout">
 
-        function myFunc() {
-            alert("기존 배포 로그 조회 기능을 실행합니다.");
-        }
-    </script>
+            <!-- [왼쪽] 통합 설정 카드 -->
+            <div class="card-left">
+                <div class="section-box">
+                    <div class="section-head">
+                        <span class="badge-num">1</span>
+                        <span class="title">배포 설정 및 파일 관리</span>
+                    </div>
+                    <div class="section-body">
+
+                        <div class="config-row-1">
+                            <div class="form-group">
+                                <label class="form-label">서버 구분</label>
+                                <div class="btn-group-custom">
+                                    <input type="radio" id="serverTypeQA" name="serverType" value="QA" checked>
+                                    <label for="serverTypeQA">검증(QA)</label>
+                                    <input type="radio" id="serverTypePROD" name="serverType" value="PROD">
+                                    <label for="serverTypePROD">운영(PROD)</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">기능 선택</label>
+                                <div class="btn-group-custom">
+                                    <input type="radio" id="uploadTypeFile" name="uploadType" value="fileUpload" checked>
+                                    <label for="uploadTypeFile">파일업로드</label>
+                                    <input type="radio" id="uploadTypeProd" name="uploadType" value="prodUpload">
+                                    <label for="uploadTypeProd">검증배포</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">프로젝트 번호</label>
+                                <select id="projectMno" name="projectMno" class="form-control-custom" disabled>
+                                    <option value="none">※ 당일 등록 프로젝트 번호만 조회</option>
+                                    <c:forEach var="item" items="${projectMngNo}">
+                                        <option value="${item.getFORM_ID()}">${item.getFORM_ID()} / ${item.getFORM_NAME()}</option>
+                                    </c:forEach>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">대상 시스템</label>
+                                <select id="targetSystem" name="targetSystem" class="form-control-custom">
+                                    <option value="none">시스템 선택</option>
+                                    <c:forEach var="item" items="${imageDeployUserInfo}">
+                                        <option value="${item.getSys_code()}/${item.getSys_name()}/${item.getValue()}">
+                                            ${item.getSys_code()} (${item.getSys_name()})
+                                        </option>
+                                    </c:forEach>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="vertical-stack">
+
+                            <div>
+                                <label class="form-label">업로드 목록</label>
+                                <div class="file-list-area" id="articlefileChange">
+                                    <div id="noFileMsg" style="color:var(--text-faint); text-align:center; margin-top:60px; font-size:13px;">
+                                        선택된 파일이 없습니다.
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-secondary btn-block" id="btn-upload" style="margin-top:10px;">
+                                    <i class="fas fa-file-import"></i> 파일추가
+                                </button>
+                                <input id="input_file" name="input_file" multiple="multiple" type="file" style="display:none;">
+                                <p style="font-size:11px; color:var(--text-faint); margin-top:8px; margin-bottom:0;">
+                                    <i class="fas fa-info-circle"></i> 첨부파일은 최대 10개, 50M 입니다.
+                                </p>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="form-label">업로드 경로</label>
+                                    <input id="filePath" name="filePath" type="text" readonly class="form-control-custom" style="background:#f8f9fa;" value="" />
+                                </div>
+                                <div style="display:flex; gap:8px;">
+                                    <button type="button" class="btn btn-sm btn-warning" id="upload" name="upload" onclick="registerAction();" style="flex:1;">
+                                        <i class="fas fa-upload"></i> 파일 업로드
+                                    </button>
+                                    <button type="button" class="btn btn-block btn-primary-custom" id="prodDeploy" name="prodDeploy" onclick="" style="flex:1; height:31px; padding:0;">
+                                        <i class="fas fa-paper-plane"></i> 검증계 배포 실행
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- [오른쪽] FTP 트리 섹션 -->
+            <div class="card-right">
+                <div class="section-box">
+                    <div class="section-head">
+                        <span class="badge-num">2</span>
+                        <span class="title">FTP 디렉토리 구조</span>
+                    </div>
+                    <div class="section-body" style="padding:0;">
+                        <ul class="ztree" id="treeDemo"></ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<div id="rMenu">
+    <ul>
+        <li id="m_add" onclick="">폴더 생성</li>
+        <li id="m_del" onclick="">폴더 삭제</li>
+        <li id="m_modi" onclick="">폴더 수정</li>
+        <li id="m_reset" onclick="">새로 고침</li>
+        <li id="mf_del" onclick="">파일 삭제</li>
+    </ul>
+</div>
+
 </body>
 </html>
+
+
+image.js
+
+var folderArray;
+var fileCount = 0;
+var totalCount = 10;
+var fileNum = 0;
+var content_files = new Array();
+
+$(document).ready(function(){
+	$("#input_file").on("change", fileCheck);	
+	
+	// 경로추가 / 경로삭제 / 이름변경 / 파일삭제 / 배포버튼
+	$("#m_add").bind("click", {isParent:true}, add);
+	$("#m_del").bind("click", remove);
+	$("#m_modi").bind("click", edit);
+	$("#m_reset").bind("click", refreash);
+	$("#mf_del").bind("click", deleteAction);	
+	$("#prodDeploy").bind("click", prodDeploy);
+	
+	// 서버구분 선택시 화면 선택초기화
+	$("input:radio[name=serverType]").click(function(){
+		initTreeAndList();
+		initUploadType();
+		
+		if($("input:radio[name=serverType]")[0].checked == true){
+			$("label[for='uploadType2']").text('검증배포');	
+			$("#prodDeploy").text('검증계 배포');	
+			$('#uploadType').attr('disabled', false);
+			$('#btn-upload').attr('disabled', false);
+			$('#projectMno').attr('disabled', true);	
+			getServerList();
+		}
+		if($("input:radio[name=serverType]")[1].checked == true){
+			$("label[for='uploadType2']").text('직접배포');
+			$("#prodDeploy").text('운영계 직접배포');
+			$("input:radio[name=uploadType]")[0].checked = true;
+			$('#projectMno').attr('disabled', false);
+			$('#upload').css("display", "");
+			$('#prodDeploy').css("display", "none");
+			getServerList();
+		}
+	});
+	
+	// 기능 선택시 화면 초기화 
+	$("input:radio[name=uploadType]").click(function(){
+		if($("input:radio[name=uploadType]")[0].checked == true){
+			$('#upload').css("display", "");
+			$('#prodDeploy').css("display", "none");
+			$('#btn-upload').attr('disabled', false);
+			$('#projectMno').attr('disabled', false);			
+		}
+		else if($("input:radio[name=uploadType]")[1].checked == true){
+			$('#upload').css("display", "none");
+			$('#prodDeploy').css("display", "");
+			$('#btn-upload').attr('disabled', true);
+			$('#projectMno').attr('disabled', true);
+		}
+		initTreeAndList();
+	});
+});
+
+// 파일추가 버튼
+$(function(){
+	$('#btn-upload').click(function(e){
+		e.preventDefault();
+		$('#input_file').click();
+	});
+});
+
+// 파일 추가시 파일목록 체크
+function fileCheck(e) {
+    var files = e.target.files;
+    var filesArr = Array.prototype.slice.call(files);
+    var msg;
+	
+    if(fileCount + filesArr.length > totalCount) {
+        msg = "최대 등록 갯수는 "+totalCount+"개 입니다." + "<br>선택한 파일 : " + filesArr.length + "개 / 등록한 파일 : " + fileCount + "개";
+        errorAlert("업로드 갯수 초과", msg, "error", "", false);
+
+	    //초기화 한다.
+	    $("#input_file").val("");
+		return false;
+		
+    } else {
+		fileCount = fileCount + filesArr.length;
+    }
+    
+    // 중복 업로드 목록 체크
+    for(var i=0; i<filesArr.length; i++){
+    	var file = filesArr[i];
+    	var filePath = file.value;
+    	
+        for(var j=0; j<content_files.length; j++){
+        	
+        	if((filesArr[i].name == content_files[j].name) && content_files[j].is_delete != true){
+        		msg = filesArr[i].name;
+        		errorAlert("동일한 파일이 존재 합니다.", msg, "info", "", false);
+
+        	    //초기화 한다.
+        	    $("#input_file").val("");
+        		return false;
+        	}
+        }
+    }
+    
+    // 각각의 파일 배열담기 및 기타
+    $('#noFileMsg').hide(); // 파일이 하나라도 추가되면 "선택된 파일이 없습니다" 문구부터 숨김
+    filesArr.forEach(function (f) {
+		var reader = new FileReader();
+	    
+		content_files.push(f);
+    	reader.onload = function (e) {
+           	$('#articlefileChange').append(
+    	      		'<div id="file' + fileNum + '" >'
+          			+ '<font style="font-size:12px">' + f.name + '</font>'  
+          			+ '&nbsp;&nbsp;<img src="/images/icon_minus.png" onclick="fileDelete(\'file' + fileNum + '\', \'' + f.name + '\')" style="width:20px; height:auto; vertical-align: middle; cursor: pointer;"/>'
+          			+ '<div/>'
+    		);
+    		fileNum++;
+    	};
+    	
+    	reader.readAsDataURL(f);
+	});
+    
+    //초기화 한다.
+    $("#input_file").val("");
+}
+
+// 파일 업로드 목록 삭제
+function fileDelete(fileNum, fileName){
+	
+	var no = fileNum.replace(/[^0-9]/g, "");	
+	
+	for(var a=0; a<content_files.length; a++){
+		if(content_files[a].name == fileName){
+			content_files[a].is_delete = true;
+		}
+	}    
+	
+	$('#' + fileNum).remove();
+	fileCount--;
+
+	if(fileCount <= 0){
+		$('#noFileMsg').show(); // 마지막 파일까지 지우면 안내 문구 다시 표시
+	}
+}
+
+//대상 시스템 셀렉트 박스 선택시 파일트리 정보 로드
+$(function(){
+	$('#targetSystem').change(function(e){
+		e.preventDefault();
+
+		var ftpPath = $('#targetSystem option:selected').val();
+		var targetCode = $('#targetSystem').val().split('/');
+		$('#existQA').val(targetCode[2]);
+		
+		
+		if($('#targetSystem option:selected').val() != "none"){
+			$.ajax({
+				type:'POST',
+		        url : "/imageLoadFtpDir.json",
+		        cache : false,
+		        data : $("#imageUploadForm").serialize(),
+		        contentType: "application/x-www-form-urlencoded; charset=euc-kr",
+				dataType: 'JSON',
+		        success : function(data){
+		        	$('#connectedTargetSystem').val(data.connectedTargetSystem);
+		        	console.log("treeData : " + data.treeData);
+		        	folderArray = data.treeData;	
+		        	console.log("folderArray : " + JSON.stringify(folderArray));
+		        	
+		        	$.fn.zTree.init($("#treeDemo"), setting, folderArray);
+					rMenu = $("#rMenu");
+		        },
+		        error:function(request,status,error){
+					errorAlert("FTP 연결 실패", "", "error", "imageProcess.json", true);
+		        }
+		    });
+		}
+		else{
+			content_files = new Array();
+	    	$.fn.zTree.init($("#treeDemo"), setting, "");	
+			$('#filePath').val("");
+			$('#articlefileChange').children("div").not("#noFileMsg").remove();
+			$('#noFileMsg').show();
+			fileCount = 0;
+			
+		}
+	});
+});
+
+function initTreeAndList(){
+	$('#targetSystem').prop('selectedIndex', 0);
+	$('#projectMno').prop('selectedIndex', 0);
+	$('#filePath').val("");
+	$.fn.zTree.init($('#treeDemo'), setting, "");
+	
+	$('#articlefileChange').children("div").not("#noFileMsg").remove();
+	$('#noFileMsg').show(); // 초기화 시 안내 문구 복원
+	content_files = new Array();
+	fileCount = 0;
+}
+
+function initUploadType(){
+	
+	$("input:radio[name=uploadType]")[0].checked = true;
+	$('#btn-upload').attr('disabled', false);
+	$('#projectMno').attr('disabled', false);	
+	
+	$('#upload').css("display", "");
+	$('#prodDeploy').css("display", "none");
+	fileCount = 0;
+}
+
+//서버 구분 선택시 검증계 서버 여부에 맞는 대상시스템 리스트
+//검증 : 검증계 서버 있는 대상시스템만 / 운영 : 검증계 서버 없는 대상시스템만
+function getServerList(){
+	
+	var form = $("form")[1];        
+ 	var formData = new FormData(form);
+	
+ 	$.ajax({
+ 		type: "POST",          
+		url: "/imageServerList.json",
+		data: formData,          
+        processData: false,    
+        contentType: false,      
+        cache: false,
+        dataType: 'JSON',
+		success: function (data) {
+			$('#targetSystem option').after().remove();
+			$('#targetSystem').append("<option value='none'>시스템 이름</option>");
+			for(i=0; i<data.serverList.length; i++){
+        		var option = $("<option value='"+data.serverList[i].sys_code+"/"+data.serverList[i].sys_name + "/" + data.serverList[i].value + "'>"+data.serverList[i].sys_code+" ("+data.serverList[i].sys_name+")</option>");
+            	$('#targetSystem').append(option);
+        	}
+		},
+		error: function (xhr, status, error) {
+			errorAlert("대상 시스템 리스트를 가져오지 못했습니다.", "", "error", "imageProcess.json", true);
+		}
+	});
+ 	
+	return false;
+}
+
+// 파일 업로드 버튼
+function registerAction(){
+	
+	var form = $("form")[1];        
+ 	var formData = new FormData(form);
+ 	var filePath = form.filePath.value;
+ 	var targetSystem = form.targetSystem.value;
+ 	
+ 	for (var x = 0; x < content_files.length; x++) {
+		// 삭제 안한것만 담아 준다. 
+		if(!content_files[x].is_delete){			
+			formData.append("attachedFiles", content_files[x]);
+		}
+	}
+
+	if($('#uploadSystem').val() == ""){
+		Swal.fire("대상 시스템을 선택해주세요.", "", "info");
+		return false;
+	}	
+
+	if(content_files.length == 0 ){
+		Swal.fire("업로드 파일이 없습니다.", "", "info");
+		return false;
+	}
+	
+	if($('#filePath').val() == ""){
+		Swal.fire("업로드 경로를 선택해주세요", "", "info");
+		return false;
+	}
+
+	if($("input:radio[name=serverType]:checked").val() == "PROD" && $('#projectMno').val() == "none" && $('#operatorConfirm').val() == "N"){
+		Swal.fire("프로젝트 번호를 선택해주세요.", "", "info");
+		return false;
+	}
+	
+ 	$.ajax({
+ 		type: "POST",          
+        enctype: 'multipart/form-data',
+		url: "/imageFtpUpload.json",
+		data: formData,          
+        processData: false,    
+        contentType: false,      
+        cache: false,
+		beforeSend: function() {
+			Swal.fire({
+                title: '처리 중 입니다.',
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading()
+                },
+            });
+	    },
+		success: function (data) {
+			console.log(data);
+			errorAlert("파일업로드 성공", "", "success", "", false);
+			// 파일트리 새로고침, 파일목록 / 경로 초기화
+			refreash();
+			content_files = new Array();
+			$('#filePath').val("");
+			$('#articlefileChange').children("div").not("#noFileMsg").remove();
+			$('#noFileMsg').show();
+			fileCount = 0;
+		},
+		error: function (xhr, status, error, request) {
+			errorAlert("서버오류로 업로드가 실패 했습니다.", "", "error", "imageProcess.json", true);
+		}
+	});
+ 	
+	return false;
+}
+
+//파일트리에서 파일 삭제 버튼 
+function deleteAction(){
+	
+	var form = $("form")[1];        
+ 	var formData = new FormData(form);
+	
+ 	$.ajax({
+ 		type: "POST",          
+		url: "/imageFtpFileDelete.json",
+		data: formData,          
+        processData: false,    
+        contentType: false,      
+        cache: false,
+		beforeSend: function() {
+			Swal.fire({
+                title: '처리 중 입니다.',
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading()
+                },
+            });
+	    },
+		success: function (data) {
+			errorAlert("파일삭제 성공", "", "success", "", false);
+			refreash();
+		},
+		error: function (xhr, status, error) {
+			errorAlert("서버오류로 파일삭제가 실패 했습니다.", "", "error", "imageProcess.json", true);
+		}
+	});
+ 	
+	return false;
+}
+
+// 배포 버튼(직접배포 버튼)
+function prodDeploy(e) {
+
+	$('#pmsno').val($('#projectMno').val());
+	$('#sdlc').val("T");
+	
+	if($("input:radio[name=serverType]:checked").val() == "PROD"){
+		$('#shell').val("pms.img.prod.deploy");
+	}
+	if($("input:radio[name=serverType]:checked").val() == "QA"){
+		$('#shell').val("pms.img.qa.deploy");	
+	}
+		
+	var targetCode = $('#targetSystem').val().split('/');
+	$('#syscode').val(targetCode[1]);
+	$('#existQA').val(targetCode[2]);
+	console.log("targetCode : " + targetCode[1]);
+	console.log("syscode : " + $('#syscode').val());
+	
+	var form = $("form")[1];
+ 	var formData = new FormData(form);
+ 	var filePath = form.filePath.value;
+ 	var targetSystem = form.targetSystem.value;
+ 	
+	if($('#targetSystem').val() == "none"){
+		Swal.fire("대상 시스템을 선택해주세요.", "", "info");
+		return false;
+	}
+	
+	$.ajax({
+		type: "POST",
+		enctype: "multipart/form-data",
+		url: "/deployServer.json",
+		data : formData,
+		processData: false,
+		contentType: false,
+		beforeSend: function() {
+			Swal.fire({
+                title: '처리 중 입니다.',
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading()
+                },
+            });
+	    },
+		success: function (data) {			
+			if(data.successYn == 'Y'){
+				errorAlert("배포 성공", "", "success", "imageProcess.json", false);
+			}
+			else {
+				errorAlert("배포 실패", data.trace, "error", "imageProcess.json", false);
+			}
+			
+			initTreeAndList();
+		},
+		error: function (xhr, status, error) {
+			errorAlert("서버오류로 배포가 실패 했습니다.", "", "error", "imageProcess.json", false);
+		}
+	});
+};
+
+// SweetAlert 함수
+function errorAlert(title, text, icon, link, flag){
+	Swal.fire({
+		  title: title,
+		  html: text,
+		  icon: icon,
+	}).then((result) => {
+		if(flag == true){
+			location.href=link;
+		}
+	})
+}
+
+function logout() {
+	document.Form.action = "logoutProcess.json";
+	document.Form.submit();
+}
+
+function myFunc() {
+	  window.open("../logs/","_blank");
+}
+
+// [삭제됨] $(document).ready(function(){ ... $(document).bind("contextmenu", "#treeDemo", ...) ... })
+// 이 블록은 zTree.js의 setting.callback.onRightClick(OnRightClick)과 완전히 같은 일을 하려던
+// 우회용 중복 핸들러였음. .bind()의 2번째 인자는 선택자가 아니라 eventData로 처리되기 때문에
+// 실제로는 delegate가 안 되고 document 전체에 걸렸고, 그마저도 zTree 내부에서 이벤트 전파가
+// 먼저 막혀서 발동하지 않았음. zTree.js 쪽 설정을 올바르게 고쳤으니 이 블록은 제거함.
+
+
+서버구분 검증 -> 기능 선택 파일 업로드 , 검증 배포 -> 라디오 선택에 따라 업로드 경로에 버튼 라벨(파일 업로드, 검증배포) 도 변경
+서버구분 운영 -> 기능 선택 파일 업로드 , 직접 배포 -> 라디오 선택에 따라 업로드 경로에 버튼 라벨도(파일 업로드, 운영계 직접배포) 변경
