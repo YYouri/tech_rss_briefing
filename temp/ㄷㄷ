@@ -1,504 +1,281 @@
-1. 형상 서버 정리 화면 
+1. menu.jsp
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="hi.framework.deploymanager.login.entity.*" %>
+<%
+    // 1. Null 체크 필수
+    LoginInfoVO loginInfo = (LoginInfoVO) request.getAttribute("loginInfo");
+    if (loginInfo == null) {
+        response.sendRedirect("/login.do"); // 로그인 페이지로 강제 이동
+        return;
+    }
+%>
+
+<link href="../css/app-theme.css" rel="stylesheet">
+<link href="../css/font-awesome/css/all.min.css" rel="stylesheet">
+
+<form id="Form" name="Form" action="" method="post">
+<div id="menuItem" class="container-fluid">
+    <nav class="navbar navbar-expand-lg custom-navbar">
+        <a class="navbar-brand" href="javascript:void(0)" onclick="location.href='./imageHomeProcess.json'">배포 관리 시스템</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="javascript:void(0)" onclick="location.href='./imageHomeProcess.json'"><i class="fas fa-home"></i> Home</a>
+                </li>
+
+                <%-- 권한 체크 시 상수를 앞에 두어 NullPointerException 방지 --%>
+                <% if ("admin".equals(loginInfo.getResponse_group_id()) || "user".equals(loginInfo.getResponse_group_id())) { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="javascript:void(0)" onclick="myFunc()">(구)배포 로그 조회</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='./logViewerProcess.json'">배포 로그 조회</a>
+                    </li>
+                <% } %>
+
+                <%-- Admin 전용 메뉴 --%>
+                <% if ("admin".equals(loginInfo.getResponse_group_id())) { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='./AgentCheckProcess.json'">Agent 모니터링</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown1" role="button" data-toggle="dropdown"> 배포 설정 관리  </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown1">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./MetaProcess.json'">메타 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./ConfigProcess.json'">시스템별 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./AgentProcess.json'">Agent 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./imageAuthProcess.json'">이미지 배포 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./ApSchedule.json'">AP스케줄 관리</a>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAcc" role="button" data-toggle="dropdown">계정 관리</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownAcc">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/Imsync.json'">계정 동기화 관리</a>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownRes" role="button" data-toggle="dropdown">자원 관리</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownRes">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/resDownloadProcess.json'">배포 자원 다운로드</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/DiffSoftmResource.json'">배포 자원 조회</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./CleanCisResourceQA.json'">기간계 서버 자원 정리 (개발/검증)</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./CleanCisResourcePROD.json'">기간계 서버 자원 정리 (운영)</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./CleanSoftmResource.json'">형상 서버 자원 정리</a>
+                        </div>
+                    </li>
+                <% } %>
+
+                <%-- User/Admin 공통 메뉴 --%>
+                <% if ("admin".equals(loginInfo.getResponse_group_id()) || "user".equals(loginInfo.getResponse_group_id())) { %>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown3" role="button" data-toggle="dropdown">이미지 배포 </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown3">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/imageProcess.json'">이미지 배포</a>
+                        </div>
+                    </li>
+                   
+                <% } %>
+
+                <%-- 특정 ID 전용 메뉴 --%>
+                <% if ("IB1192".equals(loginInfo.getResponse_user_Id()) || "IB1117".equals(loginInfo.getResponse_user_Id())) { %>
+                   <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownRes" role="button" data-toggle="dropdown">배포 지원 기능</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownRes">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/TestProcess.json'">배포 태스크 호출</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/queryProcess.json'">Query Execute</a>
+                        </div>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+
+        <div class="ml-auto">
+            <span class="navbar-user">${loginInfo.response_username}</span>
+            <button class="btn-action" type="button" onclick="location.href='/logoutProcess.json'">
+                <i class="fas fa-sign-out-alt" style="margin-right:4px; font-size:12px;"></i> 로그아웃
+            </button>
+        </div>
+    </nav>
+</div>
+</form>
+2. menu.html
+<!-- 수정된 menu.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>형상 서버 자원 정리</title>
-<link href="../css/bootstrap.min.css" rel="stylesheet">
-<link href="../css/jquery-ui.min.css" rel="stylesheet">
-<link href="../css/custom.css" rel="stylesheet">
-<style>
-  /* shadcn/ui 기반 리디자인 스타일 */
-  :root {
-    --background: #fafafa;
-    --card: #ffffff;
-    --card-border: #e4e4e7;
-    --card-border-dark: #d4d4d8;
-    --text-main: #18181b;
-    --text-muted: #71717a;
-    --text-faint: #a1a1aa;
-    --primary: #18181b;
-    --primary-hover: #27272a;
-    --danger: #dc2626;
-    --success: #16a34a;
-    --warning: #f59e0b;
-    --warning-bg: #fffbeb;
-    --warning-border: #fde68a;
-    --radius-lg: 10px;
-    --radius-md: 6px;
-    --radius-pill: 999px;
-    --shadow: 0 1px 2px rgba(0,0,0,0.03);
-  }
-
-  body {
-    background-color: var(--background);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", Roboto, sans-serif;
-    color: var(--text-main);
-    margin: 0;
-  }
-
-  /* 본문 컨테이너: 입력/워크플로우 화면이므로 860px 제한 */
-  #app { 
-    max-width: 860px; 
-    margin: 0 auto; 
-    padding: 40px 24px 80px; 
-  }
-
-  /* Header Area */
-  .main-header { margin-bottom: 32px; }
-  .eyebrow { font-size: 12px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; margin-bottom: 4px; }
-  .main-header h4 { font-size: 1.4rem; font-weight: 600; color: var(--text-main); margin: 0; }
-  .main-header .desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-
-  /* Notice Box (Warning Style) */
-  .notice-box {
-    background-color: var(--warning-bg);
-    border: 1px solid var(--warning-border);
-    border-radius: var(--radius-md);
-    padding: 14px 18px;
-    margin-bottom: 32px;
-    font-size: 13px;
-    color: #78350f;
-  }
-
-  /* Card Style */
-  .section-card {
-    background: var(--card);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-lg);
-    margin-bottom: 32px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
-  }
-  .section-disabled { opacity: 0.5; pointer-events: none; }
-
-  .section-head {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--card-border);
-    display: flex;
-    align-items: center;
-  }
-  .section-head .badge-step {
-    background: var(--text-main);
-    color: #fff;
-    width: 22px;
-    height: 22px;
-    border-radius: 4px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    margin-right: 10px;
-  }
-  .section-title { font-weight: 600; font-size: 15px; color: var(--text-main); }
-  .section-hint { margin-left: auto; font-size: 13px; color: var(--text-muted); }
-  .section-body { padding: 20px; }
-
-  /* Environment Selection */
-  .env-btn-group { display: flex; gap: 8px; }
-  .env-btn {
-    padding: 6px 16px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--card-border);
-    background: #fff;
-    color: var(--text-main);
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
-  }
-  .env-btn:hover:not(:disabled) { background-color: #f4f4f5; }
-  .env-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .env-btn-active-qa { background-color: var(--primary) !important; color: white !important; border-color: var(--primary); }
-  .env-btn-active-prod { background-color: var(--danger) !important; color: white !important; border-color: var(--danger); }
-
-  /* Sticky Badge */
-  .env-sticky-badge { position: fixed; top: 66px; right: 24px; z-index: 900; padding: 6px 14px; border-radius: var(--radius-pill); font-weight: 600; font-size: 12px; box-shadow: var(--shadow); background: var(--primary); color: #fff; }
-  .env-sticky-qa { background: var(--primary); color: #fff; }
-  .env-sticky-prod { background: var(--danger); color: #fff; animation: env-pulse 1.5s infinite; }
-  @keyframes env-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-
-  /* Form & Table */
-  .form-control { border: 1px solid var(--card-border); border-radius: var(--radius-md); font-size: 14px; }
-  .form-control:focus { border-color: var(--text-main); outline: none; box-shadow: 0 0 0 2px rgba(0,0,0,0.05); }
-  .mono { font-family: 'Cascadia Code', 'Consolas', monospace; }
-
-  .table-container { border: 1px solid var(--card-border); border-radius: var(--radius-md); overflow: auto; }
-  .table { margin-bottom: 0; font-size: 14px; }
-  .table thead th {
-    position: sticky; top: 0; background: #f8f9fa;
-    color: var(--text-muted); font-weight: 600;
-    border-bottom: 1px solid var(--card-border);
-    padding: 12px 8px; font-size: 13px; text-align: center;
-  }
-  .table tbody td { padding: 10px 12px; border-bottom: 1px solid #f4f4f5; color: var(--text-main); }
-  .table tbody tr:hover { background-color: #f8f9fa; }
-
-  /* Action Buttons */
-  .btn { border-radius: var(--radius-md); font-weight: 500; transition: all 0.2s; }
-  .btn-primary { background-color: var(--primary); color: #fff; border: none; }
-  .btn-primary:hover { background-color: var(--primary-hover); color: #fff; }
-  .btn-outline-secondary { color: var(--text-muted); border-color: var(--card-border); }
-  .btn-outline-secondary:hover { background-color: #f4f4f5; color: var(--text-main); }
-  .btn-success { background-color: var(--success); color: #fff; border: none; }
-  .btn-warning { background-color: var(--warning); color: #fff; border: none; }
-  .btn-info { background-color: #0ea5e9; color: #fff; border: none; }
-  .btn-group-custom { display: flex; gap: 8px; flex-wrap: wrap; }
-
-  /* Log Viewers */
-  .log-container { border-radius: var(--radius-md); font-size: 13px; line-height: 1.5; border: 1px solid var(--card-border); padding: 12px; }
-  .log-agent { background-color: #18181b; color: #e4e4e7; }
-  .log-full { background-color: #fffbeb; color: #78350f; }
-</style>
+    <meta charset="UTF-8">
+    <title>Menu Test</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/font-awesome/css/all.min.css" rel="stylesheet">
+    <link href="/css/app-theme.css" rel="stylesheet">
+    <style>
+        /* 권한에 따라 메뉴를 숨기기 위한 기본 스타일 */
+        .auth-menu { display: none; }
+        /* 메뉴바가 본문과 겹치지 않도록 설정 */
+        #menuItem { width: 100%; }
+    </style>
 </head>
 <body>
-<header id="header"></header>
-<div id="app">
-  <!-- 환경 경고 배지 -->
-  <div class="env-sticky-badge" v-bind:class="env === 'PROD' ? 'env-sticky-prod' : 'env-sticky-qa'">
-    {{ env === 'PROD' ? '● 운영 환경 (PROD)' : '● 개발 환경 (DEV)' }}
-  </div>
+    <!-- [수정] <form> 태그를 제거했습니다. 메뉴는 데이터를 전송하는 양식이 아니므로 form이 있으면 동작이 꼬입니다. -->
+    <div id="menuItem" class="container-fluid">
+        <nav class="navbar navbar-expand-lg custom-navbar">
+            <!-- 브랜드 영역 -->
+            <a class="navbar-brand" href="javascript:void(0)" onclick="location.href='/imageHomeProcess.json'">배포 관리 시스템</a>
+            
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-  <!-- 메인 타이틀 블록 -->
-  <div class="main-header">
-    <div class="eyebrow">Configuration Management</div>
-    <h4 class="mb-1">형상 자원 정리</h4>
-    <p class="desc">소프트매니저의 개별 자원(파일 단위)을 백업 후 정리합니다.</p>
-  </div>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto" id="main-menu-list">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='/imageHomeProcess.json'"><i class="fas fa-home"></i> Home</a>
+                    </li>
+                    
+                    <!-- [권한: admin OR user] 공통 메뉴 -->
+                    <li class="nav-item auth-menu user-admin-menu">
+                        <a class="nav-link" href="javascript:void(0)" onclick="myFunc()"> (구)배포 로그 조회</a>
+                    </li>
+                    <li class="nav-item auth-menu user-admin-menu">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='/logViewerProcess.json'">배포 로그 조회</a>
+                    </li>
 
-  <!-- 주의사항 박스 -->
-  <div class="notice-box">
-    ※ <b>시스템(전체) 삭제</b>의 경우 이 화면이 아니라 <b>서버에서 직접 처리</b>하세요. 이 화면은 개별 자원 단위 처리 전용입니다.
-  </div>
+                    <!-- [권한: admin] 전용 메뉴 -->
+                    <li class="nav-item auth-menu admin-only-menu">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='/AgentCheckProcess.json'">Agent 모니터링</a>
+                    </li>
 
-  <!-- 환경 선택 -->
-  <div class="section-card">
-    <div class="section-body">
-      <label class="font-weight-bold mb-2 d-block" style="font-size:14px; color:var(--text-muted);">대상 서버 환경</label>
-      <div class="env-btn-group">
-        <button type="button" class="env-btn" disabled title="개발 프로세스 준비 중입니다">개발 환경 (DEV)</button>
-        <button type="button" class="env-btn" v-bind:class="{ 'env-btn-active-prod': env === 'PROD' }" v-on:click="env = 'PROD'">운영 환경 (PROD)</button>
-      </div>
+                    <!-- 배포 설정 관리 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu admin-only-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown1" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 
+                            배포 설정 관리 
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown1">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/MetaProcess.json'">메타 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/ConfigProcess.json'">시스템별 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/AgentProcess.json'">Agent 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/imageAuthProcess.json'">이미지 배포 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/ApSchedule.json'">AP스케줄 관리</a>
+                        </div>
+                    </li>
+
+                    <!-- 계정 관리 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu admin-only-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAcc" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">계정 관리</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownAcc">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/Imsync.json'">계정 동기화 관리</a>
+                        </div>
+                    </li>
+
+                    <!-- 자원 관리 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu admin-only-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownRes" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">자원 관리</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownRes">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/resDownloadProcess.json'">배포 자원 다운로드</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/DiffSoftmResource.json'">배포 자원 조회</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./CleanCisResourceQA.json'">기간계 서버 자원 정리 (개발/검증)</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='./CleanCisResourcePROD.json'">기간계 서버 자원 정리 (운영)</a>
+							<div class="dropdown-divider"></div>				                           
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/CleanSoftmResource.json'">형상 서버 자원 정리</a>
+                        </div>
+                    </li>
+
+                    <!-- 이미지 배포 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu user-admin-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown3" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 이미지 배포 </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown3">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/imageProcess.json'">이미지 배포</a>
+                        </div>
+                    </li>
+
+                    <!-- 배포 지원 기능 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu special-user-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownSpecial" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">배포 지원 기능</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownSpecial">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/TestProcess.json'">배포 태스크 호출</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/queryProcess.json'">Query Execute</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 사용자 영역 -->
+            <div class="ml-auto">
+                <span class="navbar-user" id="user-name" style="color: var(--text-main); padding-right: 15px;"></span>
+                <button class="btn-action" type="button" onclick="location.href='/logoutProcess.json'">
+                    <i class="fas fa-sign-out-alt" style="margin-right:4px; font-size:12px;"></i> 로그아웃
+                </button>
+            </div>
+        </nav>
     </div>
-  </div>
+    <script src="/js/jquery.min.3.4.1.js"></script> 
+    <script src="/js/popper.min.1.16.1.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        
+    
+    var LOGIN_PAGE_URL = "/bin/Login.jsp"; // 실제 로그인 페이지 경로로 교체
 
-  <!-- STEP 1: 입력 -->
-  <div class="section-card">
-    <div class="section-head">
-      <span class="badge-step">01</span>
-      <span class="section-title">삭제 자원 데이터 입력</span>
-      <span class="section-hint">자원명 [탭/공백] 경로</span>
-    </div>
-    <div class="section-body">
-      <p class="text-muted mb-2" style="font-size:12px;">삭제할 자원 목록을 "파일명 [탭 또는 공백] 경로" 형식으로 붙여넣으세요.</p>
-      <textarea class="form-control mono" rows="7" v-model="pasteText" placeholder="예: LT0001002.java  \LT\source\ONLINE\LT\src\hi\dbio\cdo\lt\lt0001002\"></textarea>
-      <div class="mt-3">
-        <button type="button" class="btn btn-primary btn-sm px-3" v-on:click="handleImport">테이블로 가져오기</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 2: 편집 -->
-  <div class="section-card" v-bind:class="{ 'section-disabled': !imported }">
-    <div class="section-head">
-      <span class="badge-step">02</span>
-      <span class="section-title">데이터 검증 및 편집</span>
-      <span class="section-hint">{{ tableRows.length }} 건</span>
-    </div>
-    <div class="section-body">
-      <div class="table-container" style="max-height:300px;">
-        <table class="table table-hover mb-0" v-if="tableRows.length > 0">
-          <thead class="mono">
-            <tr style="font-size:13px;">
-              <th style="width:30%;">자원명</th>
-              <th>경로 (디렉토리)</th>
-              <th style="width:50px;">삭제</th>
-            </tr>
-          </thead>
-          <tbody class="mono">
-            <tr v-for="(row, index) in tableRows" :key="index">
-              <td><input type="text" class="form-control form-control-sm border-0 bg-transparent" v-model="row.fileName"></td>
-              <td><input type="text" class="form-control form-control-sm border-0 bg-transparent" v-model="row.dirInfo"></td>
-              <td class="text-center">
-                <button type="button" class="btn btn-link text-danger p-0" v-on:click="deleteRow(index)">✕</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="text-center text-muted p-5" v-else style="font-size:13px;">데이터를 가져오면 목록이 표시됩니다.</div>
-      </div>
-      <div class="mt-3">
-        <button type="button" class="btn btn-outline-secondary btn-sm px-3" v-on:click="addRow">행 추가</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 3: 백업 + 자원정리 -->
-  <div class="section-card" v-bind:class="{ 'section-disabled': tableRows.length === 0 }">
-    <div class="section-head">
-      <span class="badge-step">03</span>
-      <span class="section-title">백업 및 자원정리</span>
-      <span class="section-hint">신청서 번호 입력 필수</span>
-    </div>
-    <div class="section-body">
-      <div class="row mb-3 align-items-center">
-        <div class="col-auto"><label class="font-weight-bold mb-0" style="font-size:14px;">신청서 번호</label></div>
-        <div class="col-auto">
-          <input type="text" class="form-control form-control-sm mono" style="width:220px;" v-model="taskId" placeholder="예: F20260724-0031">
-        </div>
-      </div>
-      <p class="text-muted mb-3" style="font-size:12px;">※ 백업/자원정리 진행 중에 화면을 벗어나면 작업 진행 상황을 확인할 수 없습니다.</p>
-
-      <div class="btn-group-custom">
-        <button type="button" class="btn btn-info btn-sm px-3" v-bind:disabled="backingUp" v-on:click="handleBackup">
-          {{ backingUp ? '백업 중...' : (env === 'PROD' ? '[운영] 백업' : '[검증] 백업') }}
-        </button>
-        <button type="button" class="btn btn-success btn-sm px-3" v-bind:disabled="!backedUp || cleaning" v-on:click="handleCleanup">
-          {{ cleaning ? '자원정리 중...' : (env === 'PROD' ? '[운영] 자원정리' : '[검증] 자원정리') }}
-        </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm px-3" v-bind:disabled="!executed || fetchingLog" v-on:click="handleFetchLog">로그 조회</button>
-      </div>
-
-      <div class="mt-3" v-if="agentStatus.text" :class="agentStatus.isError ? 'alert alert-danger py-2' : 'alert alert-info py-2'" style="font-size:13px; border-radius:6px;">
-        {{ agentStatus.text }}
-      </div>
-
-      <div v-if="backupLog" class="mt-3">
-        <small class="text-muted mb-1 d-block">백업 결과</small>
-        <pre class="mono log-container log-agent p-3" style="max-height:220px; overflow-y:auto; white-space:pre-wrap;">{{ backupLog }}</pre>
-      </div>
-      <div v-if="agentLog" class="mt-3">
-        <small class="text-muted mb-1 d-block">자원정리 실행 결과</small>
-        <pre class="mono log-container log-agent p-3" style="max-height:260px; overflow-y:auto; white-space:pre-wrap;">{{ agentLog }}</pre>
-      </div>
-      <div v-if="fullLog" class="mt-3">
-        <small class="text-muted mb-1 d-block">전체 로그 파일 내용</small>
-        <pre class="mono log-container p-3" style="background:#fdfcf0; max-height:400px; overflow-y:auto; white-space:pre-wrap;">{{ fullLog }}</pre>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SCRIPTS (기존 로직 100% 유지) -->
-<script type="text/javascript" src="/js/vue.js"></script>
-<script type="text/javascript" src="/js/jquery.min.3.4.1.js"></script>
-<script>
-/* ===================== 로직 (기존과 동일) ===================== */
-$(document).ready(function(){
-  $("#header").load("/bin/html/menu.html", function(){
-    $("#menuName").html("형상 자원 정리");
-  });
-});
-var TASK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
-function buildFullPath(fileName, dirInfo) {
-  var dir = (dirInfo || "").replace(/\\/g, "/").replace(/\/+$/, "");
-  var name = (fileName || "").trim();
-  return dir + "/" + name;
-}
-function parseToRows(rawText) {
-  var rows = [];
-  var lines = rawText.split(/\r\n|\n|\r/);
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i].replace(/\r/g, "");
-    if (line.trim() === "" || line.trim().indexOf("#") === 0) continue;
-    var m = line.match(/^(\S+)[ \t]+(.*)$/);
-    if (!m) continue;
-    var fileName = m[1];
-    var dirInfo = m[2].replace(/[ \t]+$/, "");
-    if (!fileName || !dirInfo) continue;
-    rows.push({ fileName: fileName, dirInfo: dirInfo });
-  }
-  return rows;
-}
-new Vue({
-  el: "#app",
-  data: {
-    env: "PROD",
-    pasteText: "",
-    tableRows: [],
-    imported: false,
-    taskId: "",
-    backingUp: false,
-    backedUp: false,
-    cleaning: false,
-    executed: false,
-    fetchingLog: false,
-    backupLog: "",
-    agentLog: "",
-    fullLog: "",
-    agentStatus: { text: "", isError: false },
-  },
-  watch: {
-    env: function () {
-      this.backedUp = false;
-      this.executed = false;
-      this.backupLog = "";
-      this.agentLog = "";
-      this.fullLog = "";
-      this.agentStatus = { text: "", isError: false };
-    },
-  },
-  methods: {
-    handleImport: function () {
-      this.tableRows = parseToRows(this.pasteText);
-      this.imported = true;
-      this.backedUp = false;
-      this.executed = false;
-      this.backupLog = "";
-      this.agentLog = "";
-      this.fullLog = "";
-      this.agentStatus = { text: "", isError: false };
-    },
-    addRow: function () { this.tableRows.push({ fileName: "", dirInfo: "" }); },
-    deleteRow: function (index) { this.tableRows.splice(index, 1); },
-    handleBackup: function () {
-      var self = this;
-      if (this.backingUp) return;
-      var tid = (this.taskId || "").trim();
-      if (!tid) { this.agentStatus = { text: "TASK_ID를 먼저 입력하세요.", isError: true }; return; }
-      if (!TASK_ID_PATTERN.test(tid)) {
-        this.agentStatus = { text: "TASK_ID는 영문/숫자/-/_ 만 가능해요.", isError: true };
-        return;
-      }
-      if (this.tableRows.length === 0) {
-        this.agentStatus = { text: "백업할 자원이 없어요.", isError: true };
-        return;
-      }
-      if (this.env === "PROD") {
-        var ok = window.confirm("운영(PROD) 자원을 백업합니다. 계속하시겠습니까?");
-        if (!ok) return;
-      }
-      var paths = this.tableRows.map(function (row) { return buildFullPath(row.fileName, row.dirInfo); });
-      this.backingUp = true;
-      this.backupLog = "";
-      this.agentStatus = { text: "백업 시작 중... (" + this.env + ")", isError: false };
-      fetch("/api/resource-cleanup/config-backup.json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ env: this.env, taskId: tid, paths: paths }),
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          if (!data.success) {
-            self.agentStatus = { text: "백업 시작 실패: " + (data.message || "알 수 없는 오류"), isError: true };
-            self.backingUp = false;
-            return;
-          }
-          self.agentStatus = { text: "백업 중... (" + self.env + ", 건건이 처리라 시간이 걸릴 수 있어요)", isError: false };
-          self.pollJobStatus("backup", tid, function (finalData) {
-            self.backingUp = false;
-            self.backedUp = true;
-            var ok = finalData.status === "SUCCESS";
-            self.agentStatus = { text: ok ? "백업 완료" : "백업 일부 실패 (로그 확인)", isError: !ok };
-          });
-        })
-        .catch(function (err) {
-          self.agentStatus = { text: "백업 요청 실패: " + err.message, isError: true };
-          self.backingUp = false;
-        });
-    },
-    handleCleanup: function () {
-      var self = this;
-      if (this.cleaning) return;
-      var tid = (this.taskId || "").trim();
-      if (this.env === "PROD") {
-        var ok = window.confirm("운영(PROD) 자원을 실제로 정리(삭제)합니다. 계속하시겠습니까?");
-        if (!ok) return;
-      }
-      var paths = this.tableRows.map(function (row) { return buildFullPath(row.fileName, row.dirInfo); });
-      this.cleaning = true;
-      this.agentLog = "";
-      this.agentStatus = { text: "자원정리 시작 중... (" + this.env + ")", isError: false };
-      fetch("/api/resource-cleanup/config-cleanup.json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ env: this.env, taskId: tid, paths: paths }),
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          if (!data.success) {
-            self.agentStatus = { text: "자원정리 시작 실패: " + (data.message || "알 수 없는 오류"), isError: true };
-            self.cleaning = false;
-            return;
-          }
-          self.agentStatus = { text: "자원정리 중... (" + self.env + ", 건건이 처리라 시간이 걸릴 수 있어요)", isError: false };
-          self.pollJobStatus("cleanup", tid, function (finalData) {
-            self.cleaning = false;
-            self.executed = true;
-            var ok = finalData.status === "SUCCESS";
-            self.agentStatus = { text: ok ? "자원정리 완료" : "자원정리 일부 실패 (로그 확인)", isError: !ok };
-          });
-        })
-        .catch(function (err) {
-          self.agentStatus = { text: "요청 실패: " + err.message, isError: true };
-          self.cleaning = false;
-        });
-    },
-    pollJobStatus: function (jobType, taskId, onDone) {
-      var self = this;
-      var statusUrl = jobType === "backup"
-        ? "/api/resource-cleanup/config-backup-status.json"
-        : "/api/resource-cleanup/config-cleanup-status.json";
-      var lastLogLength = 0;
-      this._pollTimer = setInterval(function () {
-        fetch(statusUrl + "?env=" + encodeURIComponent(self.env) + "&taskId=" + encodeURIComponent(taskId) + "&since=" + lastLogLength)
-          .then(function (res) { return res.json(); })
-          .then(function (data) {
-            if (!data.success) {
-              clearInterval(self._pollTimer);
-              if (jobType === "backup") self.backingUp = false; else self.cleaning = false;
-              self.agentStatus = { text: "상태 조회 실패: " + (data.message || "알 수 없는 오류"), isError: true };
-              return;
+    function loadUserInfoAndMenu() {
+        $.ajax({
+            url: '/getUserInfo.json',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                if (data && data.response_username) {
+                    $('#user-name').text(data.response_username);
+                    const groupId = data.response_group_id;
+                    const userId = data.response_user_Id;
+                    if (groupId === 'admin' || groupId === 'user') {
+                        $('.user-admin-menu').show();
+                    }
+                    if (groupId === 'admin') {
+                        $('.admin-only-menu').show();
+                    }
+                    if (userId === 'IB1192' || userId === 'IB1117') {
+                        $('.special-user-menu').show();
+                    }
+                } else {
+                    // [추가] 응답은 왔는데 로그인 정보가 비어있음 = 세션 없음
+                    window.location.href = LOGIN_PAGE_URL;
+                }
+            },
+            error: function(xhr) {
+                // [추가] 401/403이면 명확히 세션 만료/미인증 - 로그인 페이지로
+                // 그 외(500, 네트워크 오류 등)는 서버 쪽 문제일 수 있어 리다이렉트하지 않고 메뉴만 비워둠
+                if (xhr.status === 401 || xhr.status === 403|| xhr.status === 404) {
+                    window.location.href = LOGIN_PAGE_URL;
+                } else {
+                    $('#user-name').text("Error");
+                }
             }
-            if (data.log) {
-              if (jobType === "backup") self.backupLog += data.log;
-              else self.agentLog += data.log;
-            }
-            if (typeof data.logLength === "number") lastLogLength = data.logLength;
-            if (data.status === "RUNNING") return;
-            clearInterval(self._pollTimer);
-            onDone(data);
-          })
-          .catch(function (err) {
-            clearInterval(self._pollTimer);
-            if (jobType === "backup") self.backingUp = false; else self.cleaning = false;
-            self.agentStatus = { text: "상태 폴링 실패: " + err.message, isError: true };
-          });
-      }, 3000);
-    },
-    handleFetchLog: function () {
-      var self = this;
-      var tid = (this.taskId || "").trim();
-      this.fetchingLog = true;
-      this.agentStatus = { text: "로그 조회 중...", isError: false };
-      fetch("/api/resource-cleanup/log.json?env=" + encodeURIComponent(this.env) + "&taskId=" + encodeURIComponent(tid))
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          if (data.success) {
-            self.fullLog = data.log;
-            self.agentStatus = { text: "로그 조회 완료", isError: false };
-          } else {
-            self.agentStatus = { text: "로그 조회 실패: " + (data.message || "알 수 없는 오류"), isError: true };
-          }
-        })
-        .catch(function (err) {
-          self.agentStatus = { text: "로그 조회 요청 실패: " + err.message, isError: true };
-        })
-        .finally(function () { self.fetchingLog = false; });
-    },
-  },
-  beforeDestroy: function () {
-    if (this._pollTimer) clearInterval(this._pollTimer);
-  },
-});
-</script>
+        });
+    }
+
+        // [핵심 수정 부분]
+    $(document).ready(function() {
+        // 1. 권한 로드
+        loadUserInfoAndMenu();
+
+        // 2. [이벤트 위임] 메뉴 클릭(Dropdown)이 안 될 때를 대비한 강제 바인딩
+        // 메뉴가 나중에 로드되어도 'document'가 클릭을 감지해서 처리합니다.
+        $(document).on('click', '.dropdown-toggle', function (e) {
+            // Bootstrap의 기본 동작을 실행시킵니다.
+            $(this).parent().find('.dropdown-menu').toggleClass('show');
+        });
+    });
+
+    function myFunc() {
+        alert("기존 배포 로그 조회 기능을 실행합니다.");
+    }
+    </script>
 </body>
 </html>
-
-자원 정리 화면 마냥 두번째 탭에 당일 이력 조회 탭을 두어 
- cleanupResourceService.saveUploadRecords(
-	                request.getEnv(), request.getTaskId(), request.getApplicant(), regUser, uploaded);
-					 이런식으로 데이터를 넣을거야 
-					 이걸 넣으려면 
-					 첫번째 탭에도 신청자 텍스트 박스가 하나더 생겨야해
-					 
