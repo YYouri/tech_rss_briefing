@@ -1,197 +1,275 @@
-/* ============================================================
-   app-theme.css
-   - menu.jsp / menu.html이 반드시 이 파일 하나만 링크해서 씁니다.
-   - 여기 있는 값이 두 화면 모두에 동시 적용되는 "단일 소스"입니다.
-   - 각 파일 안에 <style> 로 새로 색상/네브바 스타일을 만들지 마세요.
-   ============================================================ */
 
-:root {
-  --bg: #fafafa;
-  --card: #ffffff;
-  --border: #e4e4e7;
-  --border-strong: #d4d4d8;
-  --text: #18181b;
-  --text-muted: #71717a;
-  --text-faint: #a1a1aa;
-  --primary: #18181b;
-  --primary-hover: #27272a;
-  --danger: #dc2626;
-  --danger-bg: #fef2f2;
-  --danger-border: #fecaca;
-  --success: #16a34a;
-  --info-bg: #f4f4f5;
-  --radius-lg: 10px;
-  --radius-md: 6px;
-  --radius-pill: 999px;
-}
+<!-- 수정된 menu.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu Test</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/font-awesome/css/all.min.css" rel="stylesheet">
+    <link href="/css/app-theme.css" rel="stylesheet">
+    <style>
+        /* 권한에 따라 메뉴를 숨기기 위한 기본 스타일 */
+        .auth-menu { display: none; }
+        /* 메뉴바가 본문과 겹치지 않도록 설정 */
+        #menuItem { width: 100%; }
+    </style>
+</head>
+<body>
+    <!-- [수정] <form> 태그를 제거했습니다. 메뉴는 데이터를 전송하는 양식이 아니므로 form이 있으면 동작이 꼬입니다. -->
+    <div id="menuItem" class="container-fluid">
+        <nav class="navbar navbar-expand-lg custom-navbar">
+            <!-- 브랜드 영역 -->
+            <a class="navbar-brand" href="javascript:void(0)" onclick="location.href='/imageHomeProcess.json'">배포 관리 시스템</a>
+            
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-body {
-  background-color: var(--bg);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--text);
-  margin: 0;
-}
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto" id="main-menu-list">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='/imageHomeProcess.json'"><i class="fas fa-home"></i> Home</a>
+                    </li>
+                    
+                    <!-- [권한: admin OR user] 공통 메뉴 -->
+                    <li class="nav-item auth-menu user-admin-menu">
+                        <a class="nav-link" href="javascript:void(0)" onclick="myFunc()"> (구)배포 로그 조회</a>
+                    </li>
+                    <li class="nav-item auth-menu user-admin-menu">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='/logViewerProcess.json'">배포 로그 조회</a>
+                    </li>
 
-/* ------------------------------------------------------------
-   메뉴바 (navbar)
-   ------------------------------------------------------------ */
-#menuItem { padding: 0; margin: 0; }
+                    <!-- [권한: admin] 전용 메뉴 -->
+                    <li class="nav-item auth-menu admin-only-menu">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='/AgentCheckProcess.json'">Agent 모니터링</a>
+                    </li>
 
-.custom-navbar {
-  background-color: var(--card) !important;
-  border-bottom: 1px solid var(--border);
-  padding: 0 16px !important;
-  display: flex;
-  align-items: center;
-  height: 56px;
-  min-height: 56px;
-  max-height: 56px;
-  box-sizing: border-box;
-  overflow: visible !important;
-}
+                    <!-- 배포 설정 관리 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu admin-only-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown1" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 
+                            배포 설정 관리 
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown1">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/MetaProcess.json'">메타 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/ConfigProcess.json'">시스템별 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/AgentProcess.json'">Agent 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/imageAuthProcess.json'">이미지 배포 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/ApSchedule.json'">AP스케줄 관리</a>
+                        </div>
+                    </li>
 
-#menuItem,
-.custom-navbar,
-.custom-navbar .collapse.navbar-collapse,
-.custom-navbar .navbar-nav {
-  overflow: visible !important; /* 드롭다운 패널이 잘리지 않도록 체인 전체에 명시 */
-}
+                    <!-- 계정 관리 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu admin-only-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAcc" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">계정 관리</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownAcc">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/Imsync.json'">계정 동기화 관리</a>
+                        </div>
+                    </li>
 
-/* 레거시 화면에 남아있기 쉬운 잔재 태그/유틸리티 클래스를 네브바 안에서는 전부 무력화
-   (font 태그, mt-5, float-right 등 - 이런 게 남아있어도 높이에 영향을 주지 않도록 방어) */
-.custom-navbar * {
-  box-sizing: border-box;
-  line-height: 1.2;
-}
-.custom-navbar font { font: inherit; color: inherit; vertical-align: middle; }
-.custom-navbar [class*="mt-"],
-.custom-navbar [class*="mb-"],
-.custom-navbar [class*="pt-"],
-.custom-navbar [class*="pb-"] {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}
-.custom-navbar .float-right,
-.custom-navbar .float-left {
-  float: none !important;
-}
-.custom-navbar > .navbar-toggler {
-  display: none !important; /* 데스크톱 전용 화면이므로 토글 버튼은 항상 숨김 - 높이에 관여 못하게 */
-}
-.custom-navbar .collapse.navbar-collapse {
-  display: flex !important;
-  align-items: center;
-  height: 100%;
-}
-.custom-navbar .navbar-nav {
-  flex-direction: row;
-  align-items: center;
-  height: 100%;
-  margin: 0;
-}
-.custom-navbar .nav-item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
-.custom-navbar .navbar-brand {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text) !important;
-  text-decoration: none;
-}
-.custom-navbar .nav-link {
-  color: var(--text-muted) !important;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 8px 12px !important;
-  transition: color 0.15s ease;
-  display: flex;
-  align-items: center;
-}
-.custom-navbar .nav-link i {
-  margin-right: 6px;
-  font-size: 13px;
-  color: var(--text-faint);
-  width: 15px;
-  text-align: center;
-}
-.custom-navbar .nav-link:hover { color: var(--text) !important; }
-.custom-navbar .nav-link:hover i { color: var(--text); }
-.custom-navbar .nav-link.active { color: var(--text) !important; font-weight: 600; }
+                    <!-- 자원 관리 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu admin-only-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownRes" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">자원 관리</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownRes">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/resDownloadProcess.json'">배포 자원 다운로드</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/DiffSoftmResource.json'">배포 자원 조회</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/CleanCisResourceQA.json'">기간계 서버 자원 정리 (개발/검증)</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/CleanCisResourcePROD.json'">기간계 서버 자원 정리 (운영)</a>
+							<div class="dropdown-divider"></div>				                           
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/CleanSoftmResource.json'">형상 서버 자원 정리</a>
+                        </div>
+                    </li>
 
-.custom-navbar .dropdown-menu {
-  display: none;
-  position: absolute !important;
-  top: 100% !important;
-  left: 0 !important;
-  z-index: 3000 !important;
-  min-width: 200px;
-  background-color: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-  padding: 4px;
-  margin-top: 5px !important;
-}
-.custom-navbar .dropdown-menu.show {
-  display: block !important;
-}
-.custom-navbar .dropdown-item {
-  font-size: 14px;
-  color: var(--text-muted);
-  padding: 6px 12px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-}
-.custom-navbar .dropdown-item i {
-  width: 16px;
-  margin-right: 8px;
-  text-align: center;
-  font-size: 13px;
-}
-.custom-navbar .dropdown-item:hover { background-color: var(--info-bg); color: var(--text); }
-.custom-navbar .dropdown-header {
-  font-size: 12px; font-weight: 600; color: var(--text-faint);
-  text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 12px;
-}
-.custom-navbar .dropdown-divider { height: 1px; background-color: var(--border); margin: 4px 0; }
+                    <!-- 이미지 배포 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu user-admin-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown3" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 이미지 배포 </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown3">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/imageProcess.json'">이미지 배포</a>
+                        </div>
+                    </li>
 
-.custom-navbar .btn-action {
-  background-color: var(--primary) !important;
-  color: #ffffff !important;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px 14px;
-  transition: opacity 0.15s;
-}
-.custom-navbar .btn-action:hover { opacity: 0.9; }
-.custom-navbar .navbar-user { color: var(--text-muted); font-size: 13px; margin-right: 10px; }
-.custom-navbar .ml-auto,
-.custom-navbar .float-right {
-  margin-left: auto !important;
-  display: flex !important;
-  align-items: center;
-  height: 100%;
-}
+                    <!-- 배포 지원 기능 (Dropdown) -->
+                    <li class="nav-item dropdown auth-menu special-user-menu">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownSpecial" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">배포 지원 기능</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownSpecial">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/TestProcess.json'">배포 태스크 호출</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/queryProcess.json'">Query Execute</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
 
-/* ------------------------------------------------------------
-   헤더-본문 간격 규칙 (핵심)
-   - #menuItem은 <header id="header"> 안쪽(포함된 요소)이라, "#menuItem 다음 형제"로는
-     본문(#pageWrap, #app 등 - 이건 <header>의 형제)에 절대 안 걸립니다. (이전 버전의 버그)
-   - 그래서 이 방식 대신, 본문 컨테이너 자체에 padding-top: 40px를 직접 주는 것으로 통일합니다.
-   - 새 화면을 만들 때도 본문 최상위 wrapper(#app, #pageWrap 등)에
-     "padding: 40px 24px 80px;" 를 그대로 적용하면 항상 동일한 간격이 나옵니다.
-   ------------------------------------------------------------ */
+            <!-- 사용자 영역 -->
+            <div class="ml-auto">
+                <span class="navbar-user" id="user-name" style="color: var(--text-main); padding-right: 15px;"></span>
+                <button class="btn-action" type="button" onclick="location.href='/logoutProcess.json'">
+                    <i class="fas fa-sign-out-alt" style="margin-right:4px; font-size:12px;"></i> 로그아웃
+                </button>
+            </div>
+        </nav>
+    </div>
+    <script src="/js/jquery.min.3.4.1.js"></script> 
+    <script src="/js/popper.min.1.16.1.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        
+    
+    var LOGIN_PAGE_URL = "/bin/Login.jsp"; // 실제 로그인 페이지 경로로 교체
 
-/* 구버전 화면에 남아있는 <hr> 구분선은 더 이상 쓰지 않음 (네브바 자체 border-bottom으로 대체) */
-#menuItem hr,
-#menuItem + hr {
-  display: none;
-}
+    function loadUserInfoAndMenu() {
+        $.ajax({
+            url: '/getUserInfo.json',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                if (data && data.response_username) {
+                    $('#user-name').text(data.response_username);
+                    const groupId = data.response_group_id;
+                    const userId = data.response_user_Id;
+                    if (groupId === 'admin' || groupId === 'user') {
+                        $('.user-admin-menu').show();
+                    }
+                    if (groupId === 'admin') {
+                        $('.admin-only-menu').show();
+                    }
+                    if (userId === 'IB1192' || userId === 'IB1117') {
+                        $('.special-user-menu').show();
+                    }
+                } else {
+                    // [추가] 응답은 왔는데 로그인 정보가 비어있음 = 세션 없음
+                    window.location.href = LOGIN_PAGE_URL;
+                }
+            },
+            error: function(xhr) {
+                // [추가] 401/403이면 명확히 세션 만료/미인증 - 로그인 페이지로
+                // 그 외(500, 네트워크 오류 등)는 서버 쪽 문제일 수 있어 리다이렉트하지 않고 메뉴만 비워둠
+                if (xhr.status === 401 || xhr.status === 403|| xhr.status === 404) {
+                    window.location.href = LOGIN_PAGE_URL;
+                } else {
+                    $('#user-name').text("Error");
+                }
+            }
+        });
+    }
+
+        // [핵심 수정 부분]
+    $(document).ready(function() {
+        // 1. 권한 로드
+        loadUserInfoAndMenu();
+
+    });
+
+    function myFunc() {
+        alert("기존 배포 로그 조회 기능을 실행합니다.");
+    }
+    </script>
+</body>
+</html>
+
+
+2. menu.jsp<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="hi.framework.deploymanager.login.entity.*" %>
+<%
+    // 1. Null 체크 필수
+    LoginInfoVO loginInfo = (LoginInfoVO) request.getAttribute("loginInfo");
+    if (loginInfo == null) {
+        response.sendRedirect("/login.do"); // 로그인 페이지로 강제 이동
+        return;
+    }
+%>
+
+<link href="../css/app-theme.css" rel="stylesheet">
+<link href="../css/font-awesome/css/all.min.css" rel="stylesheet">
+
+<div id="menuItem" class="container-fluid">
+    <nav class="navbar navbar-expand-lg custom-navbar">
+        <a class="navbar-brand" href="javascript:void(0)" onclick="location.href='./imageHomeProcess.json'">배포 관리 시스템</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="javascript:void(0)" onclick="location.href='./imageHomeProcess.json'"><i class="fas fa-home"></i> Home</a>
+                </li>
+
+                <%-- 권한 체크 시 상수를 앞에 두어 NullPointerException 방지 --%>
+                <% if ("admin".equals(loginInfo.getResponse_group_id()) || "user".equals(loginInfo.getResponse_group_id())) { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="javascript:void(0)" onclick="myFunc()">(구)배포 로그 조회</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='./logViewerProcess.json'">배포 로그 조회</a>
+                    </li>
+                <% } %>
+
+                <%-- Admin 전용 메뉴 --%>
+                <% if ("admin".equals(loginInfo.getResponse_group_id())) { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="javascript:void(0)" onclick="location.href='./AgentCheckProcess.json'">Agent 모니터링</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown1" role="button" data-toggle="dropdown"> 배포 설정 관리  </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown1">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/MetaProcess.json'">메타 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/ConfigProcess.json'">시스템별 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/AgentProcess.json'">Agent 정보 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/imageAuthProcess.json'">이미지 배포 관리</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/ApSchedule.json'">AP스케줄 관리</a>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAcc" role="button" data-toggle="dropdown">계정 관리</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownAcc">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/Imsync.json'">계정 동기화 관리</a>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownRes" role="button" data-toggle="dropdown">자원 관리</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownRes">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/resDownloadProcess.json'">배포 자원 다운로드</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/DiffSoftmResource.json'">배포 자원 조회</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/CleanCisResourceQA.json'">기간계 서버 자원 정리 (개발/검증)</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/CleanCisResourcePROD.json'">기간계 서버 자원 정리 (운영)</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/CleanSoftmResource.json'">형상 서버 자원 정리</a>
+                        </div>
+                    </li>
+                <% } %>
+
+                <%-- User/Admin 공통 메뉴 --%>
+                <% if ("admin".equals(loginInfo.getResponse_group_id()) || "user".equals(loginInfo.getResponse_group_id())) { %>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown3" role="button" data-toggle="dropdown">이미지 배포 </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown3">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href=/imageProcess.json'">이미지 배포</a>
+                        </div>
+                    </li>
+                   
+                <% } %>
+
+                <%-- 특정 ID 전용 메뉴 --%>
+                <% if ("IB1192".equals(loginInfo.getResponse_user_Id()) || "IB1117".equals(loginInfo.getResponse_user_Id())) { %>
+                   <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownRes" role="button" data-toggle="dropdown">배포 지원 기능</a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownRes">
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/TestProcess.json'">배포 태스크 호출</a>
+                            <a class="dropdown-item" href="javascript:void(0)" onclick="location.href='/queryProcess.json'">Query Execute</a>
+                        </div>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+
+        <div class="ml-auto">
+            <span class="navbar-user">${loginInfo.response_username}</span>
+            <button class="btn-action" type="button" onclick="location.href='/logoutProcess.json'">
+                <i class="fas fa-sign-out-alt" style="margin-right:4px; font-size:12px;"></i> 로그아웃
+            </button>
+        </div>
+    </nav>
+</div>
+현재 버전이야.
