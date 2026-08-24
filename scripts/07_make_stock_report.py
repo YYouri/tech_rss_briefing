@@ -441,7 +441,7 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
     market_text = "\n".join(idx_lines + etf_lines + macro_lines + stock_lines + news_lines)
     kst_date    = now_kst.strftime("%Y년 %m월 %d일")
  
-    return f"""당신은 20년 경력의 매크로 애널리스트이자 현업 펀드매니저다.
+    return f"""당신은 정보관리기술사를 준비하는 현업 개발자이자, 본인 투자 기록을 블로그에 공개하는 개인 투자자다.
 독자는 AI가 작성한 뻔한 글을 극도로 싫어한다.
 아래 실제 시장 데이터를 바탕으로 오늘 아침 한국 증시 대응 리포트를 작성하라.
  
@@ -449,6 +449,12 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
 【데이터 기준】미국 현지 {us_date} NYSE/NASDAQ 정규장 마감 (오후 4시 ET)
 【데이터】
 {market_text}
+ 
+【톤 — 애널리스트 리포트와 개인 투자 기록의 중간】
+- 3인칭 애널리스트 톤이 아니라, 직접 이 데이터를 보고 본인 포지션을 고민하는 1인칭 관점을 섞는다
+- 리드 문단과 5번 섹션(한국 연관 종목 체크)에는 "내 포트폴리오 기준으로", "실제로 지켜보면" 같은 개인 관점 어투를 1~2번 자연스럽게 넣는다
+- 나머지 섹션은 기존처럼 데이터 중심 분석 구조를 유지한다
+- 반말이나 인터넷 말투는 쓰지 않는다. 존댓말·평서문 유지
  
 【작성 원칙】
 - "알아보겠습니다", "살펴보겠습니다" 절대 금지

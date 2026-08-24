@@ -198,10 +198,31 @@ def generate_diagram(topic_data: dict) -> str:
 - 노드는 5~8개 이내, 한국어 라벨 사용
 - 색상 없이 기본 스타일만
 - 노드 라벨에는 괄호, 따옴표, 특수문자 사용 완전 금지
-- 설명 없이 mermaid 코드만 출력 (코드블록 없이 순수 코드만)
+- 설명 없이 mermaid 코드만 출력 (코드블록 없이 순수 코드만, 사고과정이나 생각 과정을 절대 출력하지 마세요)
 """
     raw = call_ai(prompt, max_tokens=800)
-    return re.sub(r"```mermaid|```", "", raw).strip()
+    cleaned = strip_reasoning_blocks(raw)
+
+    # 리즈닝 모델이 코드펜스도 <think> 태그도 없이 "사용자가 다이어그램을
+    # 원한다..." 같은 사고과정을 그대로 흘려보내는 경우가 있다(2026-08-24
+    # 실제 발행본에서 mermaid.ink URL에 사고과정 원문이 그대로 박혀 들어간
+    # 것을 확인). 실제 Mermaid 문법은 "graph TD/LR" 또는 "flowchart"로 줄
+    # 시작하지만, 사고과정 중간에도 "graph TD or graph LR..." 처럼 그
+    # 문법을 설명하며 같은 키워드를 언급하는 경우가 많아 첫 매치를 쓰면
+    # 안 된다. 실제 코드는 보통 맨 마지막에 오므로 마지막 매치를 쓴다.
+    matches = list(re.finditer(
+        r"^\s*(?:graph\s+(?:TD|LR|TB|BT|RL)|flowchart\s+(?:TD|LR|TB|BT|RL))\b",
+        cleaned, re.MULTILINE | re.IGNORECASE,
+    ))
+    if not matches:
+        print(f"[WARN] 다이어그램 생성 실패 — 유효한 Mermaid 코드를 찾지 못함. 원본 앞부분: {raw[:150]!r}")
+        return ""
+    code = cleaned[matches[-1].start():].strip()
+    # 여전히 사고과정 설명일 뿐(예: 뒤에 실제 노드/화살표가 없음) 최소 검증
+    if "-->" not in code and "---" not in code:
+        print(f"[WARN] 다이어그램 생성 실패 — 노드 연결(-->)이 없어 유효하지 않음. 원본 앞부분: {raw[:150]!r}")
+        return ""
+    return code
 
 
 def generate_body(topic_data: dict) -> str:
@@ -211,9 +232,9 @@ def generate_body(topic_data: dict) -> str:
     articles = topic_data.get("source_articles", [])
     ctx      = build_article_context(articles, topic)
 
-    prompt = f"""당신은 15년 경력의 IT 전문 기자이자 현업 엔지니어 출신 칼럼니스트다.
-글을 읽는 독자는 AI가 작성한 글을 매우 싫어한다.
-반도체·AI·소프트웨어 분야를 현장 취재하며 기업 CTO, 연구소장과 인터뷰해온 실무 전문가입니다.
+    prompt = f"""당신은 정보관리기술사를 준비하는 15년차 현업 개발자입니다.
+회사에서 직접 이 분야를 다루고, 시험 준비하며 관련 기술을 다시 정리하는 입장에서 글을 씁니다.
+글을 읽는 독자는 AI가 작성한 글을 매우 싫어합니다.
 아래 정보를 바탕으로 블로그 포스팅을 작성하세요.
 
 【주제】{topic}
@@ -221,6 +242,12 @@ def generate_body(topic_data: dict) -> str:
 【선정 이유】{reason}
 【참조 뉴스】
 {ctx}
+
+【톤 — 리포트와 개인 블로그의 중간】
+- 3인칭 기자 톤이 아니라, 현업에서 직접 부딪혀본 사람의 1인칭 관점을 섞는다
+- 리드 문단과 5번 섹션(엔지니어가 봐야 할 포인트)에는 "회사에서", "실무에서 보면", "내가 보기엔" 같은 개인 경험 어투를 자연스럽게 1~2번 넣는다
+- 나머지 섹션은 기존처럼 사실 중심 분석 구조를 유지한다 — 감상만 나열하지 않는다
+- 반말이나 인터넷 말투(ㅋㅋ, ~인 듯, 이모티콘)는 쓰지 않는다. 존댓말·평서문 유지
 
 【핵심 작성 원칙 — AI 느낌 완전 제거】
 - "~에 대해 알아보겠습니다", "살펴보도록 하겠습니다", "정리해보았습니다" 같은 챗봇 문구 절대 금지
@@ -286,6 +313,32 @@ JSON만 출력:
     return {"titles": [topic_data["korean_title"]], "category": "IT/테크"}
 
 
+def markdown_to_plain(md: str, title: str) -> str:
+    """마크다운 기호를 제거해 다른 곳(네이버 등)에 가끔 복붙해도 되는 평문으로
+    변환. AI 재생성 없이 문자열 치환만으로 처리 — HTML 렌더링용 md 구조는
+    그대로 유지하면서, 사람이 읽는 사본만 따로 만든다."""
+    text = md
+
+    # [출처: ...] 태그 제거 (평문에서는 각주 링크가 의미 없음)
+    text = re.sub(r"\s*\[출처\s*:\s*.+?\]", "", text)
+
+    # 헤딩: "## 1. 제목" -> "■ 제목" (섹션 구분은 남기되 기호는 정리)
+    def _heading(m):
+        return f"\n■ {m.group(1).strip()}\n"
+    text = re.sub(r"^##\s*(?:\d+\.\s*)?(.+)$", _heading, text, flags=re.MULTILINE)
+
+    # 굵게: **텍스트** -> 텍스트
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+
+    # 리스트: "- " -> "· "
+    text = re.sub(r"^[-*]\s+", "· ", text, flags=re.MULTILINE)
+
+    # 연속 빈 줄 정리
+    text = re.sub(r"\n{3,}", "\n\n", text).strip()
+
+    return f"{title}\n\n{text}"
+
+
 def main():
     if not os.path.exists(TOPIC_FILE):
         print(f"[ERROR] {TOPIC_FILE} 파일이 없습니다.")
@@ -316,7 +369,9 @@ def main():
     # 3. 구성도
     diagram_url = ""
     try:
-        diagram_url = mermaid_to_image_url(generate_diagram(topic_data))
+        diagram_code = generate_diagram(topic_data)
+        if diagram_code:
+            diagram_url = mermaid_to_image_url(diagram_code)
     except Exception as e:
         print(f"[WARN] 구성도 생성 실패: {e}")
 
@@ -396,7 +451,14 @@ def main():
     with open("data/blog_post.md", "w", encoding="utf-8") as f:
         f.write(f"# {final_title}\n\n{body_md}")
 
+    # 12. 복붙용 평문 버전 저장 (마크다운 기호 제거) — Naver 등 다른 곳에
+    # 가끔 그대로 붙여넣을 수 있도록. AI 재생성 없이 문자열 치환만 사용.
+    plain_text = markdown_to_plain(body_md, final_title)
+    with open("data/blog_post_plain.txt", "w", encoding="utf-8") as f:
+        f.write(plain_text)
+
     print(f"\n포스팅 저장 완료 → {POST_FILE}")
+    print("복붙용 평문 저장 완료 → data/blog_post_plain.txt")
 
 
 if __name__ == "__main__":
