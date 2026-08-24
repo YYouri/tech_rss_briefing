@@ -255,10 +255,11 @@ def render_references(articles: list) -> str:
         "hacker_news":   "Hacker News",
     }
     items = []
-    for a in articles[:8]:
+    for i, a in enumerate(articles[:8]):
         src_label = src_label_map.get(a.get("source", ""), a.get("source", ""))
         items.append(
-            f'<li style="margin-bottom:7px;line-height:1.6;font-size:0.88em;">'
+            f'<li id="ref-{i+1}" style="margin-bottom:7px;line-height:1.6;font-size:0.88em;">'
+            f'<span style="font-family:{FONT_MONO};color:{TEXT_MUTED};">[{i+1}]</span> '
             f'<a href="{a["link"]}" target="_blank" rel="noopener noreferrer" '
             f'style="color:{ACCENT_MAIN};text-decoration:none;">{a["title"]}</a>'
             f'<span style="color:{TEXT_MUTED};font-size:0.85em;"> — {src_label}</span></li>'
@@ -278,7 +279,7 @@ def render_hero_image(image: dict) -> str:
     return (
         f'<div style="margin:0 0 1.8em;border-radius:10px;overflow:hidden;border:1px solid {BORDER};">'
         f'<img src="{image["url"]}" alt="{image.get("alt","")}" '
-        f'style="width:100%;max-height:380px;object-fit:cover;display:block;" loading="lazy" />'
+        f'style="width:100%;max-height:380px;object-fit:cover;display:block;" />'
         f'<p style="font-size:0.74em;color:{TEXT_MUTED};margin:6px 10px;text-align:right;">'
         f'Photo by <a href="{image["author_url"]}?utm_source=mystacklog&utm_medium=referral" '
         f'target="_blank" rel="noopener noreferrer" style="color:{TEXT_MUTED};">{image["author"]}</a>'
@@ -295,30 +296,39 @@ def render_diagram(diagram_url: str, topic: str) -> str:
         f'<div style="text-align:center;margin:1.6em 0;padding:16px;'
         f'background:{BG_PAGE};border:1px solid {BORDER};border-radius:10px;">'
         f'<img src="{diagram_url}" alt="{topic} 구조도" '
-        f'style="max-width:100%;border-radius:6px;" loading="lazy" />'
+        f'style="max-width:100%;border-radius:6px;" '
+        f'onerror="this.closest(\'div\').style.display=\'none\';" />'
         f'<p style="font-size:0.78em;color:{TEXT_MUTED};margin-top:10px;">{topic} 핵심 구조도</p>'
         f'</div>'
     )
 
 
 def convert_source_tags(text: str, articles: list) -> str:
-    title_to_url = {a["title"].strip(): a.get("link", "") for a in articles}
+    """[출처: 기사제목] 태그를 본문 안에 원문 그대로 박아넣지 않고,
+    REFERENCES 목록과 연결된 번호 각주 [1][2]...로 바꾼다.
+
+    기존 방식은 잘린 영문 기사 제목(inner[:30])을 문장 중간에 그대로 삽입해서
+    "...주장했다 [DeepSeek open sources DSpark, ]." 처럼 단어가 잘린 채 노출되는
+    문제가 있었다(2026-08-24 실제 발행본에서 확인). 번호 각주 + REFERENCES 목록
+    순서를 일치시켜서 어떤 제목이든 안전하게 표시되도록 했다.
+    """
+    title_to_idx = {a["title"].strip(): i + 1 for i, a in enumerate(articles[:8])}
 
     def replace_tag(match):
         inner = re.sub(r'^\[출처\s*:\s*', '', match.group()).rstrip(']').strip()
-        url = title_to_url.get(inner, "")
-        if not url:
-            for title, u in title_to_url.items():
+        idx = title_to_idx.get(inner)
+        if idx is None:
+            for title, i in title_to_idx.items():
                 if inner[:20] in title or title[:20] in inner:
-                    url = u
+                    idx = i
                     break
-        if url:
-            return (
-                f'<sup style="font-size:0.74em;color:{ACCENT_MAIN};">'
-                f'[<a href="{url}" target="_blank" rel="noopener noreferrer" '
-                f'style="color:{ACCENT_MAIN};text-decoration:none;">{inner[:30]}</a>]</sup>'
-            )
-        return f'<sup style="font-size:0.74em;color:{TEXT_MUTED};">[{inner[:30]}]</sup>'
+        if idx is None:
+            # 매칭되는 기사를 못 찾으면 굳이 잘린 원문을 노출하지 않고 조용히 제거한다.
+            return ""
+        return (
+            f'<sup><a href="#ref-{idx}" style="color:{ACCENT_MAIN};'
+            f'text-decoration:none;font-size:0.78em;">[{idx}]</a></sup>'
+        )
 
     return SOURCE_TAG_PATTERN.sub(replace_tag, text)
 
