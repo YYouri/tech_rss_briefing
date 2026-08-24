@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26180.46,
+      "prev": 26067.17,
+      "chg_pct": 0.43,
+      "volume": 6318725000,
+      "market_date_us": "08/21"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7674.37,
+      "prev": 7641.16,
+      "chg_pct": 0.43,
+      "volume": 2737363000,
+      "market_date_us": "08/21"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 53277.01,
+      "prev": 52759.21,
+      "chg_pct": 0.98,
+      "volume": 424065337,
+      "market_date_us": "08/21"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 15.13,
+      "prev": 16.01,
+      "chg_pct": -5.5,
+      "volume": 0,
+      "market_date_us": "08/21"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 98.82,
+      "prev": 98.8,
+      "chg_pct": 0.02,
+      "volume": 0,
+      "market_date_us": "08/23"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 85.69,
+      "prev": 87.06,
+      "chg_pct": -1.57,
+      "volume": 19465,
+      "market_date_us": "08/23"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4709.0,
+      "prev": 4624.1,
+      "chg_pct": 1.84,
+      "volume": 31800,
+      "market_date_us": "08/23"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1379.14,
+      "prev": 1390.79,
+      "chg_pct": -0.84,
+      "volume": 0,
+      "market_date_us": "08/23"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 713.44,
+      "prev": 710.93,
+      "chg_pct": 0.35,
+      "volume": 33399407,
+      "market_date_us": "08/21"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 520.05,
+      "prev": 522.35,
+      "chg_pct": -0.44,
+      "volume": 6255603,
+      "market_date_us": "08/21"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 57.48,
+      "prev": 56.95,
+      "chg_pct": 0.93,
+      "volume": 26763470,
+      "market_date_us": "08/21"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 214.72,
+      "prev": 216.85,
+      "chg_pct": -0.98,
+      "volume": 98869300,
+      "market_date_us": "08/21"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 473.25,
+      "prev": 469.46,
+      "chg_pct": 0.81,
+      "volume": 14343885,
+      "market_date_us": "08/21"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 90.07,
+      "prev": 92.13,
+      "chg_pct": -2.24,
+      "volume": 91670104,
+      "market_date_us": "08/21"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 418.95,
+      "prev": 416.0,
+      "chg_pct": 0.71,
+      "volume": 7417130,
+      "market_date_us": "08/21"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 309.35,
+      "prev": 311.3,
+      "chg_pct": -0.63,
+      "volume": 46876815,
+      "market_date_us": "08/21"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 483.24,
+      "prev": 481.15,
+      "chg_pct": 0.43,
+      "volume": 22510774,
+      "market_date_us": "08/21"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 362.86,
+      "prev": 345.13,
+      "chg_pct": 5.14,
+      "volume": 59223958,
+      "market_date_us": "08/21"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 258.63,
+      "prev": 260.11,
+      "chg_pct": -0.57,
+      "volume": 35722956,
+      "market_date_us": "08/21"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 344.82,
+      "prev": 340.67,
+      "chg_pct": 1.22,
+      "volume": 20849776,
+      "market_date_us": "08/21"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 549.9,
+      "prev": 545.83,
+      "chg_pct": 0.75,
+      "volume": 13848015,
+      "market_date_us": "08/21"
+    }
+  },
+  "news": [
+    {
+      "title": "Dow Jones Futures Waver; Nvidia, Tariffs, Warsh In Focus",
+      "summary": "The market rally suffered damage last week, though bitcoin and gold shined. New Trump tariffs on Canada have kicked in. Nvidia, CrowdStrike and Fed's Warsh loom.",
+      "link": "https://finance.yahoo.com/m/0e4d198b-0fbe-345f-9a59-99f6074c2273/dow-jones-futures-waver%3B.html?.tsrc=rss"
+    },
+    {
+      "title": "UBS revamps S&P 500 target for rest of 2026",
+      "summary": "Stronger profits are changing the math for stocks again",
+      "link": "https://www.thestreet.com/markets/ubs-sp-500-2026-target?.tsrc=rss"
+    },
+    {
+      "title": "The Stock Market Is Repeating a Pattern Not Seen in Decades. Here's What History Says Comes Next.",
+      "summary": "Last time, it didn't end well for many investors, but there are key differences this time.",
+      "link": "https://www.fool.com/investing/2026/08/23/the-stock-market-is-repeating-a-pattern-not-seen-i/?.tsrc=rss"
+    },
+    {
+      "title": "The Idiot’s Guide to Stocks",
+      "summary": "Stock market jargon like dividends, capital gains, and compound returns gets thrown around constantly, yet most people never learned what any of it actually means. The good news is that the fundamentals are far more approachable than Wall Street wants you to think.",
+      "link": "https://247wallst.com/investing/2026/08/23/the-idiots-guide-to-stocks/?.tsrc=rss"
+    },
+    {
+      "title": "Could This Unstoppable S&P 500 ETF Make You a Millionaire? Here's What 20 Years of Data Says.",
+      "summary": "This simple, low-cost S&P 500 ETF could deliver millionaire-making returns in the long run.",
+      "link": "https://www.fool.com/investing/2026/08/23/could-this-unstoppable-sp-500-etf-millionaire/?.tsrc=rss"
+    },
+    {
+      "title": "Anthropic makes quiet move Nvidia investors must consider",
+      "summary": "This AI lab just hired the person who built Google’s most guarded hardware program. That is not a coincidence.",
+      "link": "https://www.thestreet.com/technology/anthropic-silicon-team-amir-salek-hire?.tsrc=rss"
+    },
+    {
+      "title": "3 Growth Stocks That Could Skyrocket in the Second Half of 2026",
+      "summary": "Here are three growth leaders with strong tailwinds: Arista Networks, Micron, and Eli Lilly.",
+      "link": "https://www.fool.com/investing/2026/08/23/3-growth-stocks-that-could-skyrocket-in-the-second/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Notifies Customers About AI-Related Price Hikes",
+      "summary": "Nvidia Corp.'s biggest customers have been told that the prices of servers containing its artificial intelligence chips are going up more than 15% in many cases with memory chip costs soaring. Bloomberg's Anthony Stephens breaks down what we know so far.",
+      "link": "https://finance.yahoo.com/video/nvidia-notifies-customers-ai-related-003033419.html?.tsrc=rss"
+    },
+    {
+      "title": "Goldman Sachs spots huge twist ahead of Nvidia’s earnings",
+      "summary": "Analysts reveal what could happen to Nvidia shares next, and set expectations for the Q2 report.",
+      "link": "https://www.thestreet.com/investing/goldman-sachs-reiterates-buy-nvidia-ahead-of-q2-fy27-earnings?.tsrc=rss"
+    },
+    {
+      "title": "Tesla just set a date for its riskiest launch yet",
+      "summary": "Sept. 3 in Austin is the easy part. What Tesla is missing is harder to fix.",
+      "link": "https://www.thestreet.com/automotive/tesla-just-set-a-date-for-its-riskiest-launch-yet?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Maintained Its Majority of the U.S. EV Market in Q2, but That's Not All You Need to Know",
+      "summary": "It's a winner in a shrinking U.S. market, and it's not like the company's crushing it outside of the United States either.",
+      "link": "https://www.fool.com/investing/2026/08/23/tesla-maintained-its-majority-of-the-us-ev-market/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Stock in 2027: Why I Think It Still Has Room to Run",
+      "summary": "Tesla has dipped a bit and it faces near-term challenges, but its growing full self-driving, energy, and AI businesses could give it significant long-term growth potential.",
+      "link": "https://www.fool.com/investing/2026/08/23/tesla-stock-in-2027-why-i-think-tsla-still-has-roo/?.tsrc=rss"
+    },
+    {
+      "title": "Paul Graham Says Tesla Buyers Are Getting More Range, More Car For Less Money Than A Decade Ago: ‘People Who Think They Dislike Capitalism…’",
+      "summary": "Y Combinator co-founder Paul Graham said his wife, Jessica Livingston, recently purchased a Tesla Inc. for $48,000 that offers about 350 miles of range. He compared it with the Tesla Livingston bought in 2015, which he said cost the equivalent...",
+      "link": "https://finance.yahoo.com/technology/articles/paul-graham-says-tesla-buyers-233052774.html?.tsrc=rss"
+    },
+    {
+      "title": "JPMorgan Says Tesla Is Confident of Scaling Cybercab Operations, Touts Future Models Based on Platform—FSD V15 a ‘Step-Change’ From Previous Versions",
+      "summary": "Investment bank JPMorgan Chase & Co. on Wednesday said that Tesla Inc. appears to be prioritizing the Cybercab over further scaling its Model Y robotaxi fleet. New Cybercab Models? Influencer and Tesla investor Sawyer Merritt took to the social media...",
+      "link": "https://finance.yahoo.com/technology/ai/articles/jpmorgan-says-tesla-confident-scaling-213147223.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Is Investing More Than $10 Billion in Taiwan to Build Advanced Chip Packaging With TSMC. Here's What Lisa Su Is Actually Buying With That Money.",
+      "summary": "AMD's biggest AI challenge may no longer be winning customers but making enough hardware to serve them.",
+      "link": "https://www.fool.com/investing/2026/08/23/amd-is-investing-more-than-xx-billion-in-taiwan-to/?.tsrc=rss"
+    },
+    {
+      "title": "These 3 AI stocks are bought by both hedge funds and mutual funds",
+      "summary": "Investing.com -- Hedge funds and mutual funds both added shares of Bloom Energy, Flex and Seagate Technology last quarter, Goldman Sachs said, as the two investor groups selectively adjusted their exposure to artificial-intelligence-related equities even as they diverged sharply on other AI names.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/3-ai-stocks-bought-both-113113447.html?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices (AMD) Adds Tim Ryan To Board After Director Retirement",
+      "summary": "Advanced Micro Devices (NasdaqGS:AMD) appointed Tim Ryan to its Board of Directors, adding new governance experience from his prior roles at Citi and PwC. The appointment follows the retirement of a long serving AMD director and includes related changes to the composition of board committees. Tim Ryan brings decades of background in technology, corporate strategy and risk management that may influ",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/advanced-micro-devices-amd-adds-061002113.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Investors Must Be Ready For Major News On Aug. 26",
+      "summary": "AMD and Nvidia are closely linked.",
+      "link": "https://www.fool.com/investing/2026/08/22/amd-investors-must-be-ready-for-major-news-on-aug/?.tsrc=rss"
+    },
+    {
+      "title": "The Best Semiconductor Stock to Buy Isn't AMD or Qualcomm: It's Nvidia, and Our Data Proves It",
+      "summary": "Nvidia is leagues ahead of its rivals in the lucrative AI chip market.",
+      "link": "https://www.fool.com/investing/2026/08/21/the-best-semiconductor-stock-to-buy-isnt-amd-or-qu/?.tsrc=rss"
+    },
+    {
+      "title": "Dow surges 500 points Friday, but index posts back-to-back weekly losses - CNBC",
+      "summary": "Dow surges 500 points Friday, but index posts back-to-back weekly losses CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9TMDV4Q2s0QVVHMXFPY2w4RjUxY0Juakx6aGs4NUh0WloyV0lkUElnMkdUUEhUV1ZCNFQ3YUxfYXRTY3Z3b2JCVVJwdTZpSDFhMGplRVplZUhTNUtmbC14dnF3TlZQbzIwbU51YmliSmczdXNaZm1n0gF8QVVfeXFMTXlQWDhxZW1wNDI5b2hyTFFGLXh5M2h5YVdaanoyTmw5R0cyRkZvcG5Nd2ZMUUNGa3NMczF0dFN0cThNU1M1R0dCbFlEajhWb1BiVU14bldkdllIQm1xNDY3RWRiYjdFRVhyelctcklYUldpMkplT29kUW9kNA?oc=5"
+    },
+    {
+      "title": "Stock futures flat as U.S. and Canada appear headed for trade war - MarketWatch",
+      "summary": "Stock futures flat as U.S. and Canada appear headed for trade war MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOMUxIdHJQTmkzcXVvWEw2a2ZFeXEyMnRXaFk4eVotSTBjWTU2Vl9QQlc2Zy0tTUVRRXA2dmpPYXlRZ1F3Rkw0V0kza21lSXo0ZG9nLUg5cGE2azZCaG1EdTEwX2pLNFBmQVdnbWJvLV9LWEotYXZNMnNwOHJzaW1SaE5tOHJ4aG8taVp6djRvS2ZUbzg0bFlONE45MlA2d0VWYUZFWFhBa21yUmM?oc=5"
+    },
+    {
+      "title": "Stock futures slip after Dow posts back-to-back weekly declines: Live updates - CNBC",
+      "summary": "Stock futures slip after Dow posts back-to-back weekly declines: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE03WVhEWGtPNEFpYV90cDVnTW5jcjJ4XzMwRWl6d2dEOWxVMjk5cVA0bGNzMTR6THNiN3JIMlVCbkNaZHJlRUxMaTVZUFRJcTdfZW41TWNSXzI4a3hZOFdHcEtHcEJHb0ZwQTdLUE1LVkN3RG4zUnpB0gF8QVVfeXFMTlYxNW1kWmY1QUNNU3VLbUFwalRnVmYzTEY5aVRtTElfVFpfNmFEZDZ5ejdzS1RlWHQ1Q25BX0ZkOTZaMWNpT3ZrWXBPc0R1SnIzMVkzdGxvUG9qZUVyS0tieGd0NEZubGxJa2VNbnVTaXlzRUFPMjVWN2pocQ?oc=5"
+    },
+    {
+      "title": "Stock Market News, Aug. 21, 2026: Bitcoin Jumps; S&P 500 Ends Friday With Weekly Loss - WSJ",
+      "summary": "Stock Market News, Aug. 21, 2026: Bitcoin Jumps; S&P 500 Ends Friday With Weekly Loss WSJ",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQSWg3azFqLWQ4Wk4weVZuYVFjYVBwZnBuak94TWxuUlZNQ1BZWXNzaWhfR05teG1VWEtrNVdwZFRxTmZCVTdRVkFuZm9hLS1XSV8wUlQwckE4UWk4MXJxdVNFZWllNktGaUxMRFNEN25TVXJveDBEYWFhMUVXazR1VTBQR200UFE?oc=5"
+    },
+    {
+      "title": "Here are the 2 big things we're watching in the stock market this week - CNBC",
+      "summary": "Here are the 2 big things we're watching in the stock market this week CNBC",
+      "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOdWpyeVNOY1I0eXpqSE1aQUZIR2xMYzlsdFNQQW9faWZodmFFTlRTbktDZVRIRGVWYk9FakpaYlJvUXNCeFFZaV9IOVh1eEl5VHpITVhvMnp0T2dsdV9Kdm1ETVVPSjRZRjZ1MzNtamZwY2JWclluOWRyeDFNSkhrbzFENWh2RXFDOUppcXg4TXIwZXNodW9iNlFqR29jWktIUTl0UjZhcWhvZw?oc=5"
+    },
+    {
+      "title": "The S&P 500 Just Did Something Seen Only 1 Other Time Since 1871 — and It's Not Good News for Wall Street - The Motley Fool",
+      "summary": "The S&P 500 Just Did Something Seen Only 1 Other Time Since 1871 — and It's Not Good News for Wall Street The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxQeGZqT0VPakluN1ZMSEdwRWxGd3U1MHJqQ2dZY0RpQ3BBbld6TE9NakVPY09KandfV3htNVV3MC1vQktNMDEyNElfSlRaNUNSRGtJakQwYjRJUjFjZFNnc2RwUHRWUFpOOHp5Z1h4bi13UG41d29nWHFERFJGeFVPUVlTWkVVdmNoOEVHZmRmalFoNmo5V002Y1JwZF84XzJGc1M2aUJHNEU1MllGaV8wTVE1Xy1OSF9vNG1BYWx3SFh0b2FzWDN3NjQwdG4td1hxZWszZTFHWmVvMEE2VWlZVGE1dHA?oc=5"
+    }
+  ],
+  "us_date": "08/21",
+  "generated_at": "2026-08-24T11:45:53.610786+09:00"
+}
