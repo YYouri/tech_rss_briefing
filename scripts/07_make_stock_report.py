@@ -20,6 +20,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
  
 import feedparser
+from openrouter_free_models import build_model_list, strip_reasoning_blocks, extract_balanced
  
 # ── 환경변수 ──────────────────────────────────────────────────────────────────
 OPENROUTER_API_KEY      = os.environ.get("OPENROUTER_API_KEY")
@@ -33,15 +34,9 @@ KST = timezone(timedelta(hours=9))
 EST = timezone(timedelta(hours=-5))
 DATA_DIR = "data"
  
-MODELS = [
-    "openai/gpt-oss-120b:free",
-    "google/gemma-4-26b-a4b:free",
-    "qwen/qwen3-next-80b-a3b-instruct:free",
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "nousresearch/hermes-3-405b-instruct:free",
-    "openai/gpt-oss-20b:free",
-    "meta-llama/llama-3.2-3b-instruct:free",
-]
+# ⚠ 하드코딩 슬러그는 OpenRouter가 무료 라인업을 몇 주 단위로 갈아치우며 계속
+# 404로 깨졌다. 매 실행마다 실제로 살아있는 무료 모델 목록을 조회해서 쓴다.
+MODELS = build_model_list(limit=15)
  
 TICKERS = {
     "^IXIC":    ("나스닥",        "index"),
@@ -346,6 +341,9 @@ def call_ai(prompt: str, max_tokens: int = 5000) -> str:
     if not OPENROUTER_API_KEY:
         print("[ERROR] OPENROUTER_API_KEY 없음")
         sys.exit(1)
+    if not MODELS:
+        print("[ERROR] 사용 가능한 무료 모델을 하나도 찾지 못함")
+        sys.exit(1)
  
     for model in MODELS:
         payload = {
@@ -506,11 +504,11 @@ def generate_title(quotes: dict, now_kst: datetime, us_date: str):
 JSON만 출력:
 {{"titles": ["제목1", "제목2", "제목3"]}}
 """
-    raw   = call_ai(prompt, max_tokens=200)
-    match = re.search(r"\{.*\}", raw, re.DOTALL)
-    if match:
+    raw = call_ai(prompt, max_tokens=200)
+    json_str = extract_balanced(strip_reasoning_blocks(raw), "{", "}")
+    if json_str:
         try:
-            result = json.loads(match.group())
+            result = json.loads(json_str)
             titles = result.get("titles", [])
             if titles:
                 return titles[0], titles

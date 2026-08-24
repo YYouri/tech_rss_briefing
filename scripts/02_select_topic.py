@@ -17,6 +17,8 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timedelta
 
+from openrouter_free_models import build_model_list, strip_reasoning_blocks, extract_balanced
+
 ARTICLES_FILE = "data/raw_articles.json"
 HISTORY_FILE  = "data/topic_history.json"
 TOPIC_FILE    = "data/selected_topic.json"
@@ -25,19 +27,11 @@ OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
 MIN_RELATED_ARTICLES = 5
 
-MODELS = [
-    # ⚠ 2026-08 기준 OpenRouter 무료 모델 슬러그 수정:
-    #   "google/gemma-4-31b:free"     → 실제로는 "-it" 접미사가 필요 (google/gemma-4-31b-it:free)
-    #   "nvidia/nemotron-3-super:free" → 실제 슬러그는 "-120b-a12b" 포함 (nvidia/nemotron-3-super-120b-a12b:free)
-    # 잘못된 슬러그는 OpenRouter가 400을 반환하므로 사실상 매번 첫 모델(gpt-oss-120b)에만
-    # 의존하는 상태였고, 그 모델이 레이트리밋/일시 장애일 때 전체 파이프라인이 멈췄음.
-    "openai/gpt-oss-120b:free",
-    "google/gemma-4-31b-it:free",
-    "qwen/qwen3-next-80b-a3b-instruct:free",
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "openai/gpt-oss-20b:free",
-    "nvidia/nemotron-3-super-120b-a12b:free",
-]
+# ⚠ 하드코딩 슬러그는 OpenRouter가 무료 라인업을 몇 주 단위로 갈아치우면서
+# 계속 404로 죽는 걸 반복 경험했다 (2026-08-24 실행 로그 참고).
+# 근본 해결: 매 실행마다 openrouter_free_models.build_model_list()로
+# "지금 시점에 실제로 살아있는" 무료 모델 목록을 조회해서 사용한다.
+MODELS = build_model_list(limit=15)
 
 TOO_BROAD = {
     "ai", "인공지능", "반도체", "클라우드", "빅데이터", "it", "기술",
@@ -50,6 +44,9 @@ TOO_BROAD = {
 def call_ai(prompt: str, max_tokens: int = 1024) -> str:
     if not OPENROUTER_API_KEY:
         print("[ERROR] OPENROUTER_API_KEY 없음")
+        sys.exit(1)
+    if not MODELS:
+        print("[ERROR] 사용 가능한 무료 모델을 하나도 찾지 못함")
         sys.exit(1)
 
     for model in MODELS:
@@ -85,6 +82,9 @@ def call_ai(prompt: str, max_tokens: int = 1024) -> str:
 
     print("[ERROR] 모든 모델 실패")
     sys.exit(1)
+
+
+# ── JSON 추출 유틸은 openrouter_free_models.py로 이동 (07번 스크립트와 공유) ──
 
 
 # ── 유틸 ──────────────────────────────────────────────────────────────────────
@@ -167,16 +167,13 @@ def extract_keywords(article_text: str) -> list[dict]:
 
     for attempt in range(3):
         raw = call_ai(prompt, max_tokens=1500)
+        cleaned = strip_reasoning_blocks(raw)
 
-        # 코드블록 제거
-        raw = re.sub(r"```json|```", "", raw).strip()
-
-        match = re.search(r"\[.*\]", raw, re.DOTALL)
-        if not match:
-            print(f"[WARN] 키워드 파싱 실패 (시도 {attempt+1}). 재시도...")
+        json_str = extract_balanced(cleaned, "[", "]")
+        if not json_str:
+            print(f"[WARN] 키워드 파싱 실패 (시도 {attempt+1}) — 배열을 찾지 못함. 원본 앞부분: {raw[:200]!r}")
             continue
 
-        json_str = match.group()
         json_str = re.sub(r",\s*]", "]", json_str)
         json_str = re.sub(r",\s*}", "}", json_str)
 
@@ -186,7 +183,7 @@ def extract_keywords(article_text: str) -> list[dict]:
                 return result
             print(f"[WARN] 빈 배열 반환 (시도 {attempt+1}). 재시도...")
         except Exception as e:
-            print(f"[WARN] JSON 파싱 오류 (시도 {attempt+1}): {e}")
+            print(f"[WARN] JSON 파싱 오류 (시도 {attempt+1}): {e} — 추출된 문자열: {json_str[:200]!r}")
             continue
 
     print("[ERROR] 키워드 추출 3회 모두 실패")
@@ -243,9 +240,9 @@ def _try_select_topic(
 {kw_text}
 """
     raw   = call_ai(prompt, max_tokens=512)
-    match = re.search(r"\{.*\}", raw, re.DOTALL)
+    json_str = extract_balanced(strip_reasoning_blocks(raw), "{", "}")
 
-    if not match:
+    if not json_str:
         return {
             "topic":        candidate_kw["keyword"],
             "korean_title": f"{candidate_kw['keyword']} 동향과 전망",
@@ -253,7 +250,7 @@ def _try_select_topic(
             "tags":         [candidate_kw["keyword"], "IT기술", "반도체", "AI", "산업동향"],
         }
     try:
-        return json.loads(match.group())
+        return json.loads(json_str)
     except Exception:
         return {
             "topic":        candidate_kw["keyword"],
