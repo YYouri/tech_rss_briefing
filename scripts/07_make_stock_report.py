@@ -90,6 +90,50 @@ def clean(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
  
  
+import http.cookiejar
+
+# Yahoo의 v8/finance/chart 엔드포인트는 2024년 이후 봇 차단이 강화되어
+# User-Agent만으로는 401/429가 반환되는 경우가 많다.
+# 브라우저처럼 쿠키를 먼저 받고(crumb 발급 없이도 쿠키만으로 대부분 통과됨) 재사용한다.
+_YAHOO_COOKIE_JAR = http.cookiejar.CookieJar()
+_YAHOO_OPENER = urllib.request.build_opener(
+    urllib.request.HTTPCookieProcessor(_YAHOO_COOKIE_JAR)
+)
+_YAHOO_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+)
+_YAHOO_CRUMB: Optional[str] = None
+_YAHOO_WARMED_UP = False
+
+
+def _yahoo_warmup() -> None:
+    """finance.yahoo.com 홈페이지를 한 번 방문해 세션 쿠키를 획득하고,
+    getcrumb 엔드포인트로 crumb을 발급받는다. 실패해도 조용히 넘어간다."""
+    global _YAHOO_CRUMB, _YAHOO_WARMED_UP
+    if _YAHOO_WARMED_UP:
+        return
+    _YAHOO_WARMED_UP = True
+    try:
+        req = urllib.request.Request(
+            "https://fc.yahoo.com", headers={"User-Agent": _YAHOO_UA}
+        )
+        _YAHOO_OPENER.open(req, timeout=10)
+    except Exception as e:
+        print(f"  [WARN] Yahoo 쿠키 워밍업 실패: {e}")
+    try:
+        req = urllib.request.Request(
+            "https://query1.finance.yahoo.com/v1/test/getcrumb",
+            headers={"User-Agent": _YAHOO_UA},
+        )
+        with _YAHOO_OPENER.open(req, timeout=10) as r:
+            crumb = r.read().decode("utf-8").strip()
+            if crumb and "<html" not in crumb.lower():
+                _YAHOO_CRUMB = crumb
+    except Exception as e:
+        print(f"  [WARN] Yahoo crumb 발급 실패: {e}")
+
+
 def fetch(url: str, timeout: int = 15) -> Optional[bytes]:
     try:
         req = urllib.request.Request(url, headers={
@@ -100,18 +144,94 @@ def fetch(url: str, timeout: int = 15) -> Optional[bytes]:
     except Exception as e:
         print(f"  [WARN] fetch 실패: {url[:60]} → {e}")
         return None
+
+
+def fetch_yahoo(url: str, timeout: int = 15) -> Optional[bytes]:
+    """쿠키(+crumb)를 실어 Yahoo 엔드포인트를 호출. 401/429 시 한 번 재시도."""
+    _yahoo_warmup()
+    full_url = url
+    if _YAHOO_CRUMB:
+        sep = "&" if "?" in url else "?"
+        full_url = f"{url}{sep}crumb={urllib.parse.quote(_YAHOO_CRUMB)}"
+    for attempt in range(2):
+        try:
+            req = urllib.request.Request(full_url, headers={
+                "User-Agent": _YAHOO_UA,
+                "Accept": "application/json,text/plain,*/*",
+            })
+            with _YAHOO_OPENER.open(req, timeout=timeout) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            print(f"  [WARN] Yahoo fetch 실패(시도 {attempt+1}): {url[:60]} → HTTP {e.code}")
+            if e.code in (401, 429) and attempt == 0:
+                time.sleep(2)
+                continue
+            return None
+        except Exception as e:
+            print(f"  [WARN] Yahoo fetch 실패: {url[:60]} → {e}")
+            return None
+    return None
  
  
 # ── 1. 시세 수집 ──────────────────────────────────────────────────────────────
- 
+
+# Yahoo가 완전히 막혔을 때를 대비한 2차 소스(Stooq, 무인증·무API키).
+# 정확도가 조금 떨어질 수 있으나 최소한 "발행 실패"보다는 낫다.
+STOOQ_SYMBOLS = {
+    "^IXIC": "^ndq", "^GSPC": "^spx", "^DJI": "^dji", "^VIX": "^vix",
+    "CL=F": "cl.f", "GC=F": "gc.f", "USDKRW=X": "usdkrw",
+    "QQQ": "qqq.us", "SOXX": "soxx.us", "XLF": "xlf.us",
+    "NVDA": "nvda.us", "AMD": "amd.us", "INTC": "intc.us", "TSM": "tsm.us",
+    "AAPL": "aapl.us", "MSFT": "msft.us", "TSLA": "tsla.us", "AMZN": "amzn.us",
+    "GOOGL": "googl.us", "META": "meta.us",
+}
+
+
+def get_quote_stooq(symbol: str) -> Optional[dict]:
+    stooq_sym = STOOQ_SYMBOLS.get(symbol)
+    if not stooq_sym:
+        return None
+    url = f"https://stooq.com/q/l/?s={urllib.parse.quote(stooq_sym)}&f=sd2t2ohlcvn&h&e=csv"
+    raw = fetch(url, timeout=10)
+    if not raw:
+        return None
+    try:
+        lines = raw.decode("utf-8", errors="ignore").strip().splitlines()
+        if len(lines) < 2:
+            return None
+        header = [h.strip().lower() for h in lines[0].split(",")]
+        row = lines[1].split(",")
+        rec = dict(zip(header, row))
+        close = float(rec.get("close", "N/D"))
+        open_ = float(rec.get("open", "N/D"))
+        if close != close or open_ != open_:  # NaN 방지
+            return None
+        chg_pct = (close - open_) / open_ * 100 if open_ else 0.0
+        volume = int(float(rec["volume"])) if rec.get("volume", "N/D") not in ("N/D", "") else 0
+        name, kind = TICKERS.get(symbol, (symbol, "stock"))
+        return {
+            "symbol": symbol, "name": name, "kind": kind,
+            "price": round(close, 2), "prev": round(open_, 2),
+            "chg_pct": round(chg_pct, 2), "volume": volume,
+            "market_date_us": rec.get("date", ""),
+        }
+    except Exception as e:
+        print(f"  [WARN] Stooq 파싱 실패 {symbol}: {e}")
+        return None
+
+
 def get_quote(symbol: str) -> Optional[dict]:
     url = (
         f"https://query1.finance.yahoo.com/v8/finance/chart/"
         f"{urllib.parse.quote(symbol)}?interval=1d&range=5d"
     )
-    raw = fetch(url, timeout=10)
+    raw = fetch_yahoo(url, timeout=10)
     if not raw:
-        return None
+        # Yahoo가 차단되었으면 Stooq로 폴백
+        fallback = get_quote_stooq(symbol)
+        if fallback:
+            print(f"  [INFO] {symbol}: Yahoo 실패 → Stooq로 대체")
+        return fallback
     try:
         data   = json.loads(raw)
         result = data["chart"]["result"][0]
@@ -160,8 +280,11 @@ def get_quote(symbol: str) -> Optional[dict]:
             "market_date_us": market_date_us,
         }
     except Exception as e:
-        print(f"  [WARN] 파싱 실패 {symbol}: {e}")
-        return None
+        print(f"  [WARN] 파싱 실패 {symbol}: {e} (Yahoo가 HTML/캡차를 반환했을 가능성)")
+        fallback = get_quote_stooq(symbol)
+        if fallback:
+            print(f"  [INFO] {symbol}: Yahoo 파싱 실패 → Stooq로 대체")
+        return fallback
  
  
 def collect_quotes() -> dict:

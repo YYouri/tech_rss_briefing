@@ -84,15 +84,31 @@ GOOGLE_NEWS_QUERIES = [
 ]
 
 
+_GNEWS_DECODE_FAIL_STREAK = 0
+_GNEWS_DECODE_DISABLED = False
+
+
 def resolve_google_news_url(url: str) -> str:
-    """Google News 리다이렉트 URL → 실제 기사 URL"""
+    """Google News 리다이렉트 URL → 실제 기사 URL.
+    Google이 429(Too Many Requests)로 막기 시작하면 연속 실패가 쌓이는데,
+    그때마다 재시도하면 워크플로우 타임아웃만 늘어나므로 5회 연속 실패 시
+    이번 실행에서는 디코딩을 포기하고 원본(리다이렉트) 링크를 그대로 쓴다."""
+    global _GNEWS_DECODE_FAIL_STREAK, _GNEWS_DECODE_DISABLED
+    if _GNEWS_DECODE_DISABLED:
+        return url
     try:
         result = gnewsdecoder(url, interval=1)
         if result.get("status"):
+            _GNEWS_DECODE_FAIL_STREAK = 0
             return result["decoded_url"]
-        return url
+        _GNEWS_DECODE_FAIL_STREAK += 1
     except Exception:
-        return url
+        _GNEWS_DECODE_FAIL_STREAK += 1
+
+    if _GNEWS_DECODE_FAIL_STREAK >= 5:
+        print("  [WARN] Google News 디코딩 5회 연속 실패 → 이후 원본 링크 그대로 사용")
+        _GNEWS_DECODE_DISABLED = True
+    return url
 
 def collect_google_news() -> list[dict]:
     articles = []

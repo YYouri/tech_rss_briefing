@@ -164,51 +164,57 @@ def build_exam_section_html(matches: list[dict], topic: str, terms: list[str]) -
     기출 없어도 키워드 섹션은 표시.
     위치: 본문 맨 아래 부록.
     """
-    # 키워드 뱃지
+    # 본문(it_html_builder)과 동일한 디자인 토큰 사용 — 모노스페이스 헤어라인 톤 통일
+    INK, SUB, MUTED, BORDER = "#1C2230", "#5B6472", "#9099A6", "#DADFE6"
+    ACCENT = "#B4550C"
+    MONO   = "'IBM Plex Mono','D2Coding','SFMono-Regular',Consolas,monospace"
+    DISP   = "'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif"
+
+    # 키워드 뱃지 (헤어라인 아웃라인 칩)
     keyword_badges = "".join([
-        f'<span style="display:inline-block;background:#eef2ff;color:#4a6cf7;'
-        f'font-size:0.8em;padding:3px 10px;border-radius:12px;margin:3px 3px 3px 0;">'
-        f'{t}</span>'
+        f'<span style="display:inline-block;border:1px solid {BORDER};color:{SUB};'
+        f'font-family:{MONO};font-size:0.72em;padding:3px 9px;border-radius:3px;'
+        f'margin:0 6px 6px 0;">{t}</span>'
         for t in terms[:8]
     ])
 
     # 기출 목록
     if matches:
+        n = min(len(matches), MAX_MATCHES)
         items_html = []
-        for m in matches[:MAX_MATCHES]:
+        for i, m in enumerate(matches[:MAX_MATCHES]):
             round_no = m.get("round", "")
             subject  = m.get("subject", "")
             q_text   = m.get("question", "")
             q_text   = re.sub(r"^\d+\.\s*", "", q_text).strip()
             if len(q_text) > 120:
                 q_text = q_text[:120] + "…"
-
+            bdr = f'border-bottom:1px solid {BORDER};' if i < n - 1 else ""
             items_html.append(
-                f'<li style="margin-bottom:10px;line-height:1.75;font-size:0.91em;">'
-                f'<span style="display:inline-block;background:#f0f0f0;color:#888;'
-                f'font-size:0.78em;padding:1px 7px;border-radius:10px;margin-bottom:3px;">'
-                f'제{round_no}회 · {subject}</span><br>'
-                f'<span style="color:#444;">{q_text}</span>'
-                f'</li>'
+                f'<div style="padding:10px 0;{bdr}">'
+                f'<div style="font-family:{MONO};font-size:0.72em;color:{MUTED};margin-bottom:4px;">'
+                f'제{round_no}회 · {subject}</div>'
+                f'<div style="font-size:0.9em;color:{INK};line-height:1.7;">{q_text}</div>'
+                f'</div>'
             )
-        exam_list_html = f"""
-<p style="font-size:0.88em;font-weight:600;color:#555;margin:14px 0 8px;">📝 관련 기출문제</p>
-<ul style="padding-left:1.2em;margin:0;list-style:disc;">
-  {''.join(items_html)}
-</ul>"""
+        exam_list_html = (
+            f'<div style="font-family:{MONO};font-size:0.7em;font-weight:600;color:{MUTED};'
+            f'letter-spacing:0.08em;margin:16px 0 4px;">관련 기출문제</div>'
+            f'{"".join(items_html)}'
+        )
     else:
-        exam_list_html = """
-<p style="font-size:0.88em;color:#999;margin:14px 0 0;">
-  아직 이 주제로 출제된 기출문제가 없습니다. 최신 트렌드로 앞으로 출제 가능성이 높은 주제입니다.
-</p>"""
+        exam_list_html = (
+            f'<p style="font-size:0.88em;color:{MUTED};margin:14px 0 0;">'
+            f'아직 이 주제로 출제된 기출문제가 없습니다. 최신 트렌드로 앞으로 출제 가능성이 높은 주제입니다.</p>'
+        )
 
     return f"""
-<div style="margin-top:2.5em;padding:20px 24px;background:#f8f9fb;border-left:4px solid #4a6cf7;border-radius:0 8px 8px 0;">
-  <p style="font-size:0.78em;font-weight:700;color:#4a6cf7;margin:0 0 6px;letter-spacing:0.8px;">
-    📋 정보관리기술사 기출 연계
+<div style="margin-top:2.5em;padding-top:18px;border-top:2px solid {INK};">
+  <p style="font-family:{MONO};font-size:0.7em;font-weight:600;color:{ACCENT};letter-spacing:0.08em;margin:0 0 10px;">
+    정보관리기술사 기출 연계
   </p>
-  <p style="line-height:1.8;margin:0 0 10px;color:#555;font-size:0.92em;">
-    오늘 다룬 <strong style="color:#333;">{topic}</strong> 주제는 정보관리기술사 시험과 연계되는 핵심 키워드입니다.
+  <p style="line-height:1.8;margin:0 0 10px;color:{SUB};font-size:0.92em;">
+    오늘 다룬 <strong style="color:{INK};">{topic}</strong> 주제는 정보관리기술사 시험과 연계되는 핵심 키워드입니다.
   </p>
   <div style="margin-bottom:4px;">{keyword_badges}</div>
   {exam_list_html}

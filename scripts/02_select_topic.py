@@ -26,10 +26,17 @@ OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 MIN_RELATED_ARTICLES = 5
 
 MODELS = [
+    # ⚠ 2026-08 기준 OpenRouter 무료 모델 슬러그 수정:
+    #   "google/gemma-4-31b:free"     → 실제로는 "-it" 접미사가 필요 (google/gemma-4-31b-it:free)
+    #   "nvidia/nemotron-3-super:free" → 실제 슬러그는 "-120b-a12b" 포함 (nvidia/nemotron-3-super-120b-a12b:free)
+    # 잘못된 슬러그는 OpenRouter가 400을 반환하므로 사실상 매번 첫 모델(gpt-oss-120b)에만
+    # 의존하는 상태였고, 그 모델이 레이트리밋/일시 장애일 때 전체 파이프라인이 멈췄음.
     "openai/gpt-oss-120b:free",
-    "google/gemma-4-31b:free",
+    "google/gemma-4-31b-it:free",
+    "qwen/qwen3-next-80b-a3b-instruct:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
     "openai/gpt-oss-20b:free",
-    "nvidia/nemotron-3-super:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
 ]
 
 TOO_BROAD = {

@@ -2,56 +2,74 @@
 it_html_builder.py
 IT 리포팅 + 증시 리포팅 공통 HTML 빌더.
 
-공통: 폰트, 카드 패딩/라운드, 헤딩 바+배지, 리드 문단 박스, 요약 박스
-IT 전용: 시안 계열 포인트 컬러, build_meta_bar(), md_to_html()
-증시 전용: 파란/빨간 상승하락 컬러, build_ticker_dashboard(), md_to_html_market()
+디자인 컨셉 "기술 데이터시트 / 브리핑 노트":
+카드형 파스텔 배지 대신 모노스페이스 인덱스 + 헤어라인 룰 중심의
+엔지니어링 스펙시트/마켓 터미널 톤으로 통일. (2026-08 리디자인)
+
+공통: 폰트 토큰, 헤어라인 헤딩, 리드 문단, 요약 노트
+IT 전용: 앰버 시그널 컬러, build_meta_bar(), md_to_html()
+증시 전용: 네이버 증권 컨벤션(상승 적/하락 청), build_ticker_dashboard(), md_to_html_market()
 """
 
 import re
 from datetime import datetime
 
-# ── 공통 디자인 토큰 ─────────────────────────────────────────────────────────
-BORDER     = "#e4e9f0"
-TEXT_MAIN  = "#1a1a1a"
-TEXT_SUB   = "#666e7a"
-TEXT_MUTED = "#9ea7b4"
+# ── 폰트 토큰 ────────────────────────────────────────────────────────────────
+# Blogger 포스트 본문에 삽입되는 <link>는 대부분의 커스텀 템플릿에서 유지되지만,
+# 메일/RSS 리더 등 일부 구독 경로에서는 무시될 수 있어 폴백을 촘촘히 둔다.
+FONT_IMPORT = (
+    '<link rel="preconnect" href="https://fonts.googleapis.com">'
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700'
+    '&family=IBM+Plex+Sans+KR:wght@500;600;700&display=swap" rel="stylesheet">'
+)
+FONT_DISPLAY = "'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif"
+FONT_BODY    = "'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif"
+FONT_MONO    = "'IBM Plex Mono','D2Coding','SFMono-Regular',Consolas,monospace"
+
+# ── 공통 디자인 토큰 (엔지니어링 데이터시트 톤) ───────────────────────────────
+INK        = "#1C2230"   # 헤딩/본문 강조
+BORDER     = "#DADFE6"   # 헤어라인
+TEXT_MAIN  = "#1C2230"
+TEXT_SUB   = "#5B6472"
+TEXT_MUTED = "#9099A6"
 BG_CARD    = "#ffffff"
-BG_PAGE    = "#f4f6f9"
+BG_PAGE    = "#F7F7F5"   # 미세하게 따뜻한 종이톤 (크림/테라코타 클리셰 회피용으로 채도 최소화)
 
-# ── IT 전용 포인트 컬러 (시안 계열) ──────────────────────────────────────────
-ACCENT_MAIN  = "#0e7490"
-ACCENT_LIGHT = "#e6f4f6"
-BG_HEADER    = "#eef5f6"
+# ── IT 전용 포인트 컬러: 블루프린트 주석 앰버 ─────────────────────────────────
+ACCENT_MAIN  = "#B4550C"
+ACCENT_LIGHT = "#FBEFE4"
+BG_HEADER    = "#FBEFE4"
 
-# ── 증시 전용 컬러 (네이버 증권 컨벤션) ──────────────────────────────────────
-UP_COLOR         = "#e83c3c"
-DOWN_COLOR       = "#1261c4"
-UP_BG            = "#fff0f0"
-DOWN_BG          = "#f0f4ff"
-STOCK_BLUE       = "#1261c4"
-STOCK_BLUE_LIGHT = "#e8f0fc"
-STOCK_BG_HEADER  = "#ebf0f8"
+# ── 증시 전용 컬러 (네이버 증권 컨벤션: 상승=적, 하락=청 — 국내 독자 관례 유지) ─
+UP_COLOR         = "#C23B3B"
+DOWN_COLOR       = "#2E5FA3"
+UP_BG            = "#FBEEEE"
+DOWN_BG          = "#EEF2F8"
+STOCK_BLUE       = "#2E5FA3"
+STOCK_BLUE_LIGHT = "#EEF2F8"
+STOCK_BG_HEADER  = "#EEF2F8"
 
-# ── IT 섹션 라벨 ─────────────────────────────────────────────────────────────
+# ── IT 섹션 라벨 (모노스페이스 러닝 인덱스로 사용) ────────────────────────────
 SECTION_LABELS = {
-    "1": ("TECH",    "#0e7490"),
-    "2": ("TREND",   "#0b7a4e"),
-    "3": ("CORE",    "#b45309"),
-    "4": ("IMPACT",  "#6d28d9"),
-    "5": ("CASE",    "#b91c1c"),
-    "6": ("INSIGHT", "#0369a1"),
-    "7": ("SUMMARY", "#1a1a1a"),
+    "1": ("TECH",    "#B4550C"),
+    "2": ("TREND",   "#3F7A5C"),
+    "3": ("CORE",    "#8A5A17"),
+    "4": ("IMPACT",  "#5C4B9E"),
+    "5": ("CASE",    "#9E3B3B"),
+    "6": ("INSIGHT", "#2E6B7A"),
+    "7": ("SUMMARY", "#1C2230"),
 }
 
 # ── 증시 섹션 라벨 ───────────────────────────────────────────────────────────
 STOCK_SECTION_LABELS = {
-    "1": ("OPEN",    "#1261c4"),
-    "2": ("DRIVER",  "#0b7a4e"),
-    "3": ("SECTOR",  "#b45309"),
-    "4": ("KR",      "#6d28d9"),
-    "5": ("WATCH",   "#b91c1c"),
-    "6": ("RISK",    "#0e7490"),
-    "7": ("SUMMARY", "#1a1a1a"),
+    "1": ("OPEN",    "#2E5FA3"),
+    "2": ("DRIVER",  "#3F7A5C"),
+    "3": ("SECTOR",  "#8A5A17"),
+    "4": ("KR",      "#5C4B9E"),
+    "5": ("WATCH",   "#9E3B3B"),
+    "6": ("RISK",    "#2E6B7A"),
+    "7": ("SUMMARY", "#1C2230"),
 }
 
 # ── 증시 한국 연관주 매핑 ─────────────────────────────────────────────────────
@@ -101,15 +119,15 @@ def render_cta_button(
         if description else ""
     )
     return (
-        f'<div style="background:{ACCENT_LIGHT};border:1px solid #bfe1e5;'
-        f'border-radius:10px;padding:22px 20px;margin:2em 0;text-align:center;">'
-        f'<p style="font-size:0.82em;font-weight:700;color:{c};'
-        f'letter-spacing:0.4px;margin:0 0 8px;">{label}</p>'
+        f'<div style="border:1px solid {BORDER};border-top:3px solid {c};'
+        f'padding:22px 20px;margin:2em 0;text-align:center;">'
+        f'<p style="font-family:{FONT_MONO};font-size:0.72em;font-weight:600;color:{c};'
+        f'letter-spacing:0.08em;margin:0 0 10px;">{label}</p>'
         f'{desc_html}'
         f'<a href="{url}" target="_blank" rel="noopener noreferrer" '
         f'style="display:inline-block;background:{c};color:#fff;'
         f'font-size:0.88em;font-weight:700;padding:10px 26px;'
-        f'border-radius:6px;text-decoration:none;letter-spacing:0.3px;">'
+        f'border-radius:3px;text-decoration:none;letter-spacing:0.3px;">'
         f'{button_text}</a>'
         f'</div>'
     )
@@ -120,94 +138,86 @@ def render_cta_button(
 # ════════════════════════════════════════════════════════════════════════════════
 
 def build_meta_bar(topic: str, tags: list, now_kst: datetime, read_min: int = 4) -> str:
+    """헤더를 '기술 데이터시트 표지'처럼 구성: 모노스페이스 문서번호 + 헤어라인."""
+    doc_no  = now_kst.strftime("TR-%Y%m%d")
     time_str = now_kst.strftime("%Y.%m.%d %H:%M KST")
     tag_chips = "".join(
-        f'<span style="display:inline-block;background:{BG_CARD};border:1px solid {BORDER};'
-        f'color:{TEXT_SUB};font-size:0.78em;padding:4px 11px;border-radius:14px;'
-        f'margin-right:6px;margin-bottom:6px;">#{t}</span>'
+        f'<span style="display:inline-block;border:1px solid {BORDER};'
+        f'color:{TEXT_SUB};font-family:{FONT_MONO};font-size:0.72em;padding:3px 9px;'
+        f'border-radius:3px;margin-right:6px;margin-bottom:6px;">{t}</span>'
         for t in tags[:5]
     )
     return (
-        f'<div style="background:{BG_PAGE};border-radius:12px;padding:20px;margin-bottom:1.8em;'
-        f'border:1px solid {BORDER};">'
-        f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
-        f'<div style="display:flex;align-items:center;gap:8px;">'
-        f'<span style="display:inline-block;width:4px;height:18px;background:{ACCENT_MAIN};'
-        f'border-radius:2px;"></span>'
-        f'<span style="font-size:0.95em;font-weight:700;color:{TEXT_MAIN};">기술 분석 리포트</span>'
+        f'{FONT_IMPORT}'
+        f'<div style="margin-bottom:2em;">'
+        f'<div style="display:flex;align-items:baseline;justify-content:space-between;'
+        f'font-family:{FONT_MONO};font-size:0.72em;letter-spacing:0.06em;color:{TEXT_MUTED};'
+        f'border-bottom:1px solid {INK};padding-bottom:8px;margin-bottom:14px;">'
+        f'<span>{doc_no} · TECH BRIEF</span>'
+        f'<span>{time_str} · {read_min} MIN READ</span>'
         f'</div>'
-        f'<span style="font-size:0.72em;color:{TEXT_MUTED};">{time_str} · 약 {read_min}분 분량</span>'
-        f'</div>'
-        f'<div style="font-size:0.72em;font-weight:600;color:{TEXT_SUB};margin-bottom:8px;">다루는 주제</div>'
-        f'<div style="margin-bottom:2px;">'
-        f'<span style="display:inline-block;background:{ACCENT_LIGHT};color:{ACCENT_MAIN};'
-        f'font-size:0.92em;font-weight:700;padding:6px 14px;border-radius:6px;margin-bottom:10px;">'
-        f'{topic}</span></div>'
-        f'<div style="margin-top:10px;">{tag_chips}</div>'
+        f'<div style="font-family:{FONT_DISPLAY};font-size:1.5em;font-weight:700;'
+        f'color:{INK};line-height:1.35;margin-bottom:14px;">{topic}</div>'
+        f'<div>{tag_chips}</div>'
         f'</div>'
     )
 
 
 def render_heading(text: str) -> str:
+    """섹션 헤딩을 컬러 배지 대신 '러닝 인덱스 + 앰버 룰'로 표시."""
     m = re.match(r"^(\d+)\.\s*(.+)$", text.strip())
     if not m:
         return (
-            f'<h2 style="font-size:1.1em;font-weight:700;color:{TEXT_MAIN};'
-            f'margin:2.2em 0 0.8em;padding:10px 14px;'
-            f'background:{BG_HEADER};border-left:4px solid {BORDER};border-radius:0 6px 6px 0;">'
-            f'{text}</h2>'
+            f'<h2 style="font-family:{FONT_DISPLAY};font-size:1.12em;font-weight:700;'
+            f'color:{INK};margin:2.4em 0 0.9em;padding-bottom:8px;'
+            f'border-bottom:2px solid {ACCENT_MAIN};">{text}</h2>'
         )
     num, title_text = m.group(1), m.group(2)
     label_info = SECTION_LABELS.get(num)
-    badge = ""
-    bar_color = ACCENT_MAIN
-    if label_info:
-        label, color = label_info
-        bar_color = color
-        badge = (
-            f'<span style="display:inline-block;background:{color};color:#fff;'
-            f'font-size:0.65em;font-weight:700;padding:2px 7px;border-radius:3px;'
-            f'margin-right:9px;vertical-align:middle;letter-spacing:0.8px;'
-            f'font-family:monospace;">{label}</span>'
-        )
-    sep = " " if badge else ""
+    label, bar_color = label_info if label_info else ("SEC", ACCENT_MAIN)
+    total = f"{len(SECTION_LABELS):02d}"
     return (
-        f'<h2 style="font-size:1.08em;font-weight:700;color:{TEXT_MAIN};'
-        f'margin:2.2em 0 0.8em;padding:10px 14px;display:flex;align-items:center;'
-        f'background:{BG_HEADER};border-left:4px solid {bar_color};border-radius:0 6px 6px 0;">'
-        f'{badge}{sep}{title_text}</h2>'
+        f'<div style="margin:2.4em 0 0.9em;">'
+        f'<div style="display:flex;align-items:baseline;gap:10px;font-family:{FONT_MONO};'
+        f'font-size:0.72em;font-weight:600;letter-spacing:0.08em;color:{bar_color};margin-bottom:6px;">'
+        f'<span>{num.zfill(2)}/{total}</span><span style="color:{TEXT_MUTED};">{label}</span>'
+        f'</div>'
+        f'<h2 style="font-family:{FONT_DISPLAY};font-size:1.16em;font-weight:700;color:{INK};'
+        f'margin:0;padding-bottom:8px;border-bottom:2px solid {bar_color};">{title_text}</h2>'
+        f'</div>'
     )
 
 
 def render_core_cards(bullet_lines: list) -> str:
-    accent_colors = [ACCENT_MAIN, "#0b7a4e", "#b45309", "#6d28d9", "#b91c1c"]
-    cards = []
+    """파스텔 카드 그리드 대신 헤어라인으로 구분한 스펙 목록(용어–설명)으로 표시."""
+    rows = []
+    n = len(bullet_lines)
     for i, line in enumerate(bullet_lines):
-        text   = re.sub(r"^[-*]\s*", "", line.strip())
-        m      = re.match(r"^\*\*(.+?)\*\*\s*[:：]\s*(.+)$", text)
-        accent = accent_colors[i % len(accent_colors)]
+        text = re.sub(r"^[-*]\s*", "", line.strip())
+        m    = re.match(r"^\*\*(.+?)\*\*\s*[:：]\s*(.+)$", text)
+        bdr  = f'border-bottom:1px solid {BORDER};' if i < n - 1 else ""
+        idx  = f"{i+1:02d}"
         if m:
             term, desc = m.group(1), m.group(2)
-            cards.append(
-                f'<div style="background:{BG_CARD};border:1px solid {BORDER};'
-                f'border-top:3px solid {accent};border-radius:8px;padding:14px 16px;">'
-                f'<div style="font-size:0.85em;font-weight:700;color:{accent};margin-bottom:6px;">{term}</div>'
-                f'<div style="font-size:0.87em;color:{TEXT_SUB};line-height:1.65;">{desc}</div>'
-                f'</div>'
+            rows.append(
+                f'<div style="display:flex;gap:14px;padding:12px 0;{bdr}">'
+                f'<span style="flex-shrink:0;font-family:{FONT_MONO};font-size:0.78em;'
+                f'font-weight:600;color:{ACCENT_MAIN};padding-top:1px;">{idx}</span>'
+                f'<div>'
+                f'<div style="font-family:{FONT_DISPLAY};font-size:0.92em;font-weight:700;'
+                f'color:{INK};margin-bottom:4px;">{term}</div>'
+                f'<div style="font-size:0.88em;color:{TEXT_SUB};line-height:1.7;">{desc}</div>'
+                f'</div></div>'
             )
         else:
-            cards.append(
-                f'<div style="background:{BG_CARD};border:1px solid {BORDER};'
-                f'border-top:3px solid {accent};border-radius:8px;padding:14px 16px;">'
-                f'<div style="font-size:0.87em;color:{TEXT_SUB};line-height:1.65;">{text}</div>'
+            rows.append(
+                f'<div style="display:flex;gap:14px;padding:12px 0;{bdr}">'
+                f'<span style="flex-shrink:0;font-family:{FONT_MONO};font-size:0.78em;'
+                f'font-weight:600;color:{ACCENT_MAIN};padding-top:1px;">{idx}</span>'
+                f'<div style="font-size:0.88em;color:{TEXT_SUB};line-height:1.7;">{text}</div>'
                 f'</div>'
             )
-    return (
-        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));'
-        'gap:10px;margin:0.8em 0;">'
-        + "".join(f'<div>{c}</div>' for c in cards)
-        + '</div>'
-    )
+    return f'<div style="margin:0.6em 0 1.2em;">{"".join(rows)}</div>'
 
 
 def _strip_bullet(line: str) -> str:
@@ -215,24 +225,22 @@ def _strip_bullet(line: str) -> str:
 
 
 def render_summary_box(bullet_lines: list) -> str:
-    icons = ["①", "②", "③"]
+    """유일하게 '박스'로 강조하는 시그니처 요소: 잉크 배경 + 앰버 룰의 요약 노트."""
     items = []
     for i, l in enumerate(bullet_lines):
-        icon = icons[i] if i < len(icons) else "•"
         items.append(
-            f'<li style="display:flex;gap:10px;margin-bottom:10px;list-style:none;">'
-            f'<span style="flex-shrink:0;font-size:0.9em;font-weight:700;color:{ACCENT_MAIN};">{icon}</span>'
-            f'<span style="font-size:0.92em;color:{TEXT_MAIN};line-height:1.7;">{_strip_bullet(l)}</span>'
+            f'<li style="display:flex;gap:12px;margin-bottom:11px;list-style:none;">'
+            f'<span style="flex-shrink:0;font-family:{FONT_MONO};font-size:0.78em;'
+            f'font-weight:600;color:{ACCENT_MAIN};padding-top:2px;">{i+1:02d}</span>'
+            f'<span style="font-size:0.92em;color:#EDEEF1;line-height:1.7;">{_strip_bullet(l)}</span>'
             f'</li>'
         )
     items_html = "".join(items)
     return (
-        f'<div style="background:{ACCENT_LIGHT};border:1px solid #bfe1e5;'
-        f'border-radius:10px;padding:18px 20px;margin:1.8em 0;">'
-        f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'
-        f'<span style="display:inline-block;width:4px;height:16px;background:{ACCENT_MAIN};border-radius:2px;"></span>'
-        f'<span style="font-size:0.82em;font-weight:700;color:{ACCENT_MAIN};letter-spacing:0.5px;">핵심 요약</span>'
-        f'</div>'
+        f'<div style="background:{INK};border-top:3px solid {ACCENT_MAIN};'
+        f'padding:20px 22px;margin:2em 0;">'
+        f'<div style="font-family:{FONT_MONO};font-size:0.72em;font-weight:600;'
+        f'letter-spacing:0.1em;color:{ACCENT_MAIN};margin-bottom:14px;">SUMMARY</div>'
         f'<ul style="margin:0;padding:0;">{items_html}</ul>'
         f'</div>'
     )
@@ -256,9 +264,9 @@ def render_references(articles: list) -> str:
             f'<span style="color:{TEXT_MUTED};font-size:0.85em;"> — {src_label}</span></li>'
         )
     return (
-        f'<div style="margin-top:2em;padding:16px 18px;background:{BG_PAGE};'
-        f'border:1px solid {BORDER};border-radius:8px;">'
-        f'<div style="font-size:0.72em;font-weight:700;color:{TEXT_MUTED};letter-spacing:1px;margin-bottom:10px;">참고 기사</div>'
+        f'<div style="margin-top:2.4em;padding-top:16px;border-top:1px solid {BORDER};">'
+        f'<div style="font-family:{FONT_MONO};font-size:0.68em;font-weight:600;'
+        f'color:{TEXT_MUTED};letter-spacing:0.1em;margin-bottom:10px;">REFERENCES</div>'
         f'<ul style="padding-left:1.3em;margin:0;">{"".join(items)}</ul>'
         f'</div>'
     )
@@ -403,10 +411,8 @@ def md_to_html(md: str, articles: list = None, cta: dict = None) -> str:
                 )
                 if is_lead and cur_sec is None:
                     html_out.append(
-                        f'<div style="background:{BG_HEADER};border-left:4px solid {ACCENT_MAIN};'
-                        f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:1.6em;">'
-                        f'<p style="margin:0;line-height:1.85;color:{TEXT_MAIN};font-size:1.02em;font-weight:500;">{t}</p>'
-                        f'</div>'
+                        f'<p style="margin:0 0 1.8em;padding-left:16px;border-left:3px solid {ACCENT_MAIN};'
+                        f'line-height:1.85;color:{INK};font-size:1.04em;font-weight:500;">{t}</p>'
                     )
                     is_lead = False
                 else:
@@ -421,13 +427,12 @@ def md_to_html(md: str, articles: list = None, cta: dict = None) -> str:
     body     = "\n".join(html_out)
     cta_html = render_cta_button(**cta) if cta else ""
     return (
-        f'<div style="font-family:\'Noto Sans KR\',\'Malgun Gothic\',Apple SD Gothic Neo,'
-        f'sans-serif;max-width:720px;margin:0 auto;color:{TEXT_MAIN};'
-        f'word-break:keep-all;background:#ffffff;padding:4px;">'
+        f'<div style="font-family:{FONT_BODY};max-width:720px;margin:0 auto;'
+        f'color:{TEXT_MAIN};word-break:keep-all;background:#ffffff;padding:4px;">'
         f'{body}'
         f'{cta_html}'
-        f'<div style="margin-top:2em;padding:12px 16px;background:{BG_PAGE};'
-        f'border:1px solid {BORDER};border-radius:6px;font-size:0.78em;color:{TEXT_MUTED};line-height:1.7;">'
+        f'<div style="margin-top:2em;padding-top:14px;border-top:1px solid {BORDER};'
+        f'font-family:{FONT_MONO};font-size:0.72em;color:{TEXT_MUTED};line-height:1.7;">'
         f'본 콘텐츠는 IT 기술 정보 제공 목적으로 작성되었습니다. 투자 판단의 근거로 사용하지 마시기 바랍니다.'
         f'</div></div>'
     )
@@ -438,97 +443,82 @@ def md_to_html(md: str, articles: list = None, cta: dict = None) -> str:
 # ════════════════════════════════════════════════════════════════════════════════
 
 def build_ticker_dashboard(quotes: dict, now_kst: datetime) -> str:
+    """파스텔 카드 그리드 대신 마켓 터미널의 '호가판'처럼 헤어라인+모노스페이스 숫자로 구성."""
     time_str = now_kst.strftime("%Y.%m.%d %H:%M KST 기준")
 
-    def idx_card(q: dict) -> str:
-        up      = q["chg_pct"] >= 0
-        color   = UP_COLOR if up else DOWN_COLOR
-        bg      = UP_BG if up else DOWN_BG
-        sign    = "+" if up else ""
-        arrow   = "▲" if up else "▼"
-        chg_abs = abs(q["chg_pct"])
-        return (
-            f'<div style="background:{BG_CARD};border:1px solid {BORDER};border-radius:8px;'
-            f'padding:14px 16px;flex:1;min-width:110px;text-align:center;">'
-            f'<div style="font-size:0.75em;color:{TEXT_SUB};margin-bottom:6px;font-weight:500;">{q["name"]}</div>'
-            f'<div style="font-size:1.22em;font-weight:700;color:{TEXT_MAIN};font-variant-numeric:tabular-nums;">{q["price"]:,.2f}</div>'
-            f'<div style="display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:3px 8px;background:{bg};border-radius:4px;">'
-            f'<span style="font-size:0.78em;font-weight:700;color:{color};">{arrow} {sign}{chg_abs:.2f}%</span></div>'
-            f'</div>'
-        )
-
-    def macro_card(q: dict) -> str:
+    def quote_cell(q: dict, big: bool = False) -> str:
         up    = q["chg_pct"] >= 0
         color = UP_COLOR if up else DOWN_COLOR
         sign  = "+" if up else ""
         arrow = "▲" if up else "▼"
+        size  = "1.05em" if big else "0.88em"
         return (
-            f'<div style="background:{BG_CARD};border:1px solid {BORDER};border-radius:8px;'
-            f'padding:12px 14px;flex:1;min-width:90px;text-align:center;">'
-            f'<div style="font-size:0.72em;color:{TEXT_MUTED};margin-bottom:4px;">{q["name"]}</div>'
-            f'<div style="font-size:1.0em;font-weight:600;color:{TEXT_MAIN};">{q["price"]:,.2f}</div>'
-            f'<div style="font-size:0.75em;font-weight:600;color:{color};margin-top:3px;">{arrow} {sign}{q["chg_pct"]:.2f}%</div>'
+            f'<div style="padding:10px 4px;border-bottom:1px solid {BORDER};">'
+            f'<div style="font-size:0.72em;color:{TEXT_SUB};margin-bottom:4px;">{q["name"]}</div>'
+            f'<div style="font-family:{FONT_MONO};font-size:{size};font-weight:600;color:{INK};">'
+            f'{q["price"]:,.2f}</div>'
+            f'<div style="font-family:{FONT_MONO};font-size:0.78em;font-weight:600;color:{color};margin-top:2px;">'
+            f'{arrow} {sign}{q["chg_pct"]:.2f}%</div>'
             f'</div>'
         )
 
-    idx_cards   = [idx_card(quotes[s])   for s in ["^IXIC","^GSPC","^DJI","^VIX"]       if s in quotes]
-    macro_cards = [macro_card(quotes[s]) for s in ["DX-Y.NYB","CL=F","GC=F","USDKRW=X"] if s in quotes]
-    etf_cards   = [macro_card(quotes[s]) for s in ["QQQ","SOXX","XLF"]                   if s in quotes]
+    idx_cells   = [quote_cell(quotes[s], big=True) for s in ["^IXIC","^GSPC","^DJI","^VIX"]       if s in quotes]
+    macro_cells = [quote_cell(quotes[s])            for s in ["DX-Y.NYB","CL=F","GC=F","USDKRW=X"] if s in quotes]
+    etf_cells   = [quote_cell(quotes[s])            for s in ["QQQ","SOXX","XLF"]                   if s in quotes]
+
+    def grid(cells: list) -> str:
+        return (
+            f'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));'
+            f'gap:0 16px;margin-bottom:20px;">{"".join(cells)}</div>'
+        )
 
     rows = []
-    for i, sym in enumerate(["NVDA","AMD","INTC","TSM","AAPL","MSFT","TSLA","AMZN","GOOGL","META"]):
+    for sym in ["NVDA","AMD","INTC","TSM","AAPL","MSFT","TSLA","AMZN","GOOGL","META"]:
         q = quotes.get(sym)
         if not q:
             continue
-        up     = q["chg_pct"] >= 0
-        color  = UP_COLOR if up else DOWN_COLOR
-        bg     = UP_BG if up else DOWN_BG
-        sign   = "+" if up else ""
-        arrow  = "▲" if up else "▼"
-        kr     = ", ".join(STOCK_KR_MAP.get(sym, ["-"]))
-        row_bg = BG_CARD if i % 2 == 0 else "#f9fafc"
+        up    = q["chg_pct"] >= 0
+        color = UP_COLOR if up else DOWN_COLOR
+        sign  = "+" if up else ""
+        arrow = "▲" if up else "▼"
+        kr    = ", ".join(STOCK_KR_MAP.get(sym, ["-"]))
         rows.append(
-            f'<tr style="background:{row_bg};">'
-            f'<td style="padding:10px 14px;border-bottom:1px solid {BORDER};white-space:nowrap;">'
-            f'<span style="font-weight:600;color:{TEXT_MAIN};font-size:0.9em;">{q["name"]}</span>'
-            f'<span style="color:{TEXT_MUTED};font-size:0.75em;margin-left:6px;">{sym}</span></td>'
-            f'<td style="padding:10px 14px;border-bottom:1px solid {BORDER};text-align:right;'
-            f'font-variant-numeric:tabular-nums;font-weight:600;color:{TEXT_MAIN};font-size:0.9em;">{q["price"]:,.2f}</td>'
-            f'<td style="padding:10px 14px;border-bottom:1px solid {BORDER};text-align:right;">'
-            f'<span style="display:inline-block;padding:2px 7px;background:{bg};'
-            f'border-radius:4px;font-size:0.8em;font-weight:700;color:{color};">{arrow} {sign}{q["chg_pct"]:.2f}%</span></td>'
-            f'<td style="padding:10px 14px;border-bottom:1px solid {BORDER};color:{TEXT_SUB};font-size:0.8em;">{kr}</td>'
+            f'<tr>'
+            f'<td style="padding:9px 10px;border-bottom:1px solid {BORDER};white-space:nowrap;">'
+            f'<span style="font-weight:600;color:{INK};font-size:0.88em;">{q["name"]}</span>'
+            f'<span style="font-family:{FONT_MONO};color:{TEXT_MUTED};font-size:0.72em;margin-left:6px;">{sym}</span></td>'
+            f'<td style="padding:9px 10px;border-bottom:1px solid {BORDER};text-align:right;'
+            f'font-family:{FONT_MONO};font-weight:600;color:{INK};font-size:0.86em;">{q["price"]:,.2f}</td>'
+            f'<td style="padding:9px 10px;border-bottom:1px solid {BORDER};text-align:right;'
+            f'font-family:{FONT_MONO};font-size:0.82em;font-weight:600;color:{color};white-space:nowrap;">{arrow} {sign}{q["chg_pct"]:.2f}%</td>'
+            f'<td style="padding:9px 10px;border-bottom:1px solid {BORDER};color:{TEXT_SUB};font-size:0.78em;">{kr}</td>'
             f'</tr>'
         )
-
-    idx_html   = "".join(idx_cards)
-    macro_html = "".join(macro_cards)
-    etf_html   = "".join(etf_cards)
-    rows_html  = "".join(rows)
+    rows_html = "".join(rows)
 
     return (
-        f'<div style="background:{BG_PAGE};border-radius:12px;padding:20px;margin-bottom:1.8em;border:1px solid {BORDER};">'
-        f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
-        f'<div style="display:flex;align-items:center;gap:8px;">'
-        f'<span style="display:inline-block;width:4px;height:18px;background:{STOCK_BLUE};border-radius:2px;"></span>'
-        f'<span style="font-size:0.95em;font-weight:700;color:{TEXT_MAIN};">미국 증시 시세</span>'
+        f'{FONT_IMPORT}'
+        f'<div style="border-top:2px solid {INK};border-bottom:1px solid {BORDER};'
+        f'padding:16px 0 20px;margin-bottom:2em;">'
+        f'<div style="display:flex;align-items:baseline;justify-content:space-between;'
+        f'font-family:{FONT_MONO};font-size:0.7em;letter-spacing:0.06em;color:{TEXT_MUTED};margin-bottom:16px;">'
+        f'<span>US MARKET CLOSE</span><span>{time_str}</span>'
         f'</div>'
-        f'<span style="font-size:0.72em;color:{TEXT_MUTED};">{time_str}</span>'
-        f'</div>'
-        f'<div style="font-size:0.72em;font-weight:600;color:{TEXT_SUB};margin-bottom:8px;">주요 지수</div>'
-        f'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">{idx_html}</div>'
-        f'<div style="font-size:0.72em;font-weight:600;color:{TEXT_SUB};margin-bottom:8px;">매크로</div>'
-        f'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">{macro_html}</div>'
-        f'<div style="font-size:0.72em;font-weight:600;color:{TEXT_SUB};margin-bottom:8px;">섹터 ETF</div>'
-        f'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">{etf_html}</div>'
-        f'<div style="font-size:0.72em;font-weight:600;color:{TEXT_SUB};margin-bottom:8px;">핵심 종목 & 한국 연관주</div>'
-        f'<div style="overflow-x:auto;border-radius:8px;border:1px solid {BORDER};">'
-        f'<table style="width:100%;border-collapse:collapse;font-size:0.88em;background:{BG_CARD};">'
-        f'<thead><tr style="background:{STOCK_BG_HEADER};">'
-        f'<th style="padding:9px 14px;text-align:left;color:{TEXT_SUB};font-weight:600;font-size:0.82em;border-bottom:2px solid {BORDER};">종목</th>'
-        f'<th style="padding:9px 14px;text-align:right;color:{TEXT_SUB};font-weight:600;font-size:0.82em;border-bottom:2px solid {BORDER};">현재가</th>'
-        f'<th style="padding:9px 14px;text-align:right;color:{TEXT_SUB};font-weight:600;font-size:0.82em;border-bottom:2px solid {BORDER};">등락</th>'
-        f'<th style="padding:9px 14px;text-align:left;color:{TEXT_SUB};font-weight:600;font-size:0.82em;border-bottom:2px solid {BORDER};">한국 연관</th>'
+        f'<div style="font-family:{FONT_MONO};font-size:0.68em;font-weight:600;color:{STOCK_BLUE};'
+        f'letter-spacing:0.08em;margin-bottom:2px;">INDEX</div>{grid(idx_cells)}'
+        f'<div style="font-family:{FONT_MONO};font-size:0.68em;font-weight:600;color:{STOCK_BLUE};'
+        f'letter-spacing:0.08em;margin-bottom:2px;">MACRO</div>{grid(macro_cells)}'
+        f'<div style="font-family:{FONT_MONO};font-size:0.68em;font-weight:600;color:{STOCK_BLUE};'
+        f'letter-spacing:0.08em;margin-bottom:2px;">SECTOR ETF</div>{grid(etf_cells)}'
+        f'<div style="font-family:{FONT_MONO};font-size:0.68em;font-weight:600;color:{STOCK_BLUE};'
+        f'letter-spacing:0.08em;margin-bottom:8px;">KEY STOCKS &amp; KR PEERS</div>'
+        f'<div style="overflow-x:auto;">'
+        f'<table style="width:100%;border-collapse:collapse;">'
+        f'<thead><tr>'
+        f'<th style="padding:8px 10px;text-align:left;color:{TEXT_MUTED};font-weight:600;font-size:0.72em;border-bottom:2px solid {INK};">종목</th>'
+        f'<th style="padding:8px 10px;text-align:right;color:{TEXT_MUTED};font-weight:600;font-size:0.72em;border-bottom:2px solid {INK};">현재가</th>'
+        f'<th style="padding:8px 10px;text-align:right;color:{TEXT_MUTED};font-weight:600;font-size:0.72em;border-bottom:2px solid {INK};">등락</th>'
+        f'<th style="padding:8px 10px;text-align:left;color:{TEXT_MUTED};font-weight:600;font-size:0.72em;border-bottom:2px solid {INK};">한국 연관</th>'
         f'</tr></thead>'
         f'<tbody>{rows_html}</tbody>'
         f'</table></div></div>'
@@ -550,78 +540,68 @@ def md_to_html_market(md: str, quotes: dict) -> str:
         m = re.match(r"^(\d+)\.\s*(.+)$", text.strip())
         if not m:
             return (
-                f'<h2 style="font-size:1.1em;font-weight:700;color:{TEXT_MAIN};'
-                f'margin:2.2em 0 0.8em;padding:10px 14px;'
-                f'background:{STOCK_BG_HEADER};border-left:4px solid {BORDER};border-radius:0 6px 6px 0;">'
-                f'{text}</h2>'
+                f'<h2 style="font-family:{FONT_DISPLAY};font-size:1.12em;font-weight:700;'
+                f'color:{INK};margin:2.4em 0 0.9em;padding-bottom:8px;'
+                f'border-bottom:2px solid {STOCK_BLUE};">{text}</h2>'
             )
         num, title_text = m.group(1), m.group(2)
         label_info = STOCK_SECTION_LABELS.get(num)
-        badge = ""
-        bar_color = STOCK_BLUE
-        if label_info:
-            label, color = label_info
-            bar_color = color
-            badge = (
-                f'<span style="display:inline-block;background:{color};color:#fff;'
-                f'font-size:0.65em;font-weight:700;padding:2px 7px;border-radius:3px;'
-                f'margin-right:9px;vertical-align:middle;letter-spacing:0.8px;font-family:monospace;">{label}</span>'
-            )
+        label, bar_color = label_info if label_info else ("SEC", STOCK_BLUE)
+        total = f"{len(STOCK_SECTION_LABELS):02d}"
         return (
-            f'<h2 style="font-size:1.08em;font-weight:700;color:{TEXT_MAIN};'
-            f'margin:2.2em 0 0.8em;padding:10px 14px;display:flex;align-items:center;'
-            f'background:{STOCK_BG_HEADER};border-left:4px solid {bar_color};border-radius:0 6px 6px 0;">'
-            f'{badge}{" " if badge else ""}{title_text}</h2>'
+            f'<div style="margin:2.4em 0 0.9em;">'
+            f'<div style="display:flex;align-items:baseline;gap:10px;font-family:{FONT_MONO};'
+            f'font-size:0.72em;font-weight:600;letter-spacing:0.08em;color:{bar_color};margin-bottom:6px;">'
+            f'<span>{num.zfill(2)}/{total}</span><span style="color:{TEXT_MUTED};">{label}</span>'
+            f'</div>'
+            f'<h2 style="font-family:{FONT_DISPLAY};font-size:1.16em;font-weight:700;color:{INK};'
+            f'margin:0;padding-bottom:8px;border-bottom:2px solid {bar_color};">{title_text}</h2>'
+            f'</div>'
         )
 
     def _sector_cards(bullet_lines: list) -> str:
-        accent_colors = [STOCK_BLUE, "#0b7a4e", "#b45309", "#6d28d9", "#b91c1c"]
-        cards = []
+        rows = []
+        n = len(bullet_lines)
         for i, line in enumerate(bullet_lines):
-            text   = re.sub(r"^[-*]\s*", "", line.strip())
-            m      = re.match(r"^\*\*(.+?)\*\*\s*[:：]\s*(.+)$", text)
-            accent = accent_colors[i % len(accent_colors)]
+            text = re.sub(r"^[-*]\s*", "", line.strip())
+            m    = re.match(r"^\*\*(.+?)\*\*\s*[:：]\s*(.+)$", text)
+            bdr  = f'border-bottom:1px solid {BORDER};' if i < n - 1 else ""
+            idx  = f"{i+1:02d}"
             if m:
                 term, desc = m.group(1), m.group(2)
-                cards.append(
-                    f'<div style="background:{BG_CARD};border:1px solid {BORDER};'
-                    f'border-top:3px solid {accent};border-radius:8px;padding:14px 16px;">'
-                    f'<div style="font-size:0.85em;font-weight:700;color:{accent};margin-bottom:6px;">{term}</div>'
-                    f'<div style="font-size:0.87em;color:{TEXT_SUB};line-height:1.65;">{desc}</div>'
-                    f'</div>'
+                rows.append(
+                    f'<div style="display:flex;gap:14px;padding:12px 0;{bdr}">'
+                    f'<span style="flex-shrink:0;font-family:{FONT_MONO};font-size:0.78em;'
+                    f'font-weight:600;color:{STOCK_BLUE};padding-top:1px;">{idx}</span>'
+                    f'<div><div style="font-family:{FONT_DISPLAY};font-size:0.92em;font-weight:700;'
+                    f'color:{INK};margin-bottom:4px;">{term}</div>'
+                    f'<div style="font-size:0.88em;color:{TEXT_SUB};line-height:1.7;">{desc}</div></div></div>'
                 )
             else:
-                cards.append(
-                    f'<div style="background:{BG_CARD};border:1px solid {BORDER};'
-                    f'border-top:3px solid {accent};border-radius:8px;padding:14px 16px;">'
-                    f'<div style="font-size:0.87em;color:{TEXT_SUB};line-height:1.65;">{text}</div>'
-                    f'</div>'
+                rows.append(
+                    f'<div style="display:flex;gap:14px;padding:12px 0;{bdr}">'
+                    f'<span style="flex-shrink:0;font-family:{FONT_MONO};font-size:0.78em;'
+                    f'font-weight:600;color:{STOCK_BLUE};padding-top:1px;">{idx}</span>'
+                    f'<div style="font-size:0.88em;color:{TEXT_SUB};line-height:1.7;">{text}</div></div>'
                 )
-        return (
-            '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:0.8em 0;">'
-            + "".join(f'<div>{c}</div>' for c in cards)
-            + '</div>'
-        )
+        return f'<div style="margin:0.6em 0 1.2em;">{"".join(rows)}</div>'
 
     def _summary(bullet_lines: list) -> str:
-        icons = ["①", "②", "③"]
         items = []
         for i, l in enumerate(bullet_lines):
-            icon = icons[i] if i < len(icons) else "•"
             text = re.sub(r"^[-*]\s*", "", l.strip())
             items.append(
-                f'<li style="display:flex;gap:10px;margin-bottom:10px;list-style:none;">'
-                f'<span style="flex-shrink:0;font-size:0.9em;font-weight:700;color:{STOCK_BLUE};">{icon}</span>'
-                f'<span style="font-size:0.92em;color:{TEXT_MAIN};line-height:1.7;">{text}</span>'
+                f'<li style="display:flex;gap:12px;margin-bottom:11px;list-style:none;">'
+                f'<span style="flex-shrink:0;font-family:{FONT_MONO};font-size:0.78em;'
+                f'font-weight:600;color:{STOCK_BLUE};padding-top:2px;">{i+1:02d}</span>'
+                f'<span style="font-size:0.92em;color:#EDEEF1;line-height:1.7;">{text}</span>'
                 f'</li>'
             )
         return (
-            f'<div style="background:{STOCK_BLUE_LIGHT};border:1px solid #c5d8f5;'
-            f'border-radius:10px;padding:18px 20px;margin:1.8em 0;">'
-            f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'
-            f'<span style="display:inline-block;width:4px;height:16px;background:{STOCK_BLUE};border-radius:2px;"></span>'
-            f'<span style="font-size:0.82em;font-weight:700;color:{STOCK_BLUE};letter-spacing:0.5px;">핵심 요약</span>'
-            f'</div>'
+            f'<div style="background:{INK};border-top:3px solid {STOCK_BLUE};'
+            f'padding:20px 22px;margin:2em 0;">'
+            f'<div style="font-family:{FONT_MONO};font-size:0.72em;font-weight:600;'
+            f'letter-spacing:0.1em;color:{STOCK_BLUE};margin-bottom:14px;">SUMMARY</div>'
             f'<ul style="margin:0;padding:0;">{"".join(items)}</ul>'
             f'</div>'
         )
@@ -668,10 +648,8 @@ def md_to_html_market(md: str, quotes: dict) -> str:
                 t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", stripped)
                 if is_lead and cur_sec is None:
                     html_out.append(
-                        f'<div style="background:{STOCK_BG_HEADER};border-left:4px solid {STOCK_BLUE};'
-                        f'border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:1.6em;">'
-                        f'<p style="margin:0;line-height:1.85;color:{TEXT_MAIN};font-size:1.02em;font-weight:500;">{t}</p>'
-                        f'</div>'
+                        f'<p style="margin:0 0 1.8em;padding-left:16px;border-left:3px solid {STOCK_BLUE};'
+                        f'line-height:1.85;color:{INK};font-size:1.04em;font-weight:500;">{t}</p>'
                     )
                     is_lead = False
                 else:
@@ -685,12 +663,11 @@ def md_to_html_market(md: str, quotes: dict) -> str:
 
     body = "\n".join(html_out)
     return (
-        f'<div style="font-family:\'Noto Sans KR\',\'Malgun Gothic\',Apple SD Gothic Neo,'
-        f'sans-serif;max-width:720px;margin:0 auto;color:{TEXT_MAIN};'
-        f'word-break:keep-all;background:#ffffff;padding:4px;">'
+        f'<div style="font-family:{FONT_BODY};max-width:720px;margin:0 auto;'
+        f'color:{TEXT_MAIN};word-break:keep-all;background:#ffffff;padding:4px;">'
         f'{body}'
-        f'<div style="margin-top:2em;padding:12px 16px;background:#f9fafc;'
-        f'border:1px solid {BORDER};border-radius:6px;font-size:0.78em;color:{TEXT_MUTED};line-height:1.7;">'
+        f'<div style="margin-top:2em;padding-top:14px;border-top:1px solid {BORDER};'
+        f'font-family:{FONT_MONO};font-size:0.72em;color:{TEXT_MUTED};line-height:1.7;">'
         f'본 콘텐츠는 공개 데이터 기반 자동 생성 정보로, 투자 권유가 아닙니다. '
         f'실제 투자 결정은 본인 판단 하에 전문가와 상담 후 진행하시기 바랍니다.'
         f'</div></div>'
