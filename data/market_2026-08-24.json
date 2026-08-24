@@ -34,51 +34,51 @@
       "symbol": "^VIX",
       "name": "VIX",
       "kind": "index",
-      "price": 15.13,
-      "prev": 16.01,
-      "chg_pct": -5.5,
+      "price": 15.92,
+      "prev": 15.13,
+      "chg_pct": 5.22,
       "volume": 0,
-      "market_date_us": "08/21"
+      "market_date_us": "08/24"
     },
     "DX-Y.NYB": {
       "symbol": "DX-Y.NYB",
       "name": "달러인덱스",
       "kind": "macro",
-      "price": 98.82,
+      "price": 98.89,
       "prev": 98.8,
-      "chg_pct": 0.02,
+      "chg_pct": 0.09,
       "volume": 0,
-      "market_date_us": "08/23"
+      "market_date_us": "08/24"
     },
     "CL=F": {
       "symbol": "CL=F",
       "name": "WTI유가",
       "kind": "macro",
-      "price": 85.69,
+      "price": 85.1,
       "prev": 87.06,
-      "chg_pct": -1.57,
-      "volume": 19465,
-      "market_date_us": "08/23"
+      "chg_pct": -2.25,
+      "volume": 33187,
+      "market_date_us": "08/24"
     },
     "GC=F": {
       "symbol": "GC=F",
       "name": "금선물",
       "kind": "macro",
-      "price": 4709.0,
+      "price": 4703.3,
       "prev": 4624.1,
-      "chg_pct": 1.84,
-      "volume": 31800,
-      "market_date_us": "08/23"
+      "chg_pct": 1.71,
+      "volume": 56788,
+      "market_date_us": "08/24"
     },
     "USDKRW=X": {
       "symbol": "USDKRW=X",
       "name": "원달러환율",
       "kind": "macro",
-      "price": 1379.14,
+      "price": 1384.18,
       "prev": 1390.79,
-      "chg_pct": -0.84,
+      "chg_pct": -0.48,
       "volume": 0,
-      "market_date_us": "08/23"
+      "market_date_us": "08/24"
     },
     "QQQ": {
       "symbol": "QQQ",
@@ -238,24 +238,39 @@
       "link": "https://www.fool.com/investing/2026/08/23/could-this-unstoppable-sp-500-etf-millionaire/?.tsrc=rss"
     },
     {
-      "title": "Anthropic makes quiet move Nvidia investors must consider",
-      "summary": "This AI lab just hired the person who built Google’s most guarded hardware program. That is not a coincidence.",
-      "link": "https://www.thestreet.com/technology/anthropic-silicon-team-amir-salek-hire?.tsrc=rss"
+      "title": "Taiwan indicts nine over alleged illegal export of AI servers to China",
+      "summary": "Taiwan prosecutors said on Monday they indicted nine people, including employees ‌of Nvidia and Super Micro, accused of ‌illegal export of artificial intelligence servers to China. Semiconductor powerhouse Taiwan is ​the world's largest producer of advanced chips used in AI applications. Prosecutors this year investigated the suspected illegal export of servers equipped with Nvidia chips subject ‌",
+      "link": "https://finance.yahoo.com/technology/ai/articles/taiwan-indicts-9-over-alleged-062457847.html?.tsrc=rss"
     },
     {
-      "title": "3 Growth Stocks That Could Skyrocket in the Second Half of 2026",
-      "summary": "Here are three growth leaders with strong tailwinds: Arista Networks, Micron, and Eli Lilly.",
-      "link": "https://www.fool.com/investing/2026/08/23/3-growth-stocks-that-could-skyrocket-in-the-second/?.tsrc=rss"
+      "title": "This Week’s Big Events Are Priced In for Stocks: Will Bitcoin Agree?",
+      "summary": "Stocks have priced in this week's Fed speech, but analysts are split on whether Bitcoin will react the same way.",
+      "link": "https://beincrypto.com/bitcoin-priced-in-reaction-stocks/?.tsrc=rss"
     },
     {
-      "title": "Nvidia Notifies Customers About AI-Related Price Hikes",
-      "summary": "Nvidia Corp.'s biggest customers have been told that the prices of servers containing its artificial intelligence chips are going up more than 15% in many cases with memory chip costs soaring. Bloomberg's Anthony Stephens breaks down what we know so far.",
-      "link": "https://finance.yahoo.com/video/nvidia-notifies-customers-ai-related-003033419.html?.tsrc=rss"
+      "title": "Nvidia Is Coming for OpenAI and DeepSeek With $6 Billion Poolside Deal to Build a Powerful Open-Weight AI Model: Report",
+      "summary": "Nvidia Corp (NASDAQ:NVDA) is making an aggressive push into AI models, striking a multibillion-dollar deal with Poolside to develop a powerful open-weight system aimed at rivals including OpenAI, Anthropic, DeepSeek and Kimi. Nvidia Bets $6 Billion on Poolside AI Technology Nvidia will pay $6 billion to license Poolside’s AI technology and invest another $1 billion in the startup at a $12 billion ",
+      "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-coming-openai-deepseek-6-042155320.html?.tsrc=rss"
     },
     {
-      "title": "Goldman Sachs spots huge twist ahead of Nvidia’s earnings",
-      "summary": "Analysts reveal what could happen to Nvidia shares next, and set expectations for the Q2 report.",
-      "link": "https://www.thestreet.com/investing/goldman-sachs-reiterates-buy-nvidia-ahead-of-q2-fy27-earnings?.tsrc=rss"
+      "title": "$92 Billion Nvidia Earnings Could Make or Break the AI Trade",
+      "summary": "Nvidia reports earnings Wednesday with $92 billion in sales on the line, and Wall Street is split on whether the AI trade can hold.",
+      "link": "https://beincrypto.com/nvidia-earnings-92-billion-ai-trade/?.tsrc=rss"
+    },
+    {
+      "title": "How S&P 500, Nasdaq, Dow Futures Are Moving As Trump’s ‘Economic D-Day’ On Iran, Nvidia Earnings Loom",
+      "summary": "U.S. Treasury Secretary Scott Bessent said in a post on X that ‘an economic D-Day’ was about to dawn on Iran on Monday, when Washington is expected to announce fresh sanctions against the Middle Eastern country.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/how-s-and-p-500-nasdaq-dow-futures-are-moving-as-trump-s-economic-d-day-on-iran-nvidia-earnings-loom/cZYKTMXRJn2?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk's Tesla Has 'Massive Advantage' Before Selling Optimus in the Market, Says This Analyst — Crypto Prediction Market Weighs 2026 Launch Odds",
+      "summary": "Cryptocurrency bettors have significantly lowered the odds that Tesla Inc. (NASDAQ:TSLA) will commercially launch the Optimus humanoid robot in 2026. No Optimus Launch in 2026? Polygon (CRYPTO: POL)-based Polymarket is currently pricing in a 9% chance that Tesla releases the...",
+      "link": "https://www.benzinga.com/markets/prediction-markets/26/08/61374326/elon-musk-tesla-optimus-2026-launch-crypto-prediction-market?utm_source=yahooFinance&utm_campaign=partner_feed&utm_medium=referral&.tsrc=rss"
+    },
+    {
+      "title": "Forget the Headlines: Tesla (TSLA) Is Still a Hold Based on What the Data Shows",
+      "summary": "The latest safety data from Tesla's robotaxi rollout is hugely impressive.",
+      "link": "https://www.fool.com/investing/2026/08/24/forget-the-headlines-tesla-tsla-is-still-a-hold-ba/?.tsrc=rss"
     },
     {
       "title": "Tesla just set a date for its riskiest launch yet",
@@ -273,14 +288,9 @@
       "link": "https://www.fool.com/investing/2026/08/23/tesla-stock-in-2027-why-i-think-tsla-still-has-roo/?.tsrc=rss"
     },
     {
-      "title": "Paul Graham Says Tesla Buyers Are Getting More Range, More Car For Less Money Than A Decade Ago: ‘People Who Think They Dislike Capitalism…’",
-      "summary": "Y Combinator co-founder Paul Graham said his wife, Jessica Livingston, recently purchased a Tesla Inc. for $48,000 that offers about 350 miles of range. He compared it with the Tesla Livingston bought in 2015, which he said cost the equivalent...",
-      "link": "https://finance.yahoo.com/technology/articles/paul-graham-says-tesla-buyers-233052774.html?.tsrc=rss"
-    },
-    {
-      "title": "JPMorgan Says Tesla Is Confident of Scaling Cybercab Operations, Touts Future Models Based on Platform—FSD V15 a ‘Step-Change’ From Previous Versions",
-      "summary": "Investment bank JPMorgan Chase & Co. on Wednesday said that Tesla Inc. appears to be prioritizing the Cybercab over further scaling its Model Y robotaxi fleet. New Cybercab Models? Influencer and Tesla investor Sawyer Merritt took to the social media...",
-      "link": "https://finance.yahoo.com/technology/ai/articles/jpmorgan-says-tesla-confident-scaling-213147223.html?.tsrc=rss"
+      "title": "Billionaire Investor Stanley Druckenmiller Sold Broadcom, Intel, and Micron and Bought Another Chip Stock That Expects to Double Data Center Sales in 2027",
+      "summary": "The famous investor dumped three top chip stocks and bought another one with a clear near-term catalyst.",
+      "link": "https://www.fool.com/investing/2026/08/24/billionaire-stanley-druckenmiller-sold-micron-2027/?.tsrc=rss"
     },
     {
       "title": "AMD Is Investing More Than $10 Billion in Taiwan to Build Advanced Chip Packaging With TSMC. Here's What Lisa Su Is Actually Buying With That Money.",
@@ -303,19 +313,9 @@
       "link": "https://www.fool.com/investing/2026/08/22/amd-investors-must-be-ready-for-major-news-on-aug/?.tsrc=rss"
     },
     {
-      "title": "The Best Semiconductor Stock to Buy Isn't AMD or Qualcomm: It's Nvidia, and Our Data Proves It",
-      "summary": "Nvidia is leagues ahead of its rivals in the lucrative AI chip market.",
-      "link": "https://www.fool.com/investing/2026/08/21/the-best-semiconductor-stock-to-buy-isnt-amd-or-qu/?.tsrc=rss"
-    },
-    {
-      "title": "Dow surges 500 points Friday, but index posts back-to-back weekly losses - CNBC",
-      "summary": "Dow surges 500 points Friday, but index posts back-to-back weekly losses CNBC",
-      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9TMDV4Q2s0QVVHMXFPY2w4RjUxY0Juakx6aGs4NUh0WloyV0lkUElnMkdUUEhUV1ZCNFQ3YUxfYXRTY3Z3b2JCVVJwdTZpSDFhMGplRVplZUhTNUtmbC14dnF3TlZQbzIwbU51YmliSmczdXNaZm1n0gF8QVVfeXFMTXlQWDhxZW1wNDI5b2hyTFFGLXh5M2h5YVdaanoyTmw5R0cyRkZvcG5Nd2ZMUUNGa3NMczF0dFN0cThNU1M1R0dCbFlEajhWb1BiVU14bldkdllIQm1xNDY3RWRiYjdFRVhyelctcklYUldpMkplT29kUW9kNA?oc=5"
-    },
-    {
-      "title": "Stock futures flat as U.S. and Canada appear headed for trade war - MarketWatch",
-      "summary": "Stock futures flat as U.S. and Canada appear headed for trade war MarketWatch",
-      "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOMUxIdHJQTmkzcXVvWEw2a2ZFeXEyMnRXaFk4eVotSTBjWTU2Vl9QQlc2Zy0tTUVRRXA2dmpPYXlRZ1F3Rkw0V0kza21lSXo0ZG9nLUg5cGE2azZCaG1EdTEwX2pLNFBmQVdnbWJvLV9LWEotYXZNMnNwOHJzaW1SaE5tOHJ4aG8taVp6djRvS2ZUbzg0bFlONE45MlA2d0VWYUZFWFhBa21yUmM?oc=5"
+      "title": "Stock market today: Dow, S&P 500, Nasdaq rise as bitcoin surges - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq rise as bitcoin surges Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNUjg1dUFUenpZVUZkX2FWa2JncmdfQ0MyZDg4YnlPNlkwSmpYSHNyQ2JtYnpobGh3MDJfNkhqWFREMi11OUpQbG04bWRYUnpycHZFcE1aNTFCSFY3RmRLU1dsbnk2d0R2aEhRTFJwaVJLYVBMNXN1ZVNyRTdGSkQxOU13dm1ZUTVQM2QtMDc3ZGFUOGJFMW1kc0luLVMyY0xkMDdDUzNFejBsMGs?oc=5"
     },
     {
       "title": "Stock futures slip after Dow posts back-to-back weekly declines: Live updates - CNBC",
@@ -323,21 +323,21 @@
       "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE03WVhEWGtPNEFpYV90cDVnTW5jcjJ4XzMwRWl6d2dEOWxVMjk5cVA0bGNzMTR6THNiN3JIMlVCbkNaZHJlRUxMaTVZUFRJcTdfZW41TWNSXzI4a3hZOFdHcEtHcEJHb0ZwQTdLUE1LVkN3RG4zUnpB0gF8QVVfeXFMTlYxNW1kWmY1QUNNU3VLbUFwalRnVmYzTEY5aVRtTElfVFpfNmFEZDZ5ejdzS1RlWHQ1Q25BX0ZkOTZaMWNpT3ZrWXBPc0R1SnIzMVkzdGxvUG9qZUVyS0tieGd0NEZubGxJa2VNbnVTaXlzRUFPMjVWN2pocQ?oc=5"
     },
     {
-      "title": "Stock Market News, Aug. 21, 2026: Bitcoin Jumps; S&P 500 Ends Friday With Weekly Loss - WSJ",
-      "summary": "Stock Market News, Aug. 21, 2026: Bitcoin Jumps; S&P 500 Ends Friday With Weekly Loss WSJ",
-      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQSWg3azFqLWQ4Wk4weVZuYVFjYVBwZnBuak94TWxuUlZNQ1BZWXNzaWhfR05teG1VWEtrNVdwZFRxTmZCVTdRVkFuZm9hLS1XSV8wUlQwckE4UWk4MXJxdVNFZWllNktGaUxMRFNEN25TVXJveDBEYWFhMUVXazR1VTBQR200UFE?oc=5"
+      "title": "Markets News, Aug. 21, 2026: US Indexes Close Higher But Post Weekly Losses; Treasury Yields Edge Upward - Investopedia",
+      "summary": "Markets News, Aug. 21, 2026: US Indexes Close Higher But Post Weekly Losses; Treasury Yields Edge Upward Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxQb1RGYjEyZDNIbzJOdnJoVU1wQkdWX21uMDZDYTUwdVg5NVpvOU1Pa2F1bDlTcmN3M2xuSVJpeDh1TFhlMTRBLXBNQ3J1ajBoakFiRmxoWnBiOUtGUDlEOTFWX2xJNEY0ZHZ1di1FX3NhanlQeXdVeU1ndHlfYWR4dk5jN09hRG1vZHYtRDJxY3U?oc=5"
+    },
+    {
+      "title": "Stock futures flat as U.S. and Canada appear headed for trade war - MarketWatch",
+      "summary": "Stock futures flat as U.S. and Canada appear headed for trade war MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOMUxIdHJQTmkzcXVvWEw2a2ZFeXEyMnRXaFk4eVotSTBjWTU2Vl9QQlc2Zy0tTUVRRXA2dmpPYXlRZ1F3Rkw0V0kza21lSXo0ZG9nLUg5cGE2azZCaG1EdTEwX2pLNFBmQVdnbWJvLV9LWEotYXZNMnNwOHJzaW1SaE5tOHJ4aG8taVp6djRvS2ZUbzg0bFlONE45MlA2d0VWYUZFWFhBa21yUmM?oc=5"
     },
     {
       "title": "Here are the 2 big things we're watching in the stock market this week - CNBC",
       "summary": "Here are the 2 big things we're watching in the stock market this week CNBC",
       "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOdWpyeVNOY1I0eXpqSE1aQUZIR2xMYzlsdFNQQW9faWZodmFFTlRTbktDZVRIRGVWYk9FakpaYlJvUXNCeFFZaV9IOVh1eEl5VHpITVhvMnp0T2dsdV9Kdm1ETVVPSjRZRjZ1MzNtamZwY2JWclluOWRyeDFNSkhrbzFENWh2RXFDOUppcXg4TXIwZXNodW9iNlFqR29jWktIUTl0UjZhcWhvZw?oc=5"
-    },
-    {
-      "title": "The S&P 500 Just Did Something Seen Only 1 Other Time Since 1871 — and It's Not Good News for Wall Street - The Motley Fool",
-      "summary": "The S&P 500 Just Did Something Seen Only 1 Other Time Since 1871 — and It's Not Good News for Wall Street The Motley Fool",
-      "link": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxQeGZqT0VPakluN1ZMSEdwRWxGd3U1MHJqQ2dZY0RpQ3BBbld6TE9NakVPY09KandfV3htNVV3MC1vQktNMDEyNElfSlRaNUNSRGtJakQwYjRJUjFjZFNnc2RwUHRWUFpOOHp5Z1h4bi13UG41d29nWHFERFJGeFVPUVlTWkVVdmNoOEVHZmRmalFoNmo5V002Y1JwZF84XzJGc1M2aUJHNEU1MllGaV8wTVE1Xy1OSF9vNG1BYWx3SFh0b2FzWDN3NjQwdG4td1hxZWszZTFHWmVvMEE2VWlZVGE1dHA?oc=5"
     }
   ],
   "us_date": "08/21",
-  "generated_at": "2026-08-24T11:45:53.610786+09:00"
+  "generated_at": "2026-08-24T16:45:52.666706+09:00"
 }
