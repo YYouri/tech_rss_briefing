@@ -337,7 +337,7 @@ def collect_news() -> list:
  
 # ── 3. LLM 호출 ──────────────────────────────────────────────────────────────
  
-def call_ai(prompt: str, max_tokens: int = 5000) -> str:
+def call_ai(prompt: str, max_tokens: int = 7000) -> str:
     if not OPENROUTER_API_KEY:
         print("[ERROR] OPENROUTER_API_KEY 없음")
         sys.exit(1)
@@ -351,6 +351,10 @@ def call_ai(prompt: str, max_tokens: int = 5000) -> str:
             "messages":    [{"role": "user", "content": prompt}],
             "max_tokens":  max_tokens,
             "temperature": 0.3,
+            # 리즈닝 모델이 <think> 태그 없이 사고과정을 본문에 그대로 흘려보내는
+            # 경우가 있어(2026-08-24 nemotron-3.5-lightning 실제 관측), 지원되는
+            # 모델에 한해 reasoning을 응답 content에서 제외하도록 요청한다.
+            "reasoning": {"exclude": True},
         }
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         req  = urllib.request.Request(
@@ -367,7 +371,7 @@ def call_ai(prompt: str, max_tokens: int = 5000) -> str:
             with urllib.request.urlopen(req, timeout=120) as r:
                 result = json.loads(r.read().decode("utf-8"))
             content = result.get("choices", [{}])[0].get("message", {}).get("content")
-            min_len = 5 if max_tokens <= 200 else 100
+            min_len = 5 if max_tokens <= 300 else 100
             if content and len(content.strip()) >= min_len:
                 print(f"  [OK] 모델: {model} / {len(content.strip())}자")
                 return content.strip()
@@ -504,7 +508,7 @@ def generate_title(quotes: dict, now_kst: datetime, us_date: str):
 JSON만 출력:
 {{"titles": ["제목1", "제목2", "제목3"]}}
 """
-    raw = call_ai(prompt, max_tokens=200)
+    raw = call_ai(prompt, max_tokens=800)
     json_str = extract_balanced(strip_reasoning_blocks(raw), "{", "}")
     if json_str:
         try:

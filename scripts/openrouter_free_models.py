@@ -64,13 +64,17 @@ def fetch_live_free_models(limit: int = 15, timeout: int = 15) -> list[str]:
         outputs = arch.get("output_modalities") or []
         if outputs and "text" not in outputs:
             continue
-        # 컨텍스트 길이가 너무 짧은 모델(번역기 등)은 우선순위에서 밀어낸다.
+        # 필수(mandatory) 리즈닝 모델은 <think> 태그 없이 사고과정을 응답 본문에
+        # 그대로 흘려보내는 경우가 잦아, 구조화된 JSON을 뽑아내는 이 파이프라인엔
+        # 불리하다(2026-08-24 nemotron-3.5-lightning:free 실제 관측). 완전히
+        # 배제하진 않되(그것만 무료로 남는 경우도 있으니) 뒤로 미룬다.
+        mandatory_reasoning = bool(m.get("reasoning", {}).get("mandatory"))
         context_len = m.get("context_length") or 0
-        free_ids.append((context_len, model_id))
+        free_ids.append((mandatory_reasoning, -context_len, model_id))
 
-    # 컨텍스트 길이가 큰(=보통 더 최신/범용) 모델을 우선 시도
-    free_ids.sort(key=lambda x: x[0], reverse=True)
-    result = [mid for _, mid in free_ids[:limit]]
+    # (필수 리즈닝 모델 뒤로, 그 안에서는 컨텍스트 길이가 큰 순으로)
+    free_ids.sort()
+    result = [mid for _, _, mid in free_ids[:limit]]
     print(f"  [INFO] OpenRouter 실시간 무료 모델 {len(result)}개 확보")
     return result
 

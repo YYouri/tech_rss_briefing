@@ -41,7 +41,7 @@ TOO_BROAD = {
 
 # ── OpenRouter 호출 ───────────────────────────────────────────────────────────
 
-def call_ai(prompt: str, max_tokens: int = 1024) -> str:
+def call_ai(prompt: str, max_tokens: int = 2500) -> str:
     if not OPENROUTER_API_KEY:
         print("[ERROR] OPENROUTER_API_KEY 없음")
         sys.exit(1)
@@ -54,6 +54,11 @@ def call_ai(prompt: str, max_tokens: int = 1024) -> str:
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": max_tokens,
+            # 리즈닝 모델이 <think> 태그 없이 본문에 사고과정을 그대로 흘려보내는
+            # 경우가 있어(2026-08-24 nemotron-3.5-lightning 실제 관측), 지원되는
+            # 모델에 한해 reasoning을 응답 content에서 제외하도록 요청한다.
+            # 미지원 모델에는 무해하게 무시된다.
+            "reasoning": {"exclude": True},
         }
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         req  = urllib.request.Request(
@@ -166,7 +171,7 @@ def extract_keywords(article_text: str) -> list[dict]:
 """
 
     for attempt in range(3):
-        raw = call_ai(prompt, max_tokens=1500)
+        raw = call_ai(prompt, max_tokens=3500)
         cleaned = strip_reasoning_blocks(raw)
 
         json_str = extract_balanced(cleaned, "[", "]")
@@ -239,7 +244,7 @@ def _try_select_topic(
 참고 후보 키워드 목록:
 {kw_text}
 """
-    raw   = call_ai(prompt, max_tokens=512)
+    raw   = call_ai(prompt, max_tokens=1500)
     json_str = extract_balanced(strip_reasoning_blocks(raw), "{", "}")
 
     if not json_str:
