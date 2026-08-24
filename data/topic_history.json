@@ -1,58 +1,9 @@
 [
   {
-    "topic": "Agentic AI",
-    "title": "Agentic AI 최신 동향과 활용 사례",
-    "url": "",
-    "tags": "Agentic AI, AI 에이전트, AI 보안, 자동화, AI 트렌드, KPC정보관리기술사",
-    "date": "2026-06-17T05:30:02.306125"
-  },
-  {
-    "topic": "Zero Trust",
-    "title": "Zero Trust, AI 시대 보안 전략",
-    "url": "",
-    "tags": "Zero Trust, AI 보안, 클라우드 보안, 인증, 보안 아키텍처, KPC정보관리기술사",
-    "date": "2026-06-17T22:47:18.389184"
-  },
-  {
-    "topic": "Digital Twin",
-    "title": "Digital Twin으로 제조 혁신",
-    "url": "",
-    "tags": "디지털트윈, 스마트제조, AI시뮬레이션, 가상공장, 산업4.0, KPC정보관리기술사",
-    "date": "2026-06-18T22:58:51.543919"
-  },
-  {
-    "topic": "HBM",
-    "title": "HBM으로 AI 데이터센터 성능 혁신",
-    "url": "",
-    "tags": "HBM, High Bandwidth Memory, AI 데이터센터, 메모리 기술, GPU, KPC정보관리기술사",
-    "date": "2026-06-19T02:04:55.451463"
-  },
-  {
-    "topic": "Physical AI",
-    "title": "Physical AI, 차세대 산업 자동화 구현",
-    "url": "",
-    "tags": "Physical AI, 로봇 자동화, 산업 AI, 스마트 팩토리, 디지털 트윈, KPC정보관리기술사",
-    "date": "2026-06-19T02:48:47.630682"
-  },
-  {
     "topic": "LLM Inference",
-    "title": "LLM 인퍼런스 속도 올리는 핵심 팁",
+    "title": "LLM 추론 최적화 비교: TensorRT·DSpark·BentoML",
     "url": "",
-    "tags": "LLM, Inference, Edge AI, TensorRT, CXL, KPC정보관리기술사",
-    "date": "2026-06-20T02:44:39.533868"
-  },
-  {
-    "topic": "Edge AI",
-    "title": "Edge AI 디바이스에서 바로 실행하는 비법",
-    "url": "",
-    "tags": "Edge AI, 인공지능, 추론, IoT, 스마트디바이스, KPC정보관리기술사",
-    "date": "2026-06-21T22:15:19.318107"
-  },
-  {
-    "topic": "UFS 5.0",
-    "title": "UFS 5.0, 온디바이스 AI 혁신 비결",
-    "url": "",
-    "tags": "UFS 5.0, On-Device AI, Edge AI, 고속 저장소, 모바일 AI, KPC정보관리기술사",
-    "date": "2026-06-25T22:23:42.023597"
+    "tags": "LLM, 추론최적화, TensorRT, BentoML, AI인프라, KPC정보관리기술사",
+    "date": "2026-08-24T02:44:06.036238"
   }
 ]
