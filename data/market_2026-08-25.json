@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 25980.19,
+      "prev": 26180.46,
+      "chg_pct": -0.76,
+      "volume": 6420091000,
+      "market_date_us": "08/24"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7652.86,
+      "prev": 7674.37,
+      "chg_pct": -0.28,
+      "volume": 2488280000,
+      "market_date_us": "08/24"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 53417.16,
+      "prev": 53277.01,
+      "chg_pct": 0.26,
+      "volume": 416038344,
+      "market_date_us": "08/24"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 15.85,
+      "prev": 15.13,
+      "chg_pct": 4.76,
+      "volume": 0,
+      "market_date_us": "08/24"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 98.99,
+      "prev": 98.8,
+      "chg_pct": 0.19,
+      "volume": 0,
+      "market_date_us": "08/24"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 84.98,
+      "prev": 87.06,
+      "chg_pct": -2.39,
+      "volume": 194652,
+      "market_date_us": "08/24"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4710.0,
+      "prev": 4624.1,
+      "chg_pct": 1.86,
+      "volume": 202735,
+      "market_date_us": "08/24"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1382.76,
+      "prev": 1384.98,
+      "chg_pct": -0.16,
+      "volume": 0,
+      "market_date_us": "08/24"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 706.32,
+      "prev": 713.44,
+      "chg_pct": -1.0,
+      "volume": 37094975,
+      "market_date_us": "08/24"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 506.18,
+      "prev": 520.05,
+      "chg_pct": -2.67,
+      "volume": 7686231,
+      "market_date_us": "08/24"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 58.22,
+      "prev": 57.48,
+      "chg_pct": 1.29,
+      "volume": 30768438,
+      "market_date_us": "08/24"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 208.48,
+      "prev": 214.72,
+      "chg_pct": -2.91,
+      "volume": 134405887,
+      "market_date_us": "08/24"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 456.75,
+      "prev": 473.25,
+      "chg_pct": -3.49,
+      "volume": 16521739,
+      "market_date_us": "08/24"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 87.26,
+      "prev": 90.07,
+      "chg_pct": -3.12,
+      "volume": 96389505,
+      "market_date_us": "08/24"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 410.12,
+      "prev": 418.95,
+      "chg_pct": -2.11,
+      "volume": 10623060,
+      "market_date_us": "08/24"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 310.34,
+      "prev": 309.35,
+      "chg_pct": 0.32,
+      "volume": 34379936,
+      "market_date_us": "08/24"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 487.31,
+      "prev": 483.24,
+      "chg_pct": 0.84,
+      "volume": 16754809,
+      "market_date_us": "08/24"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 348.95,
+      "prev": 362.86,
+      "chg_pct": -3.83,
+      "volume": 39022052,
+      "market_date_us": "08/24"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 262.07,
+      "prev": 258.63,
+      "chg_pct": 1.33,
+      "volume": 27975466,
+      "market_date_us": "08/24"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 348.06,
+      "prev": 344.82,
+      "chg_pct": 0.94,
+      "volume": 26279090,
+      "market_date_us": "08/24"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 559.02,
+      "prev": 549.9,
+      "chg_pct": 1.66,
+      "volume": 12868199,
+      "market_date_us": "08/24"
+    }
+  },
+  "news": [
+    {
+      "title": "Update: US Equity Indexes Mixed as Chipmakers Push Technology Lower, Bessent Unveils Plans to Choke Iran's Economy",
+      "summary": "(Updates with index/price moves, macroeconomic data, analyst comments, and company/geopolitical news",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/us-equity-indexes-mixed-chipmakers-210802812.html?.tsrc=rss"
+    },
+    {
+      "title": "Oil prices fall as Bessent outlines new steps to punish Iran",
+      "summary": "Oil prices retreated as US Treasury Secretary outlined plans for more sanctions to punish Iran while stock markets mostly faltered on Monday as investors looked ahead to key US inflation data and earnings from Nvidia.Earlier, Asian markets were hit by a fresh wave of pressure on technology stocks, with investors awaiting Wednesday's earnings report from Nvidia.",
+      "link": "https://finance.yahoo.com/energy/articles/oil-falls-trump-pledges-economic-030019769.html?.tsrc=rss"
+    },
+    {
+      "title": "Amazon Has Been Lagging the S&P 500 in 2026. This Is the Only Reason I'd Need to Buy the Stock in August Without Hesitation.",
+      "summary": "It is trading near its lowest valuation in more than a decade.",
+      "link": "https://www.fool.com/investing/2026/08/24/amazon-is-lagging-the-sp-500-in-2026-this-is-the-o/?.tsrc=rss"
+    },
+    {
+      "title": "Update: US Equity Indexes Mixed as Chipmakers Hit Technology, Bessent Unveils Plans to Choke Iran",
+      "summary": "(Updates with index/price moves and geopolitical news from the first paragraph.) US equity indexe",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/us-equity-indexes-mixed-chipmakers-195805839.html?.tsrc=rss"
+    },
+    {
+      "title": "The Stock Market Is Getting Choppy. Its Worst Month of the Year Looms.",
+      "summary": "The Nasdaq Composite was down 0.5%. The Dow Jones Industrial Average was up 101 points, or 0.2%. Despite the latest jitters, the S&P and Nasdaq are set to snap a two-month losing streak with gains north of 2%.",
+      "link": "https://finance.yahoo.com/m/404e492a-1aec-3bc4-b6c8-4be46b9b74be/the-stock-market-is-getting.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: Trump, Bessent Comments Spark Tech Losses; Nvidia Sells Off Before Earnings",
+      "summary": "Dow Jones Futures: Comments from President Trump and Treasury Secretary Bessent sparked tech losses Monday. Nvidia stock sold off.",
+      "link": "https://finance.yahoo.com/m/a28a6eae-87d9-3229-b7dc-430baf4250e1/dow-jones-futures%3A-trump%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today: Dow Up As Trump Says This On Canada; Nvidia Shares Skid Despite AI Move (Live Coverage)",
+      "summary": "The Dow Jones average rises but other indexes fall as President Trump lashes out at Canada. Nvidia dives but a stock clears an entry.",
+      "link": "https://finance.yahoo.com/m/1a58dcaa-61d6-34aa-8999-e800df60b02d/stock-market-today%3A-dow-up-as.html?.tsrc=rss"
+    },
+    {
+      "title": "How to Find the Market's Long-Term Winners",
+      "summary": "Keith Fitz-Gerald explains why a small group of elite companies drives most long-term wealth creation.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/markets-long-term-winners-204300721.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia results 'so important' for gauging AI funding fears, expert says",
+      "summary": "STORY: Haworth said he will be looking for \"robust\" demand for Nvidia's chips, and whether the company's circular financing structure is sound. \"They've put together a consortium to lend money to businesses to buy their chips,\" he explained. \"How is that working, and should we be less concerned than maybe we were initially about that financing arrangement?\" \"There's maybe room for surprise upside ",
+      "link": "https://finance.yahoo.com/video/nvidia-results-important-gauging-ai-202543088.html?.tsrc=rss"
+    },
+    {
+      "title": "Coinbase Enters the Tokenized Stock Wars",
+      "summary": "Coinbase Tokenized Stocks just went live on Base, running on the new B20 standard. Here's what to expect.",
+      "link": "https://www.bankless.com/read/coinbase-enters-the-tokenized-stock-wars?.tsrc=rss"
+    },
+    {
+      "title": "Tesla to launch Cybercabs in Austin starting Sept. 3",
+      "summary": "Yahoo Finance Senior Autos Reporter Pras Subramanian reports on Tesla (TSLA) launching Cybercabs starting on Sept. 3 in Austin. The company expects to roll out 2,500 robotaxis in 2026.",
+      "link": "https://finance.yahoo.com/video/tesla-launch-cybercabs-austin-starting-205004873.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Just Took a Blow to Its AI Chip Plans",
+      "summary": "Tesla's AI roadmap is facing another execution test",
+      "link": "https://finance.yahoo.com/technology/ai/articles/tesla-just-took-blow-ai-183148664.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Tesla (TSLA) Is Up 6.9% After Robotaxi Approvals And 500 Semi Deal News - And What's Next",
+      "summary": "Earlier this month, Einride AB announced plans to deploy 500 Tesla Semis on its Saga AI freight platform over the next 24 months across major U.S. freight corridors, while regulators in Nevada and Texas approved Tesla to operate thousands of Cybercab robotaxis following its recently scheduled September 3 Austin launch event. Together, these moves highlight Tesla’s push to pair autonomous trucking ",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/why-tesla-tsla-6-9-181537600.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla's Biggest Robotaxi Test Arrives Sept. 3",
+      "summary": "The Cybercab reveal could show how close Tesla is to scaling autonomous ride-hailing.",
+      "link": "https://finance.yahoo.com/technology/articles/teslas-biggest-robotaxi-test-arrives-173435290.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Stock Fans Just Got Bad News From China",
+      "summary": "Tesla faces fresh China setback as huge recall targets 3 million vehicles",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-stock-fans-just-got-172745132.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Sinks 2.9% Before Nvidia's Critical Earnings Test",
+      "summary": "Investors are cutting accelerator exposure before the report that could reset the entire AI-chip trade.",
+      "link": "https://finance.yahoo.com/technology/articles/amd-sinks-2-9-nvidias-195630849.html?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices (AMD) Is Down 6.5% After $4.75 Billion Debt Raise And Taiwan AI Push",
+      "summary": "Advanced Micro Devices has recently appointed Citi executive Tim Ryan to its board and raised about US$4.75 billion through multiple fixed‑rate, unsecured senior notes maturing between 2029 and 2036, alongside filing a shelf registration for additional debt securities. These moves, combined with AMD’s plan to invest more than US$10 billion in Taiwan’s advanced packaging and AI system manufacturing",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/advanced-micro-devices-amd-down-191037909.html?.tsrc=rss"
+    },
+    {
+      "title": "Semiconductor Stocks Slide Ahead of NVIDIA Earnings: Intel Falls 5%, AMD Slides 4%, Taiwan Semiconductor Slips 3%",
+      "summary": "Chip stocks are selling off at twice the rate of broad tech ahead of NVIDIA's most consequential earnings report in years, and the name leading the group lower has nothing to do with NVIDIA at all.",
+      "link": "https://247wallst.com/investing/2026/08/24/semiconductor-stocks-slide-ahead-of-nvidia-earnings-intel-falls-5-amd-slides-4-taiwan-semiconductor-slips-3/?.tsrc=rss"
+    },
+    {
+      "title": "Can AMD (AMD) Win From the Shift Toward More CPU-Heavy AI Data Centers?",
+      "summary": "Guinness Global Innovators, an investment management company, recently released its Q2 2026 quarterly investor update for its “Guinness Global Innovators Fund”. You can download the letter here. The Guinness Global Innovators Fund focuses on investing in global companies that benefit from innovation in technology, communication, globalization, and management strategies. In the second quarter of 20",
+      "link": "https://finance.yahoo.com/technology/articles/amd-amd-win-shift-toward-131307134.html?.tsrc=rss"
+    },
+    {
+      "title": "Micron, Seagate, Western Digital, Semtech, and Penguin Solutions Shares Are Falling, What You Need To Know",
+      "summary": "A number of stocks fell in the afternoon session after investors trimmed chip exposure to reduce portfolio risk ahead of Nvidia's highly anticipated earnings report.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/micron-seagate-western-digital-semtech-200936690.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500 falls slightly as chip stock slide outweighs yield decline: Live updates - CNBC",
+      "summary": "S&P 500 falls slightly as chip stock slide outweighs yield decline: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE03WVhEWGtPNEFpYV90cDVnTW5jcjJ4XzMwRWl6d2dEOWxVMjk5cVA0bGNzMTR6THNiN3JIMlVCbkNaZHJlRUxMaTVZUFRJcTdfZW41TWNSXzI4a3hZOFdHcEtHcEJHb0ZwQTdLUE1LVkN3RG4zUnpB0gF8QVVfeXFMTlYxNW1kWmY1QUNNU3VLbUFwalRnVmYzTEY5aVRtTElfVFpfNmFEZDZ5ejdzS1RlWHQ1Q25BX0ZkOTZaMWNpT3ZrWXBPc0R1SnIzMVkzdGxvUG9qZUVyS0tieGd0NEZubGxJa2VNbnVTaXlzRUFPMjVWN2pocQ?oc=5"
+    },
+    {
+      "title": "Stock market today: S&P 500, Nasdaq fall as chip stocks sink, US unveils new Iran sanctions - Yahoo Finance",
+      "summary": "Stock market today: S&P 500, Nasdaq fall as chip stocks sink, US unveils new Iran sanctions Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPTXkwU3kxMFhuaVp3c2lNa2IzcFZWcWt3MVIzYUVKbHhTWUtldExMVlEyNTQtRlpLWmFmMTVUNlJVbTZfampsVUxzekNtaHNTSldsOExzUC15aV9zMFNqdks5eFIyZ242cnRzRXJyWmVjRlA5RlEySFA2b21RNWlSTWRQNmNjUFlhenlVVG02Mnd1eGRfdTFHNi13bWRHdC1MLVhKM2hFRXNNTHc?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Nasdaq Opens Lower, Oil Drops Ahead of Bessent Iran Presser — Live Updates - WSJ",
+      "summary": "Stock Market Today: Nasdaq Opens Lower, Oil Drops Ahead of Bessent Iran Presser — Live Updates WSJ",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNUTJUd0xkSF9saUkxaVB0VW5FMGg5S0dVZ2VrTGhmLTVvaVZ1V2dpX0R0RkJ1UG5rRGVZRW4ySHF1TnVjczMyVVE0TlhRb0l1SWVxMTlyNllUQ0VEdFY0aUVhSmFxM1VvbTc2MEJybzh2RHdYY3MxQW1EV3c4Z0puYUlJMHpBSzQ?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Nasdaq, S&P 500 Close Lower to Begin Week as Chip Stocks Sink; Bitcoin Nears $80,000 - Investopedia",
+      "summary": "Stock Market Today: Nasdaq, S&P 500 Close Lower to Begin Week as Chip Stocks Sink; Bitcoin Nears $80,000 Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPLXd4eU5QWGZRV3Y2ZUtpNUdUZEh1WE9hY0doLTVhVlViZktwZnE2YjFpUDVIenZ5SDlHTy1YTmVOQlM3allHbWM4WmxhNW9xbXBBNGhGdHZLbm9TZ0NkWldwUVpxQXd6dG80SS1lV0dNY19ETzQtZWhXZ2ZMLUR1MkFndFR1cDROWVp6NXRUTnc?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Dow gains but S&P 500, Nasdaq drop as trade tensions rise; oil prices fall after 'Operation Outcast' against Iran announced - MarketWatch",
+      "summary": "Stock Market Today: Dow gains but S&P 500, Nasdaq drop as trade tensions rise; oil prices fall after 'Operation Outcast' against Iran announced MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPTmp6eUh6bC12b1o4M0tDdS1rUmo5OWxfX0p5TzJNZXM0STBzd3l2Y2t2X0dsWS16NEdnT216SVlGNkwzbnZPaXBLTnhuNXV3b0FhYmdrRXYzR0wxN3JfLTBkUDNfVnZQSlUxLVRLdDFjNUE5cWRVdHVQOG44aGxYdG8yQlVKTGNCSDZDS1hvX1B5WGxKUGZRQzh1U2JwZURsYXRxcUJkaUxFSlJ2TlVrakE2X0hhQQ?oc=5"
+    }
+  ],
+  "us_date": "08/24",
+  "generated_at": "2026-08-25T06:14:41.771706+09:00"
+}
