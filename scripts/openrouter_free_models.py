@@ -54,13 +54,13 @@ def fetch_live_free_models(limit: int = 15, timeout: int = 15) -> list[str]:
             continue
         if any(s in model_id.lower() for s in _EXCLUDE_ID_SUBSTR):
             continue
-        pricing = m.get("pricing", {})
+        pricing = m.get("pricing") or {}
         try:
             if float(pricing.get("prompt", "1")) != 0 or float(pricing.get("completion", "1")) != 0:
                 continue
         except (TypeError, ValueError):
             continue
-        arch = m.get("architecture", {})
+        arch = m.get("architecture") or {}
         outputs = arch.get("output_modalities") or []
         if outputs and "text" not in outputs:
             continue
@@ -68,7 +68,7 @@ def fetch_live_free_models(limit: int = 15, timeout: int = 15) -> list[str]:
         # 그대로 흘려보내는 경우가 잦아, 구조화된 JSON을 뽑아내는 이 파이프라인엔
         # 불리하다(2026-08-24 nemotron-3.5-lightning:free 실제 관측). 완전히
         # 배제하진 않되(그것만 무료로 남는 경우도 있으니) 뒤로 미룬다.
-        mandatory_reasoning = bool(m.get("reasoning", {}).get("mandatory"))
+        mandatory_reasoning = bool((m.get("reasoning") or {}).get("mandatory"))
         context_len = m.get("context_length") or 0
         free_ids.append((mandatory_reasoning, -context_len, model_id))
 

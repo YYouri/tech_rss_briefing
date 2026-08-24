@@ -20,6 +20,8 @@ import sys
 import urllib.request
 import urllib.error
 
+from openrouter_free_models import build_model_list, strip_reasoning_blocks, extract_balanced
+
 POST_FILE = "data/blog_post.json"
 HTML_FILE = "data/blog_post.html"
 EXAM_FILE = "data/exam_history.json"
@@ -29,21 +31,22 @@ KPE_TAG = "KPC정보관리기술사"
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
-MODELS = [
-    "openai/gpt-oss-120b:free",
-    "google/gemma-4-31b:free",
-    "openai/gpt-oss-20b:free",
-    "nvidia/nemotron-3-super:free",
-]
+# ⚠ 하드코딩 슬러그는 OpenRouter가 무료 라인업을 몇 주 단위로 갈아치우며 계속
+# 404로 깨졌다(02/03/07번 스크립트와 동일 문제). 매 실행마다 실제로 살아있는
+# 무료 모델 목록을 조회해서 쓴다.
+MODELS = build_model_list(limit=15)
 
 
 # ─────────────────────────────────────────
 # AI 호출
 # ─────────────────────────────────────────
 
-def call_ai(prompt: str, max_tokens: int = 300) -> str:
+def call_ai(prompt: str, max_tokens: int = 800) -> str:
     if not OPENROUTER_API_KEY:
         print("[WARN] OPENROUTER_API_KEY 없음 → AI 검색어 생성 스킵")
+        return "[]"
+    if not MODELS:
+        print("[WARN] 사용 가능한 무료 모델 없음 → AI 검색어 생성 스킵")
         return "[]"
 
     for model in MODELS:
@@ -51,6 +54,10 @@ def call_ai(prompt: str, max_tokens: int = 300) -> str:
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": max_tokens,
+            # 리즈닝 모델이 <think> 태그 없이 사고과정을 본문에 흘려보내는 경우가
+            # 있어(02/03/07번 스크립트와 동일 이슈), 지원 모델에 한해 응답에서
+            # reasoning을 제외하도록 요청한다.
+            "reasoning": {"exclude": True},
         }
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         req = urllib.request.Request(
@@ -113,11 +120,11 @@ def build_search_terms(topic: str, title: str, tags: str, exam_data: list[dict])
 
 출력 예시: ["에이전틱 AI", "Agentic AI", "AI 에이전트", "자율 AI", "지능형 에이전트"]
 """
-    raw = call_ai(prompt, max_tokens=300)
-    match = re.search(r"\[.*?\]", raw, re.DOTALL)
-    if match:
+    raw = call_ai(prompt, max_tokens=800)
+    json_str = extract_balanced(strip_reasoning_blocks(raw), "[", "]")
+    if json_str:
         try:
-            terms = json.loads(match.group())
+            terms = json.loads(json_str)
             all_terms = list(set([topic] + [t for t in terms if isinstance(t, str) and t.strip()]))
             return all_terms
         except Exception as e:

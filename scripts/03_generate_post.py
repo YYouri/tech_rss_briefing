@@ -20,6 +20,7 @@ from it_html_builder import (
     render_references,
     render_cta_button,
 )
+from openrouter_free_models import build_model_list, strip_reasoning_blocks, extract_balanced
 
 TOPIC_FILE = "data/selected_topic.json"
 POST_FILE  = "data/blog_post.json"
@@ -29,15 +30,10 @@ UNSPLASH_ACCESS_KEY  = os.environ.get("UNSPLASH_ACCESS_KEY")
 
 KST = timezone(timedelta(hours=9))
 
-MODELS = [
-    "openai/gpt-oss-120b:free",
-    "google/gemma-4-26b-a4b:free",
-    "qwen/qwen3-next-80b-a3b-instruct:free",
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "nousresearch/hermes-3-405b-instruct:free",
-    "openai/gpt-oss-20b:free",
-    "meta-llama/llama-3.2-3b-instruct:free",
-]
+# ⚠ 하드코딩 슬러그는 OpenRouter가 무료 라인업을 몇 주 단위로 갈아치우며 계속
+# 404로 깨졌다(02/07번 스크립트와 동일 문제). 매 실행마다 실제로 살아있는
+# 무료 모델 목록을 조회해서 쓴다.
+MODELS = build_model_list(limit=15)
 
 # ── 카테고리별 CTA 설정 ───────────────────────────────────────────────────────
 # 카테고리 문자열이 키에 포함되면 해당 CTA 자동 적용.
@@ -71,15 +67,22 @@ def mermaid_to_image_url(mermaid_code: str) -> str:
     return f"https://mermaid.ink/img/{base64_string}?type=png"
 
 
-def call_ai(prompt: str, max_tokens: int = 4096) -> str:
+def call_ai(prompt: str, max_tokens: int = 6000) -> str:
     if not OPENROUTER_API_KEY:
         print("[ERROR] OPENROUTER_API_KEY 없음")
+        sys.exit(1)
+    if not MODELS:
+        print("[ERROR] 사용 가능한 무료 모델을 하나도 찾지 못함")
         sys.exit(1)
     for model in MODELS:
         payload = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": max_tokens,
+            # 리즈닝 모델이 <think> 태그 없이 사고과정을 본문에 그대로 흘려보내는
+            # 경우가 있어(02/07번 스크립트와 동일 이슈), 지원 모델에 한해 응답에서
+            # reasoning을 제외하도록 요청한다. 미지원 모델엔 무해하게 무시됨.
+            "reasoning": {"exclude": True},
         }
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         req = urllib.request.Request(
@@ -197,7 +200,7 @@ def generate_diagram(topic_data: dict) -> str:
 - 노드 라벨에는 괄호, 따옴표, 특수문자 사용 완전 금지
 - 설명 없이 mermaid 코드만 출력 (코드블록 없이 순수 코드만)
 """
-    raw = call_ai(prompt, max_tokens=300)
+    raw = call_ai(prompt, max_tokens=800)
     return re.sub(r"```mermaid|```", "", raw).strip()
 
 
@@ -255,7 +258,7 @@ def generate_body(topic_data: dict) -> str:
 ## 7. 3줄 요약
 - bullet 정확히 3개
 """
-    return call_ai(prompt, max_tokens=4096)
+    return call_ai(prompt, max_tokens=6000)
 
 
 def refine_title(topic_data: dict) -> dict:
@@ -273,11 +276,11 @@ def refine_title(topic_data: dict) -> dict:
 JSON만 출력:
 {{"titles": ["제목1", "제목2", "제목3"], "category": "추천 카테고리"}}
 """
-    raw   = call_ai(prompt, max_tokens=300)
-    match = re.search(r"\{.*\}", raw, re.DOTALL)
-    if match:
+    raw = call_ai(prompt, max_tokens=800)
+    json_str = extract_balanced(strip_reasoning_blocks(raw), "{", "}")
+    if json_str:
         try:
-            return json.loads(match.group())
+            return json.loads(json_str)
         except Exception:
             pass
     return {"titles": [topic_data["korean_title"]], "category": "IT/테크"}
