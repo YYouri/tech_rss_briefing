@@ -17,7 +17,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timedelta
 
-from openrouter_free_models import build_model_list, strip_reasoning_blocks, extract_balanced
+from openrouter_free_models import build_model_list, strip_reasoning_blocks, extract_balanced, salvage_json_array
 
 ARTICLES_FILE = "data/raw_articles.json"
 HISTORY_FILE  = "data/topic_history.json"
@@ -188,11 +188,17 @@ def extract_keywords(article_text: str) -> list[dict]:
 
     for attempt in range(3):
         used_model: list[str] = []
-        raw = call_ai(prompt, max_tokens=3500, exclude_models=bad_models, used_model_out=used_model)
+        raw = call_ai(prompt, max_tokens=6000, exclude_models=bad_models, used_model_out=used_model)
         cleaned = strip_reasoning_blocks(raw)
 
         json_str = extract_balanced(cleaned, "[", "]")
         if not json_str:
+            # 완전히 닫힌 배열은 못 찾았지만, max_tokens에 걸려 끝만 잘렸을
+            # 수 있으니 이미 완성된 항목이라도 살려본다.
+            salvaged = salvage_json_array(cleaned)
+            if salvaged:
+                print(f"  → 응답이 중간에 잘렸지만 완성된 항목 {len(salvaged)}개 복구")
+                return salvaged
             print(f"[WARN] 키워드 파싱 실패 (시도 {attempt+1}) — 배열을 찾지 못함. 원본 앞부분: {raw[:200]!r}")
             if used_model:
                 print(f"  → 다음 시도에서 {used_model[0]} 제외")

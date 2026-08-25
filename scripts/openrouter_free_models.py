@@ -20,7 +20,10 @@ MODELS_ENDPOINT = "https://openrouter.ai/api/v1/models"
 
 # 텍스트 생성에 부적합한 모델(번역 전용, 이미지 생성 등)을 배제하기 위한
 # 대략적인 필터. 완벽하지 않아도 되고, 죽지 않는 게 목적이다.
-_EXCLUDE_ID_SUBSTR = ("whisper", "tts", "embedding", "moderation", "translat", "-vl", "vision")
+# "inkling" 계열은 일반 chat/completions로 호출하면 항상 403
+# ("only available on agentic harnesses")을 내는 걸 실제로 확인했다
+# (2026-08-24) — 매 호출마다 헛되이 왕복 한 번씩 낭비하므로 아예 제외.
+_EXCLUDE_ID_SUBSTR = ("whisper", "tts", "embedding", "moderation", "translat", "-vl", "vision", "inkling")
 
 # 실시간 조회가 실패했을 때(네트워크 문제 등)의 최후 폴백.
 # 여기 있는 슬러그도 언젠가 죽을 수 있으니 절대 이것만 믿지 말 것 —
@@ -149,3 +152,31 @@ def extract_balanced(text: str, open_ch: str, close_ch: str) -> str | None:
                     except Exception:
                         break  # 이 시작점은 유효한 JSON이 아님 → 다음 '[' / '{'부터 재시도
     return None
+
+
+def salvage_json_array(text: str) -> list | None:
+    """max_tokens 예산이 부족해 배열이 닫히는 ']' 전에 응답이 잘렸을 때,
+    이미 완성된 항목(top-level '{...}')까지만 순서대로 살려서 배열로
+    재구성한다. 완전히 닫힌 항목이 하나도 없으면 None.
+
+    (2026-08-24 실제 관측: 8개 키워드를 각각 긴 reason과 함께 뽑다가
+    max_tokens에 걸려 마지막 항목 중간에서 응답이 끊긴 사례 — 이미 완성된
+    앞쪽 항목들은 버릴 이유가 없다.)
+    """
+    start = text.find("[")
+    if start == -1:
+        return None
+    items, pos, n = [], start + 1, len(text)
+    while pos < n:
+        obj_start = text.find("{", pos)
+        if obj_start == -1:
+            break
+        obj_str = extract_balanced(text[obj_start:], "{", "}")
+        if not obj_str:
+            break  # 이 객체가 안 닫혔다 = 잘린 지점, 여기서 중단
+        try:
+            items.append(json.loads(obj_str))
+        except Exception:
+            break
+        pos = obj_start + len(obj_str)
+    return items or None
