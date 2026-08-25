@@ -125,8 +125,17 @@ def build_search_terms(topic: str, title: str, tags: str, exam_data: list[dict])
     if json_str:
         try:
             terms = json.loads(json_str)
-            all_terms = list(set([topic] + [t for t in terms if isinstance(t, str) and t.strip()]))
-            return all_terms
+            candidates = [topic] + [t.strip() for t in terms if isinstance(t, str) and t.strip()]
+            # 중복 제거 + "다른 용어의 부분 문자열인 짧은 용어" 제거.
+            # (2026-08-25 실제 발행본에서 "Agentic AI"/"AI"/"Agentic"이 각각
+            # 배지로 따로 뜬 것을 확인 — "AI"와 "Agentic"은 "Agentic AI"의
+            # 부분 문자열이라 별도 배지로는 정보량이 없고 중복으로만 보인다.)
+            unique = list(dict.fromkeys(candidates))  # 순서 유지 중복 제거
+            all_terms = [
+                t for t in unique
+                if not any(t != other and t.lower() in other.lower() for other in unique)
+            ]
+            return all_terms or unique
         except Exception as e:
             print(f"[WARN] 검색어 파싱 실패: {e}")
 

@@ -300,17 +300,40 @@ def refine_title(topic_data: dict) -> dict:
 - 숫자로 개수를 암시하는 표현 금지 ("3가지", "5가지" 등)
 - 카테고리도 1개 추천
 
+아래는 JSON "형식"을 보여주는 예시일 뿐입니다. <> 안의 설명을 그대로 베껴서
+출력하지 말고, 실제 제목·카테고리 문자열로 교체해서 출력하세요.
+{{"titles": ["<28자 이내 실제 제목 1>", "<실제 제목 2>", "<실제 제목 3>"], "category": "<추천 카테고리명>"}}
+
 JSON만 출력:
-{{"titles": ["제목1", "제목2", "제목3"], "category": "추천 카테고리"}}
 """
     raw = call_ai(prompt, max_tokens=800)
     json_str = extract_balanced(strip_reasoning_blocks(raw), "{", "}")
-    if json_str:
-        try:
-            return json.loads(json_str)
-        except Exception:
-            pass
-    return {"titles": [topic_data["korean_title"]], "category": "IT/테크"}
+    fallback = {"titles": [topic_data["korean_title"]], "category": "IT/테크"}
+    if not json_str:
+        return fallback
+    try:
+        result = json.loads(json_str)
+    except Exception:
+        return fallback
+
+    # 모델이 예시의 플레이스홀더(<...>, "제목1" 등)를 그대로 베껴 반환하는
+    # 경우가 있다 — 문법적으로는 완전히 유효한 JSON이라 파싱은 통과하므로
+    # 별도로 내용 자체를 검증해야 한다(2026-08-25 실제 발행본에서 "제목1"이
+    # 그대로 제목으로 나간 것을 확인).
+    titles = result.get("titles") or []
+    real_titles = [
+        t for t in titles
+        if isinstance(t, str) and t.strip()
+        and not re.match(r"^\s*<.*>\s*$", t)          # <실제 제목 1> 형태
+        and not re.match(r"^제목\s*\d*$", t.strip())   # 제목1, 제목2 형태
+    ]
+    if not real_titles:
+        print(f"[WARN] 제목 후보가 전부 플레이스홀더로 보여 원본 제목으로 대체: {titles}")
+        return fallback
+    result["titles"] = real_titles
+    if not result.get("category") or re.match(r"^\s*<.*>\s*$", str(result.get("category"))):
+        result["category"] = "IT/테크"
+    return result
 
 
 def markdown_to_plain(md: str, title: str) -> str:

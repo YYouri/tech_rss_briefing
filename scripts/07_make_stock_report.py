@@ -518,20 +518,33 @@ def generate_title(quotes: dict, now_kst: datetime, us_date: str):
 - 숫자로 개수 암시 금지
 - 한국 투자자 관점
  
+아래는 JSON "형식"을 보여주는 예시일 뿐입니다. <> 안의 설명을 그대로 베껴서
+출력하지 말고, 실제 제목 문자열로 교체해서 출력하세요.
+{{"titles": ["<30자 이내 실제 제목 1>", "<실제 제목 2>", "<실제 제목 3>"]}}
+ 
 JSON만 출력:
-{{"titles": ["제목1", "제목2", "제목3"]}}
 """
+    fallback = f"{kst_date_str} 미국 증시 마감 & 코스피 전망"
     raw = call_ai(prompt, max_tokens=800)
     json_str = extract_balanced(strip_reasoning_blocks(raw), "{", "}")
     if json_str:
         try:
             result = json.loads(json_str)
             titles = result.get("titles", [])
-            if titles:
-                return titles[0], titles
+            # 모델이 예시의 플레이스홀더(<...>, "제목1" 등)를 그대로 베껴
+            # 반환하는 경우가 있다 — 문법은 유효한 JSON이라 파싱은 통과하므로
+            # 내용 자체를 검증해야 한다(03_generate_post.py와 동일 이슈).
+            real_titles = [
+                t for t in titles
+                if isinstance(t, str) and t.strip()
+                and not re.match(r"^\s*<.*>\s*$", t)
+                and not re.match(r"^제목\s*\d*$", t.strip())
+            ]
+            if real_titles:
+                return real_titles[0], real_titles
+            print(f"[WARN] 제목 후보가 전부 플레이스홀더로 보여 기본 제목으로 대체: {titles}")
         except Exception:
             pass
-    fallback = f"{kst_date_str} 미국 증시 마감 & 코스피 전망"
     return fallback, [fallback]
  
  
