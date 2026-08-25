@@ -337,23 +337,28 @@ def collect_news() -> list:
  
 # ── 3. LLM 호출 ──────────────────────────────────────────────────────────────
  
-def call_ai(prompt: str, max_tokens: int = 7000) -> str:
+def call_ai(prompt: str, max_tokens: int = 7000, exclude_models: set | None = None,
+            used_model_out: list | None = None) -> str:
     if not OPENROUTER_API_KEY:
         print("[ERROR] OPENROUTER_API_KEY 없음")
         sys.exit(1)
     if not MODELS:
         print("[ERROR] 사용 가능한 무료 모델을 하나도 찾지 못함")
         sys.exit(1)
- 
-    for model in MODELS:
+
+    exclude_models = exclude_models or set()
+    models_to_try = [m for m in MODELS if m not in exclude_models] or MODELS
+
+    for model in models_to_try:
         payload = {
             "model":       model,
             "messages":    [{"role": "user", "content": prompt}],
             "max_tokens":  max_tokens,
             "temperature": 0.3,
             # 리즈닝 모델이 <think> 태그 없이 사고과정을 본문에 그대로 흘려보내는
-            # 경우가 있어(2026-08-24 nemotron-3.5-lightning 실제 관측), 지원되는
-            # 모델에 한해 reasoning을 응답 content에서 제외하도록 요청한다.
+            # 경우가 있어(2026-08-24 nemotron-3.5-lightning, nemotron-3-ultra
+            # 실제 관측), 지원되는 모델에 한해 reasoning을 응답 content에서
+            # 제외하도록 요청한다.
             "reasoning": {"exclude": True},
         }
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -374,6 +379,8 @@ def call_ai(prompt: str, max_tokens: int = 7000) -> str:
             min_len = 5 if max_tokens <= 300 else 100
             if content and len(content.strip()) >= min_len:
                 print(f"  [OK] 모델: {model} / {len(content.strip())}자")
+                if used_model_out is not None:
+                    used_model_out.append(model)
                 return content.strip()
             print(f"  [WARN] {model} 응답 부실 ({len((content or '').strip())}자)")
         except urllib.error.HTTPError as e:
@@ -382,7 +389,7 @@ def call_ai(prompt: str, max_tokens: int = 7000) -> str:
         except Exception as e:
             print(f"  [WARN] {model}: {e}")
         time.sleep(2)
- 
+
     print("[ERROR] 모든 모델 실패")
     sys.exit(1)
  

@@ -41,7 +41,8 @@ TOO_BROAD = {
 
 # ── OpenRouter 호출 ───────────────────────────────────────────────────────────
 
-def call_ai(prompt: str, max_tokens: int = 2500) -> str:
+def call_ai(prompt: str, max_tokens: int = 2500, exclude_models: set | None = None,
+            used_model_out: list | None = None) -> str:
     if not OPENROUTER_API_KEY:
         print("[ERROR] OPENROUTER_API_KEY 없음")
         sys.exit(1)
@@ -49,15 +50,21 @@ def call_ai(prompt: str, max_tokens: int = 2500) -> str:
         print("[ERROR] 사용 가능한 무료 모델을 하나도 찾지 못함")
         sys.exit(1)
 
-    for model in MODELS:
+    exclude_models = exclude_models or set()
+    # 이번 호출에서 제외할 모델(직전 시도에서 파싱 불가능한 사고과정만
+    # 늘어놓은 모델 등)을 뺀 목록. 전부 제외돼서 남는 게 없으면 그냥
+    # 원래 목록으로 재시도한다(모델이 하나도 없는 것보단 낫다).
+    models_to_try = [m for m in MODELS if m not in exclude_models] or MODELS
+
+    for model in models_to_try:
         payload = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": max_tokens,
             # 리즈닝 모델이 <think> 태그 없이 본문에 사고과정을 그대로 흘려보내는
-            # 경우가 있어(2026-08-24 nemotron-3.5-lightning 실제 관측), 지원되는
-            # 모델에 한해 reasoning을 응답 content에서 제외하도록 요청한다.
-            # 미지원 모델에는 무해하게 무시된다.
+            # 경우가 있어(2026-08-24 nemotron-3.5-lightning, nemotron-3-ultra
+            # 실제 관측), 지원되는 모델에 한해 reasoning을 응답 content에서
+            # 제외하도록 요청한다. 미지원 모델에는 무해하게 무시된다.
             "reasoning": {"exclude": True},
         }
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -77,6 +84,8 @@ def call_ai(prompt: str, max_tokens: int = 2500) -> str:
             content = result.get("choices", [{}])[0].get("message", {}).get("content")
             if content:
                 print(f"[OK] 모델 성공: {model}")
+                if used_model_out is not None:
+                    used_model_out.append(model)
                 return content.strip()
             print(f"[WARN] {model} 응답 없음, 다음 모델 시도")
         except urllib.error.HTTPError as e:
@@ -170,13 +179,24 @@ def extract_keywords(article_text: str) -> list[dict]:
 {article_text}
 """
 
+    # 파싱 불가능한 응답만 계속 내놓는 모델은 다음 시도에서 제외한다.
+    # (2026-08-24 nemotron-3-ultra-550b-a55b:free가 사고과정만 3500토큰 내내
+    # 늘어놓고 JSON을 한 번도 못 낸 채 매번 같은 모델이 다시 뽑히는 것을 확인 —
+    # call_ai는 "응답이 왔는지"만 보고 성공 처리하므로, 실제로 쓸모 있는
+    # 응답인지는 호출부에서 걸러서 다음 모델로 넘겨야 한다.)
+    bad_models: set[str] = set()
+
     for attempt in range(3):
-        raw = call_ai(prompt, max_tokens=3500)
+        used_model: list[str] = []
+        raw = call_ai(prompt, max_tokens=3500, exclude_models=bad_models, used_model_out=used_model)
         cleaned = strip_reasoning_blocks(raw)
 
         json_str = extract_balanced(cleaned, "[", "]")
         if not json_str:
             print(f"[WARN] 키워드 파싱 실패 (시도 {attempt+1}) — 배열을 찾지 못함. 원본 앞부분: {raw[:200]!r}")
+            if used_model:
+                print(f"  → 다음 시도에서 {used_model[0]} 제외")
+                bad_models.add(used_model[0])
             continue
 
         json_str = re.sub(r",\s*]", "]", json_str)
@@ -189,6 +209,8 @@ def extract_keywords(article_text: str) -> list[dict]:
             print(f"[WARN] 빈 배열 반환 (시도 {attempt+1}). 재시도...")
         except Exception as e:
             print(f"[WARN] JSON 파싱 오류 (시도 {attempt+1}): {e} — 추출된 문자열: {json_str[:200]!r}")
+            if used_model:
+                bad_models.add(used_model[0])
             continue
 
     print("[ERROR] 키워드 추출 3회 모두 실패")
