@@ -118,6 +118,11 @@ def render_cta_button(
         f'{description}</p>'
         if description else ""
     )
+    # 버튼을 "흰 글자 + 색 배경 채우기"로 만들면, 붙여넣기 과정에서 배경색만
+    # 빠지고 흰 글자만 남는 경우 흰 배경 위에 흰 글자가 겹쳐 완전히 안 보이게
+    # 된다(2026-08-26 실제 네이버 붙여넣기에서 확인). 배경색에 기대지 않고
+    # 텍스트 자체의 색·굵기·밑줄만으로 눈에 띄게 만들면, 배경이 살아남든
+    # 안 살아남든 최소한 글자는 항상 보인다.
     return (
         f'<div style="border:1px solid {BORDER};border-top:3px solid {c};'
         f'padding:22px 20px;margin:2em 0;text-align:center;">'
@@ -125,9 +130,9 @@ def render_cta_button(
         f'letter-spacing:0.08em;margin:0 0 10px;">{label}</p>'
         f'{desc_html}'
         f'<a href="{url}" target="_blank" rel="noopener noreferrer" '
-        f'style="display:inline-block;background:{c};color:#fff;'
-        f'font-size:0.88em;font-weight:700;padding:10px 26px;'
-        f'border-radius:3px;text-decoration:none;letter-spacing:0.3px;">'
+        f'style="display:inline-block;color:{c};background:transparent;'
+        f'border:2px solid {c};font-size:0.92em;font-weight:700;padding:9px 24px;'
+        f'border-radius:3px;text-decoration:underline;letter-spacing:0.3px;">'
         f'{button_text}</a>'
         f'</div>'
     )
