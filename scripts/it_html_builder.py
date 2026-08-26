@@ -143,10 +143,16 @@ def render_cta_button(
 # ════════════════════════════════════════════════════════════════════════════════
 
 def build_meta_bar(topic: str, tags: list, now_kst: datetime, read_min: int = 4) -> str:
-    """헤더를 '기술 데이터시트 표지'처럼 구성: 모노스페이스 문서번호 + 헤어라인."""
+    """헤더를 '기술 데이터시트 표지'처럼 구성: 모노스페이스 문서번호 + 헤어라인.
+
+    주의: 아래 요소들은 전부 "레이아웃(flex/gap)"이 아니라 "실제 텍스트 사이 공백
+    문자"로 간격을 만든다. 붙여넣기 과정에서 CSS가 통째로 사라져도(2026-08-26
+    네이버 붙여넣기에서 태그가 "Physical AI로봇공학산업자동화..."처럼 다 붙어버리는
+    것을 확인) 최소한 글자끼리 뭉개지지는 않는다.
+    """
     doc_no  = now_kst.strftime("TR-%Y%m%d")
     time_str = now_kst.strftime("%Y.%m.%d %H:%M KST")
-    tag_chips = "".join(
+    tag_chips = " ".join(
         f'<span style="display:inline-block;border:1px solid {BORDER};'
         f'color:{TEXT_SUB};font-family:{FONT_MONO};font-size:0.72em;padding:3px 9px;'
         f'border-radius:3px;margin-right:6px;margin-bottom:6px;">{t}</span>'
@@ -155,12 +161,9 @@ def build_meta_bar(topic: str, tags: list, now_kst: datetime, read_min: int = 4)
     return (
         f'{FONT_IMPORT}'
         f'<div style="margin-bottom:2em;">'
-        f'<div style="display:flex;align-items:baseline;justify-content:space-between;'
-        f'font-family:{FONT_MONO};font-size:0.72em;letter-spacing:0.06em;color:{TEXT_MUTED};'
-        f'border-bottom:1px solid {INK};padding-bottom:8px;margin-bottom:14px;">'
-        f'<span>{doc_no} · TECH BRIEF</span>'
-        f'<span>{time_str} · {read_min} MIN READ</span>'
-        f'</div>'
+        f'<p style="font-family:{FONT_MONO};font-size:0.72em;letter-spacing:0.06em;'
+        f'color:{TEXT_MUTED};border-bottom:1px solid {INK};padding-bottom:8px;'
+        f'margin:0 0 14px;">{doc_no} · TECH BRIEF &nbsp;|&nbsp; {time_str} · {read_min} MIN READ</p>'
         f'<div style="font-family:{FONT_DISPLAY};font-size:1.5em;font-weight:700;'
         f'color:{INK};line-height:1.35;margin-bottom:14px;">{topic}</div>'
         f'<div>{tag_chips}</div>'
@@ -169,26 +172,29 @@ def build_meta_bar(topic: str, tags: list, now_kst: datetime, read_min: int = 4)
 
 
 def render_heading(text: str) -> str:
-    """섹션 헤딩을 컬러 배지 대신 '러닝 인덱스 + 앰버 룰'로 표시."""
+    """섹션 헤딩. 번호 배지를 별도 flex 레이아웃이 아니라 배경 있는 단일
+    텍스트 배지로 만들어 눈에 잘 띄게 하고, 붙여넣기 내구성도 높였다."""
     m = re.match(r"^(\d+)\.\s*(.+)$", text.strip())
     if not m:
         return (
-            f'<h2 style="font-family:{FONT_DISPLAY};font-size:1.12em;font-weight:700;'
-            f'color:{INK};margin:2.4em 0 0.9em;padding-bottom:8px;'
+            f'<h2 style="font-family:{FONT_DISPLAY};font-size:1.22em;font-weight:700;'
+            f'color:{INK};margin:2.8em 0 0.9em;padding-bottom:8px;'
             f'border-bottom:2px solid {ACCENT_MAIN};">{text}</h2>'
         )
     num, title_text = m.group(1), m.group(2)
     label_info = SECTION_LABELS.get(num)
     label, bar_color = label_info if label_info else ("SEC", ACCENT_MAIN)
     total = f"{len(SECTION_LABELS):02d}"
+    # "01/07"과 "TECH"를 별개 span+gap으로 나누지 않고 한 배지 안에 텍스트로
+    # 합쳐서, 레이아웃이 깨져도 글자 자체는 항상 "01/07 · TECH"로 붙어 보인다.
     return (
-        f'<div style="margin:2.4em 0 0.9em;">'
-        f'<div style="display:flex;align-items:baseline;gap:10px;font-family:{FONT_MONO};'
-        f'font-size:0.72em;font-weight:600;letter-spacing:0.08em;color:{bar_color};margin-bottom:6px;">'
-        f'<span>{num.zfill(2)}/{total}</span><span style="color:{TEXT_MUTED};">{label}</span>'
-        f'</div>'
-        f'<h2 style="font-family:{FONT_DISPLAY};font-size:1.16em;font-weight:700;color:{INK};'
-        f'margin:0;padding-bottom:8px;border-bottom:2px solid {bar_color};">{title_text}</h2>'
+        f'<div style="margin:2.8em 0 0.9em;">'
+        f'<span style="display:inline-block;background:{ACCENT_LIGHT};color:{bar_color};'
+        f'font-family:{FONT_MONO};font-size:0.8em;font-weight:700;letter-spacing:0.06em;'
+        f'padding:4px 10px;border-radius:3px;margin-bottom:10px;">{num.zfill(2)}/{total} · {label}</span>'
+        f'<h2 style="display:block;font-family:{FONT_DISPLAY};font-size:1.22em;font-weight:700;'
+        f'color:{INK};margin:10px 0 0;padding-bottom:8px;border-bottom:2px solid {bar_color};">'
+        f'{title_text}</h2>'
         f'</div>'
     )
 
@@ -555,8 +561,8 @@ def md_to_html_market(md: str, quotes: dict) -> str:
         m = re.match(r"^(\d+)\.\s*(.+)$", text.strip())
         if not m:
             return (
-                f'<h2 style="font-family:{FONT_DISPLAY};font-size:1.12em;font-weight:700;'
-                f'color:{INK};margin:2.4em 0 0.9em;padding-bottom:8px;'
+                f'<h2 style="font-family:{FONT_DISPLAY};font-size:1.22em;font-weight:700;'
+                f'color:{INK};margin:2.8em 0 0.9em;padding-bottom:8px;'
                 f'border-bottom:2px solid {STOCK_BLUE};">{text}</h2>'
             )
         num, title_text = m.group(1), m.group(2)
@@ -564,13 +570,12 @@ def md_to_html_market(md: str, quotes: dict) -> str:
         label, bar_color = label_info if label_info else ("SEC", STOCK_BLUE)
         total = f"{len(STOCK_SECTION_LABELS):02d}"
         return (
-            f'<div style="margin:2.4em 0 0.9em;">'
-            f'<div style="display:flex;align-items:baseline;gap:10px;font-family:{FONT_MONO};'
-            f'font-size:0.72em;font-weight:600;letter-spacing:0.08em;color:{bar_color};margin-bottom:6px;">'
-            f'<span>{num.zfill(2)}/{total}</span><span style="color:{TEXT_MUTED};">{label}</span>'
-            f'</div>'
-            f'<h2 style="font-family:{FONT_DISPLAY};font-size:1.16em;font-weight:700;color:{INK};'
-            f'margin:0;padding-bottom:8px;border-bottom:2px solid {bar_color};">{title_text}</h2>'
+            f'<div style="margin:2.8em 0 0.9em;">'
+            f'<span style="display:inline-block;background:{STOCK_BLUE_LIGHT};color:{bar_color};'
+            f'font-family:{FONT_MONO};font-size:0.8em;font-weight:700;letter-spacing:0.06em;'
+            f'padding:4px 10px;border-radius:3px;margin-bottom:10px;">{num.zfill(2)}/{total} · {label}</span>'
+            f'<h2 style="display:block;font-family:{FONT_DISPLAY};font-size:1.22em;font-weight:700;color:{INK};'
+            f'margin:10px 0 0;padding-bottom:8px;border-bottom:2px solid {bar_color};">{title_text}</h2>'
             f'</div>'
         )
 

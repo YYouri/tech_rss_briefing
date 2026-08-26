@@ -163,6 +163,15 @@ def extract_keywords(article_text: str) -> list[dict]:
        NVLink, Flash Attention, RLHF, Mixture of Experts, Speculative Decoding)
 - 너무 광범위한 상위 개념(AI, 인공지능, 반도체, 클라우드, 빅데이터, IT, 기술,
   소프트웨어, 디지털)은 절대 추출하지 말 것
+- ⚠ 특정 기업의 상품명·코드네임·브랜드명은 "구체적"이어도 제외할 것
+  (예: Diamond Rapids, Crescent Island, Wildcat Lake, DSpark, Vera CPU처럼
+  한 회사의 특정 제품/칩/도구 이름 — 이런 건 그 회사가 단종하거나 다음 세대
+  제품이 나오면 바로 낡은 키워드가 되고, 기술사 시험도 특정 상품명이 아니라
+  그 뒤에 있는 일반 기술 개념을 묻기 때문에 이런 토픽은 기출 연계가 거의
+  안 된다. 대신 그 상품이 대표하는 상위 기술 개념을 키워드로 뽑을 것
+  — 예: "Diamond Rapids" 대신 "오케스트레이션 프로세서" 또는
+  이미 이 목록에 있는 "Agentic AI"/"Physical AI"처럼 업계 전반에 통용되는
+  개념어를 우선한다)
 - 반드시 "최소 3개 이상의 서로 다른 기사"에서 공통적으로 언급되는 키워드만 추출
 - count가 2 이하로 추정되는 키워드는 추출하지 말 것
 - 각 키워드의 기사 언급 횟수(count)와 중요도(importance, 1-10)를 추정

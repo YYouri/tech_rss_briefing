@@ -186,8 +186,10 @@ def build_exam_section_html(matches: list[dict], topic: str, terms: list[str]) -
     MONO   = "'IBM Plex Mono','D2Coding','SFMono-Regular',Consolas,monospace"
     DISP   = "'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif"
 
-    # 키워드 뱃지 (헤어라인 아웃라인 칩)
-    keyword_badges = "".join([
+    # 키워드 뱃지 (헤어라인 아웃라인 칩) — 스팬 사이에 실제 공백 문자를 넣어야
+    # 붙여넣기 중 여백 CSS가 사라져도 서로 안 붙는다(2026-08-26 태그가
+    # "Physical AI로봇공학산업자동화..."처럼 뭉친 것을 확인한 것과 동일 원인).
+    keyword_badges = " ".join([
         f'<span style="display:inline-block;border:1px solid {BORDER};color:{SUB};'
         f'font-family:{MONO};font-size:0.72em;padding:3px 9px;border-radius:3px;'
         f'margin:0 6px 6px 0;">{t}</span>'
