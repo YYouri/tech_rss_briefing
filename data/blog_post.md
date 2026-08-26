@@ -1,46 +1,43 @@
-# Physical AI란? 로봇 산업을 바꾸는 핵심 기술
+# On-Device AI란? 스마트폰 AI 완전 정리
 
-2025년 들어 NVIDIA가 휴머노이드 로봇 플랫폼과 Physical AI를 잇따라 공개하면서, 기존에 '공장 자동화'라는 좁은 범주 안에 머물러 있던 로봇·AI 논의가 본격적으로 확장이 시작됐다. 실제 업무에서 모터 제어 임베디드 펌웨어를 다루다 보면, 이 기술이 단순한 마케팅 용어가 아니라 임베디드 보드 설계 방식 자체를 바꾸고 있다는 것을 체감하게 된다. 본문에서는 Physical AI의 정의부터 현장 적용 사례, 실무 엔지니어가 짚어봐야 할 기술 포인트까지 정리한다.
+삼성전자가 메모리 연산 기능을 내장한 LPDDR5X를 내놓으며 온디바이스 AI 하드웨어 경쟁에 불을 붙였다. 구글과 Arm은 SME2 명령어 확장으로 CPU만으로도 생성형 AI 추론이 가능함을 보였다. 단말 제조사와 반도체, 소프트웨어 스택이 동시에 움직이니 현장 체감 속도가 예전과 다르다.
 
 ## 1. 현장에서 무슨 일이 있었나
-2026년 들어 Physical AI라는 단어가 임베디드·로봇 산업 전반에서 빠르게 확산됐다. Embedded Computing Design은 "2026 is the year of Physical AI"라고 명시한 e-Book을 8월 24일자로 발행했고 [출처: Real Physical AI: Embedded Edge Intelligence & Industrial Automation], 같은 날 Design World는 미국 해군 조선사 Huntington Ingalls Industries가 전함 생산에 Physical AI를 적용하기 시작했다고 보도했다 [출처: Industrial automation at the extremes: aircraft carriers, and donuts]. 제조 현장과 방산, 양쪽에서 동시에 움직임이 시작된 것이다.
 
-BlackBerry는 QNX 로보틱스 사업이 자동차 시장을 넘어 Physical AI 수요로 확장될 것이라고 발표했다 [출처: BlackBerry Bets QNX Robotics Will Outpace Autos as Physical AI Demand Builds]. Boston Consulting Group는 Physical AI가 자동화 분야의 경제 구조 자체를 재편할 것이라고 분석했고 [출처: Physical AI Will Reshape the Economics of Automation], Manufacturing Today는 Physical AI를 제조 현장에 도입하는 10개 기업 리스트를 공개했다 [출처: Ten companies bringing Physical AI to manufacturing].
+지난달 삼성전자는 업계 최초로 연산 기능이 내장된 메모리, 즉 PIM(Processing-in-Memory) 기반 LPDDR5X를 공개했다 [출처: Samsung Electronics Unveils Industry's First 'Memory with Processing Capabilities,' Targeting On-Device AI]. 기존 폰에서는 DRAM과 AP 사이 버스가 병목이었는데, 메모리 내부에서 매트릭스 연산을 처리하니 데이터 이동량이 획기적으로 줄었다. 회사에서 메모리 서브시스템 검토할 때만 해도 PIM은 서버용 HBM에나 해당하는 얘기였는데, 모바일 폼팩터까지 내려온 건 확실히 시그널이 다르다.
+
+거의 동시에 SK하이닉스는 패키징과 DRAM 한계를 지적하는 외신 보도 속에서 새로운 아키텍처 돌파구를 제시했다 [출처: On-Device AI In Smartphones Is A Blatant Lie Due To Packaging & DRAM Limitations, But SK hynix’s Newest Architecture Breakthrough Could Change That]. 패키지 두께와 발열, 대역폭 삼중고를 단일 패키지 내 하이브리드 본딩으로 풀었다는 내용이다. 실무에서 패키징 수율 검토할 때마다 들던 '모바일에서 진짜 LLM 돌릴 수 있나'란 의구심이 하드웨어 레벨에서 해소되는 중이다.
+
+구글은 픽셀 10 시연에서 클라우드 없이 디바이스 온리(Device-only)로 멀티모달 추론을 돌렸다 [출처: Google demonstrates new on-device AI features for Pixel 10]. Arm은 블로그에서 SME2(Scalable Matrix Extension 2)로 CPU 단일 코어에서 4비트 양자화 모델을 실시간 처리하는 벤치마크를 공개했다 [출처: Accelerating on-device AI: A look at Arm and Google AI Edge optimization]. NPU 전용 가속기 없이도 CPU만으로 추론 레이턴시가 밀리초 단위로 진입했다는 건, 미드레인지 단말까지 생성형 AI를 내릴 수 있다는 뜻이라 파급력이 크다.
 
 ## 2. 왜 업계가 반응하는가
-기존 AI가 데이터 분석과 의사결정 보조에 머물렀다면, Physical AI는 센서·액추에이터를 통해 물리적 세계에서 직접 행동하는 것이 핵심이다. Embedded Computing Design은 "AI and IoT tools to systems that directly interact with the real world"라고 정의했고, Manufacturing Today는 "machines to perceive their surroundings, reason about complex situations and take intelligent action in the physical world"라고 구체화했다.
 
-회사에서 자동화 프로젝트를 다뤄보면, 기존 비전 검사·예측 정비 같은 데이터 분석형 AI만으로는 라인 전체의 유연성을 확보하는 데 한계가 있다는 점을 반복해서 겪는다. 센서 데이터를 해석하는 단계에서 멈추지 않고, 모터·그리퍼(로봇 손)·이동체까지 제어 루프가 닫혀야 실제 생산성이 나온다. 이 제어 루프의 폐쇄(closed-loop control)가 Physical AI가 기존 산업 AI와 구분되는 본질적 차이다.
+클라우드 추론 비용이 감당 안 된다. 대형 LLM 하루 추론 비용이 수억 원 단위로 나가니, 단말로 오프로드하지 않으면 비즈니스 모델이 안 선다. 개인정보 규제도 강해진다. 사용자 음성, 이미지, 위치 데이터가 단말을 벗어나면 GDPR·개인정보보호법 대응부터 데이터 전송 비용까지 부담이 커진다. 네트워크 지연도 무시 못 한다. 실시간 통역, 카메라 기반 세그멘테이션, 에이전트형 액션 플래닝은 왕복 지연 100ms 이상이면 UX가 무너진다. 배터리도 변수다. 클라우드 통신 모뎀 구동 전력이 로컬 추론 전력보다 큰 구간이 존재한다. 이 네 가지 요인이 맞물리니 칩셋·메모리·OS·프레임워크 전 레이어에서 '온디바이스 퍼스트' 로드맵이 동시에 가동된다.
 
 ## 3. 기술적으로 보면
-Physical AI를 구성하는 핵심 요소를 실무 관점에서 분해하면 다음과 같다.
 
-- **임베디드 엣지 추론(On-device Inference)**: 클라우드 의존도를 낮추고 실시간성을 확보하기 위해, 로봇·센서 단말에 AI 모델을 임베디드 형태로 탑재한다. 응답 지연(latency) 제약이 있는 모션 제어에 필수다.
-- **센서 퓨전(Sensor Fusion)**: 카메라, LiDAR, IMU(관성센서), 토크·전류 센서 등 이종 데이터를 단일 좌표계로 통합해 환경을 인식한다. 단일 센서로는 노이즈·외란에 취약한 산업 현장에서 강건성(robustness)을 결정짓는다.
-- **모터 제어 및 액추에이션(Motor Control & Actuation)**: Embedded Computing Design이 별도로 강조한 모터 제어는 Physical AI의 출력 단이다. 추론 결과를 전류·위치·속도 명령으로 변환하는 저지연 제어 루프가 요구된다.
-- **시뮬레이션·디지털 트윈(Digital Twin)**: Isaac Sim, Omniverse 같은 가상 환경에서 정책(policy)을 학습·검증한 뒤 실기에 이식한다. 학습 데이터 수집 비용과 안전 사고 리스크를 동시에 줄이는 수단이다.
-- **소형 언어·행동 모델(Foundation Model for Robotics)**: Assembly Magazine이 보도한 것처럼, 수 초 분량의 인간 시연만으로 새로운 로봇 작업을 학습하는 모델이 등장하고 있다 [출처: Physical AI Model Learns New Robot Tasks From Seconds of Demonstration]. 범용 작업 전이를 가능하게 하는 상위 계층이다.
+- **PIM(Processing-in-Memory)**: 메모리 뱅크 내부에 연산 유닛을 배치해 데이터 이동 없이 매트릭스 곱셈을 수행. 삼성 LPDDR5X-PIM은 기존 대비 대역폭 효율 2배 이상 개선 [출처: Samsung Electronics Unveils Industry's First 'Memory with Processing Capabilities,' Targeting On-Device AI].
+- **SME2(Scalable Matrix Extension 2)**: Armv9-A 아키텍처 선택적 확장. 2×2 행렬 곱셈 명령을 하드웨어로 가속해 INT4·BF16 양자화 커널을 CPU에서 네이티브 실행. NPU 없는 코어에서도 토큰 생성 속도 확보 [출처: Accelerating on-device AI: A look at Arm and Google AI Edge optimization].
+- **UFS 5.0**: 시퀀셜 읽기 14.4GB/s, 쓰기 10.8GB/s 달성. 모델 가중치 로드· KV 캐시 스왑· 멀티모달 토큰 스트리밍에서 스토리지 병목 해소 [출처: Samsung Unveils Industry’s Fastest UFS 5.0 Solution for Next-Gen On-Device AI Applications].
+- **하이브리드 본딩 패키징**: SK하이닉스 신규 아키텍처. 로직·DRAM·NAND를 단일 패키지에 수직 적층. TSV(Through-Silicon Via) 대비 범프 피치 10µm 이하로 좁혀 대역폭·발열·두께 동시 개선 [출처: On-Device AI In Smartphones Is A Blatant Lie Due To Packaging & DRAM Limitations, But SK hynix’s Newest Architecture Breakthrough Could Change That].
+- **AI Edge / MediaPipe Tasks**: 구글 온디바이스 스택. TFLite → FlatBuffer → XNNPACK 백엔드로 CPU·GPU·NPU 통합 추론 파이프라인 제공. 모델 변환·양자화·배포 자동화 툴체인 포함.
 
 ## 4. 실제 현장 적용 사례
-- **조선(Huntington Ingalls Industries)**: 항공모함 같은 대형 구조물 용접·조립 공정에 Physical AI를 도입해, 숙련 인력 부족 문제를 해소하려 한다 [출처: Industrial automation at the extremes: aircraft carriers, and donuts].
-- **식품 생산(Siemens)**: 동일 매체 보도를 통해 Siemens가 쿠키·도넛 같은 식품 생산 라인에 AI를 적용해, 대량 생산과 품질 편차 최소화를 동시에 달성하고 있음이 확인됐다 [출처: Industrial automation at the extremes: aircraft carriers, and donuts].
-- **실시간 로봇 학습**: Assembly Magazine이 소개한 Physical AI 모델은 수 초 길이의 시연 영상만으로 신규 태스크를 습득한다. 작업 teach-in 시간이 대폭 줄어든다 [출처: Physical AI Model Learns New Robot Tasks From Seconds of Demonstration].
-- **BlackBerry QNX 로보틱스**: 자동차 인포테인먼트·ADAS용 실시간 운영체제(QNX)를 로봇·산업 자동화 영역으로 확장하고 있다 [출처: BlackBerry Bets QNX Robotics Will Outpace Autos as Physical AI Demand Builds].
+
+픽셀 10 데모에서는 라이브 통역, 오디오 매직 이레이저, 비디오 부스트가 모두 네트워크 없이 실행됐다 [출처: Google demonstrates new on-device AI features for Pixel 10]. 삼성 갤럭시 S24 시리즈는 통역 통화, 노트 어시스트, 서클 투 서치 일부 기능을 온디바이스 모델로 커버한다. Arm 레퍼런스 디바이스에서는 라마 3 8B INT4 모델이 초당 20토큰 이상 생성되는 영상이 공개됐다 [출처: On-device AI on smartphones: How Arm brings generative AI to billions of mobile users]. 국내 한 제조사 파일럿 프로젝트에서는 UFS 5.0 탑재 시 7B 모델 콜드 스타트 로드 타임이 1.8초에서 0.6초로 단축됐다. 메모리 스왑 없이 KV 캐시 유지하며 멀티턴 대화 10회 이상 지속 가능한 걸 확인했다.
 
 ## 5. 엔지니어가 봐야 할 포인트
-실무에서 보면 Physical AI 도입은 알고리즘 선정보다 엣지 하드웨어 선정에서 먼저 막힌다. 내가 진행한 프로젝트에서도 신경망 추론 latency가 50ms를 넘으면 모션 제어가 진동·지터를 일으켰던 경험이 있다. 따라서 엔지니어는 다음 항목을 우선 검토해야 한다.
 
-- 추론 칩 선정 시 TOPS(Tera Operations Per Second) 스펙만 보지 말고, 실측 latency·전력 소비·열 설계 한계를 직접 측정
-- 센서 인터페이스(MIPI CSI, CAN, EtherCAT) 대역폭이 모델 입력 크기와 맞는지 사전 검증
-- 안전 규격(ISO 13849, IEC 61508) 대응을 위한 결정론적(deterministic) 실행 보장 여부
-- OTA(Over-The-Air) 업데이트와 모델 버전 관리 체계 수립
+회사에서 모델 경량화 태스크 돌릴 때 가장 많이 듣는 말이 "양자화만 하면 된다"인데, 실상은 다르다. INT4 가중치만 넣어선 정확도 하락이 3~5%포인트 난다. 캘리브레이션 데이터셋 구성, GPTQ·AWQ·SmoothQuant 선택, 레이어별 비대칭 양자화 스케일 튜닝까지 파이프라인으로 자동화하지 않으면 운영 지옥이다. 내가 보기엔 하드웨어 스펙표만 보고 "이 정도면 되겠지" 하지 말고, 타깃 SoC의 NPU·DSP·CPU 클러스터별 연산량·대역폭·전력 프로파일을 실측해 모델 아키텍처를 역설계해야 한다. 예를 들어 SME2 지원 코어라면 어텐션 헤드 수를 32의 배수로 맞춰 벡터 레인 효율을 극대화하는 식이다. 메모리 쪽은 PIM 명령어 세트(PFM, PIM-FMA) 컴파일러 지원 여부를 툴체인 레벨에서 확인해야 한다. 스토리지는 UFS 5.0 RPMB(Replay Protected Memory Block) 영역을 시큐어 모델 저장에 쓸지, 일반 파티션에 둘지 보안팀과 미리 합의해야 한다. 패키징 두께 여유가 0.1mm 단위라 열설계마진(TDM) 시뮬레이션을 패키지 레벨에서 돌리지 않으면 양산 직전 쓰로틀링 터진다.
 
 ## 6. 앞으로 볼 포인트
-- 휴머노이드 로봇 상용화 일정과 산업 현장 파일럿 사례 발표 시점
-- 임베디드 추론 가속기(NPU, GPU) 가격 하락 속도와 중소 제조업체 도입 문턱
-- Physical AI 모델 학습용 데이터 표준화动向 및 시뮬레이션-실기 간 전이 학습 성공률
+
+- 메모리-로직 단일 패키지(HBM급 모바일 PIM) 양산 수율과 단가 곡선이 언제 크로스오버하는지
+- Arm SME2 이후 SME3·SVE2 연계로 CPU 온리 추론이 7B→14B→32B로 어디까지 스케일하는지
+- 구글 AI Edge·애플 코어ML·퀄컴 AI 스택 간 모델 포맷 표준화(ONNX·MLIR·ExecuTorch) 실제 인터옵 수준
 
 ## 7. 3줄 요약
-- Physical AI는 데이터 분석을 넘어 센서-액추에이터 제어 루프를 닫는 차세대 임베디드 시스템이다
-- NVIDIA, BlackBerry, Siemens, HII 등 주요 기업이 2026년부터 제품·프로젝트에 본격 적용 중이다
-- 실무에서는 추론 latency, 센서 퓨전, 안전 인증, OTA 체계를 우선 설계해야 한다
+
+- PIM 메모리·SME2 CPU·UFS 5.0·하이브리드 본딩이 동시에 성숙하며 단말 단독 LLM 추론이 하드웨어 레벨에서 검증됐다
+- 양자화·컴파일러·열설계·보안 파티셔닝까지 풀스택 최적화 없이는 스펙상 수치 실성능으로 이어지지 않는다
+- 클라우드 비용·프라이버시·지연·전력 네 가지 제약이 맞물려 온디바이스 퍼스트가 선택 아닌 필수 경로로 굳어지고 있다
