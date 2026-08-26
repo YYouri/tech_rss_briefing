@@ -162,8 +162,7 @@ def build_meta_bar(topic: str, tags: list, now_kst: datetime, read_min: int = 4)
         f'{FONT_IMPORT}'
         f'<div style="margin-bottom:2em;">'
         f'<p style="font-family:{FONT_MONO};font-size:0.72em;letter-spacing:0.06em;'
-        f'color:{TEXT_MUTED};border-bottom:1px solid {INK};padding-bottom:8px;'
-        f'margin:0 0 14px;">{doc_no} · TECH BRIEF &nbsp;|&nbsp; {time_str} · {read_min} MIN READ</p>'
+        f'color:{TEXT_MUTED};margin:0 0 14px;">{doc_no} · TECH BRIEF &nbsp;|&nbsp; {time_str} · {read_min} MIN READ</p>'
         f'<div style="font-family:{FONT_DISPLAY};font-size:1.5em;font-weight:700;'
         f'color:{INK};line-height:1.35;margin-bottom:14px;">{topic}</div>'
         f'<div>{tag_chips}</div>'
@@ -178,8 +177,7 @@ def render_heading(text: str) -> str:
     if not m:
         return (
             f'<h2 style="font-family:{FONT_DISPLAY};font-size:1.22em;font-weight:700;'
-            f'color:{INK};margin:2.8em 0 0.9em;padding-bottom:8px;'
-            f'border-bottom:2px solid {ACCENT_MAIN};">{text}</h2>'
+            f'color:{ACCENT_MAIN};margin:2.8em 0 0.9em;">{text}</h2>'
         )
     num, title_text = m.group(1), m.group(2)
     label_info = SECTION_LABELS.get(num)
@@ -187,14 +185,17 @@ def render_heading(text: str) -> str:
     total = f"{len(SECTION_LABELS):02d}"
     # "01/07"과 "TECH"를 별개 span+gap으로 나누지 않고 한 배지 안에 텍스트로
     # 합쳐서, 레이아웃이 깨져도 글자 자체는 항상 "01/07 · TECH"로 붙어 보인다.
+    # 헤딩 밑 border-bottom(가로선)은 넣지 않는다 — 네이버 붙여넣기 시
+    # "텍스트+바로 밑 가로선" 조합을 자체 "구분선" 위젯(아이콘 포함)으로
+    # 통째로 바꿔치기하는 것을 실제로 확인했다(2026-08-26). 배지 색상과
+    # 제목 글자색만으로 구분한다.
     return (
         f'<div style="margin:2.8em 0 0.9em;">'
         f'<span style="display:inline-block;background:{ACCENT_LIGHT};color:{bar_color};'
         f'font-family:{FONT_MONO};font-size:0.8em;font-weight:700;letter-spacing:0.06em;'
         f'padding:4px 10px;border-radius:3px;margin-bottom:10px;">{num.zfill(2)}/{total} · {label}</span>'
         f'<h2 style="display:block;font-family:{FONT_DISPLAY};font-size:1.22em;font-weight:700;'
-        f'color:{INK};margin:10px 0 0;padding-bottom:8px;border-bottom:2px solid {bar_color};">'
-        f'{title_text}</h2>'
+        f'color:{bar_color};margin:10px 0 0;">{title_text}</h2>'
         f'</div>'
     )
 
@@ -562,20 +563,21 @@ def md_to_html_market(md: str, quotes: dict) -> str:
         if not m:
             return (
                 f'<h2 style="font-family:{FONT_DISPLAY};font-size:1.22em;font-weight:700;'
-                f'color:{INK};margin:2.8em 0 0.9em;padding-bottom:8px;'
-                f'border-bottom:2px solid {STOCK_BLUE};">{text}</h2>'
+                f'color:{STOCK_BLUE};margin:2.8em 0 0.9em;">{text}</h2>'
             )
         num, title_text = m.group(1), m.group(2)
         label_info = STOCK_SECTION_LABELS.get(num)
         label, bar_color = label_info if label_info else ("SEC", STOCK_BLUE)
         total = f"{len(STOCK_SECTION_LABELS):02d}"
+        # 헤딩 밑 border-bottom은 넣지 않는다 — 네이버 붙여넣기 시 "텍스트+바로
+        # 밑 가로선" 조합을 자체 "구분선" 위젯으로 바꿔치기하는 문제가 있다.
         return (
             f'<div style="margin:2.8em 0 0.9em;">'
             f'<span style="display:inline-block;background:{STOCK_BLUE_LIGHT};color:{bar_color};'
             f'font-family:{FONT_MONO};font-size:0.8em;font-weight:700;letter-spacing:0.06em;'
             f'padding:4px 10px;border-radius:3px;margin-bottom:10px;">{num.zfill(2)}/{total} · {label}</span>'
-            f'<h2 style="display:block;font-family:{FONT_DISPLAY};font-size:1.22em;font-weight:700;color:{INK};'
-            f'margin:10px 0 0;padding-bottom:8px;border-bottom:2px solid {bar_color};">{title_text}</h2>'
+            f'<h2 style="display:block;font-family:{FONT_DISPLAY};font-size:1.22em;font-weight:700;color:{bar_color};'
+            f'margin:10px 0 0;">{title_text}</h2>'
             f'</div>'
         )
 
