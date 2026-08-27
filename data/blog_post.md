@@ -1,43 +1,59 @@
-# On-Device AI란? 스마트폰 AI 완전 정리
+# 제로트러스트 보안 완벽 가이드
 
-삼성전자가 메모리 연산 기능을 내장한 LPDDR5X를 내놓으며 온디바이스 AI 하드웨어 경쟁에 불을 붙였다. 구글과 Arm은 SME2 명령어 확장으로 CPU만으로도 생성형 AI 추론이 가능함을 보였다. 단말 제조사와 반도체, 소프트웨어 스택이 동시에 움직이니 현장 체감 속도가 예전과 다르다.
+작년 하반기부터 제로 트러스트(Zero Trust) 컨설팅 문의가 눈에 띄게 늘었다. 계기는 단 하나, 사내에 AI 에이전트(사용자 대신 업무를 자동 수행하는 자율형 AI 프로그램)가 도입되면서 기존 보안 경계가 사실상 무의미해졌기 때문이다. 마이크로소프트, 시스코, DXC 등 주요 기업들이 잇따라 AI 시대 제로 트러스트 가이드를 발표한 것도 같은 맥락에서 읽힌다. 현업에서 보안 아키텍처를 다루는 사람 입장에서, 이번 흐름은 단순한 컨퍼런스 슬로건이 아니라 실제 설계 철도를 바꿔야 하는 문제다.
 
 ## 1. 현장에서 무슨 일이 있었나
 
-지난달 삼성전자는 업계 최초로 연산 기능이 내장된 메모리, 즉 PIM(Processing-in-Memory) 기반 LPDDR5X를 공개했다 [출처: Samsung Electronics Unveils Industry's First 'Memory with Processing Capabilities,' Targeting On-Device AI]. 기존 폰에서는 DRAM과 AP 사이 버스가 병목이었는데, 메모리 내부에서 매트릭스 연산을 처리하니 데이터 이동량이 획기적으로 줄었다. 회사에서 메모리 서브시스템 검토할 때만 해도 PIM은 서버용 HBM에나 해당하는 얘기였는데, 모바일 폼팩터까지 내려온 건 확실히 시그널이 다르다.
+지난 8월, 마이크로소프트가 Zero Trust for AI 신규 도구와 가이드를 공식 발표했다. AI 에이전트와 DevSecOps(개발-보안-운영을 통합한 프로세스)를 동시에 통제하기 위한 프레임워크로, AI가 만들어내는 새로운 공격 표면을 체계적으로 다루겠다는 취지다 [출처: Advance Zero Trust for AI: New tools and guidance to secure AI agents and DevSecOps].
 
-거의 동시에 SK하이닉스는 패키징과 DRAM 한계를 지적하는 외신 보도 속에서 새로운 아키텍처 돌파구를 제시했다 [출처: On-Device AI In Smartphones Is A Blatant Lie Due To Packaging & DRAM Limitations, But SK hynix’s Newest Architecture Breakthrough Could Change That]. 패키지 두께와 발열, 대역폭 삼중고를 단일 패키지 내 하이브리드 본딩으로 풀었다는 내용이다. 실무에서 패키징 수율 검토할 때마다 들던 '모바일에서 진짜 LLM 돌릴 수 있나'란 의구심이 하드웨어 레벨에서 해소되는 중이다.
+같은 시기, 미 정보기관 고위 관계자는 "AI 에이전트용 디지털 출생증명서" 도입 가능성을 언급했다. 에이전트마다 신원을 발급하고 라이프사이클을 추적하겠다는 의미인데, 이 개념 자체가 제로 트러스트 원칙을 AI 액터(시스템 안에서 행위의 주체가 되는 존재) 수준으로 확장하는 시도다 [출처: Agentic AI turning Zero Trust cybersecurity 'on its head'].
 
-구글은 픽셀 10 시연에서 클라우드 없이 디바이스 온리(Device-only)로 멀티모달 추론을 돌렸다 [출처: Google demonstrates new on-device AI features for Pixel 10]. Arm은 블로그에서 SME2(Scalable Matrix Extension 2)로 CPU 단일 코어에서 4비트 양자화 모델을 실시간 처리하는 벤치마크를 공개했다 [출처: Accelerating on-device AI: A look at Arm and Google AI Edge optimization]. NPU 전용 가속기 없이도 CPU만으로 추론 레이턴시가 밀리초 단위로 진입했다는 건, 미드레인지 단말까지 생성형 AI를 내릴 수 있다는 뜻이라 파급력이 크다.
+시스코는 "프론티어 AI 시대의 제로 트러스트 불가결성"을題로 한 블로그를 게시했고, Gigamon APAC 담당 임원은 "AI가 제로 트러스트의 한계를 시험하고 있다"라는 기고를 냈다. DXC는 Primary와 함께 AI 네이티브 제로 트러스트 플랫폼을 출시한다고 발표했다 [출처: The Zero Trust Imperative for the Frontier AI Era] [출처: AI is testing the limits of Zero Trust] [출처: DXC and Primary Launch AI-Native Zero Trust Platform for Enterprise AI].
 
 ## 2. 왜 업계가 반응하는가
 
-클라우드 추론 비용이 감당 안 된다. 대형 LLM 하루 추론 비용이 수억 원 단위로 나가니, 단말로 오프로드하지 않으면 비즈니스 모델이 안 선다. 개인정보 규제도 강해진다. 사용자 음성, 이미지, 위치 데이터가 단말을 벗어나면 GDPR·개인정보보호법 대응부터 데이터 전송 비용까지 부담이 커진다. 네트워크 지연도 무시 못 한다. 실시간 통역, 카메라 기반 세그멘테이션, 에이전트형 액션 플래닝은 왕복 지연 100ms 이상이면 UX가 무너진다. 배터리도 변수다. 클라우드 통신 모뎀 구동 전력이 로컬 추론 전력보다 큰 구간이 존재한다. 이 네 가지 요인이 맞물리니 칩셋·메모리·OS·프레임워크 전 레이어에서 '온디바이스 퍼스트' 로드맵이 동시에 가동된다.
+제로 트러스트는 2010년대 초반 포레스터가 처음 개념을 제시한 이래 "신뢰하지 않고, 항상 검증하고, 최소 권한만 부여한다"는 원칙으로 자리 잡았다. 사용자, 단말(Endpoint), 애플리케이션 중심의 전통적 IT 환경에서는 이 모델이 효과적이었다.
+
+문제는 AI 에이전트다. 사람 계정이 아니라 코드 기반 액터가 내부 API를 호출하고, 데이터베이스에 접속하고, 심지어 다른 에이전트와 트랜잭션을 수행한다. 인증 주체 자체가 바뀌었으므로 기존 IAM(Identity and Access Management, 신원 기반 접근 통제) 구조만으로는 추적이 끊긴다. Gigamon 측이 지적한 "한계 시험"이라는 표현이 정확히 이 지점을 가리킨다.
 
 ## 3. 기술적으로 보면
 
-- **PIM(Processing-in-Memory)**: 메모리 뱅크 내부에 연산 유닛을 배치해 데이터 이동 없이 매트릭스 곱셈을 수행. 삼성 LPDDR5X-PIM은 기존 대비 대역폭 효율 2배 이상 개선 [출처: Samsung Electronics Unveils Industry's First 'Memory with Processing Capabilities,' Targeting On-Device AI].
-- **SME2(Scalable Matrix Extension 2)**: Armv9-A 아키텍처 선택적 확장. 2×2 행렬 곱셈 명령을 하드웨어로 가속해 INT4·BF16 양자화 커널을 CPU에서 네이티브 실행. NPU 없는 코어에서도 토큰 생성 속도 확보 [출처: Accelerating on-device AI: A look at Arm and Google AI Edge optimization].
-- **UFS 5.0**: 시퀀셜 읽기 14.4GB/s, 쓰기 10.8GB/s 달성. 모델 가중치 로드· KV 캐시 스왑· 멀티모달 토큰 스트리밍에서 스토리지 병목 해소 [출처: Samsung Unveils Industry’s Fastest UFS 5.0 Solution for Next-Gen On-Device AI Applications].
-- **하이브리드 본딩 패키징**: SK하이닉스 신규 아키텍처. 로직·DRAM·NAND를 단일 패키지에 수직 적층. TSV(Through-Silicon Via) 대비 범프 피치 10µm 이하로 좁혀 대역폭·발열·두께 동시 개선 [출처: On-Device AI In Smartphones Is A Blatant Lie Due To Packaging & DRAM Limitations, But SK hynix’s Newest Architecture Breakthrough Could Change That].
-- **AI Edge / MediaPipe Tasks**: 구글 온디바이스 스택. TFLite → FlatBuffer → XNNPACK 백엔드로 CPU·GPU·NPU 통합 추론 파이프라인 제공. 모델 변환·양자화·배포 자동화 툴체인 포함.
+제로 트러스트의 핵심 구성요소는 다음과 같이 정리된다.
+
+- **신원 검증 (Identity)**: 모든 요청에 대해 사용자뿐 아니라 AI 에이전트, 서비스 계정, 디바이스의 신원을 매 요청 단위로 확인
+- **디바이스 상태 검증 (Device Posture)**: 접속을 시도하는 단말의 보안 상태(패치 적용, EDR 설치 여부 등)를 실시간으로 평가
+- **최소 권한 접근 (Least Privilege)**: 정책 기반으로 작업에 필요한 최소 범위의 권한만 부여, 작업 완료 후 권한 회수
+- **마이크로세그먼테이션 (Microsegmentation)**: 네트워크를 세분화해横向 이동(Lateral Movement, 침해 후 내부 확산)을 차단
+- **지속적 검증 (Continuous Verification)**: 접속 시점뿐 아니라 세션 도중에도 정책 위반 여부를 모니터링
+
+AI 에이전트가 추가되면서 이 다섯 축에 "에이전트 신원 발급"과 "행위 로깅(Behavior Audit)"이 더해져야 한다는 게 업계의 공통된 결론이다.
 
 ## 4. 실제 현장 적용 사례
 
-픽셀 10 데모에서는 라이브 통역, 오디오 매직 이레이저, 비디오 부스트가 모두 네트워크 없이 실행됐다 [출처: Google demonstrates new on-device AI features for Pixel 10]. 삼성 갤럭시 S24 시리즈는 통역 통화, 노트 어시스트, 서클 투 서치 일부 기능을 온디바이스 모델로 커버한다. Arm 레퍼런스 디바이스에서는 라마 3 8B INT4 모델이 초당 20토큰 이상 생성되는 영상이 공개됐다 [출처: On-device AI on smartphones: How Arm brings generative AI to billions of mobile users]. 국내 한 제조사 파일럿 프로젝트에서는 UFS 5.0 탑재 시 7B 모델 콜드 스타트 로드 타임이 1.8초에서 0.6초로 단축됐다. 메모리 스왑 없이 KV 캐시 유지하며 멀티턴 대화 10회 이상 지속 가능한 걸 확인했다.
+금융권 프로젝트에서 제로 트러스트를 적용할 때 가장 먼저 부딪히는 건 레거시 시스템 연동이다. 사내 SSO(Single Sign-On, 단일 로그인 통합 인증)가 없던 시절의 API 서버는 IP 기반 방화벽에 의존하는데, 이를 마이크로세그먼테이션으로 전환하려면 네트워크 정책 전체를 재설계해야 한다.
+
+AI 에이전트 도입 이후 늘어나는 사례는 RAG(Retrieval-Augmented Generation, 검색 기반 생성) 파이프라인 보안이다. 사내 문서 검색용 에이전트가 내부 API 30개에 접근하는 구조에서, 에이전트별 권한 스코프를 정의하고 호출 로그를 SIEM(보안 정보 및 이벤트 관리 플랫폼)에 적재하는 작업이 필수 항목이 됐다.
+
+클라우드 네이티브 환경에서는 Istio, Linkerd 같은 서비스 메시 기반의 mTLS(상호 TLS 인증) 구현이 사실상 제로 트러스트의 네트워크 레이어 표준으로 자리 잡고 있다.
 
 ## 5. 엔지니어가 봐야 할 포인트
 
-회사에서 모델 경량화 태스크 돌릴 때 가장 많이 듣는 말이 "양자화만 하면 된다"인데, 실상은 다르다. INT4 가중치만 넣어선 정확도 하락이 3~5%포인트 난다. 캘리브레이션 데이터셋 구성, GPTQ·AWQ·SmoothQuant 선택, 레이어별 비대칭 양자화 스케일 튜닝까지 파이프라인으로 자동화하지 않으면 운영 지옥이다. 내가 보기엔 하드웨어 스펙표만 보고 "이 정도면 되겠지" 하지 말고, 타깃 SoC의 NPU·DSP·CPU 클러스터별 연산량·대역폭·전력 프로파일을 실측해 모델 아키텍처를 역설계해야 한다. 예를 들어 SME2 지원 코어라면 어텐션 헤드 수를 32의 배수로 맞춰 벡터 레인 효율을 극대화하는 식이다. 메모리 쪽은 PIM 명령어 세트(PFM, PIM-FMA) 컴파일러 지원 여부를 툴체인 레벨에서 확인해야 한다. 스토리지는 UFS 5.0 RPMB(Replay Protected Memory Block) 영역을 시큐어 모델 저장에 쓸지, 일반 파티션에 둘지 보안팀과 미리 합의해야 한다. 패키징 두께 여유가 0.1mm 단위라 열설계마진(TDM) 시뮬레이션을 패키지 레벨에서 돌리지 않으면 양산 직전 쓰로틀링 터진다.
+실무에서 보면 제로 트러스트 도입의 80%는 기술이 아니라 자산 정리와 정책 합의다. 내가 보기엔 다음 다섯 가지가 선결 조건이다.
+
+- **자산 인벤토리**: 보호 대상이 뭔지 먼저 파악해야 통제 설계가 가능하다. AI 에이전트까지 포함해 전수 조사
+- **신원 발급 체계**: 사람 외에 머신, 에이전트 계정을 어떻게 발급하고 폐기할지 워크플로우 정의
+- **정책 엔진 선택**: OPA(Open Policy Agent), Cedar 같은 정책 엔진 중 조직 스택에 맞는 것 선정
+- **관측 가능성 확보**: 모든 인증·인가 이벤트를 SIEM으로 보내야 이상 행위 탐지가 의미가 있다
+- **레거시 존(Gap) 운영 계획**: 즉시 전환이 어려운 시스템은 강화된 모니터링으로 보완하는 단계적 로드맵 수립
 
 ## 6. 앞으로 볼 포인트
 
-- 메모리-로직 단일 패키지(HBM급 모바일 PIM) 양산 수율과 단가 곡선이 언제 크로스오버하는지
-- Arm SME2 이후 SME3·SVE2 연계로 CPU 온리 추론이 7B→14B→32B로 어디까지 스케일하는지
-- 구글 AI Edge·애플 코어ML·퀄컴 AI 스택 간 모델 포맷 표준화(ONNX·MLIR·ExecuTorch) 실제 인터옵 수준
+- AI 에이전트 전용 신원 인증 표준화 여부와 주요 벤더 채택 속도
+- 마이크로소프트가 제시한 도구군이 실제 운영 환경에서 통합 가능한 수준으로 성숙하는 시점
+- 정부·공공기관 차원의 AI 에이전트 거버넌스 규제 도입 흐름과 민간 기업 의무화 가능성
 
 ## 7. 3줄 요약
 
-- PIM 메모리·SME2 CPU·UFS 5.0·하이브리드 본딩이 동시에 성숙하며 단말 단독 LLM 추론이 하드웨어 레벨에서 검증됐다
-- 양자화·컴파일러·열설계·보안 파티셔닝까지 풀스택 최적화 없이는 스펙상 수치 실성능으로 이어지지 않는다
-- 클라우드 비용·프라이버시·지연·전력 네 가지 제약이 맞물려 온디바이스 퍼스트가 선택 아닌 필수 경로로 굳어지고 있다
+- AI 에이전트의 등장은 기존 제로 트러스트의 신원·권한 모델을 근본적으로 재설계해야 하는 상황
+- 마이크로소프트, 시스코, DXC 등 주요 업체가 잇따라 AI 네이티브 제로 트러스트 가이드와 플랫폼을 공개하며 사실상 업계 표준 경쟁 시작
+- 도입의 성패는 기술보다 자산 정리, 정책 합의, 레거시 단계적 전환 계획에서 갈린다
