@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26130.2,
+      "prev": 26151.3,
+      "chg_pct": -0.08,
+      "volume": 6292417000,
+      "market_date_us": "08/26"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7675.7,
+      "prev": 7677.28,
+      "chg_pct": -0.02,
+      "volume": 2379282000,
+      "market_date_us": "08/26"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 53463.88,
+      "prev": 53577.4,
+      "chg_pct": -0.21,
+      "volume": 426130738,
+      "market_date_us": "08/26"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 15.21,
+      "prev": 15.45,
+      "chg_pct": -1.55,
+      "volume": 0,
+      "market_date_us": "08/26"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 99.12,
+      "prev": 98.92,
+      "chg_pct": 0.2,
+      "volume": 0,
+      "market_date_us": "08/26"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 81.62,
+      "prev": 82.36,
+      "chg_pct": -0.9,
+      "volume": 2115,
+      "market_date_us": "08/26"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4673.9,
+      "prev": 4638.1,
+      "chg_pct": 0.77,
+      "volume": 6961,
+      "market_date_us": "08/26"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1383.5,
+      "prev": 1381.49,
+      "chg_pct": 0.15,
+      "volume": 0,
+      "market_date_us": "08/26"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 711.37,
+      "prev": 710.72,
+      "chg_pct": 0.09,
+      "volume": 18464999,
+      "market_date_us": "08/26"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 515.4,
+      "prev": 514.06,
+      "chg_pct": 0.26,
+      "volume": 3836019,
+      "market_date_us": "08/26"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 58.26,
+      "prev": 58.31,
+      "chg_pct": -0.09,
+      "volume": 19918432,
+      "market_date_us": "08/26"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 209.66,
+      "prev": 213.05,
+      "chg_pct": -1.59,
+      "volume": 145070184,
+      "market_date_us": "08/26"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 480.93,
+      "prev": 479.18,
+      "chg_pct": 0.37,
+      "volume": 13804691,
+      "market_date_us": "08/26"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 88.24,
+      "prev": 87.48,
+      "chg_pct": 0.87,
+      "volume": 72044374,
+      "market_date_us": "08/26"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 417.69,
+      "prev": 417.41,
+      "chg_pct": 0.07,
+      "volume": 7201789,
+      "market_date_us": "08/26"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 313.45,
+      "prev": 309.9,
+      "chg_pct": 1.15,
+      "volume": 33571543,
+      "market_date_us": "08/26"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 496.37,
+      "prev": 491.71,
+      "chg_pct": 0.95,
+      "volume": 19997284,
+      "market_date_us": "08/26"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 345.82,
+      "prev": 350.25,
+      "chg_pct": -1.26,
+      "volume": 28245570,
+      "market_date_us": "08/26"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 260.28,
+      "prev": 261.06,
+      "chg_pct": -0.3,
+      "volume": 20669810,
+      "market_date_us": "08/26"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 342.0,
+      "prev": 346.96,
+      "chg_pct": -1.43,
+      "volume": 20094343,
+      "market_date_us": "08/26"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 576.14,
+      "prev": 570.05,
+      "chg_pct": 1.07,
+      "volume": 31187505,
+      "market_date_us": "08/26"
+    }
+  },
+  "news": [
+    {
+      "title": "S&P 500, Dow, Nasdaq Futures Track Nvidia Stock Higher Over Strong FY28 Revenue Outlook — NVDA, CRM, META, CRWD, OKTA In Focus",
+      "summary": "Fed’s preferred inflation gauge (PCE) showed core prices rose 3.3% annually in July.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-dow-nasdaq-futures-track-nvidia-stock-higher/cZYVarsRJp7?.tsrc=rss"
+    },
+    {
+      "title": "Halliburton (HAL) Rises As Market Takes a Dip: Key Facts",
+      "summary": "In the most recent trading session, Halliburton (HAL) closed at $34.44, indicating a +1.89% shift from the previous trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/halliburton-hal-rises-market-takes-221502728.html?.tsrc=rss"
+    },
+    {
+      "title": "Copart, Inc. (CPRT) Falls More Steeply Than Broader Market: What Investors Need to Know",
+      "summary": "Copart, Inc. (CPRT) closed at $32.67 in the latest trading session, marking a -1.98% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/copart-inc-cprt-falls-more-221502354.html?.tsrc=rss"
+    },
+    {
+      "title": "Lockheed Martin (LMT) Rises As Market Takes a Dip: Key Facts",
+      "summary": "Lockheed Martin (LMT) concluded the recent trading session at $565.62, signifying a +1.64% move from its prior day's close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/lockheed-martin-lmt-rises-market-215003622.html?.tsrc=rss"
+    },
+    {
+      "title": "AZZ (AZZ) Advances While Market Declines: Some Information for Investors",
+      "summary": "AZZ (AZZ) reached $140.71 at the closing of the latest trading day, reflecting a +1.59% change compared to its last close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/azz-azz-advances-while-market-215002279.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures Rise; Nvidia, CrowdStrike, Okta, Salesforce Lead Earnings Movers",
+      "summary": "Nvidia wavered late while CrowdStrike, Okta, Salesforce are big earnings winners. Is the market setting up or a setup?",
+      "link": "https://finance.yahoo.com/m/c03ae35d-d27e-3caf-a89c-0c33467ec9c9/dow-jones-futures-rise%3B.html?.tsrc=rss"
+    },
+    {
+      "title": "Amazon just tripled its order of Nvidia chips over ‘surging demand’",
+      "summary": "Amazon is adding another 2 million Nvidia GPU chips to its data centers over the next two years. But this extended partnerships stretches beyond buying more chips.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/amazon-just-tripled-order-nvidia-234718526.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Posts Record $96.2B Revenue, Shares Jump on $108B Outlook",
+      "summary": "Nvidia Corporation (NASDAQ: $NVDA) shares reversed an early after-hours drop Wednesday after the chipmaker posted r...",
+      "link": "https://www.cryptoprowl.com/releases/nvidia-posts-record-962b-revenue-shares-jump-on-108b-outlook-6550?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia's Valuation Just Hit Lows Not Seen Since 2019, Even as Its Profits Doubled",
+      "summary": "The chipmaker accelerated its growth yet again, and the stock is selling for a song.",
+      "link": "https://www.fool.com/investing/2026/08/26/nvidia-valuation-lows-2019-profits-grew-100-percent/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla quietly kills a product homeowners once paid a premium for",
+      "summary": "Tesla has scrapped one of Elon Musk’s biggest home bets.",
+      "link": "https://www.thestreet.com/investing/tesla-tsla-discontinues-solar-roof-tiles?.tsrc=rss"
+    },
+    {
+      "title": "Rivian Automotive vs. Tesla: Which Electric Vehicle Stock Is a Better Investment in 2026?",
+      "summary": "Rivian bleeds cash while scaling production; Tesla prints billions despite slowing revenue. The valuation gap between them tells an entirely different story.",
+      "link": "https://www.fool.com/coverage/better-buy/2026/08/26/rivian-automotive-vs-tesla-which-electric-vehicle-stock-is-a-better-investment-in-2026/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Reportedly Says China FSD Work Continues After Website Omission Sparks Shutdown Claims — TSLA Stock Slips",
+      "summary": "Tesla’s China team told Tencent Tech that the Shanghai data center facility is running normally and that related hiring is accelerating, CNEVPost reported.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tesla-reportedly-says-china-fsd-work-continues-after-website-omission-sparks-shutdown-claims-tsla-stock-slips/cZYV2uARJpR?.tsrc=rss"
+    },
+    {
+      "title": "Tesla's Cybertruck Hike Shrinks Its Own Upgrade Ladder",
+      "summary": "Charging more may protect profit per vehicle, but it raises the stakes for already-fragile demand.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/teslas-cybertruck-hike-shrinks-own-181744706.html?.tsrc=rss"
+    },
+    {
+      "title": "Rivian Automotive (RIVN) Is Catching Up to Tesla (TSLA)’s Self-Driving Tech, But Tesla Still Leads",
+      "summary": "Michael Wayland, an auto reporter for CNBC, tested Tesla, Inc. (NASDAQ:TSLA)’s FSD (Supervised) and Rivian Automotive, Inc. (NASDAQ:RIVN)’s new Autonomy+ hands-free driving systems over hundreds of miles. It was revealed that Rivian has surpassed legacy rivals like GM’s Super Cruise but still trails Tesla specifically on non-highway and point-to-point driving. Why This Matters Rivian Automotive, [",
+      "link": "https://finance.yahoo.com/technology/articles/rivian-automotive-rivn-catching-tesla-171802515.html?.tsrc=rss"
+    },
+    {
+      "title": "Top analyst resets AMD stock price target for rest of 2026",
+      "summary": "A recent analyst note about AMD is getting attention for an argument that has nothing to do with the company’s GPU business.",
+      "link": "https://www.thestreet.com/investing/stocks/top-analyst-raises-amd-stock-price-target-for-rest-of-2026?.tsrc=rss"
+    },
+    {
+      "title": "/C O R R E C T I O N -- OPAQUE/",
+      "summary": "OPAQUE, the Confidential AI company, today announced TRACE (Trust, Runtime Attestation, and Compliance Evidence), an open, portable, hardware-enforced governance record for AI agents and other confidential workloads. Developed in collaboration with leading hardware and AI infrastructure companies and contributed to the Linux Foundation, TRACE establishes a vendor-neutral format for proving what so",
+      "link": "https://finance.yahoo.com/technology/ai/articles/c-o-r-r-e-191500967.html?.tsrc=rss"
+    },
+    {
+      "title": "Prediction: AMD’s Next Move Could Be HUGE and Here’s Where The Stock is Going",
+      "summary": "AMD has surged nearly 200% in a year, and the Helios GPU ramp is just getting started, but a stretched valuation and export policy risks mean the next move could break either way in a hurry.",
+      "link": "https://247wallst.com/investing/2026/08/26/prediction-amds-next-move-could-be-huge-and-heres-where-the-stock-is-going/?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices (AMD) and Intel (INTC) Both Just Raised Billions for AI. Here’s How Their Strategies Differ",
+      "summary": "On August 13, 2026, Advanced Micro Devices, Inc. (NASDAQ:AMD) launched a four-part bond offering that could raise between $4 billion and $5 billion. The firm joined a broader wave of tech-sector fundraising for AI investment just days after rival Intel Corporation (NASDAQ:INTC) raised $20 billion in an upsized stock offering. Why This Matters Both chip […]",
+      "link": "https://finance.yahoo.com/technology/ai/articles/advanced-micro-devices-amd-intel-170203392.html?.tsrc=rss"
+    },
+    {
+      "title": "1 Wall Street Analyst Just Upgraded AMD Stock and Estimates 30% Upside. Here's Why He's Bullish on This Semiconductor Stock.",
+      "summary": "AMD is riding the next wave of AI chip demand.",
+      "link": "https://www.fool.com/investing/2026/08/26/wall-street-analyst-upgrade-amd-stock-bull/?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500 closes little changed as investors weigh sticky inflation and await Nvidia earnings - CNBC",
+      "summary": "S&P 500 closes little changed as investors weigh sticky inflation and await Nvidia earnings CNBCStock market today: Dow, S&P 500, Nasdaq futures hold steady ahead of inflation data, Nvidia earnings Yahoo FinanceMarkets News, Aug. 26, 2026: Dow’s Winning Streak Ends as Inflation Data Lands Slightly Hot; Nvidia Sales, Earnings Beat Estimates Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9ZX2RnSl8weEVVTzFFVlNXZGh3amRPX1p6b21sNVotYXRCSThrMGxScXRyLUQxOVd1UEFaRkRJQXBiUzh4Tjc1ejNlVmhFdjZsd01YVU13TWlqM1NyUTZuRUxmREFpRUNuT3BMWEhZVVNFRTVQZzB30gF8QVVfeXFMTjVpeU1yaHZUX0ZDVW5wNjRKcEk4TlBDYlE2Z1pwZkRxeDhwbE1DWE9JTi13a0JkLThKWHBYYzlsTUtpVXhYT3VMWENIbjRmc1h6dWFUUFUwc1hoRzdCRnZfNkNLN2UwcHNGU1A4czI5MGh0TGZIMFM1R3kxTg?oc=5"
+    },
+    {
+      "title": "Stock futures rise as Nvidia shares jump 4% after earnings: Live updates - CNBC",
+      "summary": "Stock futures rise as Nvidia shares jump 4% after earnings: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE81OFdpS2tFUVh1NFJWZVBOdHV1VDZINjFmVmZxUnF2TVFRVnVDV1VXYnN1OS0xTURpMTl6S1NvMllsWVlHSVpCUU4yRmJZcDYtNUVVV1p2U2ZXOEpuSHlkM3lkTGNtWjBSdlVtUUZxLW9PbUZpbHBF0gF8QVVfeXFMTVE4T2JoblkzUGJXTFEyZjFHYk5adlZyYmUzcXhMRDZUSUJMU1FUNDRsT2RPNzc2MUcxT2V5M3RoeUgxS2xGRi1oWXdsLVkxOWYyRUZiSVdjNnVLbktoYWtoUmRBWGpZTW5PUnMyYUZLamt2aHlLSmtmQmZPXw?oc=5"
+    },
+    {
+      "title": "S&P 500 closes higher, Dow posts three-day win streak as Treasury yields retreat - CNBC",
+      "summary": "S&P 500 closes higher, Dow posts three-day win streak as Treasury yields retreat CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1UaXpCcGd4NmpZcE1YRkNOWGdjY2xEdF9tczBRYng2MHdQbERsNGlEbmRnaWVmRlFnN2p4akpvVGU4N3lGVUhONWtFaW1XNU1feEFLUnkzS1JjYWtQTGR1ZTNXN1J1cWkwYVhHM2I4Ymx1b0lTQnZF0gF8QVVfeXFMTWd4aXlIYjR1X09DR0FHaGZEZFVsRnpsYzF6Si1faFZkWmY5bHhuZnFLRFFMODA1OWRVbktkSkVyNzU2cjluenpWS0U5ODI4eEhpWkxjdGdRc0twU3NMVjd6SEVKajJRdFpodm9FSmZtNnF6SEZHNDd2aXFybA?oc=5"
+    },
+    {
+      "title": "S&P 500 falls to start the week, dragged down by a sell-off in chip stocks: Live updates - CNBC",
+      "summary": "S&P 500 falls to start the week, dragged down by a sell-off in chip stocks: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE03WVhEWGtPNEFpYV90cDVnTW5jcjJ4XzMwRWl6d2dEOWxVMjk5cVA0bGNzMTR6THNiN3JIMlVCbkNaZHJlRUxMaTVZUFRJcTdfZW41TWNSXzI4a3hZOFdHcEtHcEJHb0ZwQTdLUE1LVkN3RG4zUnpB0gF8QVVfeXFMTlYxNW1kWmY1QUNNU3VLbUFwalRnVmYzTEY5aVRtTElfVFpfNmFEZDZ5ejdzS1RlWHQ1Q25BX0ZkOTZaMWNpT3ZrWXBPc0R1SnIzMVkzdGxvUG9qZUVyS0tieGd0NEZubGxJa2VNbnVTaXlzRUFPMjVWN2pocQ?oc=5"
+    },
+    {
+      "title": "Stock market today: S&P 500, Nasdaq fall as chip stocks sink, US unveils new Iran sanctions - Yahoo Finance",
+      "summary": "Stock market today: S&P 500, Nasdaq fall as chip stocks sink, US unveils new Iran sanctions Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPTXkwU3kxMFhuaVp3c2lNa2IzcFZWcWt3MVIzYUVKbHhTWUtldExMVlEyNTQtRlpLWmFmMTVUNlJVbTZfampsVUxzekNtaHNTSldsOExzUC15aV9zMFNqdks5eFIyZ242cnRzRXJyWmVjRlA5RlEySFA2b21RNWlSTWRQNmNjUFlhenlVVG02Mnd1eGRfdTFHNi13bWRHdC1MLVhKM2hFRXNNTHc?oc=5"
+    },
+    {
+      "title": "S&P 500, Nasdaq end down on tech stocks, investors weigh Iran moves - Reuters",
+      "summary": "S&P 500, Nasdaq end down on tech stocks, investors weigh Iran moves Reuters",
+      "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQZmVCQWYzaWpzTVpmVFJPV0xRdEtUcXg0N2JKZHB5Z2JFZWpWRHFwS0Q3R2NtVHp1c29rem5scXhwa0FZMFZJNGtqM3ZCRlVOa1doNGNtWEcxVVZCYXFDSXlEbmJwODhKbG5Kdk15RDJpbDFleUFpWkdmbWEtMkhGWnF0U1FWWVpmSnp4aXp4UzlPc2hzaFNTWllwSm5UVWlpNWtWQlkzX1dqOHJNbkg5ag?oc=5"
+    }
+  ],
+  "us_date": "08/26",
+  "generated_at": "2026-08-27T09:17:34.275968+09:00"
+}
