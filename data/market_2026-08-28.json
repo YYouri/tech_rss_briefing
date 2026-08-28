@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26541.35,
+      "prev": 26130.2,
+      "chg_pct": 1.57,
+      "volume": 6379250000,
+      "market_date_us": "08/27"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7730.99,
+      "prev": 7675.7,
+      "chg_pct": 0.72,
+      "volume": 2856239000,
+      "market_date_us": "08/27"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 53569.44,
+      "prev": 53463.88,
+      "chg_pct": 0.2,
+      "volume": 653738196,
+      "market_date_us": "08/27"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 14.51,
+      "prev": 15.21,
+      "chg_pct": -4.6,
+      "volume": 0,
+      "market_date_us": "08/27"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 99.18,
+      "prev": 99.16,
+      "chg_pct": 0.02,
+      "volume": 0,
+      "market_date_us": "08/27"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 83.23,
+      "prev": 83.53,
+      "chg_pct": -0.36,
+      "volume": 9640,
+      "market_date_us": "08/27"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4630.9,
+      "prev": 4609.7,
+      "chg_pct": 0.46,
+      "volume": 17862,
+      "market_date_us": "08/27"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1376.39,
+      "prev": 1383.49,
+      "chg_pct": -0.51,
+      "volume": 0,
+      "market_date_us": "08/27"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 721.11,
+      "prev": 711.37,
+      "chg_pct": 1.37,
+      "volume": 28443051,
+      "market_date_us": "08/27"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 525.43,
+      "prev": 515.4,
+      "chg_pct": 1.95,
+      "volume": 8914905,
+      "market_date_us": "08/27"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 57.88,
+      "prev": 58.26,
+      "chg_pct": -0.65,
+      "volume": 26065932,
+      "market_date_us": "08/27"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 227.98,
+      "prev": 209.66,
+      "chg_pct": 8.74,
+      "volume": 297197891,
+      "market_date_us": "08/27"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 476.67,
+      "prev": 480.93,
+      "chg_pct": -0.89,
+      "volume": 16373484,
+      "market_date_us": "08/27"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 92.09,
+      "prev": 88.24,
+      "chg_pct": 4.36,
+      "volume": 99979854,
+      "market_date_us": "08/27"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 427.3,
+      "prev": 417.69,
+      "chg_pct": 2.3,
+      "volume": 12721658,
+      "market_date_us": "08/27"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 314.58,
+      "prev": 313.45,
+      "chg_pct": 0.36,
+      "volume": 32248789,
+      "market_date_us": "08/27"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 505.06,
+      "prev": 496.37,
+      "chg_pct": 1.75,
+      "volume": 28615865,
+      "market_date_us": "08/27"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 354.81,
+      "prev": 345.82,
+      "chg_pct": 2.6,
+      "volume": 29998173,
+      "market_date_us": "08/27"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 256.26,
+      "prev": 260.28,
+      "chg_pct": -1.54,
+      "volume": 35779842,
+      "market_date_us": "08/27"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 340.65,
+      "prev": 342.0,
+      "chg_pct": -0.39,
+      "volume": 23284085,
+      "market_date_us": "08/27"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 571.1,
+      "prev": 576.14,
+      "chg_pct": -0.87,
+      "volume": 15160180,
+      "market_date_us": "08/27"
+    }
+  },
+  "news": [
+    {
+      "title": "Nervous About the Stock Market? This Is Warren Buffett's Best Advice.",
+      "summary": "If you're feeling fearful, it might be time to get greedy.",
+      "link": "https://www.fool.com/investing/2026/08/27/nervous-about-the-stock-market-this-is-warren-buff/?.tsrc=rss"
+    },
+    {
+      "title": "The Data Is Clear: Investors Who Make This 1 Move During Bear Markets Always Come Out Ahead",
+      "summary": "It's easier said than done, but investors who do it don't generally regret it.",
+      "link": "https://www.fool.com/investing/2026/08/27/the-data-is-clear-investors-who-make-this-1-move-d/?.tsrc=rss"
+    },
+    {
+      "title": "AI Bubble Could Be Ready to Pop and Jim Cramer May Be the Warning Sign",
+      "summary": "The rising values of artificial intelligence stocks and their outperformance compared to other S&P 500 stocks in 2026 has former hedge fund manager Whitney Tilson sending a bubble warning. Here’s why. Whitney Tilson Smells a Bubble Tilson draws a parallel...",
+      "link": "https://finance.yahoo.com/technology/ai/articles/ai-bubble-could-ready-pop-220103672.html?.tsrc=rss"
+    },
+    {
+      "title": "Kroger (KR) Stock Declines While Market Improves: Some Information for Investors",
+      "summary": "The latest trading day saw Kroger (KR) settling at $56.93, representing a -2.7% change from its previous close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/kroger-kr-stock-declines-while-220002260.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Texas Instruments (TXN) Outpaced the Stock Market Today",
+      "summary": "Texas Instruments (TXN) closed at $266.54 in the latest trading session, marking a +1.82% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/why-texas-instruments-txn-outpaced-215002434.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures Rise With Fed Chief Warsh Due; Nvidia, These 7 Stocks Are In Buy Zones",
+      "summary": "Nvidia broke out on earnings but didn't have coattails. Meanwhile several software stocks flashed buy signals on a trio of earnings. Fed chief Kevin Warsh's big speech looms.",
+      "link": "https://finance.yahoo.com/m/28709650-6bf3-32e0-9253-5d5f0e46e8fa/dow-jones-futures-rise-with.html?.tsrc=rss"
+    },
+    {
+      "title": "Bill Ackman Just Made His Biggest Portfolio Overhaul in Years, Adding Netflix, Visa, and Mastercard to Pershing Square. What's the Thesis Behind the Switch?",
+      "summary": "This very concentrated portfolio has a bunch of new holdings -- including some investor favorites.",
+      "link": "https://www.fool.com/investing/2026/08/28/bill-ackman-just-made-his-biggest-portfolio-overha/?.tsrc=rss"
+    },
+    {
+      "title": "Amkor, FormFactor, Vishay Intertechnology, Allegro MicroSystems, and Intel Shares Skyrocket, What You Need To Know",
+      "summary": "A number of stocks jumped in the afternoon session after Nvidia reported blowout quarterly earnings and issued an upbeat revenue forecast, easing investor fears of a slowdown in artificial intelligence infrastructure spending. Shares across the semiconductor industry surged following the chipmaker's strong second-quarter beats on both revenue and profit, alongside an upbeat revenue outlook for the",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/amkor-formfactor-vishay-intertechnology-allegro-040907487.html?.tsrc=rss"
+    },
+    {
+      "title": "Nasdaq Futures Sink While S&P 500, Dow Futures Gain Ahead Of Fed Chief Warsh’s Jackson Hole Speech: PYPL, MRVL, IREN, AFRM Stocks In Focus",
+      "summary": "Kevin Warsh is scheduled to speak on Friday at the Fed’s annual symposium in Jackson Hole, Wyoming.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/nasdaq-futures-sink-while-s-and-p-500-dow-futures-gain-ahead-of-fed-chief-warsh-s-jackson-hole-speech-pypl-mrvl-iren-afrm-stocks-in-focus/cZYqw0sRJqC?.tsrc=rss"
+    },
+    {
+      "title": "Asian shares mostly gain after upbeat results for Nvidia and others lift US stocks",
+      "summary": "Shares were mostly higher Friday in Asia after Nvidia and other technology stocks led an advance on Wall Street. U.S. futures were little changed and oil prices slipped. In Tokyo, the Nikkei 225 climbed 0.8% to 66,682.88, while Hong Kong's Hang Seng added 0.3% to 25,648.40.",
+      "link": "https://finance.yahoo.com/markets/world-indices/articles/asian-shares-mostly-gain-upbeat-040450628.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Stock Sits Nearly 30% Below Its High and Still Trades at 330 Times Earnings",
+      "summary": "A drawdown this deep usually leaves a stock cheaper. This one mostly reveals how expensive the shares were at the peak.",
+      "link": "https://www.fool.com/investing/2026/08/27/tesla-stock-sits-nearly-30-below-its-high-and-still-trades-at-330-times-earnings/?.tsrc=rss"
+    },
+    {
+      "title": "Optimus Just Entered Production at Fremont. Here's What Changes for Tesla Investors.",
+      "summary": "It's a landmark moment for the company, but the underlying improvements might not be fully visible for a while.",
+      "link": "https://www.fool.com/investing/2026/08/27/optimus-just-entered-production-at-fremont-heres-w/?.tsrc=rss"
+    },
+    {
+      "title": "What Is Tesla (TSLA) Really Building With Optimus Robots And Its New Starbase?",
+      "summary": "Tesla (NasdaqGS: TSLA) CEO Elon Musk outlined a concept for Optimus humanoid robots to act as self-replicating Von Neumann machines powered by solar energy, with a potential scale of up to one million units. Musk linked this concept to long term plans for self-replicating probes that could support interplanetary exploration and automation. SpaceX announced plans for a new Starbase project in Louis",
+      "link": "https://finance.yahoo.com/technology/articles/tesla-tsla-really-building-optimus-210759208.html?.tsrc=rss"
+    },
+    {
+      "title": "Ford Motor vs. Tesla: Analyzing Revenue Trends Between These Automotive Giants",
+      "summary": "Ford still leads in absolute revenue, but Tesla's upward trajectory is narrowing the gap — and volatility tells a different story.",
+      "link": "https://www.fool.com/coverage/charts/2026/08/27/ford-motor-vs-tesla-analyzing-revenue-trends-between-these-automotive-giants/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla's Optimus Rival Could Be Worth $6 Billion As SoftBank Circles OpenAI-Backed 1X",
+      "summary": "Masayoshi Son is circling another multibillion-dollar AI bet as SoftBank Group Corp. (OTC:SFTBY) is reportedly in talks to buy a majority stake in 1X Technologies, the OpenAI-backed humanoid robot maker, at a valuation of roughly $6 billion. The negotiations, first...",
+      "link": "https://www.benzinga.com/markets/prediction-markets/26/08/61477237/softbank-1x-6-billion-tesla-optimus?utm_source=yahooFinance&utm_campaign=partner_feed&utm_medium=referral&.tsrc=rss"
+    },
+    {
+      "title": "Cathie Wood’s ARK Just Dumped AMD Stock. What She’s Buying Instead.",
+      "summary": "Advanced Micro Devices stock is being sold by Cathie Wood but the fund manager isn't giving up on the chip sector.",
+      "link": "https://finance.yahoo.com/m/d0fad57d-677d-3acf-9de2-24de4d2a4cad/cathie-wood%E2%80%99s-ark-just-dumped.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Stock Alert: Raymond James Sees $201B Revenue Opportunity by 2030",
+      "summary": "AMD upgraded by Raymond James citing agentic AI demand growth.",
+      "link": "https://www.barchart.com/story/news/4237440/amd-stock-alert-raymond-james-sees-201b-revenue-opportunity-by-2030?.tsrc=rss"
+    },
+    {
+      "title": "Cathie Wood Sends a $20 Million Signal on Broadcom Stock",
+      "summary": "Cathie Wood Makes a Bold AI Chip Rotation From AMD to Broadcom",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/cathie-wood-sends-20-million-191855720.html?.tsrc=rss"
+    },
+    {
+      "title": "NVIDIA vs. AMD: Only One AI Stock Is a Solid Buy Now",
+      "summary": "NVIDIA's blowout results, stronger profitability and CUDA advantage give it an edge over AMD as AI spending accelerates.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-vs-amd-only-one-190000778.html?.tsrc=rss"
+    },
+    {
+      "title": "CBRS vs. AMD: Which Stock Leads the AI Infrastructure Boom?",
+      "summary": "Cerebras gains the edge over AMD with faster growth, $25.4B in RPOs and expanding AI capacity, despite profitability and customer concentration risks.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/cbrs-vs-amd-stock-leads-180700258.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500, Nasdaq Composite close higher Thursday as Nvidia rallies on revenue guidance: Live updates - CNBC",
+      "summary": "S&P 500, Nasdaq Composite close higher Thursday as Nvidia rallies on revenue guidance: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE81OFdpS2tFUVh1NFJWZVBOdHV1VDZINjFmVmZxUnF2TVFRVnVDV1VXYnN1OS0xTURpMTl6S1NvMllsWVlHSVpCUU4yRmJZcDYtNUVVV1p2U2ZXOEpuSHlkM3lkTGNtWjBSdlVtUUZxLW9PbUZpbHBF0gF8QVVfeXFMTVE4T2JoblkzUGJXTFEyZjFHYk5adlZyYmUzcXhMRDZUSUJMU1FUNDRsT2RPNzc2MUcxT2V5M3RoeUgxS2xGRi1oWXdsLVkxOWYyRUZiSVdjNnVLbktoYWtoUmRBWGpZTW5PUnMyYUZLamt2aHlLSmtmQmZPXw?oc=5"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq rally as Nvidia earnings revive AI optimism, software stocks roar back - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq rally as Nvidia earnings revive AI optimism, software stocks roar back Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPV19GV21jUzBTUXUzS1l3ZW5obXFHNDU3emZTLXRyMzVaVl9aTVpXUHlaSmdXeHdNbXpDeEFObmVZblQ0UFNFQmNrcGV5Vk9NaTZJemNwTjNuMTV0S3lBVFdDY1NsejRjcjRSTDdCS1Vobzk3ZWJUTkhsejhPdFEwc1ZoWHhySDFKekVHblV0TEFOLTZSMkJYMkFVMlBtYzI1VFE3U2I0a0plcXJITFE?oc=5"
+    },
+    {
+      "title": "Markets News, Aug. 27, 2026: Nvidia Stock Powers Higher After Earnings, Driving Tech Gains; Nasdaq Closes Sharply Higher - Investopedia",
+      "summary": "Markets News, Aug. 27, 2026: Nvidia Stock Powers Higher After Earnings, Driving Tech Gains; Nasdaq Closes Sharply Higher Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPM2w1SXl6Mnk0VEZJZ25uczFvSF9ra1pZckVTbFNJU3ZWSzQtVmFxM05qNVd4aGpmSWd3TXg3M2dOblQ5S3p3czd5MFJvaTFXSWQxRUhSOFc4Vi1Kazd4UEhVNzEtdnNyLW1fSHJ2R1k3OGs2Q054bVJEaFJiTUx4TUZBdXYyWXE2OG5WaXFRYVM?oc=5"
+    },
+    {
+      "title": "Dow Jones Futures Rise With Fed Chief Warsh Due; Nvidia, These 7 Stocks Are In Buy Zones - Investor's Business Daily",
+      "summary": "Dow Jones Futures Rise With Fed Chief Warsh Due; Nvidia, These 7 Stocks Are In Buy Zones Investor's Business Daily",
+      "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxNNkw3UmhaS2RhbmFhQk9LSnVfa1dmMENsLUI3azdkZC1SRHlLbXd6d043LU1BSXJ0dFZsMndBMHQ1aEYwUEp1ZlI5dmFyZTFXSnpLWFJqQWN4VEg3RUVSbWdzRFlERjJQdnlTQ1RodkNqUEYxNjV1ay1NWnF1UEJwWEh5ZTVmdm01bU9FdXZYVE5WU3I4MTdoN0szZHNPMkgzQ014TkVhQW10dE56Q1RrV2JfTW5Od2d0RjFEcGMxSjVVTTJHY1A0UkVGRU5tcEN5SFE?oc=5"
+    },
+    {
+      "title": "Stock Market on Aug. 27, 2026: S&P 500 and Nasdaq close higher in tech-fueled rally as Nvidia's stock jumps after its earnings beat expectations; Dow rises as Salesforce shares surge and Jackson Hole symposium gets started; Marvell Technology results on - MarketWatch",
+      "summary": "Stock Market on Aug. 27, 2026: S&P 500 and Nasdaq close higher in tech-fueled rally as Nvidia's stock jumps after its earnings beat expectations; Dow rises as Salesforce shares surge and Jackson Hole symposium gets started; Marvell Technology results on MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxPdERDOUhSYWhxSU5maUkwVmkzN2JDbW5oN2w3UndGdUJtbGFTQ2k1MmF6NG1jZUNsZ0hTWm1DcUNJbnE0aWhmRVJtamNqZGkzaFVQODlleko0NkpYb01vSjJ6b21pR3ZFYlJnOHdadjF0ZnRGVDN4aGxGYjV2WU11bEc5UnZHSDh3bFo0RnhRcFF4WTdCeGVpdmRmRFViSU5VYXh0OUp2VDd4dE9nbHZTaWFobzVqT3d2YTA2czEzWkI4Wk5uMGtCbjlRUGswZ01vWlBNcjd6Y1Q?oc=5"
+    }
+  ],
+  "us_date": "08/27",
+  "generated_at": "2026-08-28T13:55:25.880535+09:00"
+}
