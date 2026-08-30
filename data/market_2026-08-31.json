@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26402.42,
+      "prev": 26541.35,
+      "chg_pct": -0.52,
+      "volume": 7526280000,
+      "market_date_us": "08/28"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7711.76,
+      "prev": 7730.99,
+      "chg_pct": -0.25,
+      "volume": 2589484000,
+      "market_date_us": "08/28"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 53559.99,
+      "prev": 53569.44,
+      "chg_pct": -0.02,
+      "volume": 507511504,
+      "market_date_us": "08/28"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 14.43,
+      "prev": 14.51,
+      "chg_pct": -0.55,
+      "volume": 0,
+      "market_date_us": "08/28"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 99.67,
+      "prev": 99.7,
+      "chg_pct": -0.03,
+      "volume": 0,
+      "market_date_us": "08/30"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 84.87,
+      "prev": 83.4,
+      "chg_pct": 1.76,
+      "volume": 9215,
+      "market_date_us": "08/30"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4509.2,
+      "prev": 4478.1,
+      "chg_pct": 0.69,
+      "volume": 7027,
+      "market_date_us": "08/30"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1377.45,
+      "prev": 1380.45,
+      "chg_pct": -0.22,
+      "volume": 0,
+      "market_date_us": "08/30"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 716.43,
+      "prev": 721.11,
+      "chg_pct": -0.65,
+      "volume": 34067577,
+      "market_date_us": "08/28"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 508.62,
+      "prev": 525.43,
+      "chg_pct": -3.2,
+      "volume": 8459299,
+      "market_date_us": "08/28"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 58.1,
+      "prev": 57.88,
+      "chg_pct": 0.38,
+      "volume": 25049523,
+      "market_date_us": "08/28"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 217.55,
+      "prev": 227.98,
+      "chg_pct": -4.57,
+      "volume": 194792961,
+      "market_date_us": "08/28"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 465.58,
+      "prev": 476.67,
+      "chg_pct": -2.33,
+      "volume": 15351151,
+      "market_date_us": "08/28"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 89.47,
+      "prev": 92.09,
+      "chg_pct": -2.85,
+      "volume": 86066401,
+      "market_date_us": "08/28"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 417.52,
+      "prev": 427.3,
+      "chg_pct": -2.29,
+      "volume": 8859447,
+      "market_date_us": "08/28"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 319.7,
+      "prev": 314.58,
+      "chg_pct": 1.63,
+      "volume": 38623623,
+      "market_date_us": "08/28"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 513.53,
+      "prev": 505.06,
+      "chg_pct": 1.68,
+      "volume": 29189683,
+      "market_date_us": "08/28"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 348.75,
+      "prev": 354.81,
+      "chg_pct": -1.71,
+      "volume": 32928287,
+      "market_date_us": "08/28"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 266.43,
+      "prev": 256.26,
+      "chg_pct": 3.97,
+      "volume": 49518292,
+      "market_date_us": "08/28"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 346.59,
+      "prev": 340.65,
+      "chg_pct": 1.74,
+      "volume": 25327816,
+      "market_date_us": "08/28"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 578.02,
+      "prev": 571.1,
+      "chg_pct": 1.21,
+      "volume": 16032439,
+      "market_date_us": "08/28"
+    }
+  },
+  "news": [
+    {
+      "title": "Stock Futures Drift Lower, Oil Rises Ahead of Jobs Data, Tech Earnings",
+      "summary": "This week features earnings from Nvidia rival Broadcom plus reports from Dell and Hewlett Packard Enterprise.",
+      "link": "https://finance.yahoo.com/m/f2abac1b-c525-31ba-9e2e-f1bf9ebaa4ae/stock-futures-drift-lower%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500 Is Up 12% in 2026 But a 1907 Crash Signal Is Back",
+      "summary": "The S&P 500 is up 12.65% in 2026, yet record options and margin debt echo the leverage that broke 1907. What happens next?",
+      "link": "https://beincrypto.com/sp500-2026-rally-1907-crash-warning/?.tsrc=rss"
+    },
+    {
+      "title": "The S&P 500 Keeps Hitting Highs — But It’s Just Microsoft and Nvidia Carrying the Entire Market",
+      "summary": "The S&P 500 keeps setting records, but strip away two stocks and the picture underneath looks nothing like a healthy bull market. What Bespoke Investment Group's latest earnings data reveals about who is actually driving this rally should change how you think about your index fund.",
+      "link": "https://247wallst.com/investing/2026/08/30/the-sp-500-keeps-hitting-highs-but-its-just-microsoft-and-nvidia-carrying-the-entire-market/?.tsrc=rss"
+    },
+    {
+      "title": "Amazon Has Badly Underperformed the S&P 500 and Nasdaq-100 Since Jeff Bezos Stepped Down as CEO. Could Apple Do the Same Starting Sept. 1 When Tim Cook Steps Down?",
+      "summary": "Tim Cook has set Apple's course at a pivotal time, and now he's walking away.",
+      "link": "https://www.fool.com/investing/2026/08/30/amazon-has-badly-underperformed-the-sp-500-and-nas/?.tsrc=rss"
+    },
+    {
+      "title": "This Overlooked Small-Cap ETF Has Crushed the S&P 500 in 2026. Is It Still a Buy Right Now?",
+      "summary": "It's off to its best start since 2021.",
+      "link": "https://www.fool.com/investing/2026/08/30/this-overlooked-small-cap-etf-has-crushed-sp-500/?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures Fall, Oil Prices Jump As U.S. Strikes Iran",
+      "summary": "Dow Jones futures fell slightly while oil prices bounced as the U.S. struck Iran publicly for the first time in a month.",
+      "link": "https://finance.yahoo.com/m/5851be5e-4456-36df-acc2-e391c82c51f8/dow-jones-futures-fall%2C-oil.html?.tsrc=rss"
+    },
+    {
+      "title": "Meet the Dividend Stock That Warren Buffett Backed for Decades. Here's Why Greg Abel Is Still Holding.",
+      "summary": "Sometimes, the classics really are tough to beat.",
+      "link": "https://www.fool.com/investing/2026/08/30/meet-the-dividend-stock-that-warren-buffett-backed/?.tsrc=rss"
+    },
+    {
+      "title": "This Newly Public Nuclear IPO Is Already Using AI to Speed Up Reactor Design. Is It a Buy?",
+      "summary": "AI could accelerate X-Energy's path toward commercial nuclear power.",
+      "link": "https://www.fool.com/investing/2026/08/30/this-newly-public-nuclear-ipo-is-already-using-ai/?.tsrc=rss"
+    },
+    {
+      "title": "What Happens When You Invest in the Stock Market at the Worst Possible Time? History Has Reassuring News for Investors.",
+      "summary": "Investing at peak prices can still result in lucrative long-term returns.",
+      "link": "https://www.fool.com/investing/2026/08/30/what-happens-when-you-invest-in-the-stock-market-a/?.tsrc=rss"
+    },
+    {
+      "title": "3 Simple ETFs Worth Buying and Holding for Decades",
+      "summary": "Tech and AI stocks are hot right now, but dividend payers are built for the long-term.",
+      "link": "https://www.fool.com/investing/2026/08/30/3-simple-etfs-worth-buying-and-holding-for-decades/?.tsrc=rss"
+    },
+    {
+      "title": "The Biggest Risk Facing Tesla Stock Right Now",
+      "summary": "Tesla is pouring billions into investment, but what happens if these bets pay off later than expected?",
+      "link": "https://www.fool.com/investing/2026/08/30/biggest-risk-tesla-stock-now-optimus-robotaxi/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla's 500-Semi Einride Order Finally Gets a Timeline: '75 Approximately' This Year, CEO Says",
+      "summary": "Elon Musk-led Tesla Inc. is expected to deliver about 75 Semi trucks to freight-technology company Einride AB for deployment before the end of 2026, according to Einride CEO Roozbeh Charli. The Rest of the Deliveries Will Complete By 2027 In...",
+      "link": "https://finance.yahoo.com/technology/articles/teslas-500-semi-einride-order-151529733.html?.tsrc=rss"
+    },
+    {
+      "title": "The Most Active Stocks Today Include Tesla, Nvidia, and Apple: Here's My Contrarian Take on All Three",
+      "summary": "When the majority of the investing crowd turns bullish, I've learned to become very suspicious.",
+      "link": "https://www.fool.com/investing/2026/08/30/the-most-active-stocks-today-include-tesla-nvidia/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Stock in 2027: Why I Think TSLA Still Has Room to Run",
+      "summary": "Tesla looks wildly expensive today, but if FSD, robotaxis, and Optimus deliver, today's valuation could look very different by 2027.",
+      "link": "https://www.fool.com/investing/2026/08/29/tesla-stock-in-2027-why-i-think-tsla-still-has-roo/?.tsrc=rss"
+    },
+    {
+      "title": "Optimus Just Entered Production at Fremont. Here's What Changes for Tesla Investors",
+      "summary": "Tesla has always been more than a car company, but the Optimus development is likely to be highly impactful.",
+      "link": "https://www.fool.com/investing/2026/08/29/optimus-just-entered-production-at-fremont-heres-w/?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices (AMD) Is Exposed To Proposed US Chip Tariffs",
+      "summary": "Advanced Micro Devices (NasdaqGS:AMD) is in focus as the U.S. government reportedly weighs new tariffs on semiconductors and related technology hardware. The potential measures target imported chips and components that could affect AMD's supply chain and manufacturing costs. Any tariff decision would add a fresh regulatory risk factor for AMD in addition to existing attention on AI and security is",
+      "link": "https://finance.yahoo.com/economy/policy/articles/advanced-micro-devices-amd-exposed-182033681.html?.tsrc=rss"
+    },
+    {
+      "title": "Not Nvidia. Not AMD. This Semiconductor Giant Will Be the Ultimate Winner of the Artificial Intelligence (AI) Hardware Race.",
+      "summary": "Taiwan Semiconductor is primed to be a major winner over the next few years.",
+      "link": "https://www.fool.com/investing/2026/08/30/not-nvidia-not-amd-this-semiconductor-giant-will/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Just Delivered Bad News for AMD and Intel",
+      "summary": "Nvidia announced stellar second-quarter results, but one number is particularly bad news for some of its chip competitors.",
+      "link": "https://www.fool.com/investing/2026/08/30/nvidia-just-delivered-bad-news-for-amd-and-intel/?.tsrc=rss"
+    },
+    {
+      "title": "Is Advanced Micro Devices Stock Outperforming the Dow?",
+      "summary": "As Advanced Micro Devices has outperformed relative to the Dow over the past year, Wall Street analysts maintain a bullish outlook on the stock’s prospects.",
+      "link": "https://www.barchart.com/story/news/4344192/is-advanced-micro-devices-stock-outperforming-the-dow?.tsrc=rss"
+    },
+    {
+      "title": "Intel vs. AMD: Why the Market Share Number Is Misleading",
+      "summary": "AMD crossed 30% in client CPUs, yet its bigger win over Intel is in the data center that actually drives profits.",
+      "link": "https://www.barchart.com/story/news/4339639/intel-vs-amd-why-the-market-share-number-is-misleading?.tsrc=rss"
+    },
+    {
+      "title": "Stock futures are little changed as traders get set to wrap up a winning month: Live updates - CNBC",
+      "summary": "Stock futures are little changed as traders get set to wrap up a winning month: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9SWllSeGg2NWlpUTZ4M1JrMEFTemY5YlJ0N0ZsTGF1Y1RzN241VFkwR2dYS3AxdU5BcklvSzNRZGhlUldjUGFHOV9ROTh4RzhWbG9Uak5aRnV2WXpfbjljLTRvTU1iNEtCcmdrVkI3THdmMlRCX25J0gF8QVVfeXFMT3Yxanh5VVFSd1UyVTdkTG54azlvMjNOak5TTVZ2a2oybm1PZmh3SXEtMTQtSXllamk3Q3o5azJvemdfYzRHMndUclZEdWxadGZiOHNhNjJWamJVcHpzOXRvemtiOHZiLXZoeVRvRnJGT19XQXpEU1R3WjdvZA?oc=5"
+    },
+    {
+      "title": "U.S. stock futures flat as chances of rate hike rise after Warsh’s Jackson Hole comments - MarketWatch",
+      "summary": "U.S. stock futures flat as chances of rate hike rise after Warsh’s Jackson Hole comments MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxONkh6UG9mZjFLQmMzN0h3czJEa1RUZlVUS3hpbkhsbzR6RHpIZzV1dU50MldMOWhPR3R1YnpTeUxjRmw0MUlfaUplc21UWE9mU1VqdUl4OVhRaWdRbHhiTVJ2MExSR3M1XzRJYzBNYURXWXZiVnZQRUZ2MXVhY21rcG90cS1jczcyN0N2OTF6ZVlSYmhjem45UGkwT1RQZjc0LS10YkY0TWlQcThsZWxRV19ZbDZFaktlUXRwREQwUzJ2UGZPVlhWbQ?oc=5"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq end week on down note as rate-hike bets jump - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq end week on down note as rate-hike bets jump Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxQTUpRZUJiaS1rMFBDYVotaFlzUVhlemtySjF1czVMemU1QnlSWHAtMTdMbGZvTzRuVHQwQnRWM09lQ1N6N2p4LUFkTklnX0ozek9ZNGt1RlUwOXBwVHgxZlYtMnRlQkZTeGRjSXRGaV96cWFLemxoLXZYOENPbWNLVHIyWFFteGt0RERWVXdmdndxdWxMcFpobFJVWUZveU5iYUkyU1NfVXFYNGN4Mmc5MHpocVVUYU44YW5TM1lNNWEtSDdnVm4xY0d2cjhZdjlfUDVUb09XZ08?oc=5"
+    },
+    {
+      "title": "Market Braces For Warsh Speech; Marvell, Affirm, PayPal Big Movers - Investor's Business Daily",
+      "summary": "Market Braces For Warsh Speech; Marvell, Affirm, PayPal Big Movers Investor's Business Daily",
+      "link": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxQU2lieXNKSnZwWXpLVTFYM1ZhSjJMM25uUW1Tc2QyUTNseFUxQzNIWnlPXzBVWmJrNF9majBEUUFIbDZYSDhQN0JxRFNXY1JnOW53MzQ3RUI3TWpHejlJZXJHVGtZOG5zTHgyZlZGTnYtTnBWaGw5NUpwMkZ0UzkxcGl0amUyUlNsb2NsZm9CZ1VzSm9IWnFYaERKRVpEcGM2eVdTNXloVER3clRWZFRVZEczWmFLbzgtR09Na2lqeUtmTW11WkZ3Q0lSU3FxT3RuVFdHM1V4UFZTXzFPdVpkYU1n?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Stocks close Friday lower as Warsh fuels higher-rate outlook, but hold on to weekly gains - MarketWatch",
+      "summary": "Stock Market Today: Stocks close Friday lower as Warsh fuels higher-rate outlook, but hold on to weekly gains MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxPWkVsMFlPdkl1X0tIWXlMOFZuUWlwVllvNkZpSmdrZW9LTWs5MHBIVjBEeDVEYzNnbFVfMXg3VThtS29NSE9qa2prSkJZd2NIalFKOHZxM2hDX1Fna3l4aG10NVY0RjhROHhQYVFOLUttMHQ5RUhGLV9wMHhSMml5NDNpVGRKMjdkNG4xVlJjR0lmQ25XMU1ZXzViWVQ1Wi1Ra2FjODFZMXF3REdnQ2RKMi10VUwxQTNUMjVsc2YxV0c0cEk?oc=5"
+    }
+  ],
+  "us_date": "08/28",
+  "generated_at": "2026-08-31T07:56:54.144089+09:00"
+}
