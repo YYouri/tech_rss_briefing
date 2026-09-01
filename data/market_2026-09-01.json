@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26370.89,
+      "prev": 26402.42,
+      "chg_pct": -0.12,
+      "volume": 6864570000,
+      "market_date_us": "08/31"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7686.14,
+      "prev": 7711.76,
+      "chg_pct": -0.33,
+      "volume": 3435918000,
+      "market_date_us": "08/31"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 53185.9,
+      "prev": 53559.99,
+      "chg_pct": -0.7,
+      "volume": 507313438,
+      "market_date_us": "08/31"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 14.92,
+      "prev": 14.43,
+      "chg_pct": 3.4,
+      "volume": 0,
+      "market_date_us": "08/31"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 99.42,
+      "prev": 99.7,
+      "chg_pct": -0.28,
+      "volume": 0,
+      "market_date_us": "08/31"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 86.4,
+      "prev": 83.4,
+      "chg_pct": 3.6,
+      "volume": 2036,
+      "market_date_us": "08/31"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4499.3,
+      "prev": 4478.1,
+      "chg_pct": 0.47,
+      "volume": 3173,
+      "market_date_us": "08/31"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1368.98,
+      "prev": 1380.45,
+      "chg_pct": -0.83,
+      "volume": 0,
+      "market_date_us": "08/31"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 716.76,
+      "prev": 716.43,
+      "chg_pct": 0.05,
+      "volume": 31883751,
+      "market_date_us": "08/31"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 511.04,
+      "prev": 508.62,
+      "chg_pct": 0.48,
+      "volume": 6186674,
+      "market_date_us": "08/31"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 57.71,
+      "prev": 58.1,
+      "chg_pct": -0.67,
+      "volume": 25146236,
+      "market_date_us": "08/31"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 220.78,
+      "prev": 217.55,
+      "chg_pct": 1.48,
+      "volume": 124033835,
+      "market_date_us": "08/31"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 470.72,
+      "prev": 465.58,
+      "chg_pct": 1.1,
+      "volume": 12251488,
+      "market_date_us": "08/31"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 89.51,
+      "prev": 89.47,
+      "chg_pct": 0.04,
+      "volume": 64515383,
+      "market_date_us": "08/31"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 415.32,
+      "prev": 417.52,
+      "chg_pct": -0.53,
+      "volume": 6630783,
+      "market_date_us": "08/31"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 316.85,
+      "prev": 319.7,
+      "chg_pct": -0.89,
+      "volume": 40667429,
+      "market_date_us": "08/31"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 507.29,
+      "prev": 513.53,
+      "chg_pct": -1.22,
+      "volume": 26637042,
+      "market_date_us": "08/31"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 367.95,
+      "prev": 348.75,
+      "chg_pct": 5.51,
+      "volume": 61157428,
+      "market_date_us": "08/31"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 259.77,
+      "prev": 266.43,
+      "chg_pct": -2.5,
+      "volume": 45422317,
+      "market_date_us": "08/31"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 339.35,
+      "prev": 346.59,
+      "chg_pct": -2.09,
+      "volume": 33315062,
+      "market_date_us": "08/31"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 572.34,
+      "prev": 578.02,
+      "chg_pct": -0.98,
+      "volume": 13275274,
+      "market_date_us": "08/31"
+    }
+  },
+  "news": [
+    {
+      "title": "1 S&P 500 Stock with Exciting Potential and 2 We Ignore",
+      "summary": "The S&P 500 (^GSPC) is often seen as a benchmark for strong businesses, but that doesn’t mean every stock is worth owning. Some companies face significant challenges, whether it’s stagnating growth, heavy debt, or disruptive new competitors.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/1-p-500-stock-exciting-222040118.html?.tsrc=rss"
+    },
+    {
+      "title": "American Airlines (AAL) Registers a Bigger Fall Than the Market: Important Facts to Note",
+      "summary": "American Airlines (AAL) reached $13.43 at the closing of the latest trading day, reflecting a -1.54% change compared to its last close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/american-airlines-aal-registers-bigger-221503580.html?.tsrc=rss"
+    },
+    {
+      "title": "Kinsale Capital Group, Inc. (KNSL) Declines More Than Market: Some Information for Investors",
+      "summary": "Kinsale Capital Group, Inc. (KNSL) concluded the recent trading session at $373.9, signifying a -1.76% move from its prior day's close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/kinsale-capital-group-inc-knsl-221503087.html?.tsrc=rss"
+    },
+    {
+      "title": "Jabil (JBL) Advances While Market Declines: Some Information for Investors",
+      "summary": "In the most recent trading session, Jabil (JBL) closed at $305.26, indicating a +1.26% shift from the previous trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/jabil-jbl-advances-while-market-221502336.html?.tsrc=rss"
+    },
+    {
+      "title": "General Dynamics (GD) Dips More Than Broader Market: What You Should Know",
+      "summary": "In the closing of the recent trading day, General Dynamics (GD) stood at $371.35, denoting a -2.1% move from the preceding trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/general-dynamics-gd-dips-more-221502273.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Deere Stock Rallied Today",
+      "summary": "The agricultural equipment maker's profits are set to soar.",
+      "link": "https://www.fool.com/investing/2026/08/31/why-deere-stock-is-up-today/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia (NVDA) Invests $3.5 Billion in MediaTek. Is This the Next Leg of Its AI Growth?",
+      "summary": "NVIDIA Corporation (NASDAQ:NVDA) is investing $3.5 billion in Taiwan-based MediaTek through convertible bonds, taking an existing AI partnership a step further. The two companies plan to work together on local AI computing and AI-powered vehicle platforms, while also bringing Nvidia’s accelerated-computing technology into more markets. The investment comes soon after Nvidia reported another strong",
+      "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-nvda-invests-3-5-234008357.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia stock flashes unusual signal for investors",
+      "summary": "A rare market shift is changing how Nvidia trades",
+      "link": "https://www.thestreet.com/investing/stocks/nvidia-stock-semiconductor-correlation?.tsrc=rss"
+    },
+    {
+      "title": "Jensen Huang Told Investors in June to 'Buy at a Discount' During Nvidia's Sell-Off. Nearly Three Months Later, Nvidia Is Up 4%, and a Broader AI Basket Gained 8%. Did His Call Pay Off?",
+      "summary": "Investors probably shouldn't read too much into a CEO hyping his own company's stock over the short term.",
+      "link": "https://www.fool.com/investing/2026/08/31/jensen-huang-told-investors-in-june-to-buy-at-a-di/?.tsrc=rss"
+    },
+    {
+      "title": "Crypto Valuations Could Be Ready to Double, According to Bitwise's Matt Hougan -- But Only If This 1 Thing Happens",
+      "summary": "It's already proving far more difficult than it might sound.",
+      "link": "https://www.fool.com/investing/2026/08/31/crypto-valuations-could-be-ready-to-double-accordi/?.tsrc=rss"
+    },
+    {
+      "title": "Here comes the AI capex shocker, Goldman Sachs says",
+      "summary": "Big spending on AI is poised to continue well into 2027.",
+      "link": "https://finance.yahoo.com/markets/article/here-comes-the-ai-capex-shocker-goldman-sachs-says-171026577.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: Trump's Iran Warning Sparks Stock Market Losses; Elon Musk-Led SpaceX, Tesla Rally",
+      "summary": "Dow Jones Futures: President Trump's Iran warning sparked stock market losses Monday. Elon Musk-led SpaceX and Tesla rallied.",
+      "link": "https://finance.yahoo.com/m/e094dafb-4fb9-3a61-892b-0d14bebedee4/dow-jones-futures%3A-trump%27s.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Tesla (TSLA) Stock Is Up Today",
+      "summary": "Shares of electric vehicle pioneer Tesla (NASDAQ:TSLA) jumped 4.9% in the afternoon session as investors continued to focus on the long-term potential of the company’s autonomous driving technology.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/why-tesla-tsla-stock-today-214840004.html?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk’s SpaceX Blade Plan Knocks Howmet As HWM Suffers Steepest Slide In 16 Months",
+      "summary": "Aerospace and industrial gas-turbine engine-products manufacturing is currently concentrated among Howmet, Berkshire Hathaway’s Precision Castparts, Consolidated Precision Products and Doncasters.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/elon-musk-s-space-x-blade-plan-knocks-howmet-as-hwm-suffers-steepest-slide-in-16-months/cZYz4OwRJsz?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, Aug. 31: Tesla Stock Surges on Cybercab Event Anticipation",
+      "summary": "On Aug. 31, 2026, investors rotated into large-cap growth names as traders zeroed in on the Sept. 3 Cybercab event and FSD execution plans.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/08/31/stock-market-today-aug-31-tesla-surges-on-cybercab-event-anticipation-and-autonomy-focus/?.tsrc=rss"
+    },
+    {
+      "title": "Here's What September Has Done to AMD Stock Over the Past 10 Years",
+      "summary": "Eight of the past 10 Septembers took the chip stock lower. The market's own September record explains only part of that.",
+      "link": "https://www.fool.com/investing/2026/08/31/here-s-what-september-has-done-to-amd-stock-over-the-past-10-years/?.tsrc=rss"
+    },
+    {
+      "title": "AMD Expands Global AI Footprint With New Saudi Platform",
+      "summary": "Advanced Micro Devices Inc stock was little changed in Monday premarket trading as the chipmaker announced it was expanding its AI infrastructure footprint in Saudi Arabia.AMD shares are also trading below their June peak, keeping attention on whether the stock...",
+      "link": "https://finance.yahoo.com/technology/ai/articles/amd-expands-global-ai-footprint-223104559.html?.tsrc=rss"
+    },
+    {
+      "title": "Not Nvidia, Not AMD. Micron Could Be September's Biggest AI Winner or Loser.",
+      "summary": "Micron Technology will report its quarterly results in September, and recent results from AI chipmakers suggest it could easily exceed expectations.",
+      "link": "https://www.fool.com/investing/2026/08/31/not-nvidia-not-amd-micron-could-be-septembers-bigg/?.tsrc=rss"
+    },
+    {
+      "title": "Wall Street Is Looking Here. I’m Looking Somewhere Else",
+      "summary": "Everyone is chasing the same AI trade, but one chipmaker sitting in NVIDIA's shadow just posted 50% revenue growth and landed commitments worth gigawatts from two of the biggest names in tech. The real question is whether the valuation leaves any room to be wrong.",
+      "link": "https://247wallst.com/investing/2026/08/31/wall-street-is-looking-here-im-looking-somewhere-else/?.tsrc=rss"
+    },
+    {
+      "title": "AMD Enters a Sovereign AI Showcase, Not a Revenue Windfall",
+      "summary": "The European contract validates AMD's newest processors, but the entire project value does not belong to the chipmaker.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/amd-enters-sovereign-ai-showcase-162318708.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq slip but cap winning month for stocks - finance.yahoo.com",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq slip but cap winning month for stocks finance.yahoo.comDow tumbles 370 points after U.S. strikes Iran, but index posts fifth straight winning month cnbc.comMarkets News, Aug. 31, 2026: Major Stock Indexes Post Gains for August Despite Falling Monday Amid Rising Oil Prices Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQbDF1ZmtVSFBxOUJsQlN5MEdsSUhoYk9UbWtOYXRSU1BWbWZuSlMtbFJtbXFFcExoVnhHUHNTNHp2LWhrZXdNMndSZzRIWnFtdzZOc09WVmxwWkNRb1BkSW95TDhKMTdDaTc0cWdQRnN0cFJmMEFYRVBNcHFIRGNyYUxhMHk1WklvNngwV2xfdTR5c0VGLTkxQzZmSHZ0QTE1dm4zSjRreU5JRjQ?oc=5"
+    },
+    {
+      "title": "Dow Jones Futures Fall, Oil Prices Jump As U.S., Iran Exchange Attacks - Investor's Business Daily",
+      "summary": "Dow Jones Futures Fall, Oil Prices Jump As U.S., Iran Exchange Attacks Investor's Business Daily",
+      "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOSW5MQXJjSmlxRnRnb3hOcEJFcDRrbVFYT091VjhrdjNWU2dWNnRrZ3JTNlMzRjM3RUotaGNBZG1rT3JWTF9VT1hVUWVMa0NnbERXLV9XeDVlTFE0dEZYanFzSE1haldYM3VXMy1wbHktelJEaWJTb2R3dG5rT0FiT3dUZ0RlaFdmUFNHSnVGLUx0UUQtLUdiU2N2c25LVE0zN2t0cHBnUWdwOTA5OHhXMVJTMk4?oc=5"
+    },
+    {
+      "title": "Stock futures are little changed after Wall Street closes out winning August: Live updates - cnbc.com",
+      "summary": "Stock futures are little changed after Wall Street closes out winning August: Live updates cnbc.com",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1hazhOTnRDN2llRzM5b3FMY1d2X1pxaVZqN2dEa3h0Tm5lMHpES0FXS0xaRUlDbFMxYTJhQUxObjVyQTduNGdEU1l3ZHc3Q3BMaFFVTU5MNHpfdmtnd1JKLTNoODUzOHJaQktsQmJBQWVVOUNMVk1r0gF8QVVfeXFMTTJhei1Nc1M2SmNlZ1N2UG51VkJTcEVRcEhIdW5vZ1dGUVhXTzRGWi1lR256M1ZNYXJmT3phRzBqU0VSTTBZeWFMS1FlVW9sdUkzRnpLTUJFUS1NZ0ZUN2ttc1RpYTUwRi1XemZMbnZpT0Z5SlRMbklHYlNRZg?oc=5"
+    },
+    {
+      "title": "Fed Chairman Kevin Warsh triggered a new problem for stocks - finance.yahoo.com",
+      "summary": "Fed Chairman Kevin Warsh triggered a new problem for stocks finance.yahoo.com",
+      "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPTGVwbHF4YldTaVludmxPeGxBM0tQMXcyR1JLcVBhcTRUSVpVNXJaeFNSVzZNazFOaExHNUdWbjlDa3FpaUhadjZ2eldfOVA2YnZvU21GLXdOTXJ3eHdvQ1E2dF8ycjBsQ0V0YWttNHFOM3d0bjhqc1B2RFZPLU81ZHVKMXcyT3gtWmZXc3lXOW16cFJ4Sm11UkxSMkR5RVV0clcwN21fVS1lN2ViZkhCc2ZGbHFrMHM?oc=5"
+    },
+    {
+      "title": "Bessent, Warsh kick off G20 finance meeting with growth-focused remarks - cnbc.com",
+      "summary": "Bessent, Warsh kick off G20 finance meeting with growth-focused remarks cnbc.com",
+      "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE5ZMElCdDlGOFVqV2JqRFRpeEktUTRfYW51aXpYaEtVY0FzMHRNMEFjVWJkYTJxSWZlNmtnbEpoWnJLMFZRamVQOVB0WUpoQmNMNmprUmNqVTJLZXl6X280b0I3RzdXUWtlN1NLY0oweWROVnF1dGhmY9IBfkFVX3lxTE15NDB3VXpqX1ZsTXNqcGhOSmdJMDN1NzFONnU3UkhQNEpQT3VMU2M4SG1WZ08xSHZXZXJ3b3ZvTWdfQ2VRMVVtdGkyNHc3cXZ1aFQtTHZXa3RSejdSeThSTjlmdE9EUXVZVnlXcV9pSjdaMG41b2o5aEZOa05OQQ?oc=5"
+    }
+  ],
+  "us_date": "08/31",
+  "generated_at": "2026-09-01T09:07:45.189646+09:00"
+}
