@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26099.77,
+      "prev": 26370.89,
+      "chg_pct": -1.03,
+      "volume": 5809876000,
+      "market_date_us": "09/01"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7631.47,
+      "prev": 7686.14,
+      "chg_pct": -0.71,
+      "volume": 2742281000,
+      "market_date_us": "09/01"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52766.88,
+      "prev": 53185.9,
+      "chg_pct": -0.79,
+      "volume": 403942797,
+      "market_date_us": "09/01"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 16.34,
+      "prev": 14.92,
+      "chg_pct": 9.52,
+      "volume": 0,
+      "market_date_us": "09/01"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 99.65,
+      "prev": 99.43,
+      "chg_pct": 0.23,
+      "volume": 0,
+      "market_date_us": "09/01"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 90.84,
+      "prev": 85.76,
+      "chg_pct": 5.92,
+      "volume": 1719,
+      "market_date_us": "09/01"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4373.2,
+      "prev": 4431.1,
+      "chg_pct": -1.31,
+      "volume": 1147,
+      "market_date_us": "09/01"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1374.32,
+      "prev": 1366.62,
+      "chg_pct": 0.56,
+      "volume": 0,
+      "market_date_us": "09/01"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 707.64,
+      "prev": 716.76,
+      "chg_pct": -1.27,
+      "volume": 34409539,
+      "market_date_us": "09/01"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 500.31,
+      "prev": 511.04,
+      "chg_pct": -2.1,
+      "volume": 7921667,
+      "market_date_us": "09/01"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 57.2,
+      "prev": 57.71,
+      "chg_pct": -0.88,
+      "volume": 32355532,
+      "market_date_us": "09/01"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 217.44,
+      "prev": 220.78,
+      "chg_pct": -1.51,
+      "volume": 106942626,
+      "market_date_us": "09/01"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 459.61,
+      "prev": 470.72,
+      "chg_pct": -2.36,
+      "volume": 16112953,
+      "market_date_us": "09/01"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 88.97,
+      "prev": 89.51,
+      "chg_pct": -0.6,
+      "volume": 73437030,
+      "market_date_us": "09/01"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 414.0,
+      "prev": 415.32,
+      "chg_pct": -0.32,
+      "volume": 7908623,
+      "market_date_us": "09/01"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 325.13,
+      "prev": 316.85,
+      "chg_pct": 2.61,
+      "volume": 52432411,
+      "market_date_us": "09/01"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 501.02,
+      "prev": 507.29,
+      "chg_pct": -1.24,
+      "volume": 19129792,
+      "market_date_us": "09/01"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 356.09,
+      "prev": 367.95,
+      "chg_pct": -3.22,
+      "volume": 35998050,
+      "market_date_us": "09/01"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 254.92,
+      "prev": 259.77,
+      "chg_pct": -1.87,
+      "volume": 31415716,
+      "market_date_us": "09/01"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 335.02,
+      "prev": 339.35,
+      "chg_pct": -1.28,
+      "volume": 21023431,
+      "market_date_us": "09/01"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 578.54,
+      "prev": 572.34,
+      "chg_pct": 1.08,
+      "volume": 15369187,
+      "market_date_us": "09/01"
+    }
+  },
+  "news": [
+    {
+      "title": "Whirlpool (WHR) Dips More Than Broader Market: What You Should Know",
+      "summary": "Whirlpool (WHR) closed at $37.94 in the latest trading session, marking a -7.1% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/whirlpool-whr-dips-more-broader-221502134.html?.tsrc=rss"
+    },
+    {
+      "title": "Here's Why RH (RH) Fell More Than Broader Market",
+      "summary": "RH (RH) closed at $144.48 in the latest trading session, marking a -3.13% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/heres-why-rh-rh-fell-221502198.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: Market Breaks Key Levels As Oil Prices Jump; Dell, Credo, Palo Alto Are Earnings Movers",
+      "summary": "The Dow Jones and Nasdaq 100 fell below their 50-day lines as oil prices jumped. Dell, Palo Alto and Credo were earnings movers late.",
+      "link": "https://finance.yahoo.com/m/3c8f786a-671c-3fb9-bb03-81fc8be4d3f0/dow-jones-futures%3A-market.html?.tsrc=rss"
+    },
+    {
+      "title": "Core & Main (CNM) Falls More Steeply Than Broader Market: What Investors Need to Know",
+      "summary": "In the closing of the recent trading day, Core & Main (CNM) stood at $42.07, denoting a -2.07% move from the preceding trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/core-main-cnm-falls-more-220002311.html?.tsrc=rss"
+    },
+    {
+      "title": "Signet (SIG) Declines More Than Market: Some Information for Investors",
+      "summary": "Signet (SIG) closed at $81.26 in the latest trading session, marking a -1.24% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/signet-sig-declines-more-market-220002294.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Shareholders Should Brace Themselves for 1 Particular Thing in the Months to Come. Here’s What It Means for the Long-term Picture.",
+      "summary": "Nvidia’s blowout earnings report included one note of caution.",
+      "link": "https://www.fool.com/investing/2026/09/01/nvidia-shareholders-should-brace-themselves-for-1-particular-thing-in-the-months-to-come-here-s-what-it-means-for-the-long-term-picture/?.tsrc=rss"
+    },
+    {
+      "title": "Target Is Up 70% This Year but Still Down 33% From Its Peak. Here's Whether the Recovery Has Further to Run.",
+      "summary": "Target's sharp 2026 rebound is being driven by a new CEO, heavier investment in stores and merchandise, and faster-growing digital businesses, but the turnaround could be a multi-year effort.",
+      "link": "https://www.fool.com/investing/2026/09/01/target-is-up-70-this-year-but-still-down-33-from/?.tsrc=rss"
+    },
+    {
+      "title": "CEO Michael Dell Just Delivered Fantastic News for Dell Shareholders",
+      "summary": "The computer and AI specialist just delivered the company's most impressive report yet.",
+      "link": "https://www.fool.com/investing/2026/09/01/ceo-michael-dell-just-delivered-fantastic-news-for-dell-shareholders/?.tsrc=rss"
+    },
+    {
+      "title": "28 Analysts Share Their Broadcom Stock Forecast Before Q3 Earnings",
+      "summary": "Broadcom stock forecast before Q3 earnings. Analysts see 38% upside, but shares now carry the weakest money flow of 14 chip stocks.",
+      "link": "https://beincrypto.com/broadcom-stock-forecast-q3-earnings-analysis/?.tsrc=rss"
+    },
+    {
+      "title": "Broadcom's earnings loom, but this reveal came first",
+      "summary": "Days before its Q3 report, Broadcom made a move that could matter more than the headline numbers.",
+      "link": "https://www.thestreet.com/investing/broadcom-q3-earnings-ai-strategy?.tsrc=rss"
+    },
+    {
+      "title": "Tesla stock investors stand to gain from U.S. power grid",
+      "summary": "A new government policy has nothing to do with cars or robots, but could boost Elon Musk’s energy business.",
+      "link": "https://www.thestreet.com/investing/stocks/tesla-stock-investors-gain-from-executive-order-securing-us-power-grid?.tsrc=rss"
+    },
+    {
+      "title": "Tesla, Apple, Nvidia, Medtronic, Alumis, Robinhood, Fervo, and More Stocks That Explain Today’s Market",
+      "summary": "Tesla trades lower even as investors anticipate the potential entry of Cybercab into the company’s fleet of self-driving cabs.",
+      "link": "https://finance.yahoo.com/m/f25073b8-cd7e-34f5-9321-76bd88931527/tesla%2C-apple%2C-nvidia%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla's French Registrations Nearly Quadrupled While Norway Fell 79%",
+      "summary": "August data showed gains in France and Denmark against declines in five markets",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/teslas-french-registrations-nearly-quadrupled-201908359.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Cybercab Hype Is Out of Control—but Can It Save the Stock?",
+      "summary": "FEATURE Tesla stock started the week with a bang, rising 5.5% on Monday. Investors’ optimism wasn’t easy to explain. The likeliest reason, according to Future Fund co-founder Gary Black, was robo-taxis.",
+      "link": "https://finance.yahoo.com/m/8fd387a4-d1cd-3362-9057-587a32af840a/tesla-cybercab-hype-is-out-of.html?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk Sees a Power Crisis Coming and Other Takeaways From His G-20 Speech",
+      "summary": "Tesla and SpaceX CEO Elon Musk offered big predictions for AI and humanoid robots while warning of a “crisis of power.”",
+      "link": "https://finance.yahoo.com/m/6315706a-aa6b-3ff5-850e-bf0f39fb27b6/elon-musk-sees-a-power-crisis.html?.tsrc=rss"
+    },
+    {
+      "title": "Prediction: This Stock Could Be the Next Big AI Winner",
+      "summary": "AMD has already doubled in 2026 while Lisa Su insists the AI buildout is barely getting started, but a sky-high valuation and tightening export controls raise the question of whether the real gains are still ahead or already behind us.",
+      "link": "https://247wallst.com/investing/2026/09/01/prediction-this-stock-could-be-the-next-big-ai-winner/?.tsrc=rss"
+    },
+    {
+      "title": "AMD's Instinct Systems Are Now Live in Saudi Arabia -- Here's What the Next 250 Megawatts Are Worth to the Stock",
+      "summary": "The chips aren't just planned anymore. They're running and serving customers -- and an earlier agreement already puts a rough dollar figure on what comes next.",
+      "link": "https://www.fool.com/investing/2026/09/01/amd-s-instinct-systems-are-now-live-in-saudi-arabia-here-s-what-the-next-250-megawatts-are-worth-to-the-stock/?.tsrc=rss"
+    },
+    {
+      "title": "AMD vs. Alphabet: One Stock Could Be the Surprise AI Winner",
+      "summary": "AMD has already surged triple digits this year while Alphabet trades at a bargain valuation despite exploding cloud growth, and choosing between them now could define your AI portfolio returns through 2030.",
+      "link": "https://247wallst.com/investing/2026/09/01/amd-vs-alphabet-one-stock-could-be-the-surprise-ai-winner/?.tsrc=rss"
+    },
+    {
+      "title": "Two U.S. tech giants power Saudi's AI vision",
+      "summary": "Customers are already using the new system. What’s coming in 2027 is far bigger.",
+      "link": "https://www.thestreet.com/technology/amd-cisco-saudi-ai-infrastructure?.tsrc=rss"
+    },
+    {
+      "title": "Semiconductor Stocks Slide as Global Bond Selloff Lifts Yields: Intel Drops 3%, NVIDIA and AMD Slip",
+      "summary": "A global bond selloff sent long-term yields surging to levels not seen in over a year, and the chips sector is bearing the brunt as traders reprice the market's most ambitious AI growth bets.",
+      "link": "https://247wallst.com/investing/2026/09/01/semiconductor-stocks-slide-as-global-bond-selloff-lifts-yields-intel-drops-3-nvidia-and-amd-slip/?.tsrc=rss"
+    },
+    {
+      "title": "Dow tumbles 370 points after U.S. strikes Iran, but index posts fifth straight winning month - CNBC",
+      "summary": "Dow tumbles 370 points after U.S. strikes Iran, but index posts fifth straight winning month CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9SWllSeGg2NWlpUTZ4M1JrMEFTemY5YlJ0N0ZsTGF1Y1RzN241VFkwR2dYS3AxdU5BcklvSzNRZGhlUldjUGFHOV9ROTh4RzhWbG9Uak5aRnV2WXpfbjljLTRvTU1iNEtCcmdrVkI3THdmMlRCX25J0gF8QVVfeXFMT3Yxanh5VVFSd1UyVTdkTG54azlvMjNOak5TTVZ2a2oybm1PZmh3SXEtMTQtSXllamk3Q3o5azJvemdfYzRHMndUclZEdWxadGZiOHNhNjJWamJVcHpzOXRvemtiOHZiLXZoeVRvRnJGT19XQXpEU1R3WjdvZA?oc=5"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq slip but cap winning month for stocks - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq slip but cap winning month for stocks Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQbDF1ZmtVSFBxOUJsQlN5MEdsSUhoYk9UbWtOYXRSU1BWbWZuSlMtbFJtbXFFcExoVnhHUHNTNHp2LWhrZXdNMndSZzRIWnFtdzZOc09WVmxwWkNRb1BkSW95TDhKMTdDaTc0cWdQRnN0cFJmMEFYRVBNcHFIRGNyYUxhMHk1WklvNngwV2xfdTR5c0VGLTkxQzZmSHZ0QTE1dm4zSjRreU5JRjQ?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Nasdaq, Dow Fall as Bond Selloff Intensifies — Live Updates - WSJ",
+      "summary": "Stock Market Today: Nasdaq, Dow Fall as Bond Selloff Intensifies — Live Updates WSJ",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPcl9Ibkp4OTFIVzB6WGMzSUlxRi11RXUtSHY5X2l4WFRPRHVNVGZ3WFNSWDgwY3MxY1NnUDN6aUxmMW5wcURwdnNlYXVrbXlFOFZRWFZPdzlhb0NTZWloWlNvQ0FDZjJlN3BKcXhZSDJUYTQ4OFB1THRQZDk2UnlxUnlWQ05zRjQ?oc=5"
+    },
+    {
+      "title": "Global bonds sell off as Middle East conflict escalates, further stoking inflation fears - CNN",
+      "summary": "Global bonds sell off as Middle East conflict escalates, further stoking inflation fears CNN",
+      "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTE5USXlYc1JQOEFTU0FBQ3dTSDVWYzBtNzBWLTJxeVlyQnBFcmY2dlRIeUFreGh2UlZLREY5TmV5cENUazNBSFNvV2NBVTh3REptZEdTMW9qd2d3QXBMQkRrRE05ZTA4SlhfUGlZ?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Dow off 400 points, S&P 500 and Nasdaq lower; 10-year Treasury yield at 20-month high, while oil jumps on new U.S. strikes against Iran - MarketWatch",
+      "summary": "Stock Market Today: Dow off 400 points, S&P 500 and Nasdaq lower; 10-year Treasury yield at 20-month high, while oil jumps on new U.S. strikes against Iran MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNd2lnVGExcHFfSGVqWTlTTlF1T0dWTTBoaTlSV203cmJMbHpraF9VZGxvSDg1d1E1WWlsSlRabmtlZEZfVlNtMGtEZEV3bU9NejBXdjhaQWVva0I0bFNudWdxSGlQUmswRF9SV2tqLWZMM3U5eWFQdjhYQlAyQWFNZE8zWlB3QjVfQk5kN1g1RG5NUUhVLTB2MzNZNGlxTW8zUGdoTUJKTVFyNUllQXFBbTFFSzBPVkhvMWxQU3d3aHNDLVNsRi1HUzFFX1NsM2pXdmp3VXlDaw?oc=5"
+    }
+  ],
+  "us_date": "09/01",
+  "generated_at": "2026-09-02T07:51:00.451711+09:00"
+}
