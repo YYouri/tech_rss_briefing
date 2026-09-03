@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26584.06,
+      "prev": 26217.83,
+      "chg_pct": 1.4,
+      "volume": 6518648000,
+      "market_date_us": "09/03"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7747.71,
+      "prev": 7666.6,
+      "chg_pct": 1.06,
+      "volume": 2695072000,
+      "market_date_us": "09/03"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 53686.11,
+      "prev": 53061.95,
+      "chg_pct": 1.18,
+      "volume": 410262852,
+      "market_date_us": "09/03"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 14.32,
+      "prev": 15.2,
+      "chg_pct": -5.79,
+      "volume": 0,
+      "market_date_us": "09/03"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 99.0,
+      "prev": 99.56,
+      "chg_pct": -0.56,
+      "volume": 0,
+      "market_date_us": "09/03"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 91.77,
+      "prev": 91.01,
+      "chg_pct": 0.84,
+      "volume": 591,
+      "market_date_us": "09/03"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4523.5,
+      "prev": 4366.3,
+      "chg_pct": 3.6,
+      "volume": 1833,
+      "market_date_us": "09/03"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1355.97,
+      "prev": 1358.39,
+      "chg_pct": -0.18,
+      "volume": 0,
+      "market_date_us": "09/03"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 717.67,
+      "prev": 709.24,
+      "chg_pct": 1.19,
+      "volume": 29342845,
+      "market_date_us": "09/03"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 502.2,
+      "prev": 501.44,
+      "chg_pct": 0.15,
+      "volume": 6413121,
+      "market_date_us": "09/03"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 58.56,
+      "prev": 57.66,
+      "chg_pct": 1.56,
+      "volume": 32643053,
+      "market_date_us": "09/03"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 228.45,
+      "prev": 224.41,
+      "chg_pct": 1.8,
+      "volume": 133890362,
+      "market_date_us": "09/03"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 456.16,
+      "prev": 457.06,
+      "chg_pct": -0.2,
+      "volume": 14826068,
+      "market_date_us": "09/03"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 91.67,
+      "prev": 90.05,
+      "chg_pct": 1.8,
+      "volume": 79677381,
+      "market_date_us": "09/03"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 417.01,
+      "prev": 415.5,
+      "chg_pct": 0.36,
+      "volume": 7804523,
+      "market_date_us": "09/03"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 328.21,
+      "prev": 324.96,
+      "chg_pct": 1.0,
+      "volume": 37197362,
+      "market_date_us": "09/03"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 510.12,
+      "prev": 496.82,
+      "chg_pct": 2.68,
+      "volume": 24108434,
+      "market_date_us": "09/03"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 376.37,
+      "prev": 357.01,
+      "chg_pct": 5.42,
+      "volume": 62838720,
+      "market_date_us": "09/03"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 258.9,
+      "prev": 254.98,
+      "chg_pct": 1.54,
+      "volume": 26809147,
+      "market_date_us": "09/03"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 342.48,
+      "prev": 337.12,
+      "chg_pct": 1.59,
+      "volume": 20685797,
+      "market_date_us": "09/03"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 610.68,
+      "prev": 592.85,
+      "chg_pct": 3.01,
+      "volume": 19692164,
+      "market_date_us": "09/03"
+    }
+  },
+  "news": [
+    {
+      "title": "S&P 500, Dow End Best Day In A Month On Calmer Yields As Rate Hike Bets Wane — SPCX, VSXY, NVDA, TSLA In Focus",
+      "summary": "Federal Reserve Governor Christopher Waller advocated leaving rates unchanged, provided inflation showed signs of cooling off.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-dow-end-best-day-in-a-month/cZsufnBRJvu?.tsrc=rss"
+    },
+    {
+      "title": "Waste Management (WM) Exceeds Market Returns: Some Facts to Consider",
+      "summary": "Waste Management (WM) concluded the recent trading session at $221.72, signifying a +1.22% move from its prior day's close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/waste-management-wm-exceeds-market-221501351.html?.tsrc=rss"
+    },
+    {
+      "title": "Valero Energy (VLO) Laps the Stock Market: Here's Why",
+      "summary": "Valero Energy (VLO) reached $370.69 at the closing of the latest trading day, reflecting a +1.26% change compared to its last close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/valero-energy-vlo-laps-stock-220003359.html?.tsrc=rss"
+    },
+    {
+      "title": "Arch Capital Group (ACGL) Outpaces Stock Market Gains: What You Should Know",
+      "summary": "Arch Capital Group (ACGL) reached $99.83 at the closing of the latest trading day, reflecting a +1.65% change compared to its last close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/arch-capital-group-acgl-outpaces-220003744.html?.tsrc=rss"
+    },
+    {
+      "title": "Boston Scientific (BSX) Stock Declines While Market Improves: Some Information for Investors",
+      "summary": "In the most recent trading session, Boston Scientific (BSX) closed at $46.95, indicating a -2.94% shift from the previous trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/boston-scientific-bsx-stock-declines-220002935.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia’s $12.93 Billion Hugging Face Deal Expands Jensen Huang's AI Platform Beyond Chips",
+      "summary": "Nvidia is paying $12.93 billion for Hugging Face, the open-source AI hub used by more than 18 million developers and 200,000 companies.",
+      "link": "https://www.fool.com/investing/2026/09/03/nvidias-1293-billion-hugging-face-deal-expands-jensen-huangs-ai-platform-beyond-chips/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia’s $5 Billion Intel Bet Was Worth $30 Billion by June. Is the Partnership Still Mispriced?",
+      "summary": "Nvidia’s $5 billion Intel investment has produced an extraordinary paper gain, but the timeline matters. The companies announced the investment and product collaboration on September 18, 2025. Intel’s SEC filing shows that NVIDIA Corporation (NASDAQ:NVDA) actually completed the purchase on December 26, 2025, acquiring 214,776,632 Intel shares at $23.28 each for $5 billion. Nvidia’s June […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-5-billion-intel-bet-213940172.html?.tsrc=rss"
+    },
+    {
+      "title": "Rosenblatt Doubles Down on Nvidia After Massive Deal",
+      "summary": "The acquisition may be about far more than software",
+      "link": "https://finance.yahoo.com/technology/ai/articles/rosenblatt-doubles-down-nvidia-massive-212520777.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Is Oracle Stock Up Today?",
+      "summary": "Oracle has taken on tens of billions in debt to fund its AI data center build-out, a lower-rate outlook offers it outsize relief.",
+      "link": "https://www.fool.com/investing/2026/09/03/why-is-oracle-stock-up-today/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia lands surprise $6B GPU windfall with humanoid robotics titan Figure",
+      "summary": "AI cloud Nscale ignites robotics flywheel with Figure, deploying Nvidia's Vera Rubin in 2027",
+      "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-lands-surprise-6b-gpu-211851997.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: Stocks Jump On Fed's Waller; Tesla Cybercab Event Private, Jobs Report Looms",
+      "summary": "The stock market jumped above key levels Thursday, buoyed by Snowflake and dovish Fed comments. Tesla held a private Cybercab event. The jobs report is on tap.",
+      "link": "https://finance.yahoo.com/m/dd97f557-8162-348b-8996-795ae7092089/dow-jones-futures%3A-stocks.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Launching Cybercab Robotaxis. Here's What To Look For.",
+      "summary": "Tesla is holding a private event to showcase its new robotaxi-specific Cybercab model on Thursday. Shares jumped in the regular session.",
+      "link": "https://finance.yahoo.com/m/ac70a980-561d-380d-aa13-2c3c0038032a/tesla-launching-cybercab.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla's 45 Cybercabs Face a $1.3 Trillion Reality Check",
+      "summary": "A flashy Austin event cannot replace permits, fleet scale or commercially proven autonomous economics",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/teslas-45-cybercabs-face-1-213407966.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Stock Soars Ahead of Cybercab Launch",
+      "summary": "Tesla Stock Jumps as Cybercab Debut Nears: Can Musk Deliver on Robotaxi Promise?",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-stock-soars-ahead-cybercab-212924792.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Gets Fresh Model Y Win as Shares Jump",
+      "summary": "A small specification change could strengthen Tesla's biggest seller",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-gets-fresh-model-y-212439111.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD (AMD) Stock May Be 24% Undervalued On Saudi AI Expansion",
+      "summary": "Advanced Micro Devices has delivered a very large 5-year gain, yet its current valuation signals are split, with the Discounted Cash Flow (DCF) intrinsic value estimate pointing to upside while market based multiples lean expensive. Over the past 5 years, Advanced Micro Devices has returned about 330.5%, which places extra focus on whether today’s price still leaves enough room for attractive futu",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/amd-amd-stock-may-24-210938296.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Is AMD (AMD) Becoming More Important In Secure AI Infrastructure?",
+      "summary": "Advanced Micro Devices (NasdaqGS:AMD) has taken a larger role in secure AI infrastructure through its contributions to the Linux Foundation TRACE project for verifiable AI runtime governance. TRACE aims to set common standards for how AI workloads are monitored and governed across cloud and data center environments, with AMD helping shape requirements for hardware based attestation. Anjuna has lau",
+      "link": "https://finance.yahoo.com/technology/ai/articles/why-amd-amd-becoming-more-201246264.html?.tsrc=rss"
+    },
+    {
+      "title": "Cathie Wood Sold About $72.8 Million of AMD and Bought About $53 Million of Nvidia. What Changed?",
+      "summary": "Cathie Wood appears to have made a sharp choice inside the same AI trade. ARK Invest’s August 28 transaction disclosure showed sales of 156,286 shares of Advanced Micro Devices, Inc. (NASDAQ:AMD) and purchases of 243,707 shares of NVIDIA Corporation (NASDAQ:NVDA). Based on the August 28 closing prices, the moves were worth an estimated $72.8 million […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/cathie-wood-sold-72-8-200905404.html?.tsrc=rss"
+    },
+    {
+      "title": "Could a $10,000 Investment in AMD Double by the End of 2028?",
+      "summary": "The chipmaker just posted a great quarter, but a lot of its expected success is already priced into the stock.",
+      "link": "https://www.fool.com/investing/2026/09/03/could-a-10000-investment-in-amd-double-by-the-end/?.tsrc=rss"
+    },
+    {
+      "title": "ASUS Expands AI Infrastructure Ecosystem from Cloud to Edge",
+      "summary": "At ASUS AI Tech 2026, ASUS today announced the expansion of its AI infrastructure ecosystem through strategic collaborations with Intel®, AMD, and a broader network of technology partners including Aleria, Foxlink, IBM, Samsung, Schneider Electric, and WD. The event shows how ASUS and its partners are driving AI innovation across the technology stack, accelerating AI adoption, and shaping the futu",
+      "link": "https://finance.yahoo.com/technology/ai/articles/asus-expands-ai-infrastructure-ecosystem-154900899.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500 post best day in a month, Nasdaq jumps as rate-hike fears ease - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500 post best day in a month, Nasdaq jumps as rate-hike fears ease Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxQdFQzczVJcTRIS1ZyX1FXU2Z1UGdJdy1rODZfUzlNaE5OMGYyTklaSndXZ1B0YlF1WFoteWpNdUNGY1NLdEFFTzNPS0w5bVNRNV9GOGg2MUR0MWV6Zk4wRjA2NWdDaFg0a2J1R2NqZjRIUWhGT3hVcHhHUWFJVzU2ZTNJcnhiNFdmLTE1ZGduelBSSjNXZ0lnY0NNeHlGbkVPbDVjVFZ4OExxMzhmTW1lT3NteGRxY1dZZ1Nn?oc=5"
+    },
+    {
+      "title": "S&P 500 posts back-to-back gains as Treasury yields retreat: Live updates - cnbc.com",
+      "summary": "S&P 500 posts back-to-back gains as Treasury yields retreat: Live updates cnbc.com",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9tZmdtNmZXU09LTVJCOFJZbG1uYmJwd0c2ZFM2S3UwQXo4WjVzNmJ6TXBXWlFPTmdHQ1hPVnVuc01vbktmdjAySlcwZ19YbURRSHhtTFJjR3N3T1BaVElvNXNHT0MwT2VNS1dzTXBiNWM5Y0I4d2pF0gF8QVVfeXFMUFZoRkZnVzM4WFBfMWM3Y0ZWbDZHYUVJNlkzanZFM2hoZWl4Wl9FYkJwaHE5a1U2SmFoWUZyMTVHS1BuZDd5c2x0a29rRnZGLW9JRW9rNWN4UXlhS0ItZ2VYWE5lRG1kWDZxZXdlZDlHSk1GZFVaakkxV2txZQ?oc=5"
+    },
+    {
+      "title": "Stock futures are little changed as traders await August jobs report: Live updates - cnbc.com",
+      "summary": "Stock futures are little changed as traders await August jobs report: Live updates cnbc.com",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1mNWp4VDc2ak1DN1JLX3cteTNHNlZVVFhrbl9tajVGNEpTSTR6bm9rWDJDcW5GbVhLQmktLWhqdUpMb0Q4Z1hhdW9LcjNGVk5kQkJkX29EUUFGWGI5VVhhN1Z0azc1WjlnMERMd3FDLUFVNzFLMHA40gF8QVVfeXFMTVVoemFpTmFxdjFvOGJsc1pRYk95LWh4R1VoNGdvNno4aG9SNmphZnVWTExaaGhIUnpra0ZtUUNMVXVWYWhHUUg0RUJ5OTA0OVVsb2YtZXp5Qno0TlVrd29Gd2lKVXhjU2prMkpFMnpkM2xacFRpTzVNMWJiNA?oc=5"
+    },
+    {
+      "title": "The war is raising the price of money. That’s a problem for the global economy - CNN",
+      "summary": "The war is raising the price of money. That’s a problem for the global economy CNN",
+      "link": "https://news.google.com/rss/articles/CBMie0FVX3lxTE0xZTBDRTNvU195ZGJ4SWdReGlkWEhwQ1FzWExVSDVpUWRoamhmVTJWckhNbzhTQzZmTlY5NHk1SFVQdUp4OTBib2xGN21GUE93N3Z4Y0J3SU1hU203X0J5NVVIRGpab05ESDV0WHBhV01jZGZLOHgwdGh1RQ?oc=5"
+    },
+    {
+      "title": "Stock Market on Sept. 3, 2026: Dow, S&P 500, Nasdaq end sharply higher as software stocks and Big Tech rally; Treasury yields ease after Fed governor Waller's remarks - MarketWatch",
+      "summary": "Stock Market on Sept. 3, 2026: Dow, S&P 500, Nasdaq end sharply higher as software stocks and Big Tech rally; Treasury yields ease after Fed governor Waller's remarks MarketWatchMarkets News, Sept. 3, 2026: Stocks Surge to Close Higher for 2nd Straight Day as Treasury Yields Fall InvestopediaDow rises nearly 300 points to snap three-day slide as Treasury yields cool cnbc.com",
+      "link": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxOMUdabU83WGZ0SlI5MFIyLXpfd094QWVxdktrYWJJa3lsX2RJY2ZIYVp2bHhZMkMxVjdzMFM5emxUbDNHaVhCdHZOMmNiVmtTRndQam5mbXdfaVhWaDBjYzB2anNhZ3dPT2RQOXR1TklIY1lYc2lJQXMxY0lMMGxLb29CaHIzMEJIT1dLMzA5SXZTVUU0N3ltbUxLVGFkbzhmalRoZHlNMjNXUGZUOXF1Z0F4V3R2R3NLQjVnVWMzZ3E?oc=5"
+    }
+  ],
+  "us_date": "09/03",
+  "generated_at": "2026-09-04T07:50:56.895129+09:00"
+}
