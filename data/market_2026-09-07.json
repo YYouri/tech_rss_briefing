@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26506.99,
+      "prev": 26584.06,
+      "chg_pct": -0.29,
+      "volume": 5604391000,
+      "market_date_us": "09/04"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7718.6,
+      "prev": 7747.71,
+      "chg_pct": -0.38,
+      "volume": 2531375000,
+      "market_date_us": "09/04"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 53414.25,
+      "prev": 53686.11,
+      "chg_pct": -0.51,
+      "volume": 381137227,
+      "market_date_us": "09/04"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 14.53,
+      "prev": 14.32,
+      "chg_pct": 1.47,
+      "volume": 0,
+      "market_date_us": "09/04"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 99.16,
+      "prev": 99.16,
+      "chg_pct": -0.0,
+      "volume": 0,
+      "market_date_us": "09/06"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 91.48,
+      "prev": 91.48,
+      "chg_pct": -0.0,
+      "volume": 2927,
+      "market_date_us": "09/06"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4476.6,
+      "prev": 4429.8,
+      "chg_pct": 1.06,
+      "volume": 842,
+      "market_date_us": "09/06"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1345.12,
+      "prev": 1355.41,
+      "chg_pct": -0.76,
+      "volume": 0,
+      "market_date_us": "09/06"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 718.96,
+      "prev": 717.67,
+      "chg_pct": 0.18,
+      "volume": 32871076,
+      "market_date_us": "09/04"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 519.86,
+      "prev": 502.2,
+      "chg_pct": 3.52,
+      "volume": 9234036,
+      "market_date_us": "09/04"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 58.1,
+      "prev": 58.56,
+      "chg_pct": -0.79,
+      "volume": 26249596,
+      "market_date_us": "09/04"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 230.36,
+      "prev": 228.45,
+      "chg_pct": 0.84,
+      "volume": 135352420,
+      "market_date_us": "09/04"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 477.57,
+      "prev": 456.16,
+      "chg_pct": 4.69,
+      "volume": 19678742,
+      "market_date_us": "09/04"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 95.8,
+      "prev": 91.67,
+      "chg_pct": 4.51,
+      "volume": 97654325,
+      "market_date_us": "09/04"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 428.91,
+      "prev": 417.01,
+      "chg_pct": 2.85,
+      "volume": 12267758,
+      "market_date_us": "09/04"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 319.97,
+      "prev": 328.21,
+      "chg_pct": -2.51,
+      "volume": 39606884,
+      "market_date_us": "09/04"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 499.7,
+      "prev": 510.12,
+      "chg_pct": -2.04,
+      "volume": 18101758,
+      "market_date_us": "09/04"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 354.08,
+      "prev": 376.37,
+      "chg_pct": -5.92,
+      "volume": 65018209,
+      "market_date_us": "09/04"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 258.51,
+      "prev": 258.9,
+      "chg_pct": -0.15,
+      "volume": 30749912,
+      "market_date_us": "09/04"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 338.46,
+      "prev": 342.48,
+      "chg_pct": -1.17,
+      "volume": 23189321,
+      "market_date_us": "09/04"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 616.77,
+      "prev": 610.68,
+      "chg_pct": 1.0,
+      "volume": 15966213,
+      "market_date_us": "09/04"
+    }
+  },
+  "news": [
+    {
+      "title": "Meet the Dirt Cheap 6.4%-Yielding Dividend Stock That's Beating the Market in 2026",
+      "summary": "Altria has crushed it in 2026, but be well aware of the risks.",
+      "link": "https://www.fool.com/investing/2026/09/06/meet-the-dirt-cheap-6-yielding-dividend-stock-that/?.tsrc=rss"
+    },
+    {
+      "title": "The Stock Market Just Entered Its Worst Month of the Year. History Says This Is What Investors Should Do.",
+      "summary": "Even though September has historically been a rough month, history says investors shouldn't try to avoid it.",
+      "link": "https://www.fool.com/investing/2026/09/06/stock-market-worst-month-of-year-history-says-do/?.tsrc=rss"
+    },
+    {
+      "title": "This Stock Has the Highest Dividend Yield in the S&P 500. It Just Raised Its Dividend Again.",
+      "summary": "Vici Properties continues to hand more cash to shareholders.",
+      "link": "https://www.fool.com/investing/2026/09/06/this-stock-has-the-highest-dividend-yield-in-the-s/?.tsrc=rss"
+    },
+    {
+      "title": "ETF Inflows Set a Record in July. The Fee Mix Moved at the Same Time.",
+      "summary": "Investors are still buying exchange-traded funds in huge numbers, but Wall Street has figured out how to make this transition more profitable, too.",
+      "link": "https://www.fool.com/investing/2026/09/06/etf-inflows-set-a-record-in-july-the-fee-mix-moved/?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Investors Just Got a Warning From the Federal Reserve. History Says This Will Happen Next.",
+      "summary": "The Federal Reserve recently warned investors that the S&P 500's equity risk premium was near its lowest level in decades.",
+      "link": "https://www.fool.com/investing/2026/09/06/stock-market-investors-warning-federal-reserve/?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures Fall With Iran, Apple, Inflation In Focus; Nvidia, Micron, Sandisk Flash Buy Signals",
+      "summary": "Dow Jones futures: The U.S. and Iran exchanged attacks. Nvidia, Micron, Sandisk are buys, but for how long? Apple, inflation data loom.",
+      "link": "https://finance.yahoo.com/m/d5001ca0-1c20-3379-83c3-ddca4526f9c2/dow-jones-futures-fall-with.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia CEO Jensen Huang Says AGI Has Arrived With OpenAI's GPT-6 Astra",
+      "summary": "Jensen Huang says AGI has arrived after OpenAI's newest model trained on NVIDIA chips. OpenAI has not said it.",
+      "link": "https://beincrypto.com/jensen-huang-agi-nvidia-astra-chips/?.tsrc=rss"
+    },
+    {
+      "title": "Can Nvidia (NVDA) Prove it Doesn’t Live or Die by a Handful of Hyperscalers?",
+      "summary": "NVIDIA Corporation (NASDAQ:NVDA) biggest lingering investor concern was customer concentration, CNBC reported. Nvidia relies on hyperscalers Amazon, Google, and Microsoft, along with major buyers Meta and SpaceX, for an outsized share of revenue, and in May began splitting its data center reporting into “hyperscalers” versus everyone else, a group it calls AI clouds, industrial, and […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-nvda-prove-doesn-t-202105317.html?.tsrc=rss"
+    },
+    {
+      "title": "Could $10,000 Invested in Nvidia Today Make You a Millionaire?",
+      "summary": "Nvidia stock has jumped significantly over the past decade, and the good news is that it still has multibagger potential.",
+      "link": "https://www.fool.com/investing/2026/09/06/could-10000-invested-in-nvidia-today-make-you-a-mi/?.tsrc=rss"
+    },
+    {
+      "title": "Goldman sees Cybercab giving Tesla a cost advantage in robotaxis",
+      "summary": "Investing.com -- Tesla’s Cybercab could give the company a cost advantage in the autonomous-vehicle market, but its ability to scale robotaxi operations will depend more on software performance than manufacturing costs, Goldman Sachs analysts said. Tesla hosted a Cybercab launch event in Austin on Sept. 3 and has begun offering robotaxi rides in the vehicle, according to the Goldman Sachs research",
+      "link": "https://finance.yahoo.com/technology/ai/articles/goldman-sees-cybercab-giving-tesla-214658906.html?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk's Tesla Cybertruck Has A New Ford Rival That Wants To Outsell It 5-To-1",
+      "summary": "Tesla Inc CEO Elon Musk once had an ambitious goal of producing 250,000 Cybertrucks annually. Demand for the electric pickup truck never reached the levels Musk expected. Auto rival Ford Motor Company is making its electric pickup truck comeback and...",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/elon-musks-tesla-cybertruck-ford-160016241.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla's Cybercab just met its first real test, and it's federal",
+      "summary": "Austin was the easy part. The number Tesla was avoiding is the story.",
+      "link": "https://www.thestreet.com/automotive/teslas-cybercab-just-met-its-first-real-test-and-its-federal?.tsrc=rss"
+    },
+    {
+      "title": "Gene Munster Says Tesla Cybercab's Austin Launch Signals Elon Musk’s ‘Paranoid’ Phase Over Robotaxi Accidents Is Over: ‘That’s Just the Start’",
+      "summary": "Investor Gene Munster of Deepwater Asset Management thinks that the Tesla Inc. Cybercab launch reflects a shift in CEO Elon Musk‘s outlook on incidents involving self-driving vehicles. 300 Cybercabs in Austin In a post on X on Thursday, Munster quoted...",
+      "link": "https://finance.yahoo.com/technology/articles/gene-munster-says-tesla-cybercabs-013023621.html?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk Says Cybercab Is Gold to Reflect 'Golden Era' of Mobility as Tesla Launches Robotaxi With Starlink",
+      "summary": "Tesla Inc. CEO Elon Musk on Thursday touted a new era in mobility following the EV giant’s Cybercab launch, touting Starlink connectivity, workforce expansion and more. A ‘Golden Era’ in Transport User Doge Designer shared a video of the Cybercab...",
+      "link": "https://finance.yahoo.com/technology/articles/elon-musk-says-cybercab-gold-213015412.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Committed Up to $5 Billion to Anthropic, and Anthropic's IPO Prospectus Is Reportedly Days Away",
+      "summary": "The chipmaker's up-to-$5 billion pledge comes with conditions attached -- and the company on the receiving end is about to get a public price.",
+      "link": "https://www.fool.com/investing/2026/09/05/amd-committed-up-to-usd5-billion-to-anthropic-and-anthropic-s-ipo-prospectus-is-reportedly-days-away/?.tsrc=rss"
+    },
+    {
+      "title": "AMD’s Data Center Revenue and EPS to Double by 2027 — With Shares Down 19%, It’s a Buy",
+      "summary": "Strong demand for AMD’s AI accelerators and server CPUs, combined with an improving product mix, positions it to deliver solid growth.",
+      "link": "https://www.barchart.com/story/news/4450271/amds-data-center-revenue-and-eps-to-double-by-2027-with-shares-down-19-its-a-buy?.tsrc=rss"
+    },
+    {
+      "title": "Intel Climbs 4%, AMD Rises 3%, NVIDIA Ticks Up as Chip Stocks Shrug Off Rising Rate Hike Odds",
+      "summary": "A blowout jobs report pushed September rate hike odds past 60%, which should have hammered high-multiple chip stocks. Instead, the semiconductor complex ran straight into the headwind and left the rest of tech behind.",
+      "link": "https://247wallst.com/investing/2026/09/04/intel-climbs-4-as-chip-stocks-shrug-off-rising-rate-hike-odds-nvidia-and-amd-move-higher/?.tsrc=rss"
+    },
+    {
+      "title": "Cathie Wood Cuts AMD and Puts $53 Million Into Nvidia",
+      "summary": "ARK Invest shifted its semiconductor exposure after Nvidia's latest earnings, selling about $72.8 million of AMD while adding to Nvidia.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/cathie-wood-cuts-amd-puts-133412523.html?.tsrc=rss"
+    },
+    {
+      "title": "ORCL Eyes Breakout as AMD and Intel Test Key Support",
+      "summary": "Oracle is challenging resistance near $156.35, while AMD sits at a major inflection point around $450. Intel is also searching for a base near $87 as traders watch for momentum to confirm a potential double bottom.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/orcl-eyes-breakout-amd-intel-131234796.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow tumbles more than 260 points after strong jobs report reignites rate hike fears: Live updates - CNBC",
+      "summary": "Dow tumbles more than 260 points after strong jobs report reignites rate hike fears: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1mNWp4VDc2ak1DN1JLX3cteTNHNlZVVFhrbl9tajVGNEpTSTR6bm9rWDJDcW5GbVhLQmktLWhqdUpMb0Q4Z1hhdW9LcjNGVk5kQkJkX29EUUFGWGI5VVhhN1Z0azc1WjlnMERMd3FDLUFVNzFLMHA40gF8QVVfeXFMTVVoemFpTmFxdjFvOGJsc1pRYk95LWh4R1VoNGdvNno4aG9SNmphZnVWTExaaGhIUnpra0ZtUUNMVXVWYWhHUUg0RUJ5OTA0OVVsb2YtZXp5Qno0TlVrd29Gd2lKVXhjU2prMkpFMnpkM2xacFRpTzVNMWJiNA?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Stocks close lower as strong jobs data stir rate-hike jitters; Treasury yields tick up - MarketWatch",
+      "summary": "Stock Market Today: Stocks close lower as strong jobs data stir rate-hike jitters; Treasury yields tick up MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQc2IyY1RfVnpodThhamFUSERnTEw4bm9tU1BXUXUzX1I3SjNmal9ZTWdVT1dQMVZtYU9LQmY3dm5kLTRnWktrVFJBSWlVX2hKOFk1dWFjaV82dDlWaWFkd2RmUlBNQjUtcDhGeC1WWjNEbTNvQ01UWDRSR3cteENlRUVhWUh1eW1oWV93NzNmdW9XandyU0lyclM1bmxPeFVScnlraEdXZzFzN3VMYjlnNQ?oc=5"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq slip as blowout jobs report raises odds of a Fed rate hike - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq slip as blowout jobs report raises odds of a Fed rate hike Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOSEduYmNhNEJkTkJJbUhPZmZaZ3NTZC1tN1BOeUFpV2xXRlZ4SDVCRThIYm10NmJpVVJwX003UHVjdmRLeWxJT2sxS2RKVV94YlhmUmd2QUNaZEZ3WUVhT25HRzdsNlBhZWxHV3ZCZ1g4alN1WEhpT0gzYV9oeElLR1RCSzFRU0IzV2t4dGRLSHBYVjNZODUycDRyMUtwY1BkTG9HNVZfbjQwdlFSZEFTdDJLMzQzS1V4RmR6WXVqZk13c09DQllr?oc=5"
+    },
+    {
+      "title": "Markets News, Sept. 4, 2026: Stocks Close Lower as Hot August Jobs Report Lifts Expectations for Fed Interest Rate Hike - investopedia.com",
+      "summary": "Markets News, Sept. 4, 2026: Stocks Close Lower as Hot August Jobs Report Lifts Expectations for Fed Interest Rate Hike investopedia.com",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxQY0hXOEV6VnRRRkZpcmpvMElVb09kTTh2WEhueVUtejNQU3pULWlyT0RGYzlZRUpZOFdlNkJDNllnSjVCeFI5Q0w5RDJmSU5rVHVCZ0lvWllpSUFTR09oVHBkaHhFdWtVcmVxQldhU2E5bGtIMlJBUWpSYkxMT2xDYnY4VHR6VEZwdFQyMGQ4TjY?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Nasdaq 100, S&P 500 Futures Rise, Dow Jones Edges Lower as U.S. Jobs Rebound by 162,0 - Benzinga",
+      "summary": "Stock Market Today: Nasdaq 100, S&P 500 Futures Rise, Dow Jones Edges Lower as U.S. Jobs Rebound by 162,0 Benzinga",
+      "link": "https://news.google.com/rss/articles/CBMihAJBVV95cUxNQ0tON0sybnVHMjJNcTd0T2tzQ19kc0RKYVdwLUR3V0FrMHZIVHZaWVd6cDNQV3hfeHdpTHF4WEZpVklnQjczeHFkbHBKaTNDdjJweEVST2tvcXVXS0xMV1JBdThzQlJGM3MtT05rR1ppVHk2VEJNdzNSTWNST1pFbEtMQ25rR1A5NzFDa19qZ2ZDZ2tSOW50WXlJdzRfam4yWUxDN0JCdVJmcDB6RnowRVZndlNyMEVrNXB4MU5WdFFZZ18tSk9HOU95ZTZlRzM2S3puZG8wcGxUTmhUek1nY1dDYU4yRGtOUnlGaXlzNWdHbktRZG5wbFQyb1ZSY3R6Rm81bw?oc=5"
+    },
+    {
+      "title": "Wall Street ends lower as solid jobs data fuels hawkish Fed bets - Reuters",
+      "summary": "Wall Street ends lower as solid jobs data fuels hawkish Fed bets Reuters",
+      "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxNeHN0dDlKUW5GZFotZml1LU1iRHB2dkFERDZDbVhFTUdZcFJtQmdqNFhDS0RsUk9PNEdCVGhTdVEydUZWd1FfM3dENlVFYV9QeXRNX2NWSjN2cS1NRVZ6YjU0WGRqQmJKMkZGOEczeHBzenpSS3Z4aEdZUms1a0RhcWUyOGdKM0ZrUk43N0J1aXBRUi1neE1rcFFR?oc=5"
+    }
+  ],
+  "us_date": "09/04",
+  "generated_at": "2026-09-07T07:27:20.543394+09:00"
+}
