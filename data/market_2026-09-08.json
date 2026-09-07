@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26506.99,
+      "prev": 26584.06,
+      "chg_pct": -0.29,
+      "volume": 5669990000,
+      "market_date_us": "09/04"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7718.6,
+      "prev": 7747.71,
+      "chg_pct": -0.38,
+      "volume": 2531375000,
+      "market_date_us": "09/04"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 53414.25,
+      "prev": 53686.11,
+      "chg_pct": -0.51,
+      "volume": 381137227,
+      "market_date_us": "09/04"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 15.3,
+      "prev": 14.53,
+      "chg_pct": 5.3,
+      "volume": 0,
+      "market_date_us": "09/07"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 99.18,
+      "prev": 99.16,
+      "chg_pct": 0.02,
+      "volume": 0,
+      "market_date_us": "09/07"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 92.61,
+      "prev": 91.48,
+      "chg_pct": 1.24,
+      "volume": 99283,
+      "market_date_us": "09/07"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4452.6,
+      "prev": 4429.8,
+      "chg_pct": 0.51,
+      "volume": 71554,
+      "market_date_us": "09/07"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1344.83,
+      "prev": 1345.06,
+      "chg_pct": -0.02,
+      "volume": 0,
+      "market_date_us": "09/07"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 718.96,
+      "prev": 717.67,
+      "chg_pct": 0.18,
+      "volume": 32871076,
+      "market_date_us": "09/04"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 519.86,
+      "prev": 502.2,
+      "chg_pct": 3.52,
+      "volume": 9234036,
+      "market_date_us": "09/04"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 58.1,
+      "prev": 58.56,
+      "chg_pct": -0.79,
+      "volume": 26249596,
+      "market_date_us": "09/04"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 230.36,
+      "prev": 228.45,
+      "chg_pct": 0.84,
+      "volume": 135352420,
+      "market_date_us": "09/04"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 477.57,
+      "prev": 456.16,
+      "chg_pct": 4.69,
+      "volume": 19678742,
+      "market_date_us": "09/04"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 95.8,
+      "prev": 91.67,
+      "chg_pct": 4.51,
+      "volume": 97654325,
+      "market_date_us": "09/04"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 428.91,
+      "prev": 417.01,
+      "chg_pct": 2.85,
+      "volume": 12267758,
+      "market_date_us": "09/04"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 319.97,
+      "prev": 328.21,
+      "chg_pct": -2.51,
+      "volume": 39606884,
+      "market_date_us": "09/04"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 499.7,
+      "prev": 510.12,
+      "chg_pct": -2.04,
+      "volume": 18101758,
+      "market_date_us": "09/04"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 354.08,
+      "prev": 376.37,
+      "chg_pct": -5.92,
+      "volume": 65018209,
+      "market_date_us": "09/04"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 258.51,
+      "prev": 258.9,
+      "chg_pct": -0.15,
+      "volume": 30749912,
+      "market_date_us": "09/04"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 338.46,
+      "prev": 342.48,
+      "chg_pct": -1.17,
+      "volume": 23189321,
+      "market_date_us": "09/04"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 616.77,
+      "prev": 610.68,
+      "chg_pct": 1.0,
+      "volume": 15966213,
+      "market_date_us": "09/04"
+    }
+  },
+  "news": [
+    {
+      "title": "S&P 500 Investors Brace for Brutal Holiday Pattern",
+      "summary": "Wall Street's return from holiday carries an unusually grim warning",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/p-500-investors-brace-brutal-215051560.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500 Adds 3 Surging Stocks in Major Shake-Up",
+      "summary": "Three market winners are about to gain a powerful catalyst",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/p-500-adds-3-surging-214536624.html?.tsrc=rss"
+    },
+    {
+      "title": "These 2 AI Power Stocks Jumped While the S&P 500 Fell",
+      "summary": "NRG Energy gained 6.4% and Constellation Energy rose 4.9% on September 4 while the S&P 500 fell 0.4%. The gains were consistent with the broader AI-power trade where data-center projects increasingly depend on generators that can add reliable capacity, navigate interconnection queues, and sign contracts before construction. NRG Energy, Inc. (NYSE:NRG) and Constellation Energy Corporation […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/2-ai-power-stocks-jumped-150120214.html?.tsrc=rss"
+    },
+    {
+      "title": "Sandisk Soars Nearly 12% Before Joining the S&P 100",
+      "summary": "Friday's rally made Sandisk the S&P 500's top performer before its September 21 index promotion.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/sandisk-soars-nearly-12-joining-215620577.html?.tsrc=rss"
+    },
+    {
+      "title": "Could This Vanguard Growth ETF Be a No-Brainer Buy for Long-Term Investors?",
+      "summary": "The Vanguard S&P 500 Growth ETF tracks the leading growth stocks on U.S. markets.",
+      "link": "https://www.fool.com/investing/2026/09/07/could-this-vanguard-growth-etf-be-a-no-brainer-buy-for-long-term-investors/?.tsrc=rss"
+    },
+    {
+      "title": "Palantir Stock Leads August Rally -- Nvidia, Salesforce and Super Micro Jump",
+      "summary": "Palantir Crushes Tech Stocks in August: Salesforce Nears 40% Gain, Super Micro Jumps",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/palantir-stock-leads-august-rally-215855985.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Insider Makes Stunning $410 Million Stock Move",
+      "summary": "The enormous insider transaction carries one crucial piece of context",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-insider-makes-stunning-410-215800599.html?.tsrc=rss"
+    },
+    {
+      "title": "Tencent Slips 1% While Its AI-Chip Bet Attacks Nvidia's China Moat",
+      "summary": "Enflame's explosive growth offers strategic upside, but Tencent's own AI spending is already consuming free cash flow.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/tencent-slips-1-while-ai-215226124.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Gets a $1.47 Billion Supplier Cushion Without Spending a Dollar",
+      "summary": "Wistron is selling equity to fund raw materials and production surrounding Nvidia's AI systems.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-gets-1-47-billion-215008444.html?.tsrc=rss"
+    },
+    {
+      "title": "How a 64-Year-Old’s $1.2 Million in VOO Turned Into a $456,000 Bet on a Single Sector",
+      "summary": "A $1.2 million position in Vanguard's most popular S&P 500 fund looks like broad diversification until you open the shareholder report and see where most of that money actually sits. For a 64-year-old counting on this portfolio for the next 30 years, the sector breakdown changes the risk calculation entirely.",
+      "link": "https://247wallst.com/investing/etf/2026/09/07/how-a-64-year-olds-1-2-million-in-voo-turned-into-a-456000-bet-on-a-single-sector/?.tsrc=rss"
+    },
+    {
+      "title": "Goldman Sachs Delivers Stark Message on Tesla Stock",
+      "summary": "Tesla's Cybercab Faces a Major Test: Goldman Says AI Execution Matters More Than Low Vehicle Costs",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/goldman-sachs-delivers-stark-message-191200543.html?.tsrc=rss"
+    },
+    {
+      "title": "Cybercab Could Transform Tesla, But Regulatory Risks Loom",
+      "summary": "Tesla, Inc. (NASDAQ:TSLA) has started offering paid rides in its new Cybercab robotaxi on a limited basis in Austin, Texas. The two-seat vehicle is built to operate without a steering wheel, pedals, or traditional mirrors, setting it apart from Tesla’s existing Model Y-based robotaxis. The launch marks an important step in Elon Musk’s broader plan […]",
+      "link": "https://finance.yahoo.com/technology/articles/cybercab-could-transform-tesla-regulatory-190959675.html?.tsrc=rss"
+    },
+    {
+      "title": "Is Tesla Stock Under $360 a Share an Obvious Buy in September?",
+      "summary": "The stock has fallen by more than 20% this year, but still maintains a market cap of around $1.4 trillion and a lofty valuation.",
+      "link": "https://www.fool.com/investing/2026/09/07/is-tesla-stock-under-360-a-share-an-obvious-buy-in/?.tsrc=rss"
+    },
+    {
+      "title": "Billionaire has 5-word response to Elon Musk's Tesla chart",
+      "summary": "A viral performance chart prompted the billionaire to weigh in on one of the market’s biggest success stories.",
+      "link": "https://www.thestreet.com/crypto/markets/billionaire-has-5-word-response-to-elon-musks-tesla-chart?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk Owns 28% of Tesla, a Stake Worth Nearly $350 Billion. Here's Why His Ownership Level Matters for Shareholders.",
+      "summary": "Tesla investors know it's often \"all about Elon,\" and there are pros and cons to Musk's sizable stake in the electric vehicle giant.",
+      "link": "https://www.fool.com/investing/2026/09/07/elon-musk-owns-tesla-stake-worth-billion-stock/?.tsrc=rss"
+    },
+    {
+      "title": "AMD Stock Jumps After Unveiling $100,000-Plus AI Workstation for 2027",
+      "summary": "AMD Stock Jumps After Unveiling $100,000-Plus AI Workstation for 2027",
+      "link": "https://finance.yahoo.com/technology/ai/articles/amd-stock-jumps-unveiling-100-213621532.html?.tsrc=rss"
+    },
+    {
+      "title": "Wall Street Is Worried About AMD. Here’s Why Long-Term Investors Shouldn’t Be",
+      "summary": "AMD just crushed its AI earnings and the stock dropped anyway, leaving investors staring at a stock that may be deeply mispriced heading into 2027. The case for a 53% run from here is more credible than Wall Street is letting on.",
+      "link": "https://247wallst.com/investing/2026/09/07/wall-street-is-worried-about-amd-heres-why-long-term-investors-shouldnt-be/?.tsrc=rss"
+    },
+    {
+      "title": "AMD Is Behind The AI Chip Shift Nobody Is Talking About",
+      "summary": "AMD and NVIDIA both posted explosive AI quarters, but they are betting on opposite visions of how the AI economy will actually be won. One of those visions fits the next phase of the buildout far better than the market currently appreciates.",
+      "link": "https://247wallst.com/investing/2026/09/07/amd-is-behind-the-ai-chip-shift-nobody-is-talking-about/?.tsrc=rss"
+    },
+    {
+      "title": "AMD’s Whole AI Story Has One Threat It Cannot Ignore: Broadcom",
+      "summary": "AMD is posting explosive AI growth, but one rival is quietly locking in the same hyperscaler customers through a strategy that could shrink AMD's market before anyone notices the ceiling.",
+      "link": "https://247wallst.com/investing/2026/09/07/amds-whole-ai-story-has-one-threat-it-cannot-ignore-broadcom/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia just sent a strong signal to AMD and Intel investors",
+      "summary": "Nvidia’s earnings report had a number buried inside that AMD and Intel investors needed to see.",
+      "link": "https://www.thestreet.com/investing/stocks/nvidia-vera-cpu-strong-signal-to-amd-intel-investors?.tsrc=rss"
+    },
+    {
+      "title": "European stocks close mixed and Asia-Pacific markets rise as investors assess renewed Middle East hostilities - CNBC",
+      "summary": "European stocks close mixed and Asia-Pacific markets rise as investors assess renewed Middle East hostilities CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9DZWtOQkk1ZVBEaXhYWDhfSkdkV2RsNm9RV3pCZWtkVXBrNzV0QzNrVTJ5Q05aeG02VUZmdm51UVV3TklMWXg2TGVFb3ctWXEtYndobEI0dnJzdE9PaHFxZ1RpaENoTGgzMGFFc1plZ0d2Q1ZLcFZv0gF8QVVfeXFMTmV2b1B1TWM5MUR6SlFJOGFHa2g5UFpreXpJZFlqeE9qbVlpSm1Oa3pFaGZ2U21Yd0lxVDlWNmRrSzBINXZ2emZIVHFvSnVLSzg5Y050dUxVUUhLcjVaTjJDdFIzSFhWaTViVThaVUtqVmxZMmFvZHB1UlVRcQ?oc=5"
+    },
+    {
+      "title": "Is the stock market open on Labor Day? - Yahoo Finance",
+      "summary": "Is the stock market open on Labor Day? Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNUEk5Y1dsRFdDNXBxZ1hFN1pFQ1QtUGN4YUhvMWJsUjdIMVBieGdaRFp0a0d6U0dPQW4ySkdNR3pVVmRobkp2VEhzMl93OFVoREUxZ1lLck9EWHA0ZWhZR2F0QTJZb1VQZUVxTEM5eXJGa1hrZzh1V1J6QVpzYmZmYmhyeW0xTmdwaHc0SVNzV2VQRDJGRXNnaGt2WG9xS0FOMWZ0RFNTZFA0bGx0Rmt4V1FuMA?oc=5"
+    },
+    {
+      "title": "Dow futures fall 300 points to start shortened week as oil prices climb: Live updates - CNBC",
+      "summary": "Dow futures fall 300 points to start shortened week as oil prices climb: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTFBQLU0tQVNXdFY3ZWtrTi1FYlZ6amcydkpVd3dybUF4T2kzR2ltR1piSzhieUc0LUN3WC1qOGZFdkFrWngxa1FsQmJ2dGpUd0RFVkkxdm5JU0g3d2Y1QU05c0JIdmhrZGNCT0RZb0FjR1hQLVBXaE9LVDB30gF_QVVfeXFMT1VabC1yalpfclNydVBvV2I5ZG9ONmVsX0M4eVRkOTFSZnpaWXo2NGRSMWNRdmhQU2QtdXA3MVA3ZUozVllaV1VIWWtjX1pqaThoQW5CSjVudnNhUHg2WkFOREpGbFFnOG8xakpybEtXUlFqOFN2VElNV0pnbmNPbw?oc=5"
+    },
+    {
+      "title": "Markets News, Sept. 4, 2026: Stocks Close Lower as Hot August Jobs Report Lifts Expectations for Fed Interest Rate Hike - Investopedia",
+      "summary": "Markets News, Sept. 4, 2026: Stocks Close Lower as Hot August Jobs Report Lifts Expectations for Fed Interest Rate Hike Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxQY0hXOEV6VnRRRkZpcmpvMElVb09kTTh2WEhueVUtejNQU3pULWlyT0RGYzlZRUpZOFdlNkJDNllnSjVCeFI5Q0w5RDJmSU5rVHVCZ0lvWllpSUFTR09oVHBkaHhFdWtVcmVxQldhU2E5bGtIMlJBUWpSYkxMT2xDYnY4VHR6VEZwdFQyMGQ4TjY?oc=5"
+    },
+    {
+      "title": "Trump says he's made 'Hundreds of Billions of Dollars on Stocks' for the U.S., in stream of AI posts - CNBC",
+      "summary": "Trump says he's made 'Hundreds of Billions of Dollars on Stocks' for the U.S., in stream of AI posts CNBC",
+      "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxOZk9UZ1N2d2pack13Um5mcUNYOXFSMFE4elo0Rnh1UVZLU21RZGhKbWlFZHRvWVdhS3lwUVZabDZtR000VFZ6bWJMcWJ4OWxLUkc1REl1N0VfcTJOLURZSVNReUtnYWRRc1VZaThaRW82czU4VDc3M3prY2l4VnFiYThiTVI2UdIBiwFBVV95cUxQWWo4RjNJbmtRQlY3S0x6Rnc3WUo4T2t6TmVXODB2WEVfUmlrb0U0UnlFYnpWbDNDYmFIZ1NyNnlna2Y1Wng2dW5oeXFvM3E1ZzUtQm9LbWNCSW9nWjBfMGU3Rl82ZjJZbHFHSUZvd1NJLTU5bEhUTXZnbkE4SEtMTlJ6Um42akZrVjk0?oc=5"
+    }
+  ],
+  "us_date": "09/04",
+  "generated_at": "2026-09-08T08:02:25.113523+09:00"
+}
