@@ -72,6 +72,31 @@ STOCK_SECTION_LABELS = {
     "7": ("SUMMARY", "#1C2230"),
 }
 
+# ── 섹션 제목 고정 오버라이드 ─────────────────────────────────────────────────
+# 1~7번 섹션 제목은 프롬프트에서 항상 동일한 문구로 지시하는데도, 모델이 가끔
+# 그 문구를 변형해서 "현장에서 uninsured happened"처럼 이상하게 내보내는 경우가
+# 있었다(2026-09-08 실제 발행본에서 확인). 제목 자체는 매번 똑같은 고정값이니
+# AI가 뭐라고 쓰든 무시하고 코드가 직접 정해진 한글 제목을 쓴다 — 오타/변형이
+# 구조적으로 불가능해진다.
+HEADING_TITLES = {
+    "1": "현장에서 무슨 일이 있었나",
+    "2": "왜 업계가 반응하는가",
+    "3": "기술적으로 보면",
+    "4": "실제 현장 적용 사례",
+    "5": "엔지니어가 봐야 할 포인트",
+    "6": "앞으로 볼 포인트",
+    "7": "3줄 요약",
+}
+STOCK_HEADING_TITLES = {
+    "1": "간밤 미국 증시 요약",
+    "2": "핵심 드라이버",
+    "3": "섹터별 흐름",
+    "4": "오늘 코스피·코스닥 영향 예측",
+    "5": "한국 연관 종목 체크",
+    "6": "오늘의 리스크 & 체크리스트",
+    "7": "3줄 요약",
+}
+
 # ── 증시 한국 연관주 매핑 ─────────────────────────────────────────────────────
 STOCK_KR_MAP = {
     "NVDA":  ["삼성전자", "SK하이닉스", "한미반도체"],
@@ -180,6 +205,7 @@ def render_heading(text: str) -> str:
             f'color:{ACCENT_MAIN};margin:2.8em 0 0.9em;">{text}</h2>'
         )
     num, title_text = m.group(1), m.group(2)
+    title_text = HEADING_TITLES.get(num, title_text)  # AI가 쓴 제목 무시, 고정 문구 사용
     label_info = SECTION_LABELS.get(num)
     label, bar_color = label_info if label_info else ("SEC", ACCENT_MAIN)
     total = f"{len(SECTION_LABELS):02d}"
@@ -564,6 +590,7 @@ def md_to_html_market(md: str, quotes: dict) -> str:
                 f'color:{STOCK_BLUE};margin:2.8em 0 0.9em;">{text}</h2>'
             )
         num, title_text = m.group(1), m.group(2)
+        title_text = STOCK_HEADING_TITLES.get(num, title_text)  # AI가 쓴 제목 무시, 고정 문구 사용
         label_info = STOCK_SECTION_LABELS.get(num)
         label, bar_color = label_info if label_info else ("SEC", STOCK_BLUE)
         total = f"{len(STOCK_SECTION_LABELS):02d}"
@@ -686,7 +713,5 @@ def md_to_html_market(md: str, quotes: dict) -> str:
         f'{body}'
         f'<div style="margin-top:2em;padding-top:14px;'
         f'font-family:{FONT_MONO};font-size:0.72em;color:{TEXT_MUTED};line-height:1.7;">'
-        f'본 콘텐츠는 공개 데이터 기반 자동 생성 정보로, 투자 권유가 아닙니다. '
-        f'실제 투자 결정은 본인 판단 하에 전문가와 상담 후 진행하시기 바랍니다.'
         f'</div></div>'
     )

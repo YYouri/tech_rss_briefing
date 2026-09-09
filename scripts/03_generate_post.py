@@ -307,6 +307,12 @@ def generate_body(topic_data: dict) -> str:
         used_model: list[str] = []
         raw = call_ai(prompt, max_tokens=6000, exclude_models=bad_models, used_model_out=used_model)
         cleaned = strip_reasoning_blocks(raw)
+        # 프롬프트의 형식 안내문 "(리드 문단 — 헤딩 없이 2~3문장. 구체적
+        # 사건/상황으로 시작)"을 실제 내용으로 착각해 그대로 베끼는 경우가
+        # 있었다(2026-09-09 On-Device AI 포스트에서 실제 확인 — 안내문 뒤에
+        # 진짜 리드 문단이 중복으로 또 나옴). 이 패턴은 재시도할 필요 없이
+        # 그 줄만 걸러내면 된다.
+        cleaned = re.sub(r"^\s*\(리드\s*문단.*?\)\s*\n+", "", cleaned, flags=re.MULTILINE)
         heading_count = len(re.findall(r"^##\s*\d+\.", cleaned, re.MULTILINE))
         leaked = bool(reasoning_leak_pattern.match(cleaned.strip()))
         if heading_count >= 6 and not leaked:
