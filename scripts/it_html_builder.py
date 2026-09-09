@@ -124,7 +124,7 @@ def render_cta_button(
     # 텍스트 자체의 색·굵기·밑줄만으로 눈에 띄게 만들면, 배경이 살아남든
     # 안 살아남든 최소한 글자는 항상 보인다.
     return (
-        f'<div style="border:1px solid {BORDER};border-top:3px solid {c};'
+        f'<div style="border:1px solid {BORDER};'
         f'padding:22px 20px;margin:2em 0;text-align:center;">'
         f'<p style="font-family:{FONT_MONO};font-size:0.72em;font-weight:600;color:{c};'
         f'letter-spacing:0.08em;margin:0 0 10px;">{label}</p>'
@@ -203,16 +203,14 @@ def render_heading(text: str) -> str:
 def render_core_cards(bullet_lines: list) -> str:
     """파스텔 카드 그리드 대신 헤어라인으로 구분한 스펙 목록(용어–설명)으로 표시."""
     rows = []
-    n = len(bullet_lines)
     for i, line in enumerate(bullet_lines):
         text = re.sub(r"^[-*]\s*", "", line.strip())
         m    = re.match(r"^\*\*(.+?)\*\*\s*[:：]\s*(.+)$", text)
-        bdr  = f'border-bottom:1px solid {BORDER};' if i < n - 1 else ""
         idx  = f"{i+1:02d}"
         if m:
             term, desc = m.group(1), m.group(2)
             rows.append(
-                f'<div style="display:flex;gap:14px;padding:12px 0;{bdr}">'
+                f'<div style="display:flex;gap:14px;padding:12px 0;">'
                 f'<span style="flex-shrink:0;font-family:{FONT_MONO};font-size:0.78em;'
                 f'font-weight:600;color:{ACCENT_MAIN};padding-top:1px;">{idx}</span>'
                 f'<div>'
@@ -223,7 +221,7 @@ def render_core_cards(bullet_lines: list) -> str:
             )
         else:
             rows.append(
-                f'<div style="display:flex;gap:14px;padding:12px 0;{bdr}">'
+                f'<div style="display:flex;gap:14px;padding:12px 0;">'
                 f'<span style="flex-shrink:0;font-family:{FONT_MONO};font-size:0.78em;'
                 f'font-weight:600;color:{ACCENT_MAIN};padding-top:1px;">{idx}</span>'
                 f'<div style="font-size:0.88em;color:{TEXT_SUB};line-height:1.7;">{text}</div>'
@@ -249,7 +247,7 @@ def render_summary_box(bullet_lines: list) -> str:
         )
     items_html = "".join(items)
     return (
-        f'<div style="background:{INK};border-top:3px solid {ACCENT_MAIN};'
+        f'<div style="background:{INK};'
         f'padding:20px 22px;margin:2em 0;">'
         f'<div style="font-family:{FONT_MONO};font-size:0.72em;font-weight:600;'
         f'letter-spacing:0.1em;color:{ACCENT_MAIN};margin-bottom:14px;">SUMMARY</div>'
@@ -277,7 +275,7 @@ def render_references(articles: list) -> str:
             f'<span style="color:{TEXT_MUTED};font-size:0.85em;"> — {src_label}</span></li>'
         )
     return (
-        f'<div style="margin-top:2.4em;padding-top:16px;border-top:1px solid {BORDER};">'
+        f'<div style="margin-top:2.4em;padding-top:16px;">'
         f'<div style="font-family:{FONT_MONO};font-size:0.68em;font-weight:600;'
         f'color:{TEXT_MUTED};letter-spacing:0.1em;margin-bottom:10px;">REFERENCES</div>'
         f'<ul style="padding-left:1.3em;margin:0;">{"".join(items)}</ul>'
@@ -453,7 +451,7 @@ def md_to_html(md: str, articles: list = None, cta: dict = None) -> str:
         f'color:{TEXT_MAIN};word-break:keep-all;background:#ffffff;padding:4px;">'
         f'{body}'
         f'{cta_html}'
-        f'<div style="margin-top:2em;padding-top:14px;border-top:1px solid {BORDER};'
+        f'<div style="margin-top:2em;padding-top:14px;'
         f'font-family:{FONT_MONO};font-size:0.72em;color:{TEXT_MUTED};line-height:1.7;">'
         f'본 콘텐츠는 IT 기술 정보 제공 목적으로 작성되었습니다. 투자 판단의 근거로 사용하지 마시기 바랍니다.'
         f'</div></div>'
@@ -583,16 +581,14 @@ def md_to_html_market(md: str, quotes: dict) -> str:
 
     def _sector_cards(bullet_lines: list) -> str:
         rows = []
-        n = len(bullet_lines)
         for i, line in enumerate(bullet_lines):
             text = re.sub(r"^[-*]\s*", "", line.strip())
             m    = re.match(r"^\*\*(.+?)\*\*\s*[:：]\s*(.+)$", text)
-            bdr  = f'border-bottom:1px solid {BORDER};' if i < n - 1 else ""
             idx  = f"{i+1:02d}"
             if m:
                 term, desc = m.group(1), m.group(2)
                 rows.append(
-                    f'<div style="display:flex;gap:14px;padding:12px 0;{bdr}">'
+                    f'<div style="display:flex;gap:14px;padding:12px 0;">'
                     f'<span style="flex-shrink:0;font-family:{FONT_MONO};font-size:0.78em;'
                     f'font-weight:600;color:{STOCK_BLUE};padding-top:1px;">{idx}</span>'
                     f'<div><div style="font-family:{FONT_DISPLAY};font-size:0.92em;font-weight:700;'
@@ -601,7 +597,7 @@ def md_to_html_market(md: str, quotes: dict) -> str:
                 )
             else:
                 rows.append(
-                    f'<div style="display:flex;gap:14px;padding:12px 0;{bdr}">'
+                    f'<div style="display:flex;gap:14px;padding:12px 0;">'
                     f'<span style="flex-shrink:0;font-family:{FONT_MONO};font-size:0.78em;'
                     f'font-weight:600;color:{STOCK_BLUE};padding-top:1px;">{idx}</span>'
                     f'<div style="font-size:0.88em;color:{TEXT_SUB};line-height:1.7;">{text}</div></div>'
@@ -620,7 +616,7 @@ def md_to_html_market(md: str, quotes: dict) -> str:
                 f'</li>'
             )
         return (
-            f'<div style="background:{INK};border-top:3px solid {STOCK_BLUE};'
+            f'<div style="background:{INK};'
             f'padding:20px 22px;margin:2em 0;">'
             f'<div style="font-family:{FONT_MONO};font-size:0.72em;font-weight:600;'
             f'letter-spacing:0.1em;color:{STOCK_BLUE};margin-bottom:14px;">SUMMARY</div>'
@@ -688,7 +684,7 @@ def md_to_html_market(md: str, quotes: dict) -> str:
         f'<div style="font-family:{FONT_BODY};max-width:720px;margin:0 auto;'
         f'color:{TEXT_MAIN};word-break:keep-all;background:#ffffff;padding:4px;">'
         f'{body}'
-        f'<div style="margin-top:2em;padding-top:14px;border-top:1px solid {BORDER};'
+        f'<div style="margin-top:2em;padding-top:14px;'
         f'font-family:{FONT_MONO};font-size:0.72em;color:{TEXT_MUTED};line-height:1.7;">'
         f'본 콘텐츠는 공개 데이터 기반 자동 생성 정보로, 투자 권유가 아닙니다. '
         f'실제 투자 결정은 본인 판단 하에 전문가와 상담 후 진행하시기 바랍니다.'

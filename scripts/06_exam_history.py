@@ -207,9 +207,8 @@ def build_exam_section_html(matches: list[dict], topic: str, terms: list[str]) -
             q_text   = re.sub(r"^\d+\.\s*", "", q_text).strip()
             if len(q_text) > 120:
                 q_text = q_text[:120] + "…"
-            bdr = f'border-bottom:1px solid {BORDER};' if i < n - 1 else ""
             items_html.append(
-                f'<div style="padding:10px 0;{bdr}">'
+                f'<div style="padding:10px 0;">'
                 f'<div style="font-family:{MONO};font-size:0.72em;color:{MUTED};margin-bottom:4px;">'
                 f'제{round_no}회 · {subject}</div>'
                 f'<div style="font-size:0.9em;color:{INK};line-height:1.7;">{q_text}</div>'
@@ -227,7 +226,7 @@ def build_exam_section_html(matches: list[dict], topic: str, terms: list[str]) -
         )
 
     return f"""
-<div style="margin-top:2.5em;padding-top:18px;border-top:2px solid {INK};">
+<div style="margin-top:2.5em;padding-top:18px;">
   <p style="font-family:{MONO};font-size:0.7em;font-weight:600;color:{ACCENT};letter-spacing:0.08em;margin:0 0 10px;">
     정보관리기술사 기출 연계
   </p>

@@ -67,14 +67,17 @@ def mermaid_to_image_url(mermaid_code: str) -> str:
     return f"https://mermaid.ink/img/{base64_string}?type=png"
 
 
-def call_ai(prompt: str, max_tokens: int = 6000) -> str:
+def call_ai(prompt: str, max_tokens: int = 6000, exclude_models: set | None = None,
+            used_model_out: list | None = None) -> str:
     if not OPENROUTER_API_KEY:
         print("[ERROR] OPENROUTER_API_KEY 없음")
         sys.exit(1)
     if not MODELS:
         print("[ERROR] 사용 가능한 무료 모델을 하나도 찾지 못함")
         sys.exit(1)
-    for model in MODELS:
+    exclude_models = exclude_models or set()
+    models_to_try = [m for m in MODELS if m not in exclude_models] or MODELS
+    for model in models_to_try:
         payload = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
@@ -101,6 +104,8 @@ def call_ai(prompt: str, max_tokens: int = 6000) -> str:
             content = result.get("choices", [{}])[0].get("message", {}).get("content")
             if content:
                 print(f"[OK] 모델 성공: {model}")
+                if used_model_out is not None:
+                    used_model_out.append(model)
                 return content.strip()
             print(f"[WARN] {model} 응답 없음, 다음 모델 시도")
         except urllib.error.HTTPError as e:
@@ -285,7 +290,35 @@ def generate_body(topic_data: dict) -> str:
 ## 7. 3줄 요약
 - bullet 정확히 3개
 """
-    return call_ai(prompt, max_tokens=6000)
+    # 지금까지 키워드/제목 추출(JSON)에만 검증을 넣고, 정작 가장 중요한 본문
+    # 텍스트는 "응답이 왔으면 그대로 반환"하고 있었다. 그래서 모델이 실제
+    # 글쓰기 없이 "Here's a thinking process: ..."처럼 사고과정만 영어로
+    # 늘어놓고 끝나버려도 그게 그대로 발행됐다(2026-09-08 Edge AI 포스트에서
+    # 실제 확인). ## 1~7 섹션 헤딩이 다 있는지, 사고과정처럼 보이는 문장으로
+    # 시작하지 않는지 확인하고, 실패하면 다음 모델로 넘긴다.
+    bad_models: set[str] = set()
+    reasoning_leak_pattern = re.compile(
+        r"^\s*(here'?s a thinking process|let me (think|analyze)|i need to|"
+        r"i'll (analyze|write)|analyz(e|ing) the request|first,? let me|"
+        r"okay,? (so|let)|the user wants)",
+        re.IGNORECASE,
+    )
+    for attempt in range(3):
+        used_model: list[str] = []
+        raw = call_ai(prompt, max_tokens=6000, exclude_models=bad_models, used_model_out=used_model)
+        cleaned = strip_reasoning_blocks(raw)
+        heading_count = len(re.findall(r"^##\s*\d+\.", cleaned, re.MULTILINE))
+        leaked = bool(reasoning_leak_pattern.match(cleaned.strip()))
+        if heading_count >= 6 and not leaked:
+            return cleaned
+        print(f"[WARN] 본문 생성 실패 (시도 {attempt+1}) — 섹션 헤딩 {heading_count}개, "
+              f"사고과정 유출={leaked}. 원본 앞부분: {raw[:150]!r}")
+        if used_model:
+            print(f"  → 다음 시도에서 {used_model[0]} 제외")
+            bad_models.add(used_model[0])
+
+    print("[ERROR] 본문 생성 3회 모두 실패 — 이상한 내용을 그대로 발행하지 않고 중단합니다")
+    sys.exit(1)
 
 
 def refine_title(topic_data: dict) -> dict:
