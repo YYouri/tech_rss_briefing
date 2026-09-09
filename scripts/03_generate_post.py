@@ -261,6 +261,8 @@ def generate_body(topic_data: dict) -> str:
 - 문장은 짧고 밀도 있게. 한 문장에 하나의 정보만
 - 어려운 기술 용어는 처음 등장 시 괄호로 간단히 풀이
 - 절대 사용 금지: 최근, 또한, 한편, 즉, 따라서, 다양한, 혁신적인, 중요한, 전망이다, 기대된다
+- 한자(漢字) 절대 사용 금지. 한국어 단어는 반드시 한글로만 표기 (예: "신호" O, "信号" X)
+- 연도는 항상 4자리 숫자로 표기 (예: "2030년" O, "205년"처럼 자릿수 누락 금지)
 
 【수치 사용 규칙 — 반드시 준수】
 - 수치는 참조 뉴스에 명시된 것만 사용
@@ -315,10 +317,20 @@ def generate_body(topic_data: dict) -> str:
         cleaned = re.sub(r"^\s*\(리드\s*문단.*?\)\s*\n+", "", cleaned, flags=re.MULTILINE)
         heading_count = len(re.findall(r"^##\s*\d+\.", cleaned, re.MULTILINE))
         leaked = bool(reasoning_leak_pattern.match(cleaned.strip()))
-        if heading_count >= 6 and not leaked:
+        # 한글 문장 중간에 한자(漢字)가 섞여 나오는 경우가 있었다(2026-09-10
+        # "있다는信号다" 실제 확인 — "신호" 대신 한자 "信号"가 그대로 나옴).
+        # 현대 한국어 블로그 글에 한자가 섞이는 건 사실상 항상 오류이므로,
+        # 하나라도 있으면 실패로 처리한다.
+        hanja_found = re.findall(r"[\u4e00-\u9fff]", cleaned)
+        # "205년"처럼 연도가 자릿수 빠진 채로 나오는 경우도 있었다(2026-09-10
+        # "205년까지" 실제 확인 — 2030년 등을 의도했다가 숫자가 깨짐).
+        # 정상적인 연도는 항상 4자리이므로, 1~3자리 숫자+"년" 조합은 의심한다.
+        bad_year = re.findall(r"(?<!\d)\d{1,3}년(?!\d)", cleaned)
+        if heading_count >= 6 and not leaked and not hanja_found and not bad_year:
             return cleaned
         print(f"[WARN] 본문 생성 실패 (시도 {attempt+1}) — 섹션 헤딩 {heading_count}개, "
-              f"사고과정 유출={leaked}. 원본 앞부분: {raw[:150]!r}")
+              f"사고과정 유출={leaked}, 한자 유출={hanja_found}, 연도 오류={bad_year}. "
+              f"원본 앞부분: {raw[:150]!r}")
         if used_model:
             print(f"  → 다음 시도에서 {used_model[0]} 제외")
             bad_models.add(used_model[0])
