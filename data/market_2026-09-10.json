@@ -1,0 +1,343 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26253.34,
+      "prev": 26421.41,
+      "chg_pct": -0.64,
+      "volume": 6592678000,
+      "market_date_us": "09/09"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7636.36,
+      "prev": 7673.52,
+      "chg_pct": -0.48,
+      "volume": 2739714000,
+      "market_date_us": "09/09"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52380.66,
+      "prev": 52786.07,
+      "chg_pct": -0.77,
+      "volume": 403108204,
+      "market_date_us": "09/09"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 16.46,
+      "prev": 15.72,
+      "chg_pct": 4.71,
+      "volume": 0,
+      "market_date_us": "09/09"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 98.78,
+      "prev": 98.84,
+      "chg_pct": -0.06,
+      "volume": 0,
+      "market_date_us": "09/09"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 97.02,
+      "prev": 93.03,
+      "chg_pct": 4.29,
+      "volume": 3841,
+      "market_date_us": "09/09"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4444.8,
+      "prev": 4393.9,
+      "chg_pct": 1.16,
+      "volume": 1687,
+      "market_date_us": "09/09"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1339.31,
+      "prev": 1339.21,
+      "chg_pct": 0.01,
+      "volume": 0,
+      "market_date_us": "09/09"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 716.31,
+      "prev": 718.36,
+      "chg_pct": -0.29,
+      "volume": 26405228,
+      "market_date_us": "09/09"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 532.0,
+      "prev": 528.4,
+      "chg_pct": 0.68,
+      "volume": 6412526,
+      "market_date_us": "09/09"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 57.06,
+      "prev": 57.3,
+      "chg_pct": -0.42,
+      "volume": 27341993,
+      "market_date_us": "09/09"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 223.67,
+      "prev": 225.73,
+      "chg_pct": -0.91,
+      "volume": 79204871,
+      "market_date_us": "09/09"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 521.1,
+      "prev": 505.74,
+      "chg_pct": 3.04,
+      "volume": 22033121,
+      "market_date_us": "09/09"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 106.24,
+      "prev": 104.47,
+      "chg_pct": 1.69,
+      "volume": 96066104,
+      "market_date_us": "09/09"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 435.36,
+      "prev": 439.0,
+      "chg_pct": -0.83,
+      "volume": 7443121,
+      "market_date_us": "09/09"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 315.34,
+      "prev": 316.22,
+      "chg_pct": -0.28,
+      "volume": 64902991,
+      "market_date_us": "09/09"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 491.65,
+      "prev": 493.95,
+      "chg_pct": -0.47,
+      "volume": 12778304,
+      "market_date_us": "09/09"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 367.81,
+      "prev": 368.16,
+      "chg_pct": -0.1,
+      "volume": 32340063,
+      "market_date_us": "09/09"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 252.4,
+      "prev": 256.97,
+      "chg_pct": -1.78,
+      "volume": 32177880,
+      "market_date_us": "09/09"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 330.65,
+      "prev": 338.36,
+      "chg_pct": -2.28,
+      "volume": 32730889,
+      "market_date_us": "09/09"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 653.69,
+      "prev": 613.48,
+      "chg_pct": 6.55,
+      "volume": 35359694,
+      "market_date_us": "09/09"
+    }
+  },
+  "news": [
+    {
+      "title": "T. Rowe Price (TROW) Suffers a Larger Drop Than the General Market: Key Insights",
+      "summary": "In the latest trading session, T. Rowe Price (TROW) closed at $107.74, marking a -1.54% move from the previous day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/t-rowe-price-trow-suffers-221504894.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Clearway Energy (CWEN) Dipped More Than Broader Market Today",
+      "summary": "In the latest trading session, Clearway Energy (CWEN) closed at $32.07, marking a -3.14% move from the previous day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/why-clearway-energy-cwen-dipped-221503582.html?.tsrc=rss"
+    },
+    {
+      "title": "General Dynamics (GD) Falls More Steeply Than Broader Market: What Investors Need to Know",
+      "summary": "In the closing of the recent trading day, General Dynamics (GD) stood at $352.67, denoting a -1.1% move from the preceding trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/general-dynamics-gd-falls-more-221502200.html?.tsrc=rss"
+    },
+    {
+      "title": "Ouster, Inc. (OUST) Falls More Steeply Than Broader Market: What Investors Need to Know",
+      "summary": "Ouster, Inc. (OUST) closed at $36.24 in the latest trading session, marking a -3.33% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/ouster-inc-oust-falls-more-221502716.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500 investors may want to rethink their favorite ETF",
+      "summary": "Most investors don’t realize what’s happened inside their go-to index fund.",
+      "link": "https://www.thestreet.com/investing/spmo-etf-sp-500-momentum-concentration-risk?.tsrc=rss"
+    },
+    {
+      "title": "Why Goldgroup Mining Stock Wilted Today",
+      "summary": "It's floating a potentially rather dilutive issue of stock and warrants.",
+      "link": "https://www.fool.com/investing/2026/09/09/why-goldgroup-mining-stock-wilted-today/?.tsrc=rss"
+    },
+    {
+      "title": "SailPoint, Inc. Q2 2027 Earnings Call Summary",
+      "summary": "Moby summary of SailPoint, Inc.'s Q2 2027 earnings call",
+      "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-sailpoint-inc-q2-2027-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss"
+    },
+    {
+      "title": "Korn Ferry Q1 2027 Earnings Call Summary",
+      "summary": "Moby summary of Korn Ferry's Q1 2027 earnings call",
+      "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-korn-ferry-q1-2027-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss"
+    },
+    {
+      "title": "The Overlooked Chip Stock Poised to Outperform Nvidia, AMD, and Broadcom in the AI Semiconductor Boom",
+      "summary": "Qualcomm is gradually making a dent in the AI chip market.",
+      "link": "https://www.fool.com/investing/2026/09/09/the-overlooked-chip-stock-poised-to-outperform-nvi/?.tsrc=rss"
+    },
+    {
+      "title": "Social Security Is Facing a Financial Crisis, and Congress May Be Too Late to Act",
+      "summary": "Starting seven years from now, the program's benefits could look different.",
+      "link": "https://www.fool.com/retirement/2026/09/09/social-security-is-facing-a-financial-crisis-and-c/?.tsrc=rss"
+    },
+    {
+      "title": "Could Tesla’s (TSLA) Cybercab Unlock a New Growth Driver?",
+      "summary": "Tesla, Inc. (NASDAQ:TSLA) is moving further into the autonomous-driving market as it has started offering robotaxi rides using its Cybercab. The company hosted a Cybercab launch event in Austin on September 3. Following the event, Goldman Sachs maintained a Neutral rating on Tesla, Inc. (NASDAQ:TSLA). The bank has a 12-month price target of $360 on […]",
+      "link": "https://finance.yahoo.com/technology/ai/articles/could-tesla-tsla-cybercab-unlock-200632774.html?.tsrc=rss"
+    },
+    {
+      "title": "45 Tesla Cybercabs Are Now Roaming Austin. Here's What That Means for the Robotaxi Business Wall Street Has Been Waiting For.",
+      "summary": "Tesla added 45 Cybercabs to its Austin, Texas, fleet.",
+      "link": "https://www.fool.com/investing/2026/09/09/45-tesla-cybercabs-are-now-roaming-austin-here-s-what-that-means-for-the-robotaxi-business-wall-street-has-been-waiting-for/?.tsrc=rss"
+    },
+    {
+      "title": "Entrepreneurs could hold the key to Tesla's Cybercab plans",
+      "summary": "Tesla's traditional do-it-yourself instinct could be tested by its nationwide robotaxi ambitions.",
+      "link": "https://www.axios.com/2026/09/09/entrepreneurs-could-hold-the-key-to-teslas-cybercab-plans#utm_source=yahoo_finance&utm_medium=partner&utm_campaign=subs-partner-yahoo-finance-AI?.tsrc=rss"
+    },
+    {
+      "title": "Seagate Technology and Western Union have been highlighted as Zacks Bull and Bear of the Day",
+      "summary": "Seagate Technology's AI-driven storage demand, rising earnings estimates and breakout setup support a bullish outlook despite recent volatility.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/seagate-technology-western-union-highlighted-143200920.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla’s Cybercab Could Be Heading to Europe Soon. A Crucial EU Vote Is the Key.",
+      "summary": "Just days after Tesla introduced its Cybercab into its growing U.S. robo-taxi business, CEO Elon Musk suggested that Europe could be next. Cybercab is Tesla’s low-cost purpose-built two-seat self-driving taxi without pedals or a steering wheel. It’s hard to overstate the importance of the Cybercab to Tesla’s stock.",
+      "link": "https://finance.yahoo.com/m/7d21a5a4-a187-3b70-b008-ec22591cfa46/tesla%E2%80%99s-cybercab-could-be.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: Oil Prices Keep Rising But Market Hasn't Broken Yet. Inflation Data Due.",
+      "summary": "Oil prices and Treasury yields weighed on the indexes, But Meta, AMD were winners. Apple unveiled its foldable iPhone. Inflation data looms.",
+      "link": "https://finance.yahoo.com/m/59de9715-6649-3bb7-ab2a-645a0715c752/dow-jones-futures%3A-oil-prices.html?.tsrc=rss"
+    },
+    {
+      "title": "Could Advanced Micro Devices (AMD)’s Partnership With Cisco Systems (CSCO) Unlock a Massive Middle East AI Opportunity?",
+      "summary": "On August 31, Advanced Micro Devices, Inc. (NASDAQ:AMD), Cisco Systems, Inc. (NASDAQ:CSCO), and Humain announced that their joint AI infrastructure buildout in Saudi Arabia is officially live. The deployment links AMD’s Instinct MI355X GPUs and EPYC CPUs directly with Cisco’s Silicon One-based 800G switches, giving Humain a foundation to offer GPU-as-a-service across the Middle East. […]",
+      "link": "https://finance.yahoo.com/technology/ai/articles/could-advanced-micro-devices-amd-213247998.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD, IBD Stock Of The Day, Runs Past Early Buy Point As Chipmaker Returns To Favor",
+      "summary": "AMD is the IBD Stock Of The Day after the chipmaker's shares surged above a key technical level.",
+      "link": "https://finance.yahoo.com/m/347c373b-d105-3224-b28b-045714220e36/amd%2C-ibd-stock-of-the-day%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "HostColor Stocks AMD Ryzen 9 9950X Dedicated Servers in Tokyo",
+      "summary": "HostColor has announced the arrival of new batch of AMD Ryzen 9950X and AMD EPYC Dedicated Servers at the Equinix TY6 data center in Tokyo, Japan. HostColor - AMD Ryzen And AMD EPYC Servers in Tokyo HostColor has announced the arrival of new batch of AMD Ryzen 9950X and AMD EPYC Dedicated Servers at the Equinix TY6 data center in Tokyo, Japan. New York, New York, Sept. 09, 2026 (GLOBE NEWSWIRE) --",
+      "link": "https://finance.yahoo.com/technology/articles/hostcolor-stocks-amd-ryzen-9-200400352.html?.tsrc=rss"
+    },
+    {
+      "title": "Bank of America Spots a Major Semiconductor. Micron and AMD Are Big Winners",
+      "summary": "Bank of America Flags a Major Shift in Semiconductor Bets. Micron and AMD Gain Ground",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/bank-america-spots-major-semiconductor-190624043.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow tumbles 400 points, posting 3-day slide as rates jump and Brent crude tops $101 - CNBC",
+      "summary": "Dow tumbles 400 points, posting 3-day slide as rates jump and Brent crude tops $101 CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9jVWZhUUhTR016OG10ZS0zRG9YYjZUcUNQSVZJbkZzbFVvREpTSzg3NXI3Ry1US085NDRndjRzRFp3Z0NBdm10ek1OWTNuSjVyV1h0c2V2ampsQTJOSURMSGhqWWJ1YzhVODFSYkZiQXJKTUloaVY00gF8QVVfeXFMTjdLSXBKbXFzdFRiVWdzVzY1LXdRS3B2ZFY0Rl9ZNGZTTkhYRW9US25pQmhHVXR2eUE4VmNkS3o0blJFMDZMWjYtaElOS2NoQnNzdE82UUhhbXFwWTJDbVBxQnBVRVU3VnV3dFgtV1lJRV83Q2NFaS1BZVlCLQ?oc=5"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq sink as oil prices surpass $100, Treasury yields jump - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq sink as oil prices surpass $100, Treasury yields jump Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxQLXMzRmZVcjdTMGRTaW0tdjJXWmZCM0tIdHYzNDg2NEx6MmY2bGZ3UFVySXhWYXIyLWxnQ2VNY1J5c3h0ZE5zMVVPelBHOGV2dmFjaGhROFVJVTlISXV2UmRyQmtDLXBuS2h6VHFHWm4yVV9fZmZVUHVTSUZob1NjMDZKWVNfcXA2a1lOVGxXNTZrN2ZxYjB2Z2NoMXotUE8zNHo1a0JmNmh3djIzMXVENXpMU2JqOENIcEtrbw?oc=5"
+    },
+    {
+      "title": "Dow closes 600 points lower in back-to-back losses as oil prices gain - CNBC",
+      "summary": "Dow closes 600 points lower in back-to-back losses as oil prices gain CNBC",
+      "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTFBQLU0tQVNXdFY3ZWtrTi1FYlZ6amcydkpVd3dybUF4T2kzR2ltR1piSzhieUc0LUN3WC1qOGZFdkFrWngxa1FsQmJ2dGpUd0RFVkkxdm5JU0g3d2Y1QU05c0JIdmhrZGNCT0RZb0FjR1hQLVBXaE9LVDB30gF_QVVfeXFMT1VabC1yalpfclNydVBvV2I5ZG9ONmVsX0M4eVRkOTFSZnpaWXo2NGRSMWNRdmhQU2QtdXA3MVA3ZUozVllaV1VIWWtjX1pqaThoQW5CSjVudnNhUHg2WkFOREpGbFFnOG8xakpybEtXUlFqOFN2VElNV0pnbmNPbw?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Dow, S&P 500 and Nasdaq all close lower as Treasury yields jump after buyback plan underwhelms; Brent crude hits $101 - MarketWatch",
+      "summary": "Stock Market Today: Dow, S&P 500 and Nasdaq all close lower as Treasury yields jump after buyback plan underwhelms; Brent crude hits $101 MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxOQVJtVHRYSjFweEFWc01iSER4VWRVd1Zra3pLcVpCcnRxRVRpbWVCTVppd1lILTl3Z2VPU2d2Zl8xY1lubnJLa3JqcTlpd2FwbXBTZktBLUIyNUNLc1pmTGFhNUJoYjk5eHh1ajFPUkZtd3p6MnZLOGV1eDVfODU1blhNeE9uUWxpY0JLMk9XUnhKanFnRV90QnlqRnVGN1N5UEpoLWM1RnpoUkl1TnE1eEFOSlJVVlBBdURLMw?oc=5"
+    },
+    {
+      "title": "Fearless US stock market vulnerable to shocks as midterms loom - Reuters",
+      "summary": "Fearless US stock market vulnerable to shocks as midterms loom Reuters",
+      "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxQOTRiSTVzTlAwaTR4T2ItUGVHUDBTSDJvT2ZJZERDZ25sQVhlaWFhbFhIdkk0Mzh0RVJhTnpRQkhvUmkxOER5NHlQbGhTZDUyR0VQa0FkcWpvOWRDMzRRekFJQTZnSnpYdnRNY2NzcWFhaTFnLVRZYzNKZHhfVGFabmxiMkZzdzloc3RKRmM3ME9FbW5TN1RkOGdIRmdGUU1ablVTQTFGbTQ1N2tUZ1E?oc=5"
+    }
+  ],
+  "us_date": "09/09",
+  "generated_at": "2026-09-10T07:47:24.845954+09:00"
+}
