@@ -194,6 +194,43 @@ STOOQ_SYMBOLS = {
 }
 
 
+def compute_chg_pct(curr_price: float, prev_close: float) -> float:
+    """등락률 계산은 반드시 이 함수 하나만 거친다.
+    Yahoo 경로와 Stooq 폴백 경로가 각자 다른 공식(전일 종가 대비 vs 당일 시가 대비)을
+    쓰면서 같은 가격에 다른 등락률이 나오는 사고가 있었다(2026-09-11 실제 발행본에서
+    확인 — 두 날짜의 종목 현재가는 완전히 동일한데 등락률·부호가 전부 달랐음).
+    앞으로 소스가 하나 더 늘어도 이 함수만 거치면 같은 사고는 재발하지 않는다."""
+    if not prev_close:
+        return 0.0
+    return (curr_price - prev_close) / prev_close * 100
+
+
+def get_stooq_prev_close(stooq_sym: str) -> Optional[float]:
+    """Stooq 일별 히스토리에서 '직전 거래일' 종가를 가져온다.
+    q/l/ 실시간 엔드포인트에는 당일 시가·현재가만 있고 전일 종가가 없어서,
+    day/i=d 히스토리를 별도로 조회해 마지막에서 두 번째 행(직전 거래일)을 쓴다."""
+    url = f"https://stooq.com/q/d/l/?s={urllib.parse.quote(stooq_sym)}&i=d"
+    raw = fetch(url, timeout=10)
+    if not raw:
+        return None
+    try:
+        lines = [l for l in raw.decode("utf-8", errors="ignore").strip().splitlines() if l]
+        if len(lines) < 3:
+            return None
+        # 마지막 행(lines[-1])은 당일 진행 중인 바(bar)일 수 있으므로,
+        # 그 직전 행(lines[-2])을 "직전 거래일 종가"로 사용한다.
+        header = [h.strip().lower() for h in lines[0].split(",")]
+        row    = lines[-2].split(",")
+        rec    = dict(zip(header, row))
+        prev_close = float(rec.get("close", "N/D"))
+        if prev_close != prev_close:  # NaN
+            return None
+        return prev_close
+    except Exception as e:
+        print(f"  [WARN] Stooq 전일종가 조회 실패: {e}")
+        return None
+
+
 def get_quote_stooq(symbol: str) -> Optional[dict]:
     stooq_sym = STOOQ_SYMBOLS.get(symbol)
     if not stooq_sym:
@@ -210,15 +247,22 @@ def get_quote_stooq(symbol: str) -> Optional[dict]:
         row = lines[1].split(",")
         rec = dict(zip(header, row))
         close = float(rec.get("close", "N/D"))
-        open_ = float(rec.get("open", "N/D"))
-        if close != close or open_ != open_:  # NaN 방지
+        if close != close:  # NaN 방지
             return None
-        chg_pct = (close - open_) / open_ * 100 if open_ else 0.0
+
+        # ⚠ 예전에는 여기서 당일 시가(open) 대비로 등락률을 계산해서 Yahoo 경로와
+        # 기준이 달라지는 사고가 있었다. 반드시 "전일 거래일 종가" 대비로 계산한다.
+        prev_close = get_stooq_prev_close(stooq_sym)
+        if not prev_close:
+            print(f"  [WARN] {symbol}: Stooq 전일종가 조회 실패 — 등락률 신뢰 불가, 스킵")
+            return None
+        chg_pct = compute_chg_pct(close, prev_close)
+
         volume = int(float(rec["volume"])) if rec.get("volume", "N/D") not in ("N/D", "") else 0
         name, kind = TICKERS.get(symbol, (symbol, "stock"))
         return {
             "symbol": symbol, "name": name, "kind": kind,
-            "price": round(close, 2), "prev": round(open_, 2),
+            "price": round(close, 2), "prev": round(prev_close, 2),
             "chg_pct": round(chg_pct, 2), "volume": volume,
             "market_date_us": rec.get("date", ""),
         }
@@ -267,7 +311,7 @@ def get_quote(symbol: str) -> Optional[dict]:
         if not curr_price or not prev_close:
             return None
  
-        chg_pct = (curr_price - prev_close) / prev_close * 100
+        chg_pct = compute_chg_pct(curr_price, prev_close)
         volume  = meta.get("regularMarketVolume", 0)
  
         ts = meta.get("regularMarketTime", 0)
@@ -305,8 +349,78 @@ def collect_quotes() -> dict:
             print(f"  {q['name']:14s} {arrow}{abs(q['chg_pct']):.2f}%")
         time.sleep(0.3)
     return quotes
- 
- 
+
+
+# ── 발행 직전 자동 정합성 검사 ─────────────────────────────────────────────────
+# 사람이 매일 발행물을 확인할 수 없다는 전제 하에 만든 안전망이다.
+# 원칙: "애매하면 발행하지 않는다" — 토픽 미선정으로 하루 안 올라오는 것과
+# 마찬가지로, 데이터가 앞뒤가 안 맞으면 그날은 조용히 건너뛰는 쪽이 잘못된
+# 수치를 그대로 내보내는 것보다 낫다.
+
+# 지수/ETF/매크로처럼 하루에 이 이상 튀는 게 거의 불가능한 종류는 임계값을
+# 보수적으로 좁게, 개별 종목처럼 실제로도 급등락이 흔한 것은 넓게 둔다.
+SANITY_MAX_ABS_PCT = {
+    "index": 12.0, "etf": 12.0, "macro": 15.0,
+    "kr_proxy": 15.0, "kr_actual": 20.0, "stock": 30.0,
+}
+
+
+def sanity_check(quotes: dict, prev_day_quotes: Optional[dict] = None) -> list[str]:
+    """
+    수집된 quotes가 내부적으로 앞뒤가 맞는지 자동 점검한다.
+    반환값: 발견된 문제 설명 리스트 (비어 있으면 이상 없음)
+    """
+    problems = []
+
+    for sym, q in quotes.items():
+        # (1) 내부 모순 검사: 저장된 chg_pct가 price/prev로 재계산한 값과
+        #     실제로 일치하는지 확인한다. 2026-09-11 사고(Yahoo/Stooq 공식
+        #     불일치)처럼 "가격은 맞는데 등락률만 틀린" 경우를 정확히 잡아낸다.
+        recomputed = compute_chg_pct(q["price"], q["prev"])
+        if abs(recomputed - q["chg_pct"]) > 0.1:
+            problems.append(
+                f"{q['name']}({sym}): 저장된 등락률 {q['chg_pct']}%가 "
+                f"price/prev로 재계산한 {recomputed:.2f}%와 불일치"
+            )
+            continue
+
+        # (2) 전날 리포트와 대조: 가격이 사실상 동일한데 등락률이 크게 다르면
+        #     '전일 대비' 기준점 자체가 실행마다 흔들리고 있다는 신호다.
+        prev_q = (prev_day_quotes or {}).get(sym)
+        if prev_q and abs(q["price"] - prev_q["price"]) < max(0.01, q["price"] * 0.0005):
+            if abs(q["chg_pct"] - prev_q["chg_pct"]) > 1.0:
+                problems.append(
+                    f"{q['name']}({sym}): 어제와 가격이 사실상 동일({q['price']})한데 "
+                    f"등락률은 어제 {prev_q['chg_pct']}% → 오늘 {q['chg_pct']}%로 다름"
+                )
+
+        # (3) 극단적 이상치: 종류별 상식적 범위를 벗어나면 데이터 소스 오류일
+        #     가능성이 높다 (실제 폭락/폭등이어도 일단 사람 확인 전엔 보류).
+        cap = SANITY_MAX_ABS_PCT.get(q.get("kind", "stock"), 30.0)
+        if abs(q["chg_pct"]) > cap:
+            problems.append(
+                f"{q['name']}({sym}): 등락률 {q['chg_pct']}%가 "
+                f"'{q.get('kind')}' 유형 상식 범위(±{cap}%) 초과"
+            )
+
+    return problems
+
+
+def load_prev_day_quotes(date_str: str) -> Optional[dict]:
+    """직전 실행분의 data/market_{date}.json에서 quotes만 로드한다.
+    파일이 없거나 형식이 안 맞아도 조용히 None을 반환 — 이 검사는 '있으면
+    좋은' 보조 수단이지 필수 전제조건이 아니다."""
+    try:
+        prev_date = (datetime.strptime(date_str, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+        path = f"{DATA_DIR}/market_{prev_date}.json"
+        if not os.path.exists(path):
+            return None
+        with open(path, encoding="utf-8") as f:
+            return json.load(f).get("quotes")
+    except Exception:
+        return None
+
+
 def get_us_market_date(quotes: dict) -> str:
     q = quotes.get("^IXIC") or quotes.get("^GSPC")
     if q and q.get("market_date_us"):
@@ -605,6 +719,81 @@ JSON만 출력:
     return fallback, [fallback]
  
  
+# ── AI 생성 본문 사후 검증 (자동 자가치유) ───────────────────────────────────
+# 프롬프트에 "삼성전자·SK하이닉스 실측치 외 원화 가격 언급 금지"를 명시해도,
+# 모델이 규칙을 어기는 사례가 실제로 반복됐다(애널리캐피탈 -2.7%, 삼성전자
+# 8만 원 등). 사람이 매번 못 보니, 발행 전에 코드가 직접 본문을 스캔해서
+# 허용 목록에 없는 원화 가격 언급이 있으면 해당 문장만 잘라낸다.
+
+WON_PRICE_PATTERN = re.compile(r"[가-힣]{0,6}[0-9][0-9,]*\s*만?\s*원")
+
+
+def _split_sentences(text: str) -> list[str]:
+    # 한국어 문장 종결(. 다음 공백/줄바꿈) 기준 — 완벽하진 않지만
+    # "숫자원" 오탐 제거용으로는 충분한 근사치다.
+    return re.split(r"(?<=[.!?])\s+", text)
+
+
+def _price_ok(text: str, allowed_prices: set) -> bool:
+    """문장/구절 안의 모든 '숫자(만)원' 표기가 허용 목록과 맞는지 확인."""
+    for m in WON_PRICE_PATTERN.findall(text):
+        digits = re.sub(r"[^0-9]", "", m)
+        if not digits:
+            continue
+        num = int(digits)
+        is_man = "만" in m
+        candidates = {num, num * 10000 if is_man else num}
+        if not (candidates & allowed_prices):
+            return False
+    return True
+
+
+BULLET_PREFIX_PATTERN = re.compile(r"^(\s*[-*]\s*(?:\*\*.+?\*\*\s*[:：]\s*)?)(.*)$")
+
+
+def audit_kr_price_mentions(analysis: str, quotes: dict) -> tuple[str, list[str]]:
+    """
+    본문에서 '숫자(만) 원' 패턴을 찾아, 위 quotes에 있는 실측 원화 가격
+    (005930.KS, 000660.KS)과 어림 일치하지 않으면 그 문장만 제거한다.
+    불릿("- **종목명**: ...") 형식은 접두어를 보존한 채 뒷부분만 문장 단위로
+    걸러내므로, 정상 수치(예: 259,500원)와 지어낸 수치(예: 25만 원 지지선)가
+    한 줄에 섞여 있어도 정상 수치는 살아남는다.
+    반환값: (정제된 본문, 제거된 문장 목록 — 감사 로그용)
+    """
+    allowed_prices = set()
+    for sym in ("005930.KS", "000660.KS"):
+        q = quotes.get(sym)
+        if q:
+            allowed_prices.add(round(q["price"]))
+            allowed_prices.add(round(q["price"] / 10000))  # "26만 원" 같은 축약 표기 허용
+
+    removed = []
+    cleaned_lines = []
+    for line in analysis.split("\n"):
+        if not WON_PRICE_PATTERN.search(line):
+            cleaned_lines.append(line)
+            continue
+
+        bm = BULLET_PREFIX_PATTERN.match(line)
+        prefix, body = (bm.group(1), bm.group(2)) if bm else ("", line)
+
+        kept_sentences = []
+        for s in _split_sentences(body):
+            if s.strip() and not _price_ok(s, allowed_prices):
+                removed.append(s.strip())
+            elif s.strip():
+                kept_sentences.append(s)
+
+        if kept_sentences:
+            cleaned_lines.append(prefix + " ".join(kept_sentences))
+        elif prefix.strip():
+            # 접두어(종목명)만 남고 내용이 통째로 걸러진 경우 — 빈 불릿은 버린다.
+            continue
+        # prefix도 body도 다 없으면 그냥 그 줄 자체를 스킵(= 추가 안 함)
+
+    return "\n".join(cleaned_lines), removed
+
+
 # ── 6. Blogger 발행 ───────────────────────────────────────────────────────────
  
 def get_access_token() -> str:
@@ -685,6 +874,20 @@ def main():
     if not quotes:
         print("[ERROR] 시세 수집 실패")
         sys.exit(1)
+
+    # 1-1) 자동 정합성 검사 — 사람이 매일 못 보는 걸 전제로, 애매하면
+    #      발행 자체를 하지 않는다 (토픽 미선정과 같은 원칙).
+    prev_day_quotes = load_prev_day_quotes(date_str)
+    problems = sanity_check(quotes, prev_day_quotes)
+    if problems:
+        print("[ERROR] 정합성 검사 실패 — 오늘 발행을 건너뜁니다:")
+        for p in problems:
+            print(f"  - {p}")
+        with open(f"{DATA_DIR}/market_skipped_{date_str}.json", "w", encoding="utf-8") as f:
+            json.dump({"reason": "sanity_check_failed", "problems": problems,
+                       "quotes": quotes, "created_at": now_kst.isoformat()},
+                      f, ensure_ascii=False, indent=2)
+        sys.exit(1)
  
     us_date = get_us_market_date(quotes)
     print(f"  미국 마감일: {us_date}")
@@ -700,8 +903,17 @@ def main():
  
     # 4) AI 분석
     print("[3] AI 분석 중...")
-    analysis = call_ai(build_prompt(quotes, news, now_kst, us_date))
+    prompt   = build_prompt(quotes, news, now_kst, us_date)
+    used_model: list[str] = []
+    analysis = call_ai(prompt, used_model_out=used_model)
     print(f"  분석 완료: {len(analysis)}자")
+
+    # 4-1) 본문 사후 검증 — 허용 안 된 원화 가격 언급을 자동으로 제거한다.
+    analysis, removed_lines = audit_kr_price_mentions(analysis, quotes)
+    if removed_lines:
+        print(f"[WARN] 사후 검증에서 근거 없는 원화 가격 언급 {len(removed_lines)}건 제거:")
+        for l in removed_lines:
+            print(f"  - {l[:80]}")
  
     # 5) HTML 변환 (it_html_builder 사용)
     dashboard    = build_ticker_dashboard(quotes, now_kst)
@@ -715,11 +927,16 @@ def main():
  
     tags = ["미국증시", "코스피전망", "주식시황", "나스닥", "한국증시"]
  
-    # 7) 파일 저장
+    # 7) 파일 저장 (+ 감사 추적용 프롬프트/모델명 함께 보관)
     with open(f"{DATA_DIR}/market_post_{date_str}.json", "w", encoding="utf-8") as f:
         json.dump({"title": final_title, "title_candidates": title_candidates,
                    "content_html": content_html, "tags": ",".join(tags),
-                   "us_date": us_date, "created_at": now_kst.isoformat()},
+                   "us_date": us_date, "created_at": now_kst.isoformat(),
+                   "audit": {
+                       "prompt": prompt,
+                       "model_used": used_model[0] if used_model else None,
+                       "removed_kr_price_mentions": removed_lines,
+                   }},
                   f, ensure_ascii=False, indent=2)
  
     html_path = f"{DATA_DIR}/market_post_{date_str}.html"
