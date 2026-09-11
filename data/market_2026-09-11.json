@@ -40,13 +40,23 @@
       "volume": 0,
       "market_date_us": "09/10"
     },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 11614.17,
+      "prev": 11931.32,
+      "chg_pct": -2.66,
+      "volume": 0,
+      "market_date_us": "09/10"
+    },
     "DX-Y.NYB": {
       "symbol": "DX-Y.NYB",
       "name": "달러인덱스",
       "kind": "macro",
-      "price": 99.09,
+      "price": 99.07,
       "prev": 98.77,
-      "chg_pct": 0.32,
+      "chg_pct": 0.31,
       "volume": 0,
       "market_date_us": "09/10"
     },
@@ -54,29 +64,29 @@
       "symbol": "CL=F",
       "name": "WTI유가",
       "kind": "macro",
-      "price": 104.0,
+      "price": 103.11,
       "prev": 96.05,
-      "chg_pct": 8.28,
-      "volume": 4026,
+      "chg_pct": 7.35,
+      "volume": 15043,
       "market_date_us": "09/10"
     },
     "GC=F": {
       "symbol": "GC=F",
       "name": "금선물",
       "kind": "macro",
-      "price": 4357.8,
+      "price": 4359.1,
       "prev": 4416.0,
-      "chg_pct": -1.32,
-      "volume": 1297,
+      "chg_pct": -1.29,
+      "volume": 4720,
       "market_date_us": "09/10"
     },
     "USDKRW=X": {
       "symbol": "USDKRW=X",
       "name": "원달러환율",
       "kind": "macro",
-      "price": 1349.23,
+      "price": 1346.98,
       "prev": 1339.17,
-      "chg_pct": 0.75,
+      "chg_pct": 0.58,
       "volume": 0,
       "market_date_us": "09/10"
     },
@@ -85,8 +95,8 @@
       "name": "나스닥100 ETF",
       "kind": "etf",
       "price": 708.69,
-      "prev": 716.31,
-      "chg_pct": -1.06,
+      "prev": 718.36,
+      "chg_pct": -1.35,
       "volume": 30814129,
       "market_date_us": "09/10"
     },
@@ -95,8 +105,8 @@
       "name": "반도체 ETF",
       "kind": "etf",
       "price": 517.43,
-      "prev": 532.0,
-      "chg_pct": -2.74,
+      "prev": 528.4,
+      "chg_pct": -2.08,
       "volume": 6462586,
       "market_date_us": "09/10"
     },
@@ -105,9 +115,19 @@
       "name": "금융 ETF",
       "kind": "etf",
       "price": 56.87,
-      "prev": 57.06,
-      "chg_pct": -0.33,
+      "prev": 57.3,
+      "chg_pct": -0.75,
       "volume": 25294202,
+      "market_date_us": "09/10"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 182.78,
+      "prev": 189.91,
+      "chg_pct": -3.75,
+      "volume": 14786177,
       "market_date_us": "09/10"
     },
     "NVDA": {
@@ -115,8 +135,8 @@
       "name": "엔비디아",
       "kind": "stock",
       "price": 218.36,
-      "prev": 223.67,
-      "chg_pct": -2.37,
+      "prev": 225.73,
+      "chg_pct": -3.26,
       "volume": 100845811,
       "market_date_us": "09/10"
     },
@@ -125,8 +145,8 @@
       "name": "AMD",
       "kind": "stock",
       "price": 503.6,
-      "prev": 521.1,
-      "chg_pct": -3.36,
+      "prev": 505.74,
+      "chg_pct": -0.42,
       "volume": 15908424,
       "market_date_us": "09/10"
     },
@@ -135,8 +155,8 @@
       "name": "인텔",
       "kind": "stock",
       "price": 100.32,
-      "prev": 106.24,
-      "chg_pct": -5.57,
+      "prev": 104.47,
+      "chg_pct": -3.97,
       "volume": 96048649,
       "market_date_us": "09/10"
     },
@@ -145,8 +165,8 @@
       "name": "TSMC",
       "kind": "stock",
       "price": 428.03,
-      "prev": 435.36,
-      "chg_pct": -1.68,
+      "prev": 439.0,
+      "chg_pct": -2.5,
       "volume": 8325340,
       "market_date_us": "09/10"
     },
@@ -155,8 +175,8 @@
       "name": "애플",
       "kind": "stock",
       "price": 326.57,
-      "prev": 315.34,
-      "chg_pct": 3.56,
+      "prev": 316.22,
+      "chg_pct": 3.27,
       "volume": 69820744,
       "market_date_us": "09/10"
     },
@@ -165,8 +185,8 @@
       "name": "마이크로소프트",
       "kind": "stock",
       "price": 492.44,
-      "prev": 491.65,
-      "chg_pct": 0.16,
+      "prev": 493.95,
+      "chg_pct": -0.31,
       "volume": 15852734,
       "market_date_us": "09/10"
     },
@@ -175,8 +195,8 @@
       "name": "테슬라",
       "kind": "stock",
       "price": 363.56,
-      "prev": 367.81,
-      "chg_pct": -1.16,
+      "prev": 368.16,
+      "chg_pct": -1.25,
       "volume": 29554006,
       "market_date_us": "09/10"
     },
@@ -185,8 +205,8 @@
       "name": "아마존",
       "kind": "stock",
       "price": 251.89,
-      "prev": 252.4,
-      "chg_pct": -0.2,
+      "prev": 256.97,
+      "chg_pct": -1.98,
       "volume": 25371219,
       "market_date_us": "09/10"
     },
@@ -195,8 +215,8 @@
       "name": "알파벳",
       "kind": "stock",
       "price": 332.6,
-      "prev": 330.65,
-      "chg_pct": 0.59,
+      "prev": 338.36,
+      "chg_pct": -1.7,
       "volume": 22782704,
       "market_date_us": "09/10"
     },
@@ -205,9 +225,29 @@
       "name": "메타",
       "kind": "stock",
       "price": 644.38,
-      "prev": 653.69,
-      "chg_pct": -1.42,
+      "prev": 613.48,
+      "chg_pct": 5.04,
       "volume": 20418899,
+      "market_date_us": "09/10"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX)",
+      "kind": "kr_actual",
+      "price": 259500.0,
+      "prev": 269000.0,
+      "chg_pct": -3.53,
+      "volume": 1011090,
+      "market_date_us": "09/10"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX)",
+      "kind": "kr_actual",
+      "price": 1779000.0,
+      "prev": 1853000.0,
+      "chg_pct": -3.99,
+      "volume": 215943,
       "market_date_us": "09/10"
     }
   },
@@ -216,6 +256,11 @@
       "title": "Dow Jones Futures: S&P 500 Breaks Support As Oil Prices, Yields Surge; Oracle Jumps Late With CPI Inflation Due",
       "summary": "The S&P 500 undercut its 50-day as Treasury yields and oil prices surged. Oracle jumped late on earnings. The CPI inflation report could lock in expectations for a Fed rate hike next week.",
       "link": "https://finance.yahoo.com/m/c29e8241-4bb8-3a14-aa17-d5e2fa2c38f6/dow-jones-futures%3A-s%26p-500.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500, Dow, Nasdaq End Lower As Surging Oil Raises Odds For A September Rate Hike — ORCL, ADBE, M, NVDA, UBER In Focus",
+      "summary": "But futures were mixed, with S&P 500 futures marginally up, while Dow and Nasdaq futures slightly eased.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-dow-nasdaq-end-lower-as-surging-oil-raises-odds-for-a-september-rate-hike/cZtapeARJ68?.tsrc=rss"
     },
     {
       "title": "Annaly Capital Management (NLY) Suffers a Larger Drop Than the General Market: Key Insights",
@@ -228,14 +273,24 @@
       "link": "https://finance.yahoo.com/markets/stocks/articles/american-tower-amt-dips-more-221505097.html?.tsrc=rss"
     },
     {
-      "title": "V.F. (VFC) Declines More Than Market: Some Information for Investors",
-      "summary": "In the latest trading session, V.F. (VFC) closed at $12.62, marking a -2.25% move from the previous day.",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/v-f-vfc-declines-more-221505130.html?.tsrc=rss"
-    },
-    {
       "title": "Why the Market Dipped But Crescent Energy (CRGY) Gained Today",
       "summary": "In the latest trading session, Crescent Energy (CRGY) closed at $14.41, marking a +1.19% move from the previous day.",
       "link": "https://finance.yahoo.com/markets/stocks/articles/why-market-dipped-crescent-energy-221505673.html?.tsrc=rss"
+    },
+    {
+      "title": "Palantir Technologies Showcases Sovereign AI Wins With NVIDIA, Cisco and FAA",
+      "summary": "Palantir Technologies (NASDAQ:PLTR) used its AIPCon event to highlight customer deployments of its Foundry, Ontology and Artificial Intelligence Platform products across supply chains, aviation safety, defense manufacturing, insurance, media, pharmaceuticals and industrial operations. Speakers repea",
+      "link": "https://www.marketbeat.com/instant-alerts/event-palantir-technologies-showcases-sovereign-ai-wins-with-nvidia-cisco-and-faa-2026-09-10/?utm_source=yahoofinance&utm_medium=yahoofinance&.tsrc=rss"
+    },
+    {
+      "title": "Oil Just Topped $109. Is It Too Late to Buy Chevron (CVX)? History Has a Clear Answer.",
+      "summary": "Every time oil has topped $110/barrel before, the result has been the same.",
+      "link": "https://www.fool.com/investing/2026/09/10/oil-just-topped-usd109-is-it-too-late-to-buy-chevron-cvx-history-has-a-clear-answer/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Returned $26 Billion to Shareholders Last Quarter Alone. Here's What That Buys You as an Investor.",
+      "summary": "Has returned income become a central reason to buy Nvidia stock?",
+      "link": "https://www.fool.com/investing/2026/09/10/nvidia-returned-26-billion-to-shareholders-last-qu/?.tsrc=rss"
     },
     {
       "title": "Jensen Huang explains why Nvidia will grow an astounding 70% next year",
@@ -246,21 +301,6 @@
       "title": "Jensen Huang just answered Michael Burry's Nvidia bear case",
       "summary": "Jensen Huang gave Nvidia investors something to counter Burry’s skepticism of cloud companies’ profits.",
       "link": "https://www.thestreet.com/investing/stocks/jensen-huang-just-answered-michael-burrys-nvidia-bear-case-coreweave?.tsrc=rss"
-    },
-    {
-      "title": "Nvidia stock edges higher on Microsoft data center expansion report",
-      "summary": "Investing.com -- Nvidia Corporation (NASDAQ:NVDA) edged higher in after-hours trading, rising 0.5%, Thursday following a Bloomberg report that Microsoft plans to more than triple its data center capacity.",
-      "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-stock-edges-higher-microsoft-213655977.html?.tsrc=rss"
-    },
-    {
-      "title": "Positron AI’s $875M Bet: Commodity Memory Could Break NVIDIA’s Inference Lock",
-      "summary": "Positron AI has raised $875 million in a combined Series C and Series C-1 round, valuing the Reno-based startup at $5 billion post-money. The financing, co-led by NEA, Andra Capital, Atreides Management, Valor Equity Partners, and SemiAnalysis Capital, represents a roughly five-fold markup from the company’s February 2026 Series B valuation of just over $1 […]",
-      "link": "https://finance.yahoo.com/technology/ai/articles/positron-ai-875m-bet-commodity-212452199.html?.tsrc=rss"
-    },
-    {
-      "title": "Prices Just Jumped Again. That Could Mean Trouble for the Stock Market Next Week",
-      "summary": "Wholesale inflation, an oil price spike, and surging bond yields collided in one trading day, and the S&P 500 fell 0.6% as a result.",
-      "link": "https://www.fool.com/investing/2026/09/10/prices-just-jumped-again-that-could-mean-trouble-for-the-stock-market-next-week/?.tsrc=rss"
     },
     {
       "title": "Elon Musk warns 'if the ship of America sinks, we all sink with it'",
@@ -313,31 +353,31 @@
       "link": "https://247wallst.com/investing/2026/09/10/cathie-wood-is-selling-amd-before-mi450-arrives-is-she-about-to-miss-another-nvidia/?.tsrc=rss"
     },
     {
-      "title": "Dow tumbles 300 points to notch 4-day drop as Treasury yields and oil prices surge - CNBC",
-      "summary": "Dow tumbles 300 points to notch 4-day drop as Treasury yields and oil prices surge CNBC",
-      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1nZjEwdFhFYzdKY2ppVDA2ZzU3OGl1S2c0Vl83ZWYwOURBU2ppWEQzQWk2ZVVMZmRVRG9OQnJlSFYzWEtkZC1YQ2R1Q0RIdFpJb0tlWmVST3Y2VUpIQ3BScXY3Mnl3YTdhTl9RVXpVcjNWaFI5TE5B0gF8QVVfeXFMUGMwZzI5N1JJSFVENkNxY19DWE5aUm9RMHlldVl5MzJ5RnppUkozclVyOUlETUNveDZMd3RZbHBucG9LN3FTdUlhejBxM1c2R3R6ZE9tUTZlSkdfQnUyZjlaczh2OEt3MUZWVzdoZGFRaXgyZDhLX0lSUld1eQ?oc=5"
-    },
-    {
-      "title": "Stock Market on Sept. 10, 2026: Dow, S&P 500 and Nasdaq end lower as U.S. oil prices surge to more than $100 a barrel and Treasury yields jump; stocks book 4th straight day of losses - MarketWatch",
-      "summary": "Stock Market on Sept. 10, 2026: Dow, S&P 500 and Nasdaq end lower as U.S. oil prices surge to more than $100 a barrel and Treasury yields jump; stocks book 4th straight day of losses MarketWatch",
-      "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxPSEZWR3JqTnVsc2VsSVlvSXlScWYyeUVkMlZXVmJlMGNHUzJvVG1LaEUySWoxX1FZWE00Y2NkQ284ZW11R0U1cHE4QXJWQm53UnBQR2RIXzBaeHJLNG1lZGlkdlpzV1ZOdzBpcG5oNXJrOVJCWi0zOUJxNFpGNV96MzhJVzlMdUxBU2x3ZUdDaEp2d3VJbTB2aVI4ekdTQWJfa1cxelRZSWd3ejkyQWpDb1A2Qy1QbVdCRWhlMGR0Yk8wUE9BQ0s5ZXVrUDA2SjJUa2diX1RwOVM?oc=5"
-    },
-    {
-      "title": "Stock Market Today: Dow, Nasdaq Open Lower; Bond Yields Jump as Oil Prices Climb — Live Updates - WSJ",
-      "summary": "Stock Market Today: Dow, Nasdaq Open Lower; Bond Yields Jump as Oil Prices Climb — Live Updates WSJ",
-      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPc2dUYUJhakx0Z1hEUkZHcVRrV0Z0bTVSZTlJaUdZS1hCeDExelZHUVZ4N0hkYkl3Z0hvVVpGLTJRV2pqT19XZTIwQ0dSdl9lRDY3TkY5NmNPcXdkZHhBR0hTVHBfVklZZVlYekltSk93TURSQXc4QVlEcE42NHlTUkIxdnd0R28?oc=5"
-    },
-    {
       "title": "Stock market today: Dow, S&P 500, Nasdaq fall for fourth straight day as bond yields jump, oil stays above $100 - Yahoo Finance",
-      "summary": "Stock market today: Dow, S&P 500, Nasdaq fall for fourth straight day as bond yields jump, oil stays above $100 Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq fall for fourth straight day as bond yields jump, oil stays above $100 Yahoo FinanceStock market today: Dow, S&P 500, Nasdaq extend losses as bond yields jump, oil holds above $100 Yahoo FinanceDow tumbles 300 points to notch 4-day drop as Treasury yields and oil prices surge cnbc.com",
       "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxPMTdkYXVCeEFObWJWeUpjVUo0QS1QWm1PdTFmcVJJaFNIS0M0WjN4dkxCUGZocG5pei1CempKS01KSzBpNTZ0MmdtdGJtaVRJa1dscnFkRnlZbUpiZHZsQlBzblBzakd1VTJ5YkpSWWFBOG5CQ1NkWE5YeDFVbDlNVlN3VTlpc183YzhPNHdNSzVGLVp1NTJ1OGZDa3p6Q2xSRDl2QUpoN05RY2tpVXJSQ01IWW1OWWdrYnk2alM1dm9oZldf?oc=5"
     },
     {
-      "title": "S&P 500 ends down as Treasury yields rise and traders fret about inflation - Reuters",
-      "summary": "S&P 500 ends down as Treasury yields rise and traders fret about inflation Reuters",
-      "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPVUNZS2ZwczJmM0x1aEM5ZFJMbUhWckRSOE54a1NyTFZjb1NaNFNCZDFwOFJiMk40b1RJelZsVnhKOVNObGNGenNkZzVhUWtZRlktVzhTWk9Qc1EybkRweDk4RFRRUjh2bk1TU0lJazBncUFnUlcwcTlPVWY3NjBzdWVUd3JGTDlLeF9EMU1aTnEzSDctTVcxZVdzT1RZclZjanRhbkl3?oc=5"
+      "title": "Stock Market News, Sept. 10, 2026: Bond Yields Jump as Oil Climbs - WSJ",
+      "summary": "Stock Market News, Sept. 10, 2026: Bond Yields Jump as Oil Climbs WSJ",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPc2dUYUJhakx0Z1hEUkZHcVRrV0Z0bTVSZTlJaUdZS1hCeDExelZHUVZ4N0hkYkl3Z0hvVVpGLTJRV2pqT19XZTIwQ0dSdl9lRDY3TkY5NmNPcXdkZHhBR0hTVHBfVklZZVlYekltSk93TURSQXc4QVlEcE42NHlTUkIxdnd0R28?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Dow Falls 400 Points; Sellers Whack This AI Software Firm - Investor's Business Daily",
+      "summary": "Stock Market Today: Dow Falls 400 Points; Sellers Whack This AI Software Firm Investor's Business Daily",
+      "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQWll1YmNBNzBtSTVXUlNkRkpCeWV0WXVzejkzdmNqV2Uwd2RmcXJhRkRLdkFJaTZRQWhNdnlsamZFaW9vQWxGbkZFeVhmcU9MaDRJT003UW5HR2hEMmQ5NUR0bHMtc000Mlc5d1dxZzJweUQzSFl6N3hTSy1nY1djbkxBbXh0aEt0eHRKel9KeGwxT29sQnNDY1pmTEhROTUzb0llRjJid2w3NnA2Zl8tRWllOU5zUFJOYm9xN0Zkaw?oc=5"
+    },
+    {
+      "title": "AI is losing its stranglehold on the U.S. stock market. Here's why - cnbc.com",
+      "summary": "AI is losing its stranglehold on the U.S. stock market. Here's why cnbc.com",
+      "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPc1IwZzA0QVg3QkNBZ1pIVEI5WFRNNDhMZnNITjRYaHlrQWtCNXV6WXZXSVZ5cElBOXJzY25PVHdBTkFnWVl0aGxoaHNfWE04WVM0ZUw2TmMxN2RiVjV2UmZXazNGdGN2RHVOOTVOZmlzOGYzVWJVMU1mZDR0QWRQYy1mdThvOW5pVDBXOWN1d2xGX0hobXZ2LVhOWDZseWRR0gGmAUFVX3lxTE1DWm4xNllDUWtSNXNWQ1dvTmExOXhHRTZBVUE4SmU2Y1ZnSUZ2LVEtZlJYYmM3amhfcnpiZUdhWWlEVS04MTE5NFFSeFhGRVFrbTJzc05GM0wxY3hmS0VzMmtIODNQZXA3M0FBV2p4U1ZSaDYzeTNsU1I3a3NnSDBTc3h5dzBjVnczQmd6REs3TmlRcFFjcmpTbHhVbkx6ZGV4YmtKY2c?oc=5"
+    },
+    {
+      "title": "Bond sell-off, stock boom: Why rebalancing is a good strategy right now - cnbc.com",
+      "summary": "Bond sell-off, stock boom: Why rebalancing is a good strategy right now cnbc.com",
+      "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1DOUlzX2QybVdMSDV3OWlINHd3Q0twTzR3OS1fQnZaMmJvb1ZoT3g3NWRBVGxaMWNWYVFSQW5WM2k4V1FjaUtVMWZTNkxYdHJLVXB2OWx4QkpBSWpheWt0bGlIbWRjVlJ2ZktWUk5ZdjNvQnIybU1ZM29sNk_SAYIBQVVfeXFMTWpMRUlVSl9CYnZ4bFF0RG1PR3laVU90Q3JYbkdzX2FkWXRtc1pUM3RpWC1TbGRqNWk5YkFud1p2SHE2ZkNJelhOQjZZRzk4c3lFck9SQnVHVi1kWndzRVhEMGV1UHdEMmlHdGVZX0dKcXRQc3ZQbENTdGJIWnRtZ0xndw?oc=5"
     }
   ],
   "us_date": "09/10",
-  "generated_at": "2026-09-11T07:48:24.219140+09:00"
+  "generated_at": "2026-09-11T09:27:04.412638+09:00"
 }
