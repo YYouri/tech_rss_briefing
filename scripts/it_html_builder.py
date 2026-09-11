@@ -508,9 +508,29 @@ def build_ticker_dashboard(quotes: dict, now_kst: datetime) -> str:
             f'</div>'
         )
 
-    idx_cells   = [quote_cell(quotes[s], big=True) for s in ["^IXIC","^GSPC","^DJI","^VIX"]       if s in quotes]
-    macro_cells = [quote_cell(quotes[s])            for s in ["DX-Y.NYB","CL=F","GC=F","USDKRW=X"] if s in quotes]
-    etf_cells   = [quote_cell(quotes[s])            for s in ["QQQ","SOXX","XLF"]                   if s in quotes]
+    def quote_cell_krx(q: dict, big: bool = False) -> str:
+        """원화 표기용 셀 — 소수점 없이 정수 원 단위로 표시."""
+        up    = q["chg_pct"] >= 0
+        color = UP_COLOR if up else DOWN_COLOR
+        sign  = "+" if up else ""
+        arrow = "▲" if up else "▼"
+        size  = "1.05em" if big else "0.88em"
+        return (
+            f'<div style="padding:10px 4px;border-bottom:1px solid {BORDER};">'
+            f'<div style="font-size:0.72em;color:{TEXT_SUB};margin-bottom:4px;">{q["name"]}</div>'
+            f'<div style="font-family:{FONT_MONO};font-size:{size};font-weight:600;color:{INK};">'
+            f'{q["price"]:,.0f}원</div>'
+            f'<div style="font-family:{FONT_MONO};font-size:0.78em;font-weight:600;color:{color};margin-top:2px;">'
+            f'{arrow} {sign}{q["chg_pct"]:.2f}%</div>'
+            f'</div>'
+        )
+
+    idx_cells    = [quote_cell(quotes[s], big=True) for s in ["^IXIC","^GSPC","^DJI","^VIX"]       if s in quotes]
+    macro_cells  = [quote_cell(quotes[s])            for s in ["DX-Y.NYB","CL=F","GC=F","USDKRW=X"] if s in quotes]
+    etf_cells    = [quote_cell(quotes[s])            for s in ["QQQ","SOXX","XLF"]                   if s in quotes]
+    # 한국 시장 선행지표(EWY·SOX)와 삼성전자·SK하이닉스 실제 전일가를 대시보드에도 노출
+    kr_lead_cells = [quote_cell(quotes[s], big=True) for s in ["EWY","^SOX"]         if s in quotes]
+    kr_krx_cells  = [quote_cell_krx(quotes[s])        for s in ["005930.KS","000660.KS"] if s in quotes]
 
     def grid(cells: list) -> str:
         return (
@@ -556,6 +576,13 @@ def build_ticker_dashboard(quotes: dict, now_kst: datetime) -> str:
         f'letter-spacing:0.08em;margin-bottom:2px;">MACRO</div>{grid(macro_cells)}'
         f'<div style="font-family:{FONT_MONO};font-size:0.68em;font-weight:600;color:{STOCK_BLUE};'
         f'letter-spacing:0.08em;margin-bottom:2px;">SECTOR ETF</div>{grid(etf_cells)}'
+        + (
+            f'<div style="font-family:{FONT_MONO};font-size:0.68em;font-weight:600;color:{STOCK_BLUE};'
+            f'letter-spacing:0.08em;margin-bottom:2px;">KR LEADING (익일 코스피 선행지표)</div>'
+            f'{grid(kr_lead_cells + kr_krx_cells)}'
+            if (kr_lead_cells or kr_krx_cells) else ""
+        )
+        +
         f'<div style="font-family:{FONT_MONO};font-size:0.68em;font-weight:600;color:{STOCK_BLUE};'
         f'letter-spacing:0.08em;margin-bottom:8px;">KEY STOCKS &amp; KR PEERS</div>'
         f'<div style="overflow-x:auto;">'
@@ -713,5 +740,7 @@ def md_to_html_market(md: str, quotes: dict) -> str:
         f'{body}'
         f'<div style="margin-top:2em;padding-top:14px;'
         f'font-family:{FONT_MONO};font-size:0.72em;color:{TEXT_MUTED};line-height:1.7;">'
+        f'본 콘텐츠는 공개 데이터 기반 자동 생성 정보로, 투자 권유가 아닙니다. '
+        f'실제 투자 결정은 본인 판단 하에 전문가와 상담 후 진행하시기 바랍니다.'
         f'</div></div>'
     )

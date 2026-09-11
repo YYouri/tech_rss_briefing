@@ -43,6 +43,7 @@ TICKERS = {
     "^GSPC":    ("S&P500",       "index"),
     "^DJI":     ("다우존스",      "index"),
     "^VIX":     ("VIX",          "index"),
+    "^SOX":     ("필라델피아반도체지수", "index"),
     "DX-Y.NYB": ("달러인덱스",    "macro"),
     "CL=F":     ("WTI유가",       "macro"),
     "GC=F":     ("금선물",        "macro"),
@@ -50,6 +51,7 @@ TICKERS = {
     "QQQ":      ("나스닥100 ETF", "etf"),
     "SOXX":     ("반도체 ETF",    "etf"),
     "XLF":      ("금융 ETF",      "etf"),
+    "EWY":      ("한국 ETF(EWY)", "kr_proxy"),
     "NVDA":     ("엔비디아",      "stock"),
     "AMD":      ("AMD",          "stock"),
     "INTC":     ("인텔",         "stock"),
@@ -60,6 +62,11 @@ TICKERS = {
     "AMZN":     ("아마존",        "stock"),
     "GOOGL":    ("알파벳",        "stock"),
     "META":     ("메타",          "stock"),
+    # ⚠ 한국거래소 종목의 "실제" 전일 종가 — 모델이 임의로 원화 가격을
+    # 지어내지 못하도록 실측치를 기준점으로 제공한다 (2026-09-10 사고:
+    # 삼성전자를 26만 원대인데 8만 원대로 서술한 사례 참고).
+    "005930.KS": ("삼성전자(KRX)",   "kr_actual"),
+    "000660.KS": ("SK하이닉스(KRX)", "kr_actual"),
 }
  
 KR_MAP = {
@@ -74,6 +81,7 @@ KR_MAP = {
     "AMZN":  ["쿠팡"],
     "GOOGL": ["카카오", "NAVER"],
     "SOXX":  ["삼성전자", "SK하이닉스", "한미반도체"],
+    "^SOX":  ["삼성전자", "SK하이닉스", "한미반도체", "DB하이텍"],
 }
  
  
@@ -174,11 +182,15 @@ def fetch_yahoo(url: str, timeout: int = 15) -> Optional[bytes]:
 # 정확도가 조금 떨어질 수 있으나 최소한 "발행 실패"보다는 낫다.
 STOOQ_SYMBOLS = {
     "^IXIC": "^ndq", "^GSPC": "^spx", "^DJI": "^dji", "^VIX": "^vix",
+    "^SOX": "^sox",
     "CL=F": "cl.f", "GC=F": "gc.f", "USDKRW=X": "usdkrw",
-    "QQQ": "qqq.us", "SOXX": "soxx.us", "XLF": "xlf.us",
+    "QQQ": "qqq.us", "SOXX": "soxx.us", "XLF": "xlf.us", "EWY": "ewy.us",
     "NVDA": "nvda.us", "AMD": "amd.us", "INTC": "intc.us", "TSM": "tsm.us",
     "AAPL": "aapl.us", "MSFT": "msft.us", "TSLA": "tsla.us", "AMZN": "amzn.us",
     "GOOGL": "googl.us", "META": "meta.us",
+    # ⚠ Stooq의 한국거래소 커버리지는 보장이 안 돼 실패할 수 있음 —
+    # 실패 시 collect_quotes()가 조용히 건너뛰므로 리포트 자체는 안 죽는다.
+    "005930.KS": "005930.kr", "000660.KS": "000660.kr",
 }
 
 
@@ -427,6 +439,34 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
             sign = "+" if q["chg_pct"] >= 0 else ""
             macro_lines.append(f"{q['name']}: {q['price']} ({sign}{q['chg_pct']}%)")
  
+    # ── 한국 시장 선행지표 ──────────────────────────────────────────────────
+    # EWY(미국에 상장된 한국 지수 ETF, 미 증시 시간에 실시간 거래)와
+    # 필라델피아 반도체지수(^SOX)는 "다음 날 코스피가 어느 방향으로 열릴지"를
+    # 미국 개별 종목 하나하나보다 직접적으로 반영하는 선행지표다.
+    # 삼성전자/SK하이닉스는 임의 가격 서술을 막기 위한 실측 기준점으로 제공한다.
+    kr_lines = ["\n=== 한국 시장 선행지표 (실측 데이터) ==="]
+    ewy = quotes.get("EWY")
+    if ewy:
+        sign = "+" if ewy["chg_pct"] >= 0 else ""
+        kr_lines.append(
+            f"한국 ETF(EWY, 미국 상장·삼성전자·SK하이닉스 비중 높음): "
+            f"{ewy['price']} ({sign}{ewy['chg_pct']}%) → 코스피 익일 방향의 1차 근거로 사용"
+        )
+    sox = quotes.get("^SOX")
+    if sox:
+        sign = "+" if sox["chg_pct"] >= 0 else ""
+        kr_lines.append(f"필라델피아반도체지수(SOX): {sox['price']} ({sign}{sox['chg_pct']}%)")
+    for sym in ["005930.KS", "000660.KS"]:
+        q = quotes.get(sym)
+        if q:
+            sign = "+" if q["chg_pct"] >= 0 else ""
+            kr_lines.append(
+                f"{q['name']} 전일 KRX 종가(실제값, 참고용): "
+                f"{q['price']:,.0f}원 ({sign}{q['chg_pct']}%)"
+            )
+    if len(kr_lines) == 1:
+        kr_lines.append("(EWY/SOX/KRX 실측 데이터 수집 실패 — 미국 개별 종목 상관관계로만 추정할 것)")
+ 
     stock_lines = ["\n=== 핵심 종목 ==="]
     for sym in ["NVDA","AMD","INTC","TSM","AAPL","MSFT","TSLA","AMZN","GOOGL","META"]:
         q = quotes.get(sym)
@@ -445,7 +485,7 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
         if n.get("summary"):
             news_lines.append(f"   {n['summary'][:180]}")
  
-    market_text = "\n".join(idx_lines + etf_lines + macro_lines + stock_lines + news_lines)
+    market_text = "\n".join(idx_lines + etf_lines + macro_lines + kr_lines + stock_lines + news_lines)
     kst_date    = now_kst.strftime("%Y년 %m월 %d일")
  
     return f"""당신은 정보관리기술사를 준비하는 현업 개발자이자, 본인 투자 기록을 블로그에 공개하는 개인 투자자다.
@@ -468,6 +508,17 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
 - "다양한", "혁신적인", "중요한" 절대 금지
 - "또한", "한편", "따라서", "즉" 문장 연결 금지
 - 수치는 위 데이터에 있는 것만 사용
+- ⚠ 한국 종목(삼성전자, SK하이닉스, 한미반도체, LG에너지솔루션 등)의 원화 가격·등락률·
+  지지선/저항선은 위 "한국 시장 선행지표" 블록에 실측치로 제공된 삼성전자·SK하이닉스
+  전일 KRX 종가 외에는 절대 언급하지 말 것. 그 두 종목도 제공된 숫자 그대로만 인용하고
+  다른 가격을 지어내지 않는다. 나머지 한국 종목(한미반도체, DB하이텍, LG에너지솔루션 등)은
+  실측 가격이 없으므로 원화 가격 자체를 언급하지 말고 "미국 모종목이 이만큼 움직였으니
+  이런 방향·강도의 압력을 받을 것"이라는 인과관계·방향성으로만 서술한다
+  (예: "TSM -1.68%는 DB하이텍 파운드리 업황에 부담" O, 근거 없는 "10만 원 이탈 우려" X)
+- 코스피·코스닥 익일 방향을 판단할 때는 개별 미국 종목보다 EWY(한국 ETF)와
+  필라델피아반도체지수(SOX)의 등락을 1차 근거로 삼고, 개별 종목 등락은 업종별 부연 설명에만 쓴다
+- 애널리캐피탈, 아메리칸타워 등 위 데이터에 없는 미국 종목도 동일한 이유로 구체적
+  수치 언급 금지 — 섹터 흐름은 해당 섹터 ETF(QQQ/SOXX/XLF) 수치로만 설명
 - 문장은 짧고 밀도 있게
 - 투자 권유 절대 금지
 - 원/달러 환율 변화가 한국 수출주에 미치는 영향 반드시 언급
@@ -481,10 +532,14 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
 ## 1. 간밤 미국 증시 요약
 ## 2. 핵심 드라이버
 ## 3. 섹터별 흐름
-- **섹터명**: 설명 (bullet 4~5개)
+- **섹터명**: 설명 (bullet 4~5개, 위 데이터에 있는 종목/ETF 수치만 사용)
 ## 4. 오늘 코스피·코스닥 영향 예측
+- EWY·SOX 등락을 1차 근거로 코스피 갭 방향을 먼저 제시하고, 원달러 환율·개별 종목
+  상관관계를 보조 근거로 덧붙인다
 ## 5. 한국 연관 종목 체크
-- **종목명**: 미국 모종목 → 한국 영향 (bullet 6개 이상)
+- **종목명**: 미국 모종목의 등락(%) → 한국 종목이 받을 방향성·강도 예측. 삼성전자·
+  SK하이닉스는 제공된 전일 KRX 종가를 기준점으로 언급 가능하나 그 외 가격 추정 금지,
+  나머지 종목은 원화 가격·지지선 언급 없이 방향성만 서술 (bullet 6개 이상)
 ## 6. 오늘의 리스크 & 체크리스트
 - bullet 형식
 ## 7. 3줄 요약
@@ -539,6 +594,8 @@ JSON만 출력:
                 if isinstance(t, str) and t.strip()
                 and not re.match(r"^\s*<.*>\s*$", t)
                 and not re.match(r"^제목\s*\d*$", t.strip())
+                # "...", "…", "-", "N/A" 등 실제 글자가 없는 플레이스홀더 배제
+                and re.search(r"[가-힣A-Za-z0-9]", t)
             ]
             if real_titles:
                 return real_titles[0], real_titles
