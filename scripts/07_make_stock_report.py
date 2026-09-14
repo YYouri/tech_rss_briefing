@@ -5,7 +5,7 @@ it_html_builder.py 의 build_ticker_dashboard + md_to_html_market 사용
 """
  
 from __future__ import annotations
-from it_html_builder import build_ticker_dashboard, md_to_html_market
+from it_html_builder import build_ticker_dashboard, md_to_html_market, STOCK_KR_MAP as KR_MAP
  
 import json
 import os
@@ -30,8 +30,14 @@ BLOGGER_CLIENT_SECRET   = os.environ.get("BLOGGER_CLIENT_SECRET")
 BLOGGER_REFRESH_TOKEN_2 = os.environ.get("BLOGGER_REFRESH_TOKEN_2")
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
  
+from zoneinfo import ZoneInfo
+
 KST = timezone(timedelta(hours=9))
-EST = timezone(timedelta(hours=-5))
+# ⚠ 예전에는 timezone(timedelta(hours=-5))로 미국 동부시간을 고정해뒀는데,
+# 이건 서머타임(EDT, UTC-4)을 전혀 반영하지 못한다. 3월~11월(EDT 기간)에는
+# 실제 시각과 최대 1시간 어긋난 채로 "오늘 날짜"를 판별하게 되므로,
+# America/New_York을 써서 연중 항상 정확한 미국 동부시간을 얻는다.
+EST = ZoneInfo("America/New_York")
 DATA_DIR = "data"
  
 # ⚠ 하드코딩 슬러그는 OpenRouter가 무료 라인업을 몇 주 단위로 갈아치우며 계속
@@ -69,20 +75,8 @@ TICKERS = {
     "000660.KS": ("SK하이닉스(KRX)", "kr_actual"),
 }
  
-KR_MAP = {
-    "NVDA":  ["삼성전자", "SK하이닉스", "한미반도체"],
-    "AMD":   ["삼성전자", "SK하이닉스"],
-    "INTC":  ["삼성전자"],
-    "TSM":   ["삼성전자", "DB하이텍"],
-    "TSLA":  ["LG에너지솔루션", "삼성SDI", "포스코퓨처엠"],
-    "AAPL":  ["LG이노텍", "삼성전기"],
-    "MSFT":  ["카카오", "NAVER"],
-    "META":  ["카카오"],
-    "AMZN":  ["쿠팡"],
-    "GOOGL": ["카카오", "NAVER"],
-    "SOXX":  ["삼성전자", "SK하이닉스", "한미반도체"],
-    "^SOX":  ["삼성전자", "SK하이닉스", "한미반도체", "DB하이텍"],
-}
+# ⚠ KR_MAP은 이제 it_html_builder.py의 STOCK_KR_MAP을 그대로 가져다 쓴다.
+# (위 import문 참고) 두 파일에 따로 유지하다가 한쪽만 갱신되는 사고가 있었다.
  
  
 # ── 유틸 ─────────────────────────────────────────────────────────────────────
@@ -205,10 +199,16 @@ def compute_chg_pct(curr_price: float, prev_close: float) -> float:
     return (curr_price - prev_close) / prev_close * 100
 
 
-def get_stooq_prev_close(stooq_sym: str) -> Optional[float]:
+def get_stooq_prev_close(stooq_sym: str, current_date_str: str = "") -> Optional[float]:
     """Stooq 일별 히스토리에서 '직전 거래일' 종가를 가져온다.
     q/l/ 실시간 엔드포인트에는 당일 시가·현재가만 있고 전일 종가가 없어서,
-    day/i=d 히스토리를 별도로 조회해 마지막에서 두 번째 행(직전 거래일)을 쓴다."""
+    day/i=d 히스토리를 별도로 조회한다.
+    ⚠ 예전에는 "마지막에서 두 번째 행"을 고정으로 썼는데, 이건 Yahoo closes[-2]
+    버그와 완전히 같은 패턴이다 — 히스토리 마지막 행(lines[-1])이 오늘 치 봉인지
+    어제 치 봉인지는 갱신 타이밍에 따라 달라지므로, 고정 인덱스로는 호출 시점마다
+    다른 날짜를 잘못 고를 수 있다. 대신 실시간 시세의 날짜(current_date_str)보다
+    "엄격히 이전"인 행 중 가장 최근 것을 명시적으로 찾는다 — Stooq 날짜는
+    YYYY-MM-DD ISO 형식이라 문자열 비교만으로 날짜 순서 비교가 정확하다."""
     url = f"https://stooq.com/q/d/l/?s={urllib.parse.quote(stooq_sym)}&i=d"
     raw = fetch(url, timeout=10)
     if not raw:
@@ -217,12 +217,32 @@ def get_stooq_prev_close(stooq_sym: str) -> Optional[float]:
         lines = [l for l in raw.decode("utf-8", errors="ignore").strip().splitlines() if l]
         if len(lines) < 3:
             return None
-        # 마지막 행(lines[-1])은 당일 진행 중인 바(bar)일 수 있으므로,
-        # 그 직전 행(lines[-2])을 "직전 거래일 종가"로 사용한다.
         header = [h.strip().lower() for h in lines[0].split(",")]
-        row    = lines[-2].split(",")
-        rec    = dict(zip(header, row))
-        prev_close = float(rec.get("close", "N/D"))
+        date_idx  = header.index("date")  if "date"  in header else 0
+        close_idx = header.index("close") if "close" in header else None
+        if close_idx is None:
+            return None
+
+        rows = [l.split(",") for l in lines[1:]]
+        prev_close = None
+        if current_date_str:
+            for row in reversed(rows):
+                if len(row) <= max(date_idx, close_idx):
+                    continue
+                if row[date_idx].strip() < current_date_str.strip():
+                    try:
+                        prev_close = float(row[close_idx])
+                    except ValueError:
+                        prev_close = None
+                    break
+        if prev_close is None:
+            # current_date_str이 없거나 비교에 실패한 경우의 최후 폴백 —
+            # 여전히 부정확할 수 있음을 감안해 마지막에서 두 번째 행을 쓴다.
+            row = rows[-2]
+            try:
+                prev_close = float(row[close_idx])
+            except (ValueError, IndexError):
+                return None
         if prev_close != prev_close:  # NaN
             return None
         return prev_close
@@ -252,11 +272,20 @@ def get_quote_stooq(symbol: str) -> Optional[dict]:
 
         # ⚠ 예전에는 여기서 당일 시가(open) 대비로 등락률을 계산해서 Yahoo 경로와
         # 기준이 달라지는 사고가 있었다. 반드시 "전일 거래일 종가" 대비로 계산한다.
-        prev_close = get_stooq_prev_close(stooq_sym)
+        prev_close = get_stooq_prev_close(stooq_sym, rec.get("date", ""))
         if not prev_close:
             print(f"  [WARN] {symbol}: Stooq 전일종가 조회 실패 — 등락률 신뢰 불가, 스킵")
             return None
         chg_pct = compute_chg_pct(close, prev_close)
+
+        # ⚠ Yahoo 경로는 market_date_us를 "MM/DD" 형식으로 반환하는데, Stooq의
+        # date 필드는 "YYYY-MM-DD"라 그대로 쓰면 어느 소스를 탔는지에 따라
+        # 본문/제목의 날짜 표기 형식이 달라진다. 형식을 통일한다.
+        raw_date = rec.get("date", "")
+        try:
+            market_date_us = datetime.strptime(raw_date, "%Y-%m-%d").strftime("%m/%d")
+        except ValueError:
+            market_date_us = raw_date  # 형식이 예상과 다르면 원본이라도 남긴다
 
         volume = int(float(rec["volume"])) if rec.get("volume", "N/D") not in ("N/D", "") else 0
         name, kind = TICKERS.get(symbol, (symbol, "stock"))
@@ -264,7 +293,7 @@ def get_quote_stooq(symbol: str) -> Optional[dict]:
             "symbol": symbol, "name": name, "kind": kind,
             "price": round(close, 2), "prev": round(prev_close, 2),
             "chg_pct": round(chg_pct, 2), "volume": volume,
-            "market_date_us": rec.get("date", ""),
+            "market_date_us": market_date_us,
         }
     except Exception as e:
         print(f"  [WARN] Stooq 파싱 실패 {symbol}: {e}")
@@ -289,24 +318,44 @@ def get_quote(symbol: str) -> Optional[dict]:
         meta   = result["meta"]
  
         curr_price = meta.get("regularMarketPrice")
- 
-        # ✅ 핵심 수정: closes 배열에서 직전 거래일 종가 직접 추출
-        # meta의 previousClose는 종종 전전일 기준이라 등락률이 틀림
-        closes = (
+
+        # ⚠ 예전 방식(closes[-2]를 무조건 전일 종가로 사용)은 오늘자 봉이
+        # 배열에 아직 안 생겼는지 여부에 따라 배열이 한 칸씩 밀리면서, 호출
+        # 시점마다 서로 다른 날짜를 '전일 종가'로 잘못 골라오는 문제가 있었다
+        # (2026-09-11 실사고: 같은 현재가인데 하루 세 번 실행에서 등락률이
+        # -2.37%/-3.26%/-2.37%로 제각각 나옴). timestamp 배열의 실제 날짜를
+        # regularMarketTime의 미국 동부 날짜와 직접 비교해서, "오늘보다 이전인
+        # 마지막 거래일"의 종가를 결정론적으로 찾는다 — 배열이 몇 칸 밀렸는지와
+        # 무관하게 항상 같은 결과가 나온다.
+        closes_raw = (
             result
             .get("indicators", {})
             .get("quote", [{}])[0]
             .get("close", [])
         )
-        closes = [c for c in closes if c is not None]
- 
-        if len(closes) >= 2:
-            prev_close = closes[-2]   # 직전 거래일 종가
-        elif len(closes) == 1:
-            prev_close = closes[0]
-        else:
-            # 폴백: meta 값 사용
-            prev_close = meta.get("previousClose") or meta.get("chartPreviousClose")
+        timestamps = result.get("timestamp", [])
+        pairs = [(t, c) for t, c in zip(timestamps, closes_raw) if c is not None]
+
+        market_ts = meta.get("regularMarketTime", 0)
+        today_us_date = (
+            datetime.fromtimestamp(market_ts, tz=EST).date() if market_ts else None
+        )
+
+        prev_close = None
+        for t, c in reversed(pairs):
+            bar_date = datetime.fromtimestamp(t, tz=EST).date()
+            if today_us_date is None or bar_date < today_us_date:
+                prev_close = c
+                break
+        if prev_close is None:
+            # timestamp 정보가 없거나 전부 오늘 날짜뿐인 극단적 경우의 최후 폴백
+            closes = [c for c in closes_raw if c is not None]
+            if len(closes) >= 2:
+                prev_close = closes[-2]
+            elif len(closes) == 1:
+                prev_close = closes[0]
+            else:
+                prev_close = meta.get("previousClose") or meta.get("chartPreviousClose")
  
         if not curr_price or not prev_close:
             return None
@@ -320,6 +369,16 @@ def get_quote(symbol: str) -> Optional[dict]:
         )
  
         name, kind = TICKERS.get(symbol, (symbol, "stock"))
+        # ⚠ 005930.KS/000660.KS는 한국장이 열려 있는 시간(09:00~15:30 KST)에
+        # 조회하면 meta.regularMarketPrice가 '전일 종가'가 아니라 그 순간의
+        # 장중 실시간가다. 라벨을 실제 상태에 맞게 동적으로 바꿔서, 본문에
+        # "전일 종가"라고 잘못 단정하는 문장이 나오지 않도록 한다.
+        if kind == "kr_actual":
+            market_state = meta.get("marketState", "")
+            if market_state == "REGULAR":
+                name = name.replace("(KRX)", "(KRX, 장중 실시간)")
+            else:
+                name = name.replace("(KRX)", "(KRX, 전일 종가)")
         return {
             "symbol":         symbol,
             "name":           name,
@@ -364,6 +423,16 @@ SANITY_MAX_ABS_PCT = {
     "kr_proxy": 15.0, "kr_actual": 20.0, "stock": 30.0,
 }
 
+# ⚠ VIX는 "index"로 분류돼 있지만 성격이 완전히 다르다 — 정상적인 날에도
+# 5~10%씩 움직이고, 실제 시장 패닉일에는 20~50%+ 급등도 드물지 않다(예:
+# 2018년 '볼마겟돈' 하루 +115%). 다른 지수와 같은 12% 상한을 쓰면, 이
+# 리포트가 가장 필요한 "진짜 패닉장" 당일에 오히려 정상 급등을 오류로
+# 오판해서 발행을 스스로 막아버리는 정반대 결과가 난다. 종목별로 상한을
+# 따로 둘 수 있게 심볼 단위 예외를 kind 기반 상한보다 먼저 확인한다.
+SANITY_MAX_ABS_PCT_OVERRIDE = {
+    "^VIX": 80.0,
+}
+
 
 def sanity_check(quotes: dict, prev_day_quotes: Optional[dict] = None) -> list[str]:
     """
@@ -396,7 +465,10 @@ def sanity_check(quotes: dict, prev_day_quotes: Optional[dict] = None) -> list[s
 
         # (3) 극단적 이상치: 종류별 상식적 범위를 벗어나면 데이터 소스 오류일
         #     가능성이 높다 (실제 폭락/폭등이어도 일단 사람 확인 전엔 보류).
-        cap = SANITY_MAX_ABS_PCT.get(q.get("kind", "stock"), 30.0)
+        #     단, 심볼별 예외(SANITY_MAX_ABS_PCT_OVERRIDE)가 있으면 그것을 우선한다.
+        cap = SANITY_MAX_ABS_PCT_OVERRIDE.get(
+            sym, SANITY_MAX_ABS_PCT.get(q.get("kind", "stock"), 30.0)
+        )
         if abs(q["chg_pct"]) > cap:
             problems.append(
                 f"{q['name']}({sym}): 등락률 {q['chg_pct']}%가 "
@@ -575,8 +647,7 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
         if q:
             sign = "+" if q["chg_pct"] >= 0 else ""
             kr_lines.append(
-                f"{q['name']} 전일 KRX 종가(실제값, 참고용): "
-                f"{q['price']:,.0f}원 ({sign}{q['chg_pct']}%)"
+                f"{q['name']}: {q['price']:,.0f}원 ({sign}{q['chg_pct']}%)"
             )
     if len(kr_lines) == 1:
         kr_lines.append("(EWY/SOX/KRX 실측 데이터 수집 실패 — 미국 개별 종목 상관관계로만 추정할 것)")
@@ -624,7 +695,8 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
 - 수치는 위 데이터에 있는 것만 사용
 - ⚠ 한국 종목(삼성전자, SK하이닉스, 한미반도체, LG에너지솔루션 등)의 원화 가격·등락률·
   지지선/저항선은 위 "한국 시장 선행지표" 블록에 실측치로 제공된 삼성전자·SK하이닉스
-  전일 KRX 종가 외에는 절대 언급하지 말 것. 그 두 종목도 제공된 숫자 그대로만 인용하고
+  가격 외에는 절대 언급하지 말 것 (해당 값의 이름에 "전일 종가"인지 "장중 실시간"인지
+  표시돼 있으니 그대로 따를 것). 그 두 종목도 제공된 숫자 그대로만 인용하고
   다른 가격을 지어내지 않는다. 나머지 한국 종목(한미반도체, DB하이텍, LG에너지솔루션 등)은
   실측 가격이 없으므로 원화 가격 자체를 언급하지 말고 "미국 모종목이 이만큼 움직였으니
   이런 방향·강도의 압력을 받을 것"이라는 인과관계·방향성으로만 서술한다
@@ -652,7 +724,7 @@ def build_prompt(quotes: dict, news: list, now_kst: datetime, us_date: str) -> s
   상관관계를 보조 근거로 덧붙인다
 ## 5. 한국 연관 종목 체크
 - **종목명**: 미국 모종목의 등락(%) → 한국 종목이 받을 방향성·강도 예측. 삼성전자·
-  SK하이닉스는 제공된 전일 KRX 종가를 기준점으로 언급 가능하나 그 외 가격 추정 금지,
+  SK하이닉스는 제공된 실측 가격을 기준점으로 언급 가능하나 그 외 가격 추정 금지,
   나머지 종목은 원화 가격·지지선 언급 없이 방향성만 서술 (bullet 6개 이상)
 ## 6. 오늘의 리스크 & 체크리스트
 - bullet 형식
@@ -725,7 +797,7 @@ JSON만 출력:
 # 8만 원 등). 사람이 매번 못 보니, 발행 전에 코드가 직접 본문을 스캔해서
 # 허용 목록에 없는 원화 가격 언급이 있으면 해당 문장만 잘라낸다.
 
-WON_PRICE_PATTERN = re.compile(r"[가-힣]{0,6}[0-9][0-9,]*\s*만?\s*원")
+WON_PRICE_PATTERN = re.compile(r"[0-9][0-9,]*(?:\.[0-9]+)?\s*(만)?\s*원")
 
 
 def _split_sentences(text: str) -> list[str]:
@@ -735,14 +807,24 @@ def _split_sentences(text: str) -> list[str]:
 
 
 def _price_ok(text: str, allowed_prices: set) -> bool:
-    """문장/구절 안의 모든 '숫자(만)원' 표기가 허용 목록과 맞는지 확인."""
-    for m in WON_PRICE_PATTERN.findall(text):
-        digits = re.sub(r"[^0-9]", "", m)
-        if not digits:
+    """문장/구절 안의 모든 '숫자(만)원' 표기가 허용 목록과 맞는지 확인.
+    ⚠ 예전에는 매치 문자열에서 숫자만 죄다 이어붙여 정수로 비교했는데,
+    "1,346.98원"처럼 소수점이 있으면 정규식이 소수부 끝자락("98원")만
+    잘못 잡아내 존재하지도 않는 "98원"을 검증하려는 버그가 있었다
+    (실제 재현: 정상적인 환율 문장이 통째로 삭제됨). 반드시 매치 전체를
+    실제 float 값으로 파싱해서 반올림한 값으로 비교한다."""
+    for m in WON_PRICE_PATTERN.finditer(text):
+        full = m.group(0)
+        is_man = bool(m.group(1))
+        num_str = re.sub(r"[^0-9.]", "", full)
+        if not num_str or num_str == ".":
             continue
-        num = int(digits)
-        is_man = "만" in m
-        candidates = {num, num * 10000 if is_man else num}
+        try:
+            num = float(num_str)
+        except ValueError:
+            continue
+        value = num * 10000 if is_man else num
+        candidates = {round(value), round(num)}
         if not (candidates & allowed_prices):
             return False
     return True
@@ -766,6 +848,13 @@ def audit_kr_price_mentions(analysis: str, quotes: dict) -> tuple[str, list[str]
         if q:
             allowed_prices.add(round(q["price"]))
             allowed_prices.add(round(q["price"] / 10000))  # "26만 원" 같은 축약 표기 허용
+    # ⚠ 원달러 환율(USDKRW=X)도 본문에서 "1,346.98원"처럼 '원' 단위로 정상
+    # 인용되는 정당한 데이터다. 허용 목록에서 빠지면 정상 문장까지 통째로
+    # 삭제되는 사고가 난다(실제 재현 확인됨) — 정수/소수 반올림 두 형태 모두 등록.
+    fx = quotes.get("USDKRW=X")
+    if fx:
+        allowed_prices.add(round(fx["price"]))
+        allowed_prices.add(int(fx["price"]))
 
     removed = []
     cleaned_lines = []
