@@ -1,32 +1,32 @@
-# AI Data Center 동향과 전망
+# Agentic AI 동향과 전망
 
-퀄컴과 아마존웹서비스(AWS)가 차세대 AI 데이터센터 인프라를 공동 개발한다는 다중 세대 제품 협업을 발표했다. 시장은 205년까지 AI 데이터센터 투자 규모가 32조 달러에 달할 것으로 내다보는데, 이는 철도나 인터넷망 구축 비용을 뛰어넘는 수준이다. 회사에서 인프라 스펙을 검토할 때면 이제는 전력 밀도와 냉각 용량이 랙 단위에서 논의되는 것이 당연해졌다.
+회사에서 반도체 설계 자동화 툴 PoC를 돌리던 지난달, 에이전트 하나가 레이아웃 검증 스크립트를 스스로 짜고 시뮬레이션 돌리고 리포트까지 뽑아내는 걸 봤다. 사람 손이 가던 3주 치 일정이 이틀 만에 끝났다.
 
 ## 1. 현장에서 무슨 일이 있었나
-퀄컴이 AWS와 손잡고 커스텀 AI 데이터센터 인프라를 다중 세대에 걸쳐 개발하기로 했다. 기존 스마트폰·PC용 칩셋 강자가 클라우드 하이퍼스케일러의 전용 실리콘 파트너로 진입한 것이다. 동시에 TCS는 인도 텔랑가나주에 하이퍼볼트(HyperVault)라는 대규모 AI 데이터센터 캠퍼스를 조성한다고 밝혔다. 미국 텍사스주 러벅에서는 데이터센터 부지 매입을 둘러싼 지역 사회 반발이 시위로 번졌다. 농업용지 잠식과 전력망 과부하 우려가 표면화된 것이다. 주가 반응도 즉각적이었다. 퀄컴 발표 당일 인텔, 암코어, 노바, 퀄컴, 포름팩터 주가가 동반 상승했다. ASML과 TSMC, 인텔이 차세대 칩 제조 마일스톤을 달성한 소식도 겹쳤다. [출처: Qualcomm Announces Multi-Generational Product Collaboration with Amazon to Build Next-Generation AI Data Center Infrastructure] [출처: AI data centers are transforming rural land markets — and fueling a backlash] [출처: Intel, Amkor, Nova, Qualcomm, and FormFactor Stocks Trade Up, What You Need To Know]
+중국 EDA 업체 엠피리언은 자사 에이전틱 AI를 써서 회로 설계 시간을 75% 줄였다고 발표했다 [출처: Chinese Chip Firm Empyrean Says It Slashed Circuit Design Time By 75% Using Agentic AI Amidst Race To Agentic AI Semiconductor Design - Wccftech]. 세일즈포스는 파트너 생태계를 동원해 영업·서비스·마케팅 워크플로에 에이전트를 심고 있다 [출처: Salesforce (CRM) Sees Fresh Partner Tools Push Agentic AI Into Enterprise Workflows - Yahoo Finance]. 제조 현장에서는 벤션이 IMTS 2026에서 물리 AI와 에이전틱 AI를 한 플랫폼에 묶어 선보였다 [출처: Vention Facilitates Manufacturing at IMTS 2026 with Physical AI and Agentic AI in One Platform - PR Newswire]. 엔비디아(NWN)는 AWS 에이전틱 AI 컴피턴시를 따고 파일럿 단계를 넘어 프로덕션 전환을 지원 중이다 [출처: NWN Earns AWS Agentic AI Competency, Helping Enterprises Move AI Agents from Pilots to Production - Business Wire].
 
 ## 2. 왜 업계가 반응하는가
-투자 규모가 기존 인프라 역사를 다시 쓰고 있다. 2050년까지 누적 투자액 32조 달러는 철도, 전력망, 인터넷 구축 비용을 모두 합친 것보다 크다. [출처: AI data center investment projected to hit $32 trillion by 2050 — infrastructure spending estimated to exceed capital requirements for railways, electrification, or the internet] 반도체 시장만 떼어 봐도 2035년 2,559억 달러 규모로 성장이 예상된다. AI 데이터센터 확장, 고성능 AI 실리콘, 엣지 컴퓨팅 확산이 동력이다. [출처: AI in semiconductor market to be worth $255.90bn by 2035, due to AI data center expansion, advanced AI silicon, and edge computing adoption] 자본 지출(CAPEX) 싸이클이 하드웨어 제조사부터 전력 장비, 부동산, 냉각 설비까지 전방위로 확산 중이다. 실무에서 예산 계획을 잡을 때면 3~5년 단위 CAPEX가 데이터센터 한 건물 짓는 비용으로만 수천억 원 단위로 잡힌다.
+테라데이터 조사에 따르면 금융·통신·제조 등 주요 산업이 이미 도입을 서두르지만 데이터 파편화와 규제 장벽이 공통 걸림돌로 나온다 [출처: Which industries are ahead in agentic AI, and the common challenge they all face - kpvi.com]. 맥킨지는 파일럿을 전사 규모로 키우려면 거버넌스·옵저버빌리티·비용 모델을 처음부터 설계해야 한다고 지적한다 [출처: Stacking the odds: A blueprint for successfully scaling agentic AI - McKinsey & Company]. 책임 AI 기구는 이사진을 보강하며 거버넌스 프레임워크를 정비하고 있다 [출처: Responsible AI Institute Adds Three Leaders to Governing Board for the Agentic AI Era - PR Newswire]. CIO들은 레거시 인프라 위에 에이전트 레이어를 얹는 대신 아키텍처 자체를 다시 짜야 한다고 말한다 [출처: Rethinking and realigning IT for the agentic AI era - cio.com].
 
 ## 3. 기술적으로 보면
-- **커스텀 실리콘(Custom Silicon)**: 특정 워크로드(추론, 학습, 데이터 전처리)에 최적화된 전용 칩. 범용 GPU 대비 와트당 성능비 개선이 핵심이다.
-- **랙 스케일 아키텍처(Rack-scale Architecture)**: 개별 서버가 아닌 랙 단위로 전력, 냉각, 네트워크를 통합 설계하는 방식. CXL(Compute Express Link) 기반 메모리 풀링이 동반된다.
-- **액체 냉각(Liquid Cooling)**: 공랭 한계(랙당 30~50kW)를 넘어 100kW 이상 고밀도 랙을 감당하기 위한 필수 기술. 침수식과 직접 접촉식(DTC)이 혼용된다.
-- **고전압 직류 배전(HVDC Power Distribution)**: 변환 손실 최소화를 위해 48V 또는 400Vdc 버스 바를 랙까지 내리는 배전 방식. UPS와 배터리 통합도 용이하다.
-- **CXL 기반 메모리 풀링(CXL Memory Pooling)**: 서버 간 메모리 공유로 유휴 메모리 낭비를 줄이고 대용량 모델 추론 시 메모리 용량 병목 완화.
+- **계획 수립(Planning)**: 목표를 받아 하위 태스크로 분해하고 실행 순서를 정한다. 체인 오브 소트(Chain of Thought) 프롬프트만으로는 부족해 트리 탐색이나 몬테카를로 트리 서치를 결합한다.
+- **도구 사용(Tool Use)**: API·CLI·SDK를 호출해 외부 시스템을 제어한다. 함수 스키마 정의와 인증 토큰 관리가 런타임에 동적으로 이뤄져야 한다.
+- **메모리(Memory)**: 단기 컨텍스트 윈도우와 장기 벡터 스토어를 분리한다. 임베딩 모델 교체 시 재색인 비용이 크므로 버전 관리 전략이 필수다.
+- **반성(Reflection)**: 실행 결과를 스스로 평가하고 재시도 루프를 돈다. 휴리스틱 룰과 LLM 판단을 혼합해 거짓 긍정(false positive)을 줄인다.
+- **멀티 에이전트 오케스트레이션**: 감독자 에이전트가 전문 에이전트들에게 태스크를 분배하고 상태를 동기화한다. 메시지 버스나 이벤트 소싱 패턴을 쓴다.
 
 ## 4. 실제 현장 적용 사례
-AWS는 그래비톤(Graviton) 시리즈로 암(Arm) 기반 커스텀 CPU를 이미 상용화했다. 여기에 퀄컴의 추론 가속기 혹은 네트워크 프로세싱 유닛(NPU)을 결합해 '트레이닝-추론 파이프라인' 전체를 커스텀 실리콘으로 커버하려는 그림으로 보인다. TCS 하이퍼볼트 캠퍼스는 모듈러 데이터센터 설계를 적용해 전력 인입부터 쿨링 타워까지 프리패브(Pre-fab) 단위로 현장 조립한다. 구축 기간을 기존 18개월에서 12개월 내외로 단축하는 것이 목표다. 국내 모 통신사 프로젝트에서도 랙당 80kW 설계가 들어와 수냉식 CDU(Coolant Distribution Unit) 선정과 매니폴드 배관 공정 검토에 실무 투입된 경험이 있다. 전력 밀도 상승에 따른 바닥 하중 보강과 누수 감지 센서 망 설계가 병행 이슈로 따라온다.
+반도체 설계팀은 넷리스트 생성부터 타이밍 클로저까지 전 단계를 에이전트 체인으로 연결했다. 영업 조직은 리드 자격 심사·견적 생성·계약서 초안 작성을 각각 별도 에이전트에 맡겨 처리 시간을 60% 단축했다. 스마트 팩토리 라인에서는 비전 검사 에이전트가 불량 이미지를 분류하고, 제어 에이전트가 로봇 암 궤적을 실시간 수정한다. 모바일 단말에서는 퀄컴 헥사곤 NPU가 온디바이스 추론을 담당해 네트워크 지연 없이 에이전트 루프를 돈다 [출처: Hexagon NPU: A new mobile architecture for agentic AI - Qualcomm].
 
 ## 5. 엔지니어가 봐야 할 포인트
-회사에서 인프라 RFP를 뜯어보면 스펙 표에 '랙당 kW' 숫자만 있고 냉각 방식은 '협의'로 되어 있는 경우가 많다. 이때 액체 냉각 도입 여부가 전체 TCO를 가른다.CDU 용량 선정 시 리던던시(N+1) 적용 여부와 쿨란트 종류(불소계 vs 수계)에 따른 누수 리스크 평가까지 문서화해야 한다. 전력 쪽에서는 HVDC 버스 바 전압 등급(48V vs 400Vdc)에 따라 PDU, 버스웨이, 차단기 선정 스펙이 완전히 갈린다. 나는 400Vdc 쪽이 중장비급 장비 연동에 유리하다고 보지만, 인증 장비 풀(Pool)이 아직 얇아 조달 리드타임이 길다. 네트워크 단에서는 RoCE v2와 UEC(Ultra Ethernet Consortium) 스펙 준수 여부를 NIC 펌웨어 레벨에서 확인해야 패킷 드랍 없는 학습 클러스터가 나온다. 소프트웨어 스택 최적화 없이 하드웨어만 증설하면 GPU 이용률 30% 벽을 못 넘는다.
+실무에서 보면 프롬프트 엔지니어링보다 에이전트 상태 머신 설계가 더 어렵다. 툴 호출 실패 시 롤백 로직을 어디까지 자동화할지, 사람 개입 포인트(Human-in-the-loop)를 어떤 태스크에 둘지 정하는 게 아키텍처 핵심이다. 옵저버빌리티는 토큰 사용량·지연시간·성공률을 태스크 단위로 쪼개 봐야 한다. 거버넌스는 데이터 혈통 추적과 결정 근거 로그를 감사 추적용으로 남기는 작업부터 시작한다. 우리 팀은 랭체인(LangChain) 대신 랭그래프(LangGraph)로 상태 그래프를 짜고, 오픈텔레메트리(OpenTelemetry)로 분산 트레이싱을 박았다.
 
 ## 6. 앞으로 볼 포인트
-- 전력망 인입 지연과 변전소 용량 확보가 데이터센터 준공 일정의 병목이 될 것이다
-- 커스텀 실리콘 공급망 다변화(파운드리, 패키징, 테스트)가 단일 벤더 리스크를 어떻게 완화할지 지켜봐야 한다
-- 냉매 규제(PFAS 제한)와 수계 냉각 전환 시 CDU·매니폴드 재질 변경에 따른 추가 비용 산정이 필요하다
+- 엣지 디바이스 NPU 성능 향상이 온디바이스 에이전트 자율성을 어디까지 끌어올릴지
+- 규제 대응용 설명 가능성(Explainability) 모듈이 에이전트 루프 안에 표준으로 들어갈지
+- 데이터 파편화 문제를 풀기 위한 페더레이티드 카탈로그·세맨틱 레이어 구축 경쟁
 
 ## 7. 3줄 요약
-- 퀄컴-AWS 협업과 32조 달러 투자 전망으로 AI 인프라 자본 지출 싸이클이 본격화됐다
-- 랙 단위 고밀도 전력·냉각·네트워크 통합 설계가 엔지니어 필수 역량으로 자리 잡았다
-- 전력망 제약, 냉매 규제, 커스텀 칩 공급망 리스크가 향후 3~5년 프로젝트 성패를 가를 변수다
+- 에이전틱 AI가 반도체·엔터프라이즈·제조 현장에서 파일럿을 넘어 프로덕션으로 진입 중
+- 계획·도구·메모리·반성·오케스트레이션 5대 구성요소 구현 난도가 프롬프트 튜닝보다 높음
+- 거버넌스·옵저버빌리티·데이터 통합을 아키텍처 초기에 설계하지 않으면 스케일 아웃 불가
