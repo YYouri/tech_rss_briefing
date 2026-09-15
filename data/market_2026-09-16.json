@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 25981.57,
+      "prev": 26186.41,
+      "chg_pct": -0.78,
+      "volume": 7070629000,
+      "market_date_us": "09/15"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7585.73,
+      "prev": 7619.98,
+      "chg_pct": -0.45,
+      "volume": 2810532000,
+      "market_date_us": "09/15"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52093.11,
+      "prev": 52421.2,
+      "chg_pct": -0.63,
+      "volume": 376836504,
+      "market_date_us": "09/15"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 17.2,
+      "prev": 17.1,
+      "chg_pct": 0.58,
+      "volume": 0,
+      "market_date_us": "09/15"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 11175.55,
+      "prev": 11131.28,
+      "chg_pct": 0.4,
+      "volume": 0,
+      "market_date_us": "09/15"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 99.61,
+      "prev": 99.46,
+      "chg_pct": 0.15,
+      "volume": 0,
+      "market_date_us": "09/15"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 105.43,
+      "prev": 101.39,
+      "chg_pct": 3.98,
+      "volume": 2238,
+      "market_date_us": "09/15"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4326.6,
+      "prev": 4351.9,
+      "chg_pct": -0.58,
+      "volume": 6110,
+      "market_date_us": "09/15"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1363.74,
+      "prev": 1345.61,
+      "chg_pct": 1.35,
+      "volume": 0,
+      "market_date_us": "09/15"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 704.54,
+      "prev": 709.18,
+      "chg_pct": -0.65,
+      "volume": 26166846,
+      "market_date_us": "09/15"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 498.85,
+      "prev": 497.4,
+      "chg_pct": 0.29,
+      "volume": 5963761,
+      "market_date_us": "09/15"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 56.85,
+      "prev": 57.03,
+      "chg_pct": -0.32,
+      "volume": 30083475,
+      "market_date_us": "09/15"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 176.49,
+      "prev": 176.22,
+      "chg_pct": 0.15,
+      "volume": 7042261,
+      "market_date_us": "09/15"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 212.17,
+      "prev": 210.96,
+      "chg_pct": 0.57,
+      "volume": 85131691,
+      "market_date_us": "09/15"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 504.2,
+      "prev": 493.41,
+      "chg_pct": 2.19,
+      "volume": 16963710,
+      "market_date_us": "09/15"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 97.14,
+      "prev": 97.19,
+      "chg_pct": -0.05,
+      "volume": 83570756,
+      "market_date_us": "09/15"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 413.75,
+      "prev": 418.01,
+      "chg_pct": -1.02,
+      "volume": 9442047,
+      "market_date_us": "09/15"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 331.34,
+      "prev": 333.08,
+      "chg_pct": -0.52,
+      "volume": 31420574,
+      "market_date_us": "09/15"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 497.12,
+      "prev": 505.41,
+      "chg_pct": -1.64,
+      "volume": 17700788,
+      "market_date_us": "09/15"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 356.58,
+      "prev": 358.97,
+      "chg_pct": -0.67,
+      "volume": 30215079,
+      "market_date_us": "09/15"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 248.42,
+      "prev": 253.54,
+      "chg_pct": -2.02,
+      "volume": 35783529,
+      "market_date_us": "09/15"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 344.98,
+      "prev": 349.39,
+      "chg_pct": -1.26,
+      "volume": 21480287,
+      "market_date_us": "09/15"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 670.24,
+      "prev": 665.6,
+      "chg_pct": 0.7,
+      "volume": 18598822,
+      "market_date_us": "09/15"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 248500.0,
+      "prev": 248500.0,
+      "chg_pct": 0.0,
+      "volume": 0,
+      "market_date_us": "09/15"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1690000.0,
+      "prev": 1690000.0,
+      "chg_pct": 0.0,
+      "volume": 0,
+      "market_date_us": "09/15"
+    }
+  },
+  "news": [
+    {
+      "title": "T. Rowe Price (TROW) Suffers a Larger Drop Than the General Market: Key Insights",
+      "summary": "T. Rowe Price (TROW) concluded the recent trading session at $104.23, signifying a -1.48% move from its prior day's close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/t-rowe-price-trow-suffers-221505965.html?.tsrc=rss"
+    },
+    {
+      "title": "VirTra, Inc. (VTSI) Falls More Steeply Than Broader Market: What Investors Need to Know",
+      "summary": "VirTra, Inc. (VTSI) closed at $2.9 in the latest trading session, marking a -1.02% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/virtra-inc-vtsi-falls-more-221505484.html?.tsrc=rss"
+    },
+    {
+      "title": "Rithm (RITM) Dips More Than Broader Market: What You Should Know",
+      "summary": "Rithm (RITM) closed at $9.57 in the latest trading session, marking a -2.05% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/rithm-ritm-dips-more-broader-221504129.html?.tsrc=rss"
+    },
+    {
+      "title": "Clearway Energy (CWEN) Dips More Than Broader Market: What You Should Know",
+      "summary": "Clearway Energy (CWEN) reached $29.93 at the closing of the latest trading day, reflecting a -1.19% change compared to its last close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/clearway-energy-cwen-dips-more-221504280.html?.tsrc=rss"
+    },
+    {
+      "title": "Doximity (DOCS) Registers a Bigger Fall Than the Market: Important Facts to Note",
+      "summary": "Doximity (DOCS) closed at $25.81 in the latest trading session, marking a -2.2% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/doximity-docs-registers-bigger-fall-221503991.html?.tsrc=rss"
+    },
+    {
+      "title": "Calls for Slower AI Development Have Created a Compelling Dip for AI Stocks",
+      "summary": "AI stocks have slid amid some tech CEOs raising concerns about unchecked AI development.",
+      "link": "https://www.fool.com/investing/2026/09/15/calls-for-slower-ai-development-created-a-dip/?.tsrc=rss"
+    },
+    {
+      "title": "Pinterest, Nvidia Partner To Boost AI Shopping, Search Offerings",
+      "summary": "Pinterest has announced a partnership with GPU-manufacturer Nvidia, which will power a new layer of AI in an effort to expand the social discovery platform's automated shopping offerings.",
+      "link": "https://www.mediapost.com/publications/article/418024/pinterest-nvidia-partner-to-boost-ai-shopping-se.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia (NVDA) Is Discussing Up To $10 Billion For An AI IPO",
+      "summary": "Nvidia (NasdaqGS: NVDA) is in advanced talks to invest up to US$10b in Anthropic's planned IPO, according to people familiar with the discussions. The chipmaker is also exploring a potential acquisition of AI platform Hugging Face for up to US$14b, in a deal that would expand its software footprint. Both moves would extend Nvidia's role beyond AI hardware into deeper capital partnerships and owner",
+      "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-nvda-discussing-10-billion-221322403.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia May Have Won the AI Training Race, but the Bigger Opportunity Is Likely Still Ahead",
+      "summary": "Nvidia may have won the first phase of the AI revolution, but the next phase is just beginning to unfold.",
+      "link": "https://www.fool.com/investing/2026/09/15/nvidia-may-have-won-the-ai-training-race-but-the-b/?.tsrc=rss"
+    },
+    {
+      "title": "Why Rule Breakers Dig Stocks With Multiple Futures",
+      "summary": "Different industries, different products, same shape: a company with several genuine paths forward, not just one.",
+      "link": "https://www.fool.com/investing/2026/09/15/why-rule-breakers-dig-stocks-with-multiple-futures/?.tsrc=rss"
+    },
+    {
+      "title": "Where Tesla's Robotaxi Rollout Stands Today and What Investors Should Know",
+      "summary": "How close is Tesla to rapidly scaling its Cybercab robotaxi business?",
+      "link": "https://www.fool.com/investing/2026/09/15/where-teslas-robotaxi-rollout-stands-today-and-wha/?.tsrc=rss"
+    },
+    {
+      "title": "TSLA Edges Lower After Regulator Asks If Wheel-Less Cybercab Can Be Driven By A Human",
+      "summary": "The NHTSA has sent a special order to Tesla, seeking answers including Cybercab fleet size, operating cities, speed and road limits, and how Tesla decided which federal motor safety rules apply to its vehicle.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tsla-edges-lower-after-regulator-asks-if-wheel-less-cybercab-can-be-driven-by-a-human/cZtnVbURBcv?.tsrc=rss"
+    },
+    {
+      "title": "The Tesla Roadster Will ‘Blow People’s Minds’",
+      "summary": "The new Tesla Roadster will be so cool that people might not believe early videos are not AI-generated, according to CEO Elon Musk. Monday, Musk appeared on the All-In Podcast with SpaceX President Gwynne Shotwell. The conversation was wide-ranging, touching on many topics including Starlink, Starship, AI, SpaceX and Tesla’s Terafab chip-making facility, and collaborations between the two companie",
+      "link": "https://finance.yahoo.com/m/914afb34-5a80-35db-86ea-78d8b040a1d2/the-tesla-roadster-will-%E2%80%98blow.html?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk Is Teasing a Tesla and SpaceX Merger Again",
+      "summary": "On Monday, Musk appeared on the All-In Podcast with SpaceX President Gwynne Shotwell. Collaboration between Tesla and SpaceX was also discussed, with Musk reviewing the Terafab chipmaking plant being jointly built by the two companies, as well as shared R&D that happens at Tesla’s manufacturing campus in Austin, Texas.",
+      "link": "https://finance.yahoo.com/m/c9f4ec1a-9846-399c-8bf3-9a3d0efe5231/elon-musk-is-teasing-a-tesla.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla’s Cybercab Launch Fizzles, Leaving Waymo as the Robotaxi Leader",
+      "summary": "Tesla, Inc. (NASDAQ:TSLA) spent nearly two years raising anticipation for the Cybercab. When the time arrived on September 3 in Austin, the result was a stock that popped, then rapidly returned all of its gains, and a robotaxi race that still seems to be Alphabet’s to lose. Tesla, Inc. (NASDAQ:TSLA) had its long-awaited Cybercab launch […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-cybercab-launch-fizzles-leaving-201402004.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Tech Titan Apple, Nvidia Chipmaker TSMC, AMD, Bloom Energy In Or Near Buy Zones",
+      "summary": "Dow Jones tech titan Apple, along with Nvidia chipmaker TSMC, AMD and Bloom Energy, are in or near buy zones in Tuesday's market action.",
+      "link": "https://finance.yahoo.com/m/abcff3bf-aa03-3635-8d7c-acbe8b8a05b3/dow-jones-tech-titan-apple%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "Bank of America says investors get AMD stock wrong",
+      "summary": "Investors may be underestimating what comes next for AMD.",
+      "link": "https://www.thestreet.com/investing/bofa-amd-stock-outlook?.tsrc=rss"
+    },
+    {
+      "title": "AMD Rebounds 3% as Its 58% AI Engine Faces a Pause",
+      "summary": "The recovery recaptures part of Monday's selloff, but AMD's valuation still assumes uninterrupted data-center expansion.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/amd-rebounds-3-58-ai-185437246.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Will Still Beat AMD Through 2028. Here's the Data Behind My Conviction.",
+      "summary": "The AI chipmaking leader will stay ahead of the resilient underdog.",
+      "link": "https://www.fool.com/investing/2026/09/15/nvidia-will-still-beat-amd-through-2028-heres-the/?.tsrc=rss"
+    },
+    {
+      "title": "Prediction: AMD Could Be Closing the Gap in the AI Chip Race",
+      "summary": "AMD has doubled in months on the back of an AI accelerator story finally winning over hyperscalers, but a stretched valuation and lurking execution risks put the bull thesis on a razor's edge.",
+      "link": "https://247wallst.com/investing/2026/09/15/prediction-amd-could-be-closing-the-gap-in-the-ai-chip-race/?.tsrc=rss"
+    },
+    {
+      "title": "Stocks post back-to-back losses as oil surges, 10-year yield hits 19-year high: Live updates - CNBC",
+      "summary": "Stocks post back-to-back losses as oil surges, 10-year yield hits 19-year high: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9yenZ5YXYzaWh0UWdSejh4VXhxdmVlOHNHSVdnR1lySU1QeVpGZnBWdmw0ZlNodXF0MGNjMDRJV2I3djJNQXoyTk5DTVlRclE5c0FjNmlkVW9wemxWT0RoRFRSU3pVRHN0and3ZkluZS14eE1lcGc00gF8QVVfeXFMT3JnVjBXOXp4Yk5YY2dTRXNqTHNhZnVwWXFnb3RXNUw5dDBIWHctdktybDNwR0tyZlBZRzNPaVFkOVk3bGhmeWhtVnZBSkJzMVBIcFpXV295ZG5MMXY5VG9UWTNQS2xzNWdaNEZhTlJkYnBISzJXaGo5S3V0NQ?oc=5"
+    },
+    {
+      "title": "Stocks Fall as AI Slowdown Worries Hit Chipmakers: Markets Wrap - Bloomberg.com",
+      "summary": "Stocks Fall as AI Slowdown Worries Hit Chipmakers: Markets Wrap Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPN2lGQUtDelJmdFZJeERjWWxaVXVFeEcwUUxtQjJ1bG40VVJZZmZyR1dzMDRvVkg4aG4zWFZaOWRtTlVRTW9lY05sZ3JzNGFSbTZwc25DNG9ONlZTUEJGSlkwTDZLSlJ1MmVtMm01SGZhdmxTRTBHWnowWmlrMFhDUmF4WWtHRnRqX1FUTE9Sbk1PMFJEU29fWFZhQTRpS3ZGcGljYWJneXgzb3EtYVE?oc=5"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq slip as chip stocks fall on AI warning - finance.yahoo.com",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq slip as chip stocks fall on AI warning finance.yahoo.com",
+      "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxNaVdLdTJrbjFlX2lQWjdXaDUtM2w0aWExVXpzMmdOeGFyRXVOaWRLS0RLUG5qcVhOd2F6bjNfR2gxSDNOMWgxOWhxcVg5b01BZWg3VXAyUkQxczZNOXFMUmU2bmh4eFNJMmRoSDI0dmRGRVpVRVk2R2FzY1RQWXVQZ1I3dURRbzZYSHZBUnNLMHUxR2ZfQWNRR0NaNlN2Nm1YUzVnWDF1a1EwOUl3SVEw?oc=5"
+    },
+    {
+      "title": "Stocks slide to begin week as 10-year yield briefly touches 5%, oil rises: Live updates - CNBC",
+      "summary": "Stocks slide to begin week as 10-year yield briefly touches 5%, oil rises: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE1JdDYxaFIxTm84YVA5TWNJTHA5VFdNamVzM2FjNjFDTXdzWXpiWi1EajE5Yy1WQ2ZtTXpSVWtGQWVTQWxxNTZuTXozUkhDeXBfMmZCUGpOQmN2enFZSDhZZWl1c1lqZm5DdTg0Z2VNTHhaMldOWE05SNIBfkFVX3lxTFBLSUFVbWpsTFE5OEc3ODgybWlYUnJiMUsxQlE0Zkx6cFdvaDB3a3pMLVJYOHV3MWdFMTNILVRxZ2ZMSTYwY1Y3SkU5S2JCZUFaODVDOWk0eG90MWRubkgzdVloa0p1aXpxNzFRTExRM3FfaFZsR19Pc1l1eGhsQQ?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Dow Falls 400 Points; 10-Year Treasury Yield at 5% — Live Updates - WSJ",
+      "summary": "Stock Market Today: Dow Falls 400 Points; 10-Year Treasury Yield at 5% — Live Updates WSJ",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxONkd6MWRHekVmaFBjWGJOWkl6QjdJWWRiTmxJQV9FMmdXcHdXaG92QUZodkp5dUIxOTY1N1ltZ2dUNmFsOFZPWl91OTdlTkFES3dud0V6bUphaE55WlE2N0N4R0NaSEJfandkZVNzQnpvaXlRUnpCNTFreG51OWZSTzlZR3gyLUU?oc=5"
+    }
+  ],
+  "us_date": "09/15",
+  "generated_at": "2026-09-16T08:33:33.843380+09:00"
+}
