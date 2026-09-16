@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 25978.42,
+      "prev": 25981.57,
+      "chg_pct": -0.01,
+      "volume": 9181844000,
+      "market_date_us": "09/16"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7551.81,
+      "prev": 7585.73,
+      "chg_pct": -0.45,
+      "volume": 2901247000,
+      "market_date_us": "09/16"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 51461.9,
+      "prev": 52093.11,
+      "chg_pct": -1.21,
+      "volume": 395278141,
+      "market_date_us": "09/16"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 17.71,
+      "prev": 17.2,
+      "chg_pct": 2.97,
+      "volume": 0,
+      "market_date_us": "09/16"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 11246.11,
+      "prev": 11175.55,
+      "chg_pct": 0.63,
+      "volume": 0,
+      "market_date_us": "09/16"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 100.34,
+      "prev": 99.65,
+      "chg_pct": 0.69,
+      "volume": 0,
+      "market_date_us": "09/16"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 101.98,
+      "prev": 105.83,
+      "chg_pct": -3.64,
+      "volume": 1022,
+      "market_date_us": "09/16"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4309.5,
+      "prev": 4332.8,
+      "chg_pct": -0.54,
+      "volume": 7509,
+      "market_date_us": "09/16"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1377.44,
+      "prev": 1363.57,
+      "chg_pct": 1.02,
+      "volume": 0,
+      "market_date_us": "09/16"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 704.72,
+      "prev": 704.54,
+      "chg_pct": 0.03,
+      "volume": 35375543,
+      "market_date_us": "09/16"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 502.06,
+      "prev": 498.85,
+      "chg_pct": 0.64,
+      "volume": 8330247,
+      "market_date_us": "09/16"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 55.93,
+      "prev": 56.85,
+      "chg_pct": -1.62,
+      "volume": 53035730,
+      "market_date_us": "09/16"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 175.54,
+      "prev": 176.49,
+      "chg_pct": -0.54,
+      "volume": 10845757,
+      "market_date_us": "09/16"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 213.9,
+      "prev": 212.17,
+      "chg_pct": 0.82,
+      "volume": 96113489,
+      "market_date_us": "09/16"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 512.5,
+      "prev": 504.2,
+      "chg_pct": 1.65,
+      "volume": 22200017,
+      "market_date_us": "09/16"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 101.05,
+      "prev": 97.14,
+      "chg_pct": 4.03,
+      "volume": 119233579,
+      "market_date_us": "09/16"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 417.72,
+      "prev": 413.75,
+      "chg_pct": 0.96,
+      "volume": 10454136,
+      "market_date_us": "09/16"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 332.41,
+      "prev": 331.34,
+      "chg_pct": 0.32,
+      "volume": 35923957,
+      "market_date_us": "09/16"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 490.3,
+      "prev": 497.12,
+      "chg_pct": -1.37,
+      "volume": 16615237,
+      "market_date_us": "09/16"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 358.08,
+      "prev": 356.58,
+      "chg_pct": 0.42,
+      "volume": 32039274,
+      "market_date_us": "09/16"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 245.96,
+      "prev": 248.42,
+      "chg_pct": -0.99,
+      "volume": 33329699,
+      "market_date_us": "09/16"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 342.87,
+      "prev": 344.98,
+      "chg_pct": -0.61,
+      "volume": 18865340,
+      "market_date_us": "09/16"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 673.31,
+      "prev": 670.24,
+      "chg_pct": 0.46,
+      "volume": 17169529,
+      "market_date_us": "09/16"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 253500.0,
+      "prev": 253500.0,
+      "chg_pct": 0.0,
+      "volume": 0,
+      "market_date_us": "09/16"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1759000.0,
+      "prev": 1759000.0,
+      "chg_pct": 0.0,
+      "volume": 0,
+      "market_date_us": "09/16"
+    }
+  },
+  "news": [
+    {
+      "title": "Dow Jones Futures: S&P 500 Falls After Fed Rate Hike, Hawkish Warsh; Trump Fumes As AMD, Bloom Energy Lead Stocks To Watch",
+      "summary": "The S&P 500 fell on the Fed rate hike and hawkish Warsh comments, But AMD, Bloom Energy flirted with buy signals.",
+      "link": "https://finance.yahoo.com/m/d657761c-bf99-3091-88b4-e770125e96a8/dow-jones-futures%3A-s%26p-500.html?.tsrc=rss"
+    },
+    {
+      "title": "Halliburton (HAL) Dips More Than Broader Market: What You Should Know",
+      "summary": "Halliburton (HAL) closed at $34.51 in the latest trading session, marking a -3.25% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/halliburton-hal-dips-more-broader-221503382.html?.tsrc=rss"
+    },
+    {
+      "title": "Intrusion Inc. (INTZ) Dips More Than Broader Market: What You Should Know",
+      "summary": "Intrusion Inc. (INTZ) reached $0.77 at the closing of the latest trading day, reflecting a -3.85% change compared to its last close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/intrusion-inc-intz-dips-more-221503997.html?.tsrc=rss"
+    },
+    {
+      "title": "Ginkgo Bioworks Holdings, Inc. (DNA) Rises As Market Takes a Dip: Key Facts",
+      "summary": "Ginkgo Bioworks Holdings, Inc. (DNA) concluded the recent trading session at $7.06, signifying a +1% move from its prior day's close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/ginkgo-bioworks-holdings-inc-dna-221503724.html?.tsrc=rss"
+    },
+    {
+      "title": "Superior Group (SGC) Suffers a Larger Drop Than the General Market: Key Insights",
+      "summary": "In the latest trading session, Superior Group (SGC) closed at $12.4, marking a -1.35% move from the previous day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/superior-group-sgc-suffers-larger-221503011.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Wendy's Stock Withered on Wednesday",
+      "summary": "An analyst initiated coverage of the stock.",
+      "link": "https://www.fool.com/investing/2026/09/16/why-wendys-stock-withered-on-wednesday/?.tsrc=rss"
+    },
+    {
+      "title": "4 High-Yield Dividend Stocks to Own for the Next Decade",
+      "summary": "British American Tobacco, Verizon, Income Realty, and Energy Transfer are top dividend stocks to buy and hold.",
+      "link": "https://www.fool.com/investing/2026/09/16/4-high-yield-dividend-stocks-to-own-for-10-years/?.tsrc=rss"
+    },
+    {
+      "title": "Why Did Bullish Stock Fall Today?",
+      "summary": "Washington is weighing on BLSH.",
+      "link": "https://www.fool.com/investing/2026/09/16/why-did-bullish-stock-fall-today/?.tsrc=rss"
+    },
+    {
+      "title": "The E-Commerce Stocks to Buy Before the Holiday Quarter",
+      "summary": "One of these companies earns more than 40% of its annual operating profit in the holiday quarter. But it's not the stock I'd buy first.",
+      "link": "https://www.fool.com/investing/2026/09/16/the-e-commerce-stocks-to-buy-before-the-holiday-quarter/?.tsrc=rss"
+    },
+    {
+      "title": "The Fed Hiked Interest Rates for the First Time in 3 Years. Are AI Stocks in Trouble?",
+      "summary": "Capital costs could rise alongside rising interest rates.",
+      "link": "https://www.fool.com/investing/2026/09/16/the-fed-hiked-interest-rates-for-the-first-time-in-3-years-are-ai-stocks-in-trouble/?.tsrc=rss"
+    },
+    {
+      "title": "SpaceX stock pops ahead of Starship launch",
+      "summary": "SpaceX stock rose about 5% on Tuesday, coming on the heels of no new news, though a couple catalysts may be at work.",
+      "link": "https://finance.yahoo.com/markets/stocks/article/spacex-stock-pops-ahead-of-starship-launch-180435710.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla must prove Cybercab is legal to sell, NHTSA says",
+      "summary": "Tesla now has to prove to government regulators that its Cybercab — which has no steering wheel or pedals — is legal to sell, and safe for the road.",
+      "link": "https://finance.yahoo.com/markets/stocks/article/tesla-must-prove-cybercab-is-legal-to-sell-nhtsa-says-153610647.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Gains Over 2% as Cybercab Faces a September 30 Compliance Test",
+      "summary": "Regulators want Tesla to explain how a steering-wheel-free robotaxi satisfies standards written for human-controlled vehicles.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-gains-over-2-cybercab-203412694.html?.tsrc=rss"
+    },
+    {
+      "title": "Musk Warns of AI Control Problem After Agents Secretly Accessed OpenAI Servers for a Week",
+      "summary": "A swarm of AI agents silently held admin access to OpenAI servers for a week before anyone noticed, and Elon Musk thinks the industry has no real answer for what comes next.",
+      "link": "https://247wallst.com/investing/2026/09/16/musk-warns-of-ai-control-problem-after-agents-secretly-accessed-openai-servers-for-a-week/?.tsrc=rss"
+    },
+    {
+      "title": "May Mobility is going public in a $1.4B SPAC deal",
+      "summary": "The deal could net the asset-light robotaxi company more than $300 million in funding.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/may-mobility-going-public-1-152713182.html?.tsrc=rss"
+    },
+    {
+      "title": "SK Hynix stock jumps as memory maker responds to report of potential deal with Intel",
+      "summary": "SK Hynix stock jumped following a report that the memory maker is exploring a deal with Intel.",
+      "link": "https://finance.yahoo.com/markets/article/sk-hynix-stock-jumps-as-memory-maker-responds-to-report-of-potential-deal-with-intel-125828355.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD, IBD Stock Of The Day, Gains As Heavyweights Dismiss AI Slowdown",
+      "summary": "AMD is the IBD Stock Of The Day as the chipmaker rises on renewed hopes for continued heavy spending on AI data centers.",
+      "link": "https://finance.yahoo.com/m/65f68f37-8011-33ac-af60-a2d54da41be8/amd%2C-ibd-stock-of-the-day%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "Bank of America Makes Massive Call on AI Chip Market",
+      "summary": "Chip demand looks far stronger than slowdown fears imply",
+      "link": "https://finance.yahoo.com/technology/ai/articles/bank-america-makes-massive-call-184326204.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Advanced Micro Devices Stock Just Popped",
+      "summary": "AMD stock wins another endorsement from Piper Sandler.",
+      "link": "https://www.fool.com/investing/2026/09/16/why-advanced-micro-devices-stock-just-popped/?.tsrc=rss"
+    },
+    {
+      "title": "Stock market today: Dow sinks 600 points, S&P 500 and Nasdaq fall as Fed hikes rates, bond yields rise - Yahoo Finance",
+      "summary": "Stock market today: Dow sinks 600 points, S&P 500 and Nasdaq fall as Fed hikes rates, bond yields rise Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxObFFVaTE3MEZveW9FelZMSjVuVWk5a1BVQWxZVWUwa1lSZXJ5Nk85bncwbFJzc2RZSkg5ZjdqM042X21oZGNmVGYxOEloZTdOb1NpRk1CM2g4b3FESkkyNWE3a1dVTldNMkpVdWtPR3V5TGE4TE5rNHI4dS1IR2lIQ0RCUGZRUm0xbzRLYzJKTjdsZHdsNkhLMVdIaW1RRlBDREhxYmthWlJMaFc1TmFtT3VzNEVaS1dyaE9PMVl3UmZOckpaYkZHNGZJV19IanM?oc=5"
+    },
+    {
+      "title": "Dow drops 600 points as Fed rate hike and Warsh's inflation talk unnerve investors: Live updates - cnbc.com",
+      "summary": "Dow drops 600 points as Fed rate hike and Warsh's inflation talk unnerve investors: Live updates cnbc.com",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE93dm9pVTkxd0Y4Wk5sZUI4dTNRY1MyLV9RVDBuYm1pckV4WmU2TUR2azJvcUs0ZUZLSUZwbE4xNFFGUWJ5OGN5YjFub1NuZ015aVNKUTJMUmY2YzlTLWg0MFhaREI1Y1JwYjBTd1BCWVZYT3pnRmFN0gF8QVVfeXFMTVRqZWVyaXIwbEgwZTdhOW9IcXZGS2tVaUxZUHkycFFDUnhJNzU3QzhrR0ttcGlPNGljM0xEbnFjOVExQ0E4SDZZaEVpTnRVT1NEQU9rSm1XdGNhYm5tRS0yWThSQmh5T0RwUzU3dlpLT19JR0JvNTgzUkxHbQ?oc=5"
+    },
+    {
+      "title": "Markets News, Sep. 16, 2026: Fed Chair Warsh Warns About Inflation After U.S. Central Bank Raises Interest Rates; Stocks Close Lower - Investopedia",
+      "summary": "Markets News, Sep. 16, 2026: Fed Chair Warsh Warns About Inflation After U.S. Central Bank Raises Interest Rates; Stocks Close Lower Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNbi1KQkliQlZaUmF1bnlNWGVVVDNZbGlVRTk5QWF2VVduLXdqV0JkTWFQd0VPWmE4ZTVJOXZoNGV5amJPWDFKOTQtVWFpejFlWGlvNVlMcWFYX0JzWm03WmdrTExwbDJQdVFjYTZBZXZWNW9rdWJ5YnJzdWVUd0Y5LU1NMjU1Sl9CZ2ZwaWJ1MWY?oc=5"
+    },
+    {
+      "title": "Wall St ends lower after Fed hikes interest rates, sees more tightening ahead - Reuters",
+      "summary": "Wall St ends lower after Fed hikes interest rates, sees more tightening ahead Reuters",
+      "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOSUtqeWNnZEJZT0IyaHpTajZTM3hWV0gwZUV1VkhQV21PUzJBQ0kzLWhxTk5iWUtNbTI1eUVWQnN1b2Y4T2RQSnhmc1pDcVVWYldOc19HSzRId2pZMHZFWHZrNHhnMVh3VGd4RkRSdDJGZ2ZJSzd6TWhiWWtUd1lWRkxzcklsRmJhOS1TcEZYMkRTQjhmakMyVDFtQQ?oc=5"
+    },
+    {
+      "title": "World's top-performing sovereign wealth fund warns of looming pullback in U.S. stock market - cnbc.com",
+      "summary": "World's top-performing sovereign wealth fund warns of looming pullback in U.S. stock market cnbc.com",
+      "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxQeHUwWWtoaWJwVDF2ekVpZ0pKRFhBRGROOHpBRjhxTjMyN0ZKa21IdFZZazJXT3RTM3Z6cTZ2ZWUxN09VcC0waUFrOWU2SlVTMVNCNi0xY3pTTGlROGgwMWszcVhzUkVqbEZjVm5aX3N0enR4Z3JmTWtVbExGeHN1SmE5elZmQVZRQmd30gGQAUFVX3lxTE9HZWw2Qmw2X2NRblVfRnpGczNJOVV4UmNoRV9lU0Vzd19TTUJnU0FJZHlBMTJENDh1ajRfQVZMTFlpT3NVbV9zODNKZHVMWnB5RkFCMzMzNEFoaExrb3RpNTd2QXRPZmc0QTQyY1hrVHVPU2N5clV5aHNPZWhpUExYYjdlTWV2aGRid0dIeDFfTA?oc=5"
+    },
+    {
+      "title": "Wall Street Highlights: S&P 500, Nasdaq Fall As 10-Year Yield Hits Highest Level Since 2007 - NDTV Profit",
+      "summary": "Wall Street Highlights: S&P 500, Nasdaq Fall As 10-Year Yield Hits Highest Level Since 2007 NDTV Profit",
+      "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxPN2UtYlBjSm1NSUZacVBqaEhMcmdmRHRQT0JWR1gxcHF5eDNRdEREMUNCeVo5b1lncDFmRmlYc3NfTjF2Rm83ZzVQV1VEUS1YY2htS3dTUlV4WFlCLVpGZ0g4eGZnYkZmR1NfcXJfazF3QzEtakFnaHd0TExsT0JIR3F5WGhkZ01TaG9uNGhZRXNMOUVURTdhcV9QWkQxZllSSGNDV2hVX01LWkt5SGxiaS1LU21ScG5hWkMtZEhaQ3dadzBiOTdBX0pSWnJpZ9IB1gFBVV95cUxPbmYtYVlzYzllTFZEVF9kVnZXUlBpZGl6WEJJU1JrZTFmX3gweXphc3hzR2RyaEdWaTVndi1HSU8ybVlpYkdPWml1WG9mLXQ4T2JCeFI2ak1nOS1UOWhyOFMyZmgzc2dlZ0dEZHYzOEgtX19IX2Z0T2EtOS1PYXlPQTQxcjE3RDh2M2tTY1JpNmdtNTgzdmtzSkx4XzM3SE16eUlwdXV3S3pNaWhGYzZoalFsRnlYNlp0WDNNbTcxRkRKRHB5UEdDNGE5ZDl3U2VXNy1mTWtB?oc=5"
+    }
+  ],
+  "us_date": "09/16",
+  "generated_at": "2026-09-17T08:41:12.724983+09:00"
+}
