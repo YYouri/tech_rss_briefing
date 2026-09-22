@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 27122.09,
+      "prev": 26522.54,
+      "chg_pct": 2.26,
+      "volume": 7862256000,
+      "market_date_us": "09/21"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7764.7,
+      "prev": 7650.5,
+      "chg_pct": 1.49,
+      "volume": 3278075000,
+      "market_date_us": "09/21"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52048.83,
+      "prev": 51682.64,
+      "chg_pct": 0.71,
+      "volume": 444358134,
+      "market_date_us": "09/21"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 14.87,
+      "prev": 14.81,
+      "chg_pct": 0.41,
+      "volume": 0,
+      "market_date_us": "09/21"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 12433.17,
+      "prev": 11921.69,
+      "chg_pct": 4.29,
+      "volume": 0,
+      "market_date_us": "09/21"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 100.42,
+      "prev": 100.22,
+      "chg_pct": 0.2,
+      "volume": 0,
+      "market_date_us": "09/21"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 92.29,
+      "prev": 100.3,
+      "chg_pct": -7.99,
+      "volume": 2623,
+      "market_date_us": "09/21"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4407.4,
+      "prev": 4424.9,
+      "chg_pct": -0.4,
+      "volume": 9528,
+      "market_date_us": "09/21"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1368.58,
+      "prev": 1384.86,
+      "chg_pct": -1.18,
+      "volume": 0,
+      "market_date_us": "09/21"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 741.47,
+      "prev": 721.45,
+      "chg_pct": 2.77,
+      "volume": 46233453,
+      "market_date_us": "09/21"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 559.34,
+      "prev": 533.07,
+      "chg_pct": 4.93,
+      "volume": 7694400,
+      "market_date_us": "09/21"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 55.9,
+      "prev": 55.86,
+      "chg_pct": 0.07,
+      "volume": 30031170,
+      "market_date_us": "09/21"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 189.16,
+      "prev": 181.31,
+      "chg_pct": 4.33,
+      "volume": 14582259,
+      "market_date_us": "09/21"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 227.38,
+      "prev": 222.27,
+      "chg_pct": 2.3,
+      "volume": 109274173,
+      "market_date_us": "09/21"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 615.52,
+      "prev": 559.82,
+      "chg_pct": 9.95,
+      "volume": 44156939,
+      "market_date_us": "09/21"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 121.78,
+      "prev": 108.6,
+      "chg_pct": 12.14,
+      "volume": 188716510,
+      "market_date_us": "09/21"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 445.14,
+      "prev": 434.67,
+      "chg_pct": 2.41,
+      "volume": 9903605,
+      "market_date_us": "09/21"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 338.98,
+      "prev": 336.13,
+      "chg_pct": 0.85,
+      "volume": 34913171,
+      "market_date_us": "09/21"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 501.61,
+      "prev": 493.78,
+      "chg_pct": 1.59,
+      "volume": 26347908,
+      "market_date_us": "09/21"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 375.3,
+      "prev": 364.27,
+      "chg_pct": 3.03,
+      "volume": 36296184,
+      "market_date_us": "09/21"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 258.45,
+      "prev": 253.71,
+      "chg_pct": 1.87,
+      "volume": 40769944,
+      "market_date_us": "09/21"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 354.97,
+      "prev": 349.54,
+      "chg_pct": 1.55,
+      "volume": 28211544,
+      "market_date_us": "09/21"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 741.25,
+      "prev": 665.75,
+      "chg_pct": 11.34,
+      "volume": 48450536,
+      "market_date_us": "09/21"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 274000.0,
+      "prev": 274000.0,
+      "chg_pct": 0.0,
+      "volume": 0,
+      "market_date_us": "09/21"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1868000.0,
+      "prev": 1868000.0,
+      "chg_pct": 0.0,
+      "volume": 0,
+      "market_date_us": "09/21"
+    }
+  },
+  "news": [
+    {
+      "title": "Trump, Xi Meet on S&P 500's Best Day Since Early August: Will Markets Stay Bullish?",
+      "summary": "Trump and Xi meet in Washington as the S&P 500 posts its best day since Aug. 4, driven by a rally in AI stocks.",
+      "link": "https://beincrypto.com/trump-xi-summit-best-day/?.tsrc=rss"
+    },
+    {
+      "title": "Here Are Morgan Stanley's New Top Stock Picks For The Next 12-Months",
+      "summary": "Morgan Stanley unveils 2027 'Vintage Values' roster after 2026 roster outperforms S&P 500.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/here-are-morgan-stanley-s-new-top-stock-picks-for-the-next-12-months/cZMRDYdRBIV?.tsrc=rss"
+    },
+    {
+      "title": "Jim Cramer drops another stock market warning",
+      "summary": "The “Mad Money” host sees a decades-old pattern returning under new leadership.",
+      "link": "https://www.thestreet.com/investing/cramer-fed-rate-hike-fighting-fed-warning?.tsrc=rss"
+    },
+    {
+      "title": "VirTra, Inc. (VTSI) Stock Dips While Market Gains: Key Facts",
+      "summary": "VirTra, Inc. (VTSI) concluded the recent trading session at $2.9, signifying a -1.69% move from its prior day's close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/virtra-inc-vtsi-stock-dips-221505866.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Whirlpool (WHR) Outpaced the Stock Market Today",
+      "summary": "Whirlpool (WHR) concluded the recent trading session at $32.64, signifying a +2.1% move from its prior day's close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/why-whirlpool-whr-outpaced-stock-221505410.html?.tsrc=rss"
+    },
+    {
+      "title": "$500 a Month in Nvidia Stock Since ChatGPT Launched Is Now Worth About $79,000",
+      "summary": "Steady monthly buys of the AI chip giant more than tripled the money put in. Would I keep the plan going today?",
+      "link": "https://www.fool.com/investing/2026/09/21/usd500-a-month-in-nvidia-stock-since-chatgpt-launched-is-now-worth-about-usd79-000/?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: Falling Oil Prices, Yields Spark Market Rally; AMD, Intel, Micron, Nvidia, Sandisk Are Key Movers",
+      "summary": "Dow Jones Futures: Falling oil prices and yields sparked a stock market rally. AMD, Intel, Micron, Nvidia and Sandisk are key movers.",
+      "link": "https://finance.yahoo.com/m/bc32a5e1-f207-3311-ba0b-143bb01bd032/dow-jones-futures%3A-falling.html?.tsrc=rss"
+    },
+    {
+      "title": "Should You Forget Nvidia and Buy These 3 Millionaire-Maker AI Infrastructure Stocks Instead?",
+      "summary": "Nvidia gets the AI spotlight, but three power infrastructure stocks may be quietly building the bigger long-term opportunity.",
+      "link": "https://www.fool.com/investing/2026/09/21/should-you-forget-nvidia-and-buy-these-3-millionai/?.tsrc=rss"
+    },
+    {
+      "title": "Why Lucid Group Stock Motored Over 5% Higher Today",
+      "summary": "A new analyst take wasn't all that bullish, but it did remind investors of the splashy deal the company recently signed.",
+      "link": "https://www.fool.com/investing/2026/09/21/why-lucid-group-stock-motored-almost-6-higher-toda/?.tsrc=rss"
+    },
+    {
+      "title": "Johnson & Johnson May Offload Its Orthopedics Unit for $20 Billion -- and Investors Shouldn't Miss What That Could Signal",
+      "summary": "Healthcare giant Johnson & Johnson is looking to become a more profitable and faster-growing business.",
+      "link": "https://www.fool.com/investing/2026/09/21/johnson-johnson-may-offload-its-orthopedics-unit-f/?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk wants to live on Mars: Maye Musk on her son's ambitions",
+      "summary": "Maye Musk — the mother of Tesla (TSLA) CEO and SpaceX (SPCX) founder Elon Musk — spoke with Yahoo Finance Executive Editor Brian Sozzi about her son's ambitions that led him to his space venture and interest in satellite technology.",
+      "link": "https://finance.yahoo.com/video/elon-musk-wants-live-mars-170000413.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla stock jumps ahead of highly anticipated Roadster event",
+      "summary": "Tesla stock is jumping to start the week, just as the company announced an update for its upcoming halo vehicle, the Roadster.",
+      "link": "https://finance.yahoo.com/markets/stocks/article/tesla-stock-jumps-ahead-of-highly-anticipated-roadster-event-162605438.html?.tsrc=rss"
+    },
+    {
+      "title": "Robotaxis crash less. So why isn't your insurance cheaper?",
+      "summary": "Waymo’s own data shows a 94% drop in serious crashes, but the sensors that make robotaxis safe make every wreck pricier to fix. Alex Timm says premium cuts are years away.",
+      "link": "https://www.thestreet.com/crypto/personal-finance/robotaxis-crash-less-so-why-isnt-your-insurance-cheaper?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Audits Chinese Suppliers as Elon Musk’s Optimus Robot Moves Closer to Mass Production: Report",
+      "summary": "Elon Musk-led Tesla Inc. is reportedly auditing its suppliers in China as the EV giant looks to ramp up production of the Optimus Humanoid Robot. Tesla Prepping Optimus Ramp? On Monday, Chinese media outlet The Paper published a report, citing...",
+      "link": "https://finance.yahoo.com/technology/ai/articles/tesla-audits-chinese-suppliers-elon-213014283.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Gains 3% as Fremont Bias Claims Reach Trial",
+      "summary": "A bench trial creates uncapped legal exposure without establishing liability or a probable payment.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-gains-3-fremont-bias-194611833.html?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices (AMD) Is Up 24.7% After Expanding Its Role In Regulated AI Infrastructure – Has The Bull Case Changed?",
+      "summary": "Advanced Micro Devices has recently been at the center of a series of AI-focused developments, from powering MindWalk’s OpenFold3 life-sciences workloads on Instinct MI325X GPUs to expanding ecosystem collaborations across edge AI, quantum-classical integration, and agentic AI security and infrastructure. Together, these partnerships and deployments highlight AMD’s role not just as a chip supplier",
+      "link": "https://finance.yahoo.com/technology/ai/articles/advanced-micro-devices-amd-24-221840955.html?.tsrc=rss"
+    },
+    {
+      "title": "Nasdaq Ends Nearly 3% Higher As AI Stocks Pop, AMD Enters $1 Trillion Club — AMD, ARM, META, AMZN, PSKY In Focus",
+      "summary": "Advanced Micro Devices added about 10% and hit $1 trillion in market cap.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/nasdaq-ends-nearly-3-higher-as-ai-stocks-pop/cZMRHqjRBIm?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, Sept. 21: Tech Strength Powers Nasdaq to Record Close",
+      "summary": "Today, Sept. 21, 2026, semiconductor stocks surged on AI demand while Bitcoin topped $87,000, offsetting energy sector weakness.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/09/21/stock-market-today-sept-21-tech-strength-powers-nasdaq-to-record-close/?.tsrc=rss"
+    },
+    {
+      "title": "AMD, Intel, Meta, Warner Bros., Moderna, Grail, Strategy, and More Stocks That Explain Today’s Market",
+      "summary": "Stocks advanced Monday as oil prices eased and investors turned their attention to this week’s United National General Assembly for potential signs of resolution to the conflict in Iran. Technology stocks, and artificial-intelligence stocks in particular, traded higher after Treasury Secretary Scott Bessent met with China’s vice premier He Lifeng and said the pair had agreed to an AI dialogue. Mic",
+      "link": "https://finance.yahoo.com/m/6c151bf6-d6e0-326a-905a-75334358e038/amd%2C-intel%2C-meta%2C-warner.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock market today: Nasdaq surges 2% to record high, Dow and S&P 500 gain as chip stocks rally, oil falls - Yahoo Finance",
+      "summary": "Stock market today: Nasdaq surges 2% to record high, Dow and S&P 500 gain as chip stocks rally, oil falls Yahoo FinanceNasdaq jumps 2% to close at a record, buoyed by surge in AI stocks, as well as cooling oil and yields CNBCStock Market News, Sept. 21, 2026: Nasdaq Rises to Record as Oil-Price Drop Unlocks Rally WSJ",
+      "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxOUmw5dTU0bUtGQk1BdkpteVFtOFpEN0tycVhJNnIwQndiRVVaZjlMcG9lanhVZkxLd1lMVlRRMGMyNXctZkRDVnE4YVNXQkg2QUFxcEhKdVJ0eWl6Yk9HOXRKMTNoUWNyNmtMX2FZOEdJd0FETUU4Mmc1SVFXcllLVmt1bDhoMUdWRzN2VGUzMnVIWk1qRXBONUZSN3BkMDBvOG9zMTA3WUdVLVFDTXlj?oc=5"
+    },
+    {
+      "title": "Stocks, Bonds Climb as Oil Falls on US-Iran Hopes: Markets Wrap - Bloomberg.com",
+      "summary": "Stocks, Bonds Climb as Oil Falls on US-Iran Hopes: Markets Wrap Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxONWk0czlDZlZ6UFZXeFRWaEtxd3J5Z295dlFNOTJKelkxcE1jVEJWWU0tMl9nRUo5RmNHNUhodFdwWGVKNjJYREQ1Y3B2d1JnT2RZSTVOMnNXbU93MWNWN2doM05LSUgzVWd0NU93MldhRUduSEJaX1BqdmxuMzFGZmNEYm1GbmEyWFctalFDU2RuSVhYUzhWQTdmSnFtR1Y5WXdJZjhLaUplaVFubXRfWlJR?oc=5"
+    },
+    {
+      "title": "Stocks had a great day on the surface. But something alarming occurred not seen since 1999 - CNBC",
+      "summary": "Stocks had a great day on the surface. But something alarming occurred not seen since 1999 CNBC",
+      "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxNWHI2dUs1VHRMaTBYUTdCODVvYUllNkdEVlJXMUs3eTFGZlVQM2hDbGFJMjRQU0hkd3JyQllXUnNOZjU1Y081S0Z4emk3RXdITlU5VjN4UU96YjhsTmpIVkF0cUkwWThGZHZvZmM1a0c2TnVabl9MZ0ljMC1sTmNlOUpLYlJ1OTlncElCQ2hRMGZRc0I5Uk9SMG9TLS1GdTBfdFZjdWdBZ3gwZGJGUmpieUtoVTJjaFRnUXZ1Vm9pZy0tSU1L0gHKAUFVX3lxTE9BZTVLUmhnOExPQlc2LWRvZ2dBVHFNaXVOaWRWRTZRT2V6UDhNamVzYmUzb28zMW16VmY2ejdfMXBVYVZ1c3o2VnU0OXNaQ25RQk9wbV81aGZJRDFmbUpKc2oyVy0zcnhMdFBkdmtseUk5dkJ3eW9UeVhJcnZveWlTSG41dWI1WklGWWIxTmZXdkd3T0ZyM1N2aVg0b2lDOTNfdW1QNnVJaTdyWmxLUmtYeGk0dWlxWGxGUlhzbzBRTWlCbTVObWdpY0E?oc=5"
+    },
+    {
+      "title": "Stock boom is fueling a ‘retirement party,’ economists say — what it means for workers - CNBC",
+      "summary": "Stock boom is fueling a ‘retirement party,’ economists say — what it means for workers CNBC",
+      "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQZ3JPSHdETnJXclRUUmFwdUE3NFF3TDYtekR4MWgzNlUxbjZCLTBTcTBqbzJ1U2dNQmxsZ2xrUm5hWFhiQTFLd21QS0d3WUI4bjFLT045R1MtOEFOTUlRN2NScUpReUNpYzIwR0ZuTlh3MEZ5V25xaE00ZzUzY0ZUeFh5M0FKcF9SOE40RUJZaW5XdTdBNjJ3aUVIQ1bSAaIBQVVfeXFMTzdTVzVxd2J5SERkc1dQOE1ROTV0TVIyWHQ3eC1JMmpTemtOY3gtUmthSWM1NmpOdUxoMHkzWnNpVmlOeU10b3FSSUlDcnlDUktJMjRvRUZQVTFUQkVyeU9iWjdNODI4WVdCUHFOVUFNSnVmWXdybENGZUNFa3hucUVheWlleWNhaXpLOGlYUGlBM28tbF9RX0JndF92Qk43aGFn?oc=5"
+    },
+    {
+      "title": "Morgan Stanley’s Wilson Says US Stocks Risk 7% Drop in Near Term - Yahoo Finance",
+      "summary": "Morgan Stanley’s Wilson Says US Stocks Risk 7% Drop in Near Term Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQVEotaWlPS3BYTHlfOTU4WGtEc1lBVTNOb25GUmxOY0hTWDNVZktkX0xzMjluT1ZWZm5YTGVBVzMxLVN1ZDlvUXlGRldxa2NMVU1TMUNxY2tKVW1DTVJXSVBPdE5fd2VKMEdFQUxSandnQ3A5XzQxV28waWlQbHdOTncxX2MwNGZzbklWQjJ2RV96YVNSblV4eXN3?oc=5"
+    },
+    {
+      "title": "Wall Street Today: DJIA Falls, But S&P 500 and Nasdaq Comp Rise on Gains for Crypto, MU, SNDK, AVGO, AMD - Moomoo",
+      "summary": "Wall Street Today: DJIA Falls, But S&P 500 and Nasdaq Comp Rise on Gains for Crypto, MU, SNDK, AVGO, AMD Moomoo",
+      "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxObEYzWjgxNWdQRzJZUXFrSl9oMzkxeDY0YmxacjdTYmdidWd2WkJRMWp4MDBnQUFTQkxvZzFIM3k3TnlpbFRHRERNdUJTeVpaaTZGaWd3ckJNajlVaTM2THJGUEVLTkxKVmV4YTVsWGJHN2FLT2J3aVZGX3NrR3FyS01uRUJRUVZEeUFIS2FTZmNueEN2MDBkUjU2Q2o3NG8?oc=5"
+    }
+  ],
+  "us_date": "09/21",
+  "generated_at": "2026-09-22T09:11:18.228557+09:00"
+}
