@@ -1,12 +1,5 @@
 [
   {
-    "topic": "LLM Inference",
-    "title": "LLM 추론 최적화 비교: TensorRT·DSpark·BentoML",
-    "url": "",
-    "tags": "LLM, 추론최적화, TensorRT, BentoML, AI인프라, KPC정보관리기술사",
-    "date": "2026-08-24T02:44:06.036238"
-  },
-  {
     "topic": "Agentic AI",
     "title": "Agentic AI 기업 도입 사례 총정리",
     "url": "",
@@ -131,5 +124,12 @@
     "url": "",
     "tags": "Edge AI, IT기술, 반도체, AI, 산업동향, KPC정보관리기술사",
     "date": "2026-09-19T22:49:31.071168"
+  },
+  {
+    "topic": "LLM Inference",
+    "title": "LLM 추론 최적화: 비용과 지연 시간 단축 전략",
+    "url": "",
+    "tags": "LLM, 추론최적화, vLLM, 양자화, AI인프라, KPC정보관리기술사",
+    "date": "2026-09-23T23:28:57.221989"
   }
 ]
