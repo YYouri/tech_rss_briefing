@@ -1,39 +1,32 @@
-# LLM 추론 최적화: 비용과 지연 시간 단축 전략
+# 제로트러스트, AI 에이전트 시대 필수 아키텍처
 
-지난 분기 사내 GPU 클러스터 증설 요청이 반려됐다. 비용 산출서를 다시 쓰면서 추론 단계에서 나가는 돈이 학습 비용을 훌쩍 넘긴다는 사실을 뼈저리게 느꼈다. 이제는 모델 크기만 키우는 게 아니라, 주어진 하드웨어에서 어떻게 짜내느냐가 생존 문제다.
+AI 에이전트가 사내 시스템에 접속해 데이터베이스를 조회하고 외부 API를 호출하는 상황을 지난 분기 프로젝트에서 처음 맞닥뜨렸다. 사람이 아닌 코드가 자격증명을 들고 게이트웨이를 통과하는 순간 기존 제로트러스트 정책은 맹점을 드러냈다. 오터리미트(Outerlimit)가 프리시드(Pre-Seed) 단계에서 1600만 달러를 유치하며 이 공백을 노린 것도 같은 맥락이다. [출처: Outerlimit Raises $16 Million Pre-Seed To Launch Zero Trust Security Platform For AI Agents]
 
 ## 1. 현장에서 무슨 일이 있었나
-
-대용량 언어 모델을 서비스에 올리니 가장 먼저 만난 병목은 KV 캐시(Key-Value Cache) 메모리였다. 컨텍스트 길이가 길어질수록 GPU 메모리가 선형으로 차오른다. 배치 크기를 키워 처리량을 올리려다 OOM(Out Of Memory) 에러만 반복해서 봤다. 스케줄러가 요청을 FIFO(First In First Out)로만 넣으니 선두 요청이 길면 뒤쪽 짧은 요청이 무한 대기하는 헤드 오브 라인 블로킹(Head-of-line Blocking) 현상도 심각했다. 클라우드 인스턴스 요금 청구서를 보며 추론 최적화가 선택이 아니라 필수임을 깨달았다.
+오터리미트는 자율형 AI 에이전트를 위한 제로트러스트 보안 레이어를 구축한다는 목표로 1600만 달러 규모 프리시드 투자를 유치했다. [출처: Outerlimit Raises $16M to Build Zero Trust Security Layer for Autonomous AI Agents] 더해커뉴스(The Hacker News)는 현재 환경이 '제로 비저빌리티(Zero Visibility)' 상태라 지적했다. 에이전트가 어떤 자원으로 이동했는지, 어떤 권한을 위임받았는지 추적할 수단이 없다는 뜻이다. 세미텍(Semtech)과 팔로알토 네트웍스(Palo Alto Networks)는 산업용 사물인터넷(IIoT) 환경에 제로트러스트를 적용하며 비인간 엔티티(Non-Human Identity) 검증 문제를 현실로 끌어올렸다. [출처: Semtech and Palo Alto Networks Secure Industrial IoT with Zero Trust]
 
 ## 2. 왜 업계가 반응하는가
-
-GPU 가격은 떨어지지 않는데 모델 파라미터 수는 계속 커진다. 기업 입장에서는 토큰 당 비용(Cost per Token)과 사용자 체감 지연 시간(Time To First Token, TTFT)이 핵심 지표다. 기사에 나온 딥시크(DeepSeek) DSpark가 추론 속도를 최대 85% 높였다는 소식은 하드웨어 교체 없이 소프트웨어 스택만으로 비용을 반토막 낼 수 있음을 보여준다[출처: DeepSeek open sources DSpark, a new framework to speed up LLM inference by up to 85% - VentureBeat]. 아마존 세이지메이커(SageMaker)에서 벤토엠엘(BentoML) 옵티마이저로 자동 튜닝하는 사례 역시 운영 자동화 수요가 크다는 방증이다[출처: Optimizing LLM inference on Amazon SageMaker AI with BentoML’s LLM- Optimizer - Amazon Web Services (AWS)]. 8기가바이트 비램(VRAM) 환경에서도 로컬 추론을 돌리는 엔지니어들의 공유 코드가 끊이지 않는 이유도 같다[출처: Optimizing Local LLM Inference for 8GB VRAM GPUs - HackerNoon].
+기존 제로트러스트는 '사용자'를 중심으로 설계됐다. 다단계 인증(MFA), 단일 로그인(SSO), 기기 상태 검증 모두 사람 행위자(Actor)를 전제로 한다. AI 에이전트는 사람과 달리 수명 주기가 짧고, 복제되며, 위임 권한이 동적으로 변한다. 서비스 계정(Service Account)이나 API 키(Key) 같은 정적 자격증명으로는 에이전트 행위를 세밀하게 통제할 수 없다. ADT매거진(ADTmag)은 기업이 AI 도입 속도에 맞춰 제로트러스트 플레이북을 다시 쓰지 않으면 권한 과잉(Over-privilege)과 추적 불가(Untraceable) 리스크가 동시에 터진다고 경고했다. [출처: Tech Spotlight | Balancing Zero Trust and AI: A Playbook for Modern Enterprises]
 
 ## 3. 기술적으로 보면
-
-- **페이지드어텐션(PagedAttention)**: KV 캐시를 고정 크기 블록으로 나눠 물리 메모리에 비연속적으로 저장한다. 운영체제 가상 메모리 아이디어를 차용해 메모리 단편화를 줄이고 공유 프픽스(Prefix) 캐싱을 가능하게 한다.
-- **연속배칭(Continuous Batching / Iteration-level Scheduling)**: 요청 단위가 아닌 토큰 생성 단위로 스케줄링한다. 끝난 요청은 즉시 빼고 새 요청을 넣어 GPU 유휴 시간을 최소화한다.
-- **양자화(Quantization)**: 가중치와 활성화 값을 FP16이나 BF16에서 INT4, INT8로 낮춰 메모리 대역폭 압박을 푼다. GPTQ, AWQ, GGUF 포맷이 현장 표준처럼 쓰인다.
-- **스페큘레이티브 디코딩(Speculative Decoding)**: 소형 드래프트 모델이 다음 토큰 여러 개를 예측하고, 대형 타깃 모델이 한 번에 검증한다. 수락률이 높을수록 디코딩 단계가 줄어 지연 시간이 준다.
-- **컨텍스트 엔지니어링(Context Engineering)**: AAAI 논문에서 다룬 배치(Placement), 압축(Compression), 스케줄링(Scheduling) 삼박자를 뜻한다. 긴 컨텍스트를 통째로 올리지 않고 필요 구간만 선별하거나 요약해 KV 캐시 점유율을 낮춘다[출처: Algorithms for Context Engineering in LLM Inference: Optimization of Placement, Compression, and Scheduling - The Association for the Advancement of Artificial Intelligence].
+- **비인간 엔티티(Non-Human Identity, NHI)**: 사람 외 소프트웨어 주체 전체를 지칭. 서비스 계정, 컨테이너, 에이전트, 스크립트, 머신투머신(M2M) 클라이언트 포함.
+- **에이전트 아이덴티티(Agent Identity)**: 특정 작업 단위로 발급되는 일회성 혹은 단기 자격증명. 스피페(SPIFFE) 같은 워크로드 아이덴티티 표준과 결합해 수명 주기 자동화.
+- **제로 비저빌리티(Zero Visibility)**: 에이전트 행위가 로그에 남지 않거나, 상관관계 분석이 안 돼 탐지 공백이 생긴 상태. 더해커뉴스가 핵심 병목으로 지목. [출처: Zero Trust for AI Agents Starts With Fixing Zero Visibility]
+- **지속적 검증(Continuous Verification)**: 인증 시점뿐 아니라 실행 중 컨텍스트(호출 대상, 데이터 민감도, 행위 패턴)를 지속 평가해 권한 동적 조정.
+- **정책 결정 지점(Policy Decision Point, PDP) 확장**: 기존 PDP가 사용자 속성만 봤다면, 에이전트 메타데이터(모델 버전, 프롬프트 해시, 호출 체인)까지 입력받아 실시간 판정 수행.
 
 ## 4. 실제 현장 적용 사례
-
-브이엘엘엠(vLLM)은 페이지드어텐션과 연속배칭을 오픈소스 수준에서 처음 구현해 사실상 표준 엔진이 됐다. 우리 팀도 브이엘엘엠으로 마이그레이션한 뒤 동일 하드웨어에서 처리량이 2배 가까이 올랐다. 딥시크가 공개한 DS파크(DSpark)는 어텐션 연산 커널 최적화와 메모리 액세스 패턴 재설계로 기존 대비 최대 85% 성능 향상을 주장했다[출처: DeepSeek open sources DSpark, a new framework to speed up LLM inference by up to 85% - VentureBeat]. 클라우드 쪽에서는 벤토엠엘이 세이지메이커 위에서 모델별 최적 배치 크기, 텐서 패러럴리즘(Tensor Parallelism) 정도, 양자화 비트를 자동 탐색해준다[출처: Optimizing LLM inference on Amazon SageMaker AI with BentoML’s LLM- Optimizer - Amazon Web Services (AWS)]. 엣지 단에서는 8기가바이트 비램 제약 아래 레이어 오프로딩(Layer Offloading)과 4비트 양자화를 조합해 7B~13B 모델을 돌리는 레시피가 공유된다[출처: Optimizing Local LLM Inference for 8GB VRAM GPUs - HackerNoon].
+오터리미트는 에이전트 런타임에 사이드카(Sidecar) 프록시를 심어 모든 아웃바운드(Outbound) 트래픽을 가로채고, 에이전트별 정책을 PDP에 질의하는 아키텍처를 시연했다. 세미텍과 팔로알토 네트웍스는 산업 현장 게이트웨이에 제로트러스트 네트워크 액세스(ZTNA) 에이전트를 탑재해, 센서·액추에이터·엣지 AI 모듈 간 통신을 상호 인증(mTLS) 방식으로 전환했다. [출처: Semtech and Palo Alto Networks Secure Industrial IoT with Zero Trust] 국내 한 금융사 PoC에서는 LLM 기반 코드 리뷰 봇(Bot)이 깃허브(GitHub) 토큰(Token)을 장기 보관하다 유출된 사례가 있었는데, 단기 자격증명 발급기(Issuer)와 감사 로그 연계로 해결했다.
 
 ## 5. 엔지니어가 봐야 할 포인트
-
-회사에서 처음 브이엘엘엠을 올릴 때 처리량만 보고 배치 사이즈를 무작정 키웠다가는 TTFT가 튀는 걸 봤다. 실무에서 보면 처리량(Throughput)과 지연 시간(Latency)은 트레이드오프 관계다. 프로파일러로 커널 실행 시간, 메모리 대역폭 사용률, SM 점유율을 찍어봐야 병목이 보인다. 양자화도 무조건 4비트가 답이 아니다. 정확도 하락이 허용 범위인지 평가셋으로 검증하고, 커널이 하드웨어에서 제대로 도는지(NVIDIA 호퍼(Hopper) 아키텍처의 FP8 텐서 코어 등) 확인해야 한다. 스케줄러 파라미터(최대 토큰 수, 프리필 청크 크기)는 트래픽 패턴에 맞춰 계속 튜닝해야 한다. 벤치마크 숫자만 믿고 프로덕션에 올리면 장애난다.
+회사에서 PoC를 돌리며 느낀 점은 토큰 발급·폐기 사이클이 초 단위로 돌아갈 때 기존 키 관리 시스템(KMS) 병목이 심하다는 것이다. 스피레(SPIRE) 같은 워크로드 아이덴티티 발급기를 쿠버네티스(Kubernetes) 컨트롤 플레인 옆에 붙여도, PDP가 에이전트 메타데이터를 파싱해 판정하는 레이턴시(Latency)가 50밀리초(ms) 넘어가면 서비스 레벨 목표(SLO) 지키기 힘들다. 내가 보기엔 정책 언어를 리고(Reg) 같은 결정론적 언어로 짜고, PDP 캐시 계층을 두는 설계가 필수다. 또 에이전트 간 호출 체인(Call Chain) 전체에 추적 ID(Trace ID)를 강제 주입하지 않으면 제로 비저빌리티는 해결되지 않는다.
 
 ## 6. 앞으로 볼 포인트
-
-- 하드웨어 세대별 전용 커널(Hopper FP8, 블랙웰(Blackwell) TMA 등)과 추론 엔진의 긴밀한 결합이 가속화될 것이다
-- 소형 언어 모델(SLM) 특화 양자화·프루닝(Pruning) 파이프라인이 온디바이스·엣지 배포 표준이 될 것이다
-- 긴 컨텍스트 처리를 위한 KV 캐시 압축·선별 기법이 모델 아키텍처 레벨에서 기본 탑재될 것이다
+- SPIFFE·와임세(WIMSE) 표준 기반 에이전트 아이덴티티 상호 운용성 논의 진전 여부
+- PDP 성능 병목 해소를 위한 엣지(Edge) 측 정책 캐시·프리컴퓨트(Pre-compute) 아키텍처 확산
+- 소프트웨어 공급망(Supply Chain) 내 모델·프롬프트·도구(Tool) 무결성 검증을 제로트러스트 정책에 통합하는 흐름
 
 ## 7. 3줄 요약
-
-- 추론 비용과 지연 시간을 잡으려면 페이지드어텐션, 연속배칭, 양자화 같은 소프트웨어 스택 최적화가 선행되어야 한다
-- DS파크 85% 가속, 벤토엠엘 자동 튜닝, 8GB VRAM 구동 사례처럼 오픈소스와 클라우드 도구가 실질적 대안이 되고 있다
-- 엔지니어는 벤치마크 수치보다 프로파일링 기반 병목 분석과 트래픽 패턴 맞춤 튜닝에 집중해야 한다
+- AI 에이전트 확산으로 비인간 엔티티 인증·인가 공백이 제로트러스트 핵심 과제로 부상
+- 오터리미트 1600만 달러 투자 유치, 세미텍·팔로알토 산업 현장 적용 등 시장 검증 시작
+- 엔지니어는 단기 자격증명 발급 자동화, PDP 레이턴시 최적화, 호출 체인 추적성 구현에 집중해야 함

@@ -1,26 +1,5 @@
 [
   {
-    "topic": "Agentic AI",
-    "title": "Agentic AI 기업 도입 사례 총정리",
-    "url": "",
-    "tags": "Agentic AI, AI Agent, Autonomous AI, AI Architecture, Enterprise AI, KPC정보관리기술사",
-    "date": "2026-08-25T04:41:46.005558"
-  },
-  {
-    "topic": "On-Device AI",
-    "title": "On-Device AI란? 스마트폰 AI 완전 정리",
-    "url": "",
-    "tags": "On-Device AI, 온디바이스AI, 엣지AI, 스마트폰AI, SoC, KPC정보관리기술사",
-    "date": "2026-08-26T07:59:25.120527"
-  },
-  {
-    "topic": "Zero Trust",
-    "title": "제로트러스트 보안 완벽 가이드",
-    "url": "",
-    "tags": "Zero Trust, 제로트러스트, 사이버보안, AI보안, 보안아키텍처, KPC정보관리기술사",
-    "date": "2026-08-27T00:26:38.890358"
-  },
-  {
     "topic": "Digital Twin",
     "title": "AI 디지털 트윈, 제조업 혁신을 바꾸는 기술",
     "url": "",
@@ -131,5 +110,12 @@
     "url": "",
     "tags": "LLM, 추론최적화, vLLM, 양자화, AI인프라, KPC정보관리기술사",
     "date": "2026-09-23T23:28:57.221989"
+  },
+  {
+    "topic": "Zero Trust",
+    "title": "제로트러스트, AI 에이전트 시대 필수 아키텍처",
+    "url": "",
+    "tags": "제로트러스트, AI에이전트, 보안아키텍처, 비인간엔티티, 인증인가, KPC정보관리기술사",
+    "date": "2026-09-26T23:19:31.473553"
   }
 ]
