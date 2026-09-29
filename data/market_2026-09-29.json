@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26820.38,
+      "prev": 27068.72,
+      "chg_pct": -0.92,
+      "volume": 6158504000,
+      "market_date_us": "09/28"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7683.69,
+      "prev": 7743.41,
+      "chg_pct": -0.77,
+      "volume": 2909239000,
+      "market_date_us": "09/28"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 51481.51,
+      "prev": 51828.62,
+      "chg_pct": -0.67,
+      "volume": 455450713,
+      "market_date_us": "09/28"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 16.07,
+      "prev": 14.87,
+      "chg_pct": 8.07,
+      "volume": 0,
+      "market_date_us": "09/28"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 12465.24,
+      "prev": 12668.93,
+      "chg_pct": -1.61,
+      "volume": 0,
+      "market_date_us": "09/28"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 101.24,
+      "prev": 100.97,
+      "chg_pct": 0.27,
+      "volume": 0,
+      "market_date_us": "09/28"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 93.35,
+      "prev": 92.41,
+      "chg_pct": 1.02,
+      "volume": 5882,
+      "market_date_us": "09/28"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4148.0,
+      "prev": 4321.2,
+      "chg_pct": -4.01,
+      "volume": 6382,
+      "market_date_us": "09/28"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1358.18,
+      "prev": 1354.51,
+      "chg_pct": 0.27,
+      "volume": 0,
+      "market_date_us": "09/28"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 736.53,
+      "prev": 744.5,
+      "chg_pct": -1.07,
+      "volume": 41420278,
+      "market_date_us": "09/28"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 560.79,
+      "prev": 572.68,
+      "chg_pct": -2.08,
+      "volume": 7187405,
+      "market_date_us": "09/28"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 54.19,
+      "prev": 54.84,
+      "chg_pct": -1.19,
+      "volume": 39707905,
+      "market_date_us": "09/28"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 183.58,
+      "prev": 187.18,
+      "chg_pct": -1.92,
+      "volume": 11030893,
+      "market_date_us": "09/28"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 228.86,
+      "prev": 225.07,
+      "chg_pct": 1.68,
+      "volume": 141276939,
+      "market_date_us": "09/28"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 607.87,
+      "prev": 630.63,
+      "chg_pct": -3.61,
+      "volume": 21869999,
+      "market_date_us": "09/28"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 116.03,
+      "prev": 123.0,
+      "chg_pct": -5.67,
+      "volume": 109978476,
+      "market_date_us": "09/28"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 452.88,
+      "prev": 450.61,
+      "chg_pct": 0.5,
+      "volume": 7857363,
+      "market_date_us": "09/28"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 338.4,
+      "prev": 341.07,
+      "chg_pct": -0.78,
+      "volume": 32463830,
+      "market_date_us": "09/28"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 509.22,
+      "prev": 516.17,
+      "chg_pct": -1.35,
+      "volume": 19545869,
+      "market_date_us": "09/28"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 357.45,
+      "prev": 372.11,
+      "chg_pct": -3.94,
+      "volume": 38349282,
+      "market_date_us": "09/28"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 246.15,
+      "prev": 249.67,
+      "chg_pct": -1.41,
+      "volume": 31876881,
+      "market_date_us": "09/28"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 342.75,
+      "prev": 343.92,
+      "chg_pct": -0.34,
+      "volume": 19152264,
+      "market_date_us": "09/28"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 715.62,
+      "prev": 751.66,
+      "chg_pct": -4.79,
+      "volume": 27629348,
+      "market_date_us": "09/28"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 273250.0,
+      "prev": 270000.0,
+      "chg_pct": 1.2,
+      "volume": 3724913,
+      "market_date_us": "09/28"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1783000.0,
+      "prev": 1768000.0,
+      "chg_pct": 0.85,
+      "volume": 734959,
+      "market_date_us": "09/28"
+    }
+  },
+  "news": [
+    {
+      "title": "S&P 500, Dow, Nasdaq Drop Under Pressure From Elevated Yields As Investors Shrug Off Trump’s Iran Sanction Relief — NVDA, BA, AMD, NVTS, CBRS In Focus",
+      "summary": "President Donald Trump was open to providing sanctions relief to Iran on nuclear matters, CNN and Axios reported.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-dow-nasdaq-drop-under-pressure-from-elevated-yields/cZMjBLyRBXW?.tsrc=rss"
+    },
+    {
+      "title": "VirTra, Inc. (VTSI) Suffers a Larger Drop Than the General Market: Key Insights",
+      "summary": "In the closing of the recent trading day, VirTra, Inc. (VTSI) stood at $2.82, denoting a -1.4% move from the preceding trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/virtra-inc-vtsi-suffers-larger-211505562.html?.tsrc=rss"
+    },
+    {
+      "title": "Crescent Energy (CRGY) Falls More Steeply Than Broader Market: What Investors Need to Know",
+      "summary": "Crescent Energy (CRGY) closed at $12.98 in the latest trading session, marking a -1.29% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/crescent-energy-crgy-falls-more-211504846.html?.tsrc=rss"
+    },
+    {
+      "title": "Why PagSeguro Digital Ltd. (PAGS) Dipped More Than Broader Market Today",
+      "summary": "In the closing of the recent trading day, PagSeguro Digital Ltd. (PAGS) stood at $8.9, denoting a -1.66% move from the preceding trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/why-pagseguro-digital-ltd-pags-211504926.html?.tsrc=rss"
+    },
+    {
+      "title": "Kinsale Capital Group, Inc. (KNSL) Suffers a Larger Drop Than the General Market: Key Insights",
+      "summary": "Kinsale Capital Group, Inc. (KNSL) closed the most recent trading day at $324.92, moving 1.69% from the previous trading session.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/kinsale-capital-group-inc-knsl-211504472.html?.tsrc=rss"
+    },
+    {
+      "title": "Use This Zacks Tool to Find Strong AI Stocks",
+      "summary": "For investors with confidence in a specific market niche, Zacks Thematic Investment Screens has you covered with over 30 dynamic investment themes.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/zacks-tool-strong-ai-stocks-231700002.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia’s Glass Packaging Push Could Reshape AI Chips",
+      "summary": "The next leap in Nvidia's AI performance may have nothing to do with the GPU itself. A shift in the material holding these chips together could determine how much memory fits in a package and how fast costs spiral upward.",
+      "link": "https://247wallst.com/investing/2026/09/28/nvidias-glass-packaging-push-could-reshape-ai-chips/?.tsrc=rss"
+    },
+    {
+      "title": "Why Nvidia (NVDA) Stock Is Trading Up Today",
+      "summary": "Shares of leading designer of graphics chips Nvidia (NASDAQ:NVDA) jumped 2.7% in the morning session after the company authorized an additional $150 billion for its share buyback program, taking the total authorization to $235 billion.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/why-nvidia-nvda-stock-trading-223836670.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia’s Latest $150 Billion Move Delivers a Clear Message to Investors About What’s Next for the Stock.",
+      "summary": "Nvidia’s earnings are soaring as the AI boom marches on.",
+      "link": "https://www.fool.com/investing/2026/09/28/nvidia-s-latest-usd150-billion-move-delivers-a-clear-message-to-investors-about-what-s-next-for-the-stock/?.tsrc=rss"
+    },
+    {
+      "title": "Palo Alto Networks (PANW) Stock Trades Up, Here Is Why",
+      "summary": "Shares of cybersecurity platform provider Palo Alto Networks (NASDAQ:PANW) jumped 5.1% in the afternoon session after BTIG raised its price target on the cybersecurity provider to $425 from $404 and reiterated a Buy rating following discussions with management.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/palo-alto-networks-panw-stock-004636834.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia boosts stock buyback program, how AI will change the advertising landscape",
+      "summary": "Yahoo Finance Executive Editor Brian Sozzi shares his takes on the day's biggest market stories, including Nvidia's (NVDA) $150 billion extension to its stock buyback program and the state of Nike's turnaround strategy. Sozzi also sits down with Sir Martin Sorrell to discuss the impact AI will have on the advertising industry.",
+      "link": "https://finance.yahoo.com/video/nvidia-boosts-stock-buyback-program-how-ai-will-change-the-advertising-landscape-150726910.html?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk’s big week faces a reality check from Wall Street",
+      "summary": "Yahoo Finance Executive Editor Brian Sozzi gives a rundown of the big week for SpaceX (SPCX) and Tesla (TSLA) CEO Elon Musk, with a Starship flight launched, an upcoming Falcon 9 mission, and the unveiling of the Tesla Roadster. However, Tesla's upcoming delivery report and JPMorgan cutting Tesla's earnings estimates for 2026 and 2027 may be concerning for investors.",
+      "link": "https://finance.yahoo.com/video/elon-musk-big-week-faces-140736028.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: Trump Sparks Stock Market Losses; Elon Musk-Led SpaceX, Tesla In Focus",
+      "summary": "Dow Jones Futures: Trump rejected Iran's proposal, sending the stock market lower. Elon Musk-led SpaceX and Tesla fell sharply.",
+      "link": "https://finance.yahoo.com/m/35969249-b51b-3ba3-8c6c-a06251d1d0ec/dow-jones-futures%3A-trump.html?.tsrc=rss"
+    },
+    {
+      "title": "TSLA Heads Into Friday’s Delivery Print With Family-Targeted Model Y L Already Sold Into Next Year",
+      "summary": "The wait time for a Tesla Model Y L order placed on Monday would be until January-February 2027.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tsla-heads-into-friday-s-delivery-print-with-family-targeted-model-y-l-already-sold-into-next-year/cZMj9bdRBXL?.tsrc=rss"
+    },
+    {
+      "title": "Why Tesla Stock Is Tied to SpaceX Ahead of a Big Week for the EV Maker",
+      "summary": "Tesla sold almost 500,000 EVs in the third quarter of 2025. Analysts expected a year over year decline in Q3 2026.",
+      "link": "https://finance.yahoo.com/m/2844904c-b31d-326e-9678-a95b607c816c/why-tesla-stock-is-tied-to.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD just spent $8.2 billion to enlist the 'Godmother of AI'",
+      "summary": "In spending $8.2 billion to scoop up World Labs, AMD CEO Lisa Su has gained the \"Godmother of AI\" and possible successor for when the time comes.",
+      "link": "https://finance.yahoo.com/technology/article/amd-just-spent-82-billion-to-enlist-the-godmother-of-ai-230634166.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Bolsters AI Vision With $8.2B Acquisition Of Fei-Fei Li’s World Labs, Stock Drops 4%",
+      "summary": "Advanced Micro Devices Inc. entered into a definitive $8.2 billion all-stock deal to acquire AI startup World Labs, bringing in pioneer Dr. Fei-Fei Li and her team.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/amd-bolsters-ai-vision-with-8-2-b-acquisition-of-fei-fei-li-s-world-labs-stock-drops-4/cZMjIGORBXQ?.tsrc=rss"
+    },
+    {
+      "title": "AMD buys firm founded by AI 'godmother' Fei-Fei Li",
+      "summary": "Chip maker Advanced Micro Devices announced Monday it has acquired World Labs, an artificial intelligence company founded by Fei-Fei Li, one of the field's most prominent researchers, sometimes referred to as \"The Godmother of AI.\" The deal is valued at approximately $8.2 billion and will make Li, a Stanford computer science professor, chief scientist at AMD. Li founded World Labs to develop what ",
+      "link": "https://finance.yahoo.com/technology/ai/articles/amd-buys-firm-founded-ai-211614246.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD to Buy AI Company World Labs for $8.2 Billion",
+      "summary": "Advanced Micro Devices is making another acquisition—this time of an artificial intelligence research company. AMD said on Monday it has agreed to buy AI research company World Labs in an $8.2 billion all stock deal. World Labs, co-founded by AI researcher Fei-Fei Li, builds frontier models that generate three dimensional environments.",
+      "link": "https://finance.yahoo.com/m/099809d4-15e2-3103-b500-04b67ba9144a/amd-to-buy-ai-company-world.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD’s $8.2B bet on World Labs is a direct shot at Nvidia’s AI dominance",
+      "summary": "Investing.com -- Shares of Advanced Micro Devices (NASDAQ: AMD) barely flinched in after-hours trading, but the chipmaker just executed a massive structural play: an $8.2 billion all-stock buyout of World Labs, the spatial-intelligence powerhouse led by AI legend Dr. Fei-Fei Li.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/amd-8-2b-bet-world-204722980.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq fall as Treasury yields continue to climb - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq fall as Treasury yields continue to climb Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxQYmhMSnFQakVTNE5EWUd5ejV4V2M2RTV3VkY5TzhmbjBkUy10Yjh0bDZjRWFja3RUVVBXQXg4MTR6TEtfSjJXZFp6UDVPcVRhUjdUOUpWaXRGMmRQY19uQzQwbGI0dTRfLWFJRFhxbkxoOExmM1JJOUlKUzBZN1NTR3B3ZHY1VHEyVER6alhLVkxQY1lrVUIxVmJaT25CWU5md2pGaEtjeWgzOEE0S2Fv?oc=5"
+    },
+    {
+      "title": "S&P 500 Falls as Inflation Worry Lifts Bond Yields: Markets Wrap - Bloomberg.com",
+      "summary": "S&P 500 Falls as Inflation Worry Lifts Bond Yields: Markets Wrap Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNVGEzeTM5UEZjTzRrYWs4T0hyTTAtRVpvWkJ3UFhUVUNxNF9fQTZBM0JHcHh2WFk4MlFQemNVM1RWMW9RQUh0ZUlEZlYwZ21obEJnRXVjOE5QM2ZFYVEtbHNVNmZ4bUdCRU9FaDRUa3Y3VGpsVHk2MzU1LVU2TmJSY3dGR05mdUhsQ2lnZGQzVndvR1dr?oc=5"
+    },
+    {
+      "title": "Stocks fall as higher oil prices, Treasury yields weigh - Reuters",
+      "summary": "Stocks fall as higher oil prices, Treasury yields weigh Reuters",
+      "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxOMG5ieTU4M0RYMC1lQi0wbDVONnJJbW5NS3pya2xkLXUxSFF3ajh5ZWlER3B5ZW1IR0J3ZjRxZFFCTDd2ajh4ZnVHZ2xqY1U2c0pIamh2MGhzWVlIMVVieHpOXzg0bnJwRFlTaEg4dVdycUc1X25ZQlZkUUsxUGZ3TGc1RDlNWjg2U1RFQ3JEUWx2NGIxb0ZvZXJJb0F6MjcxOER2WHFIdmtSei1fZHdBS29YcGhvUFk?oc=5"
+    },
+    {
+      "title": "Dow slides more than 300 points to start week as Treasury yields pressure stocks - CNBC",
+      "summary": "Dow slides more than 300 points to start week as Treasury yields pressure stocks CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTFBfcHBSWXRJblRwTG9LU2FTa2padU81clRCNUE5aVFMSHRsMEVXNWVKd1RINFM2VjhCSFNyOUVEVTBFTkgxeG5NSVBPWXZnWkE5Zi1fWTE1c042R2diaGNaUG52Qm1Zbjc5TVlSdTRWRlFKQ21laXJF0gF8QVVfeXFMUF9sSmc0eVlfc0psUWhFVUc3WVNwWFZlSldzSUtXamRDd0VKQTRqRjMxSWNGSEdTZDJBWEVtS0JkVThUV1I5cVFCNHV4UjZxQVcwR09qRnRRVHBFeTR6Qk84WEY5Y05vZlNZNU5NQnYxV0ZTSlJsSi1VNkQtVw?oc=5"
+    },
+    {
+      "title": "Markets News, Sept. 28, 2026: Nasdaq, AI Stocks Fall to Start Week; Treasury Yields Jump - investopedia.com",
+      "summary": "Markets News, Sept. 28, 2026: Nasdaq, AI Stocks Fall to Start Week; Treasury Yields Jump investopedia.com",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxOVGptdWozalY5bFNzUDJ6Ykl2NVNkS28zWjlGcXIxQU50aG4tYU8xZVJmeHVqT3ZNU0xEOFdzRzNTTHhUMWc0WXItSjI0bS1OMUJ5cTB2bGF5U09EMWEyQktaaHhMdUZuNWFkMWxnS2ZfeFZrV1pURXdVTlNqNHhjUUlJSTZ1QWViSTdkaGFlWEE?oc=5"
+    }
+  ],
+  "us_date": "09/28",
+  "generated_at": "2026-09-29T10:04:35.389696+09:00"
+}
