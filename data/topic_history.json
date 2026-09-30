@@ -1,12 +1,5 @@
 [
   {
-    "topic": "AI Governance",
-    "title": "AI 거버넌스 기업 컴플라이언스 가이드",
-    "url": "",
-    "tags": "AI Governance, AI 컴플라이언스, EU AI Act, NIST AI RMF, 엔터프라이즈 AI, KPC정보관리기술사",
-    "date": "2026-08-30T23:07:28.595542"
-  },
-  {
     "topic": "HBM",
     "title": "HBM 완전 정리: AI 가속기 메모리의 모든 것",
     "url": "",
@@ -110,5 +103,12 @@
     "url": "",
     "tags": "피지컬AI, 휴머노이드로봇, 디지털트윈, 산업자동화, 임바디드AI, KPC정보관리기술사",
     "date": "2026-09-29T00:53:35.382290"
+  },
+  {
+    "topic": "AI Governance",
+    "title": "AI Governance 구축 전략과 핵심",
+    "url": "",
+    "tags": "AI거버넌스, AI컴플라이언스, 모델라이프사이클, 책임감있는AI, AI위험관리, KPC정보관리기술사",
+    "date": "2026-09-30T00:06:19.886323"
   }
 ]
