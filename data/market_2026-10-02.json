@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26871.6,
+      "prev": 26861.06,
+      "chg_pct": 0.04,
+      "volume": 6226957000,
+      "market_date_us": "10/01"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7666.45,
+      "prev": 7651.54,
+      "chg_pct": 0.19,
+      "volume": 3202348000,
+      "market_date_us": "10/01"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 50926.56,
+      "prev": 50906.05,
+      "chg_pct": 0.04,
+      "volume": 476448534,
+      "market_date_us": "10/01"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 16.39,
+      "prev": 16.34,
+      "chg_pct": 0.31,
+      "volume": 0,
+      "market_date_us": "10/01"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 12829.0,
+      "prev": 12628.62,
+      "chg_pct": 1.59,
+      "volume": 0,
+      "market_date_us": "10/01"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 102.08,
+      "prev": 101.45,
+      "chg_pct": 0.62,
+      "volume": 0,
+      "market_date_us": "10/01"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 93.17,
+      "prev": 90.42,
+      "chg_pct": 3.04,
+      "volume": 4269,
+      "market_date_us": "10/01"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4187.3,
+      "prev": 4186.7,
+      "chg_pct": 0.01,
+      "volume": 5878,
+      "market_date_us": "10/01"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1363.38,
+      "prev": 1356.84,
+      "chg_pct": 0.48,
+      "volume": 0,
+      "market_date_us": "10/01"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 742.03,
+      "prev": 739.77,
+      "chg_pct": 0.31,
+      "volume": 35370061,
+      "market_date_us": "10/01"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 576.33,
+      "prev": 568.64,
+      "chg_pct": 1.35,
+      "volume": 6025436,
+      "market_date_us": "10/01"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 53.46,
+      "prev": 53.4,
+      "chg_pct": 0.11,
+      "volume": 40900255,
+      "market_date_us": "10/01"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 186.11,
+      "prev": 182.78,
+      "chg_pct": 1.82,
+      "volume": 12001686,
+      "market_date_us": "10/01"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 230.86,
+      "prev": 228.38,
+      "chg_pct": 1.09,
+      "volume": 97538145,
+      "market_date_us": "10/01"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 615.73,
+      "prev": 611.76,
+      "chg_pct": 0.65,
+      "volume": 16633581,
+      "market_date_us": "10/01"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 120.0,
+      "prev": 120.23,
+      "chg_pct": -0.19,
+      "volume": 102280238,
+      "market_date_us": "10/01"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 459.2,
+      "prev": 456.19,
+      "chg_pct": 0.66,
+      "volume": 8157975,
+      "market_date_us": "10/01"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 330.32,
+      "prev": 333.02,
+      "chg_pct": -0.81,
+      "volume": 35017775,
+      "market_date_us": "10/01"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 512.8,
+      "prev": 512.9,
+      "chg_pct": -0.02,
+      "volume": 18901325,
+      "market_date_us": "10/01"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 354.11,
+      "prev": 354.81,
+      "chg_pct": -0.2,
+      "volume": 30302824,
+      "market_date_us": "10/01"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 248.23,
+      "prev": 249.15,
+      "chg_pct": -0.37,
+      "volume": 32645635,
+      "market_date_us": "10/01"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 338.24,
+      "prev": 344.08,
+      "chg_pct": -1.7,
+      "volume": 33110940,
+      "market_date_us": "10/01"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 725.93,
+      "prev": 725.18,
+      "chg_pct": 0.1,
+      "volume": 12256112,
+      "market_date_us": "10/01"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 275500.0,
+      "prev": 276000.0,
+      "chg_pct": -0.18,
+      "volume": 2089067,
+      "market_date_us": "10/01"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1843000.0,
+      "prev": 1833000.0,
+      "chg_pct": 0.55,
+      "volume": 374424,
+      "market_date_us": "10/01"
+    }
+  },
+  "news": [
+    {
+      "title": "Why Did SanDisk Stock Jump?",
+      "summary": "SanDisk (SNDK) stock jumped 11.0% on Friday, September 18, 2026, its last trading day before joining the S&P 100. By the September 30 close of $1,739.89, the shares were about 3% below their September 18 close. SanDisk's last quarterly report came in early August, so the jump did not follow new results. So what drove it, and what does the price assume now.",
+      "link": "https://www.trefis.com/articles/617143/why-did-sandisk-stock-jump/2026-10-01?.tsrc=rss"
+    },
+    {
+      "title": "5 Energy ETFs That Have Soared in 2026",
+      "summary": "Freight, gasoline, crude oil and broad-energy ETFs have delivered triple- and even four-digit gains in 2026 as the Iran war has driven energy and shipping prices sharply higher.",
+      "link": "https://finance.yahoo.com/energy/articles/5-energy-etfs-soared-2026-000000048.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Thomson Reuters Stock Topped the Market on Thursday",
+      "summary": "It's leaving the past behind, and investors cheered the move.",
+      "link": "https://www.fool.com/investing/2026/10/01/why-thomson-reuters-stock-topped-the-market-on-thursday/?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500, Nasdaq, Dow Futures Inch Higher As Investors Cheer Cooling Yields — GOOGL, MU, MAT, NVDA In Focus",
+      "summary": "10-year Treasury yields cooled off from the 2002 highs on Thursday.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-nasdaq-dow-futures-inch-higher-as-investors-cheer-cooling-yields-googl-mu-mat-nvda-in-focus/cZD0mZmRB01?.tsrc=rss"
+    },
+    {
+      "title": "Capital Regency Expands Multi-Asset Investment Platform With Access to 100+ International Markets",
+      "summary": "Capital Regency Expands Multi-Asset Investment Platform With Access to 100+ International Markets Capital Regency London, UK, Oct. 01, 2026 (GLOBE NEWSWIRE) -- Capital Regency has announced continued growth in its international presence as the company develops its investment platform around centralized market access, analytical tools and portfolio management capabilities. The platform currently pr",
+      "link": "https://finance.yahoo.com/markets/articles/capital-regency-expands-multi-asset-225800866.html?.tsrc=rss"
+    },
+    {
+      "title": "Is Nvidia a good long-term buy? Why its massive size may not matter",
+      "summary": "Prime Capital Financial’s Will McGough wants investors to look past NVDA’s market cap and focus on its earnings, valuation, and its role in the artificial intelligence buildout.",
+      "link": "https://www.thestreet.com/investing/is-nvidia-a-good-long-term-buy-why-its-massive-size-may-not-matter?.tsrc=rss"
+    },
+    {
+      "title": "History Says a Market Crash Would Be a Buying Opportunity for These 2 Industrial Stocks",
+      "summary": "These stocks are not beneficiaries of the artificial intelligence boom.",
+      "link": "https://www.fool.com/investing/2026/10/01/history-says-a-market-crash-would-be-a-buying-oppo/?.tsrc=rss"
+    },
+    {
+      "title": "SpaceX's Terafab Will Be Bigger Than Any Building on Earth. Here's When Investors Will Profit.",
+      "summary": "Space Exploration Technologies wants to become a semiconductor giant.",
+      "link": "https://www.fool.com/investing/2026/10/01/spacexs-chip-fab-will-be-bigger-than-any-building/?.tsrc=rss"
+    },
+    {
+      "title": "Prediction: Taiwan Semiconductor Manufacturing Stock Will Skyrocket After Oct. 15",
+      "summary": "Taiwan Semiconductor is a reasonably priced AI investment.",
+      "link": "https://www.fool.com/investing/2026/10/01/prediction-taiwan-semiconductor-stock-will-skyrock/?.tsrc=rss"
+    },
+    {
+      "title": "What Is the Worst-Performing \"Magnificent Seven\" Stock in 2026?",
+      "summary": "This innovative business is currently in a major transitional period, and the future is unknown.",
+      "link": "https://www.fool.com/investing/2026/10/01/worst-performing-magnificent-seven-stock-2026/?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: Stocks Rise Off Support As Yields Skid, Micron In Buy Area; Tesla, Jobs Report Due",
+      "summary": "Stock market rises slightly off key levels with Micron, Lumentum around buy points. Tesla deliveries, jobs report loom.",
+      "link": "https://finance.yahoo.com/m/f6c899dd-7f15-3879-b266-51980008982d/dow-jones-futures%3A-stocks.html?.tsrc=rss"
+    },
+    {
+      "title": "Why the Tesla Roadster Event Was Delayed—and What It Means for the Stock",
+      "summary": "Tesla was set up for a big week. Today was the day Tesla was going to show off its new Roadster at an event in Texas. Late Monday, however, Tesla moved it to Oct. 15, citing severe weather conditions.",
+      "link": "https://finance.yahoo.com/m/4b02c8ad-796e-30b5-9372-114e987d0f1f/why-the-tesla-roadster-event.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Delivery Results Are Coming. What to Expect.",
+      "summary": "Tesla will report third-quarter deliveries on Friday. Wall Street expects a total of 450,000 to 460,000 vehicles.",
+      "link": "https://finance.yahoo.com/m/0a387351-56c1-3305-ab21-7d8b302ab338/tesla-delivery-results-are.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Is Down 20% in 2026. These Two Other EV Makers Are Doing Even Worse.",
+      "summary": "Tesla stock has had a rough 2026, but two smaller EV rivals have seen their shares fall even harder, and the gap between them reveals something unsettling about where Wall Street thinks the future of electric vehicles actually lives.",
+      "link": "https://247wallst.com/investing/2026/10/01/tesla-is-down-20-in-2026-these-two-other-ev-makers-are-doing-even-worse/?.tsrc=rss"
+    },
+    {
+      "title": "Not Cars. Not Energy Storage. Tesla's Robotics and Robotaxi Ambitions Are the Real Reason the Stock Is Priced Like a Tech Company.",
+      "summary": "Investors are pricing a very promising future into Tesla shares, and the company could meet these lofty expectations. It's just likely to take longer than most people expect.",
+      "link": "https://www.fool.com/investing/2026/10/01/not-cars-not-energy-storage-teslas-robotics-and-ro/?.tsrc=rss"
+    },
+    {
+      "title": "Applied Materials vs. AMD: Which AI Semiconductor Stock Is a Better Buy in 2026?",
+      "summary": "AMD grew far faster than Applied Materials in 2025, but its stock carries a richer valuation and potential dilution from warrants issued to two large AI customers.",
+      "link": "https://www.fool.com/coverage/better-buy/2026/10/01/applied-materials-vs-advanced-micro-devices-ai-semiconductor-stock-better-buy-2026/?.tsrc=rss"
+    },
+    {
+      "title": "A $1.2 Billion Reason to Buy HPE Stock",
+      "summary": "A $1.2 billion AI order and a raised networking outlook just sent HPE stock to a record high.",
+      "link": "https://www.barchart.com/story/news/4913298/a-1-2-billion-reason-to-buy-hpe-stock?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices (AMD) Benefit from Surging CPU Demand in Autonomous AI",
+      "summary": "Munro Partners is an investment management firm that issued its second-quarter 2026 commentary for the “Munro Concentrated Global Growth Fund”. The letter can be downloaded here. The fund delivered a strong second quarter of 2026, returning 23.8% net compared with the MSCI World ex-Australia Index’s 12.6% return, as global equity markets rebounded following geopolitical volatility […]",
+      "link": "https://finance.yahoo.com/technology/ai/articles/advanced-micro-devices-amd-benefit-174606152.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Just Bought the Research That Defines What Its Chips Are For",
+      "summary": "“Now that we have tangible proof of the possibilities, we want to do everything we can to accelerate the future. To do this requires scaling our efforts, widening our reach, and getting closer to the hardware.” This statement from Fei-Fei Li, the ImageNet pioneer and founder of World Labs, captures the logic behind AMD’s latest […]",
+      "link": "https://finance.yahoo.com/technology/ai/articles/amd-just-bought-research-defines-174221101.html?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices (AMD) Could Be 33% Undervalued Following Its World Labs Deal",
+      "summary": "Advanced Micro Devices (AMD) shares recently reacted to news of a US$8.2b all-stock agreement to acquire AI specialist World Labs, a deal that places Dr. Fei-Fei Li in a leading research role. Recent headlines around the World Labs deal focus on a stock that has already posted significant gains, with AMD’s share price up 33.10% over the past 30 days and 18.14% over 90 days. The 1-year total shareh",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/advanced-micro-devices-amd-could-171050511.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq stage comeback as Treasury yields fall, chip stocks gain - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq stage comeback as Treasury yields fall, chip stocks gain Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxOUW1SdnZIaGtFb1lNWHNpaXFsQ0gyUVhIZ3djcEV2YzlCVExrcFNhMG9ObXZQZDgxQk1ReVd6TGhaY2hUbmhLQ2xMSUx5S2lyYi15dXEtd2hkR2I0Yy1kdFVvQXZNeUl4cTlJZ1NkdzlHWkxhMXMwaVZEcE9DMVcwVnItcXRIOExzenBEeEFMc1NSa1NnUFk5T0xpWm9KaE45Ni1vMTVkdEk?oc=5"
+    },
+    {
+      "title": "S&P 500 closes higher to start October as Treasury yields retreat from multiyear highs: Live updates - CNBC",
+      "summary": "S&P 500 closes higher to start October as Treasury yields retreat from multiyear highs: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE93ZklidXJsMkhSOG1wdXNvSzlyV0pLZmFBcnd2WWdmQXhFSmxVYzVkM1lkeHI0d3pyQmxIZFBwSXBjeFctMHNGMUh5ZTNZT2RDTjF4RmFIamxETFZHdWpNRlVnSGhWQkY2Z1M4alRPV29IMXlnamVj0gF8QVVfeXFMTU13b1AxdktDTlg5TjFGdE1HTGhmU1kzOXlZWGhLN1pMLVZuLTR4WTRFME55ell3VjhhZEh1Y0JoUE8zejFxZHlLaDIxY25LcFFrQnVPWDlEU0d6TmlRUWpXMnRuTzAxQ0dleFIyM3FrR1RhMlAzSDVFSzFTaQ?oc=5"
+    },
+    {
+      "title": "Stock Market on Oct. 1, 2026: Dow, S&P 500 and Nasdaq end slightly higher as semiconductor stocks rally; Treasury yields ease after 10-year rate climbed to highest since 2002 - MarketWatch",
+      "summary": "Stock Market on Oct. 1, 2026: Dow, S&P 500 and Nasdaq end slightly higher as semiconductor stocks rally; Treasury yields ease after 10-year rate climbed to highest since 2002 MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOUl9pTG5Pemw3V3F4RERvTk5OUWJfZkJWLVhsdVRsMVZ5NUJPWWdidGY4Ul8wWGVmVVYwaEMycnZCemhJS3FFWW8yM0xMaUdleEtXWHRzS0QxcWRXVkZXbHA2Nk9qV3lSV2MzYzNjT2xWbTYtdDdfQWh5bEhfUzJJZFV4YVZWR01DTnZtNkdPNDBwMkw2TWE4UWZrM3J5SVA4ZU1INDNTV21BN29RcS1fLXplU2Q2WThZSzNaSTFmWWN3UXk0RWFjcWFyOGl2WjA?oc=5"
+    },
+    {
+      "title": "Equities rebound to close higher as surging Treasury yields recede - Reuters",
+      "summary": "Equities rebound to close higher as surging Treasury yields recede Reuters",
+      "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxQT1NWcmpRdnNhV0szWEh4QVRhcF83OVVJSy1jY1BoOFZDb2ZGanhFd3VtQWp5bFJxa2kwRUZJaWExeXF0UmE0NS1vUVpjdWpoc1N4dUUzZ1AtT0ZyNkZBTjU2bmVSSTVjZVRUMmg3YmR2V3FVWXAwWk5lUWlNLVdSSUVRc1NoZEc3R1RrUVpxcnlEOHRmaHRlUjA4ZkVfekc2UGowc2J5T1AxanRxNUNieWw5cS00U3lEaGVN?oc=5"
+    },
+    {
+      "title": "Markets News, Sept. 30, 2026: S&P 500, Nasdaq End Q3 With Gains; Inflation Data Comes in Softer Than Expected; US 10-Year Treasury Yield Hits 24-Year High - Investopedia",
+      "summary": "Markets News, Sept. 30, 2026: S&P 500, Nasdaq End Q3 With Gains; Inflation Data Comes in Softer Than Expected; US 10-Year Treasury Yield Hits 24-Year High Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxOa3owY0xUd2YtNzVQWWI2REljc2VkYUctNUF5bHktMFloYXBuQXRmQUpMS2xOd1ducWx4bHRKRTNLQVBaUHFGN1YzeGZncDdoOGpiWmdqNEUyZFRhMHp3clFhR0xSME1FWXdnRndvTDNobVV6Zk13QkJqRmIyTlFzdjZsWkl5cmdhSkptZ0tubmg?oc=5"
+    }
+  ],
+  "us_date": "10/01",
+  "generated_at": "2026-10-02T09:56:22.849084+09:00"
+}
