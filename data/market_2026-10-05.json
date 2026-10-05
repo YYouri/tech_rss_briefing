@@ -1,0 +1,348 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 27190.86,
+      "prev": 26871.6,
+      "chg_pct": 1.19,
+      "volume": 6857506000,
+      "market_date_us": "10/02"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7722.72,
+      "prev": 7666.45,
+      "chg_pct": 0.73,
+      "volume": 3130028000,
+      "market_date_us": "10/02"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 51176.96,
+      "prev": 50926.56,
+      "chg_pct": 0.49,
+      "volume": 548953568,
+      "market_date_us": "10/02"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 15.31,
+      "prev": 16.39,
+      "chg_pct": -6.59,
+      "volume": 0,
+      "market_date_us": "10/02"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 13136.67,
+      "prev": 12829.0,
+      "chg_pct": 2.4,
+      "volume": 0,
+      "market_date_us": "10/02"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 101.92,
+      "prev": 101.93,
+      "chg_pct": -0.01,
+      "volume": 0,
+      "market_date_us": "10/04"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 90.85,
+      "prev": 91.11,
+      "chg_pct": -0.29,
+      "volume": 4620,
+      "market_date_us": "10/04"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4170.2,
+      "prev": 4162.3,
+      "chg_pct": 0.19,
+      "volume": 4375,
+      "market_date_us": "10/04"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1343.44,
+      "prev": 1360.59,
+      "chg_pct": -1.26,
+      "volume": 0,
+      "market_date_us": "10/04"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 749.58,
+      "prev": 742.03,
+      "chg_pct": 1.02,
+      "volume": 34498919,
+      "market_date_us": "10/02"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 588.9,
+      "prev": 576.33,
+      "chg_pct": 2.18,
+      "volume": 6877435,
+      "market_date_us": "10/02"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 53.49,
+      "prev": 53.46,
+      "chg_pct": 0.06,
+      "volume": 30268795,
+      "market_date_us": "10/02"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 191.88,
+      "prev": 186.11,
+      "chg_pct": 3.1,
+      "volume": 15828394,
+      "market_date_us": "10/02"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 233.95,
+      "prev": 230.86,
+      "chg_pct": 1.34,
+      "volume": 135167817,
+      "market_date_us": "10/02"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 633.91,
+      "prev": 615.73,
+      "chg_pct": 2.95,
+      "volume": 19865309,
+      "market_date_us": "10/02"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 119.33,
+      "prev": 120.0,
+      "chg_pct": -0.56,
+      "volume": 95401476,
+      "market_date_us": "10/02"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 472.78,
+      "prev": 459.2,
+      "chg_pct": 2.96,
+      "volume": 9722477,
+      "market_date_us": "10/02"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 333.69,
+      "prev": 330.32,
+      "chg_pct": 1.02,
+      "volume": 33278552,
+      "market_date_us": "10/02"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 517.53,
+      "prev": 512.8,
+      "chg_pct": 0.92,
+      "volume": 17822339,
+      "market_date_us": "10/02"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 370.59,
+      "prev": 354.11,
+      "chg_pct": 4.65,
+      "volume": 55330140,
+      "market_date_us": "10/02"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 251.52,
+      "prev": 248.23,
+      "chg_pct": 1.33,
+      "volume": 33433392,
+      "market_date_us": "10/02"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 343.5,
+      "prev": 338.24,
+      "chg_pct": 1.56,
+      "volume": 23772148,
+      "market_date_us": "10/02"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 728.08,
+      "prev": 725.93,
+      "chg_pct": 0.3,
+      "volume": 12964079,
+      "market_date_us": "10/02"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 276000.0,
+      "prev": 276000.0,
+      "chg_pct": 0.0,
+      "volume": 11501250,
+      "market_date_us": "10/02"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1841000.0,
+      "prev": 1841000.0,
+      "chg_pct": 0.0,
+      "volume": 2032332,
+      "market_date_us": "10/02"
+    }
+  },
+  "news": [
+    {
+      "title": "'The market has had every reason to sell off' — and it hasn't",
+      "summary": "Stocks have brushed off rising bond yields as the AI boom powers economic growth.",
+      "link": "https://finance.yahoo.com/markets/article/the-market-has-had-every-reason-to-sell-off--and-it-hasnt-184848621.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures Rise; Nasdaq At Highs With Nvidia, SpaceX Buys, But Note These Risks",
+      "summary": "The Nasdaq is at highs with Nvidia, SpaceX, Bloom Energy in buy areas. But much of the market remains weak. Here's what to do.",
+      "link": "https://finance.yahoo.com/m/b98e0c13-f78a-3e19-ad93-12d5a340e701/dow-jones-futures-rise%3B.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock Futures Are Rising With Earnings Season, Fed Minutes Ahead",
+      "summary": "President Donald Trump and officials in his administration say the economy is booming, trying to counter polls that say Americans disapprove of his handling of the cost of living.",
+      "link": "https://finance.yahoo.com/m/6d714ec3-7dfc-30d3-913b-687950c08dba/stock-futures-are-rising-with.html?.tsrc=rss"
+    },
+    {
+      "title": "Is Netflix (NFLX) Stock a Buy?",
+      "summary": "Netflix has been a phenomenal performer over 20-plus years. But its growth is slowing.",
+      "link": "https://www.fool.com/investing/2026/10/04/is-netflix-nflx-stock-a-buy/?.tsrc=rss"
+    },
+    {
+      "title": "This Is the 1 Reason I'm Still Buying VTI Even With the Market Near All-Time Highs",
+      "summary": "Worried about all-time highs in stocks? The future might be better than you think.",
+      "link": "https://www.fool.com/investing/2026/10/04/this-is-the-1-reason-im-still-buying-vti-even-with/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia’s AI boom revives a Warren Buffett warning for investors",
+      "summary": "AI has changed everything except for one difficult investing question.",
+      "link": "https://www.thestreet.com/investing/stocks/nvidia-ai-buffett-warning?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia’s AI Safety Push Could Strengthen Its Moat. But Is It a Stock Catalyst Yet?",
+      "summary": "Nvidia Corporation (NASDAQ:NVDA) is adding the Open Agent Safety Platform to its AI infrastructure stack, offering an open software and reference system for securing AI agents from testing to deployment. It combines OpenShell software with Nvidia Sentry on BlueField DPUs to monitor, control, and isolate potentially harmful agent activity. Nvidia isn’t the only high-growth stock […]",
+      "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-ai-safety-push-could-211400839.html?.tsrc=rss"
+    },
+    {
+      "title": "Can NVIDIA’s Valuation Withstand a Slowdown in Customer Spending?",
+      "summary": "NVIDIA Corporation (NASDAQ:NVDA) earns high margins because customers want its systems and suppliers can deliver them. The investment risk sits between those two conditions. Securing more manufacturing capacity supports future sales, but it also increases the cost of being wrong about how quickly customers can deploy and pay for new systems. At September 30’s $228.38 […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-valuation-withstand-slowdown-customer-203035416.html?.tsrc=rss"
+    },
+    {
+      "title": "“Without AI and Robots, We’re Totally Screwed,” Elon Musk Warns on National Debt Crisis",
+      "summary": "Elon Musk made a stark prediction about America's national debt back in February, and the numbers moving since then suggest the situation has only grown more urgent. Whether his proposed fix can work depends on three conditions that have nothing to do with technology.",
+      "link": "https://247wallst.com/investing/2026/10/04/without-ai-and-robots-were-totally-screwed-elon-musk-warns-on-national-debt-crisis/?.tsrc=rss"
+    },
+    {
+      "title": "You Can Do Better Than Tesla. Buy Micron Instead.",
+      "summary": "Tesla's premium price tag doesn't reflect its automotive reality, while the memory-chip maker is undervalued relative to its powerful position in the AI infrastructure build-out.",
+      "link": "https://www.fool.com/investing/2026/10/04/you-can-do-better-than-tesla-buy-micron-instead/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Delivered 22,141 More Vehicles Than It Built in Q3. Here’s the Production Number That Decides What Comes Next",
+      "summary": "Key Stats for Tesla StockCurrent Price: $370. 59Target Price (Mid): ~$1,860Street Target: ~$396Potential Total Return: ~403%Annualized IRR: ~46% / yearWhat Happened?Tesla (TSLA:NASDAQ) delivered 486,532 vehicles in the third quarter of 2026 but built only 464,391, according to its October 2 production and deliveries report.",
+      "link": "https://www.tikr.com/blog/tesla-delivered-22141-more-vehicles-than-it-built-in-q3-heres-the-production-number-that-decides-what-comes-next?ref=yahoofinance&.tsrc=rss"
+    },
+    {
+      "title": "Tesla. SpaceX. Starlink. James Altucher Says the Experts Called All Three Dead, and They're Doing It Again",
+      "summary": "A look at why this top tech expert believes today's skepticism is the most familiar signal in Musk's career.Baltimore, MD, Oct. 04, 2026 (GLOBE NEWSWIRE) -- Every time Elon Musk has been most doubted, tech analyst James Altucher argues, he has been closest to a breakthrough. In a new presentation released through Altucher's Investment Network, Altucher walks through a long trail of confident predi",
+      "link": "https://finance.yahoo.com/technology/ai/articles/tesla-spacex-starlink-james-altucher-130000928.html?.tsrc=rss"
+    },
+    {
+      "title": "Gary Black Flags Waymo Is Leaving TSLA Behind On Autonomy Even As Tesla Beats Delivery Estimates In Q3",
+      "summary": "In a post on X, Black pointed to Tesla’s recent delivery strength while highlighting a much tougher challenge ahead.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tsla-gary-black-waymo-robotaxi-autonomous-driving-tesla-q3-deliveries/cZDFVH6RB1V?.tsrc=rss"
+    },
+    {
+      "title": "AMD’s $8.2 Billion AI Bet Comes With a $1 Trillion Valuation Problem",
+      "summary": "On September 29, Rosenblatt reiterated its Buy rating and $700 price target on Advanced Micro Devices, Inc. (NASDAQ:AMD) after the company announced that it had entered into a definitive agreement to acquire World Labs, an AI model and research lab led by AI pioneer Dr. Fei-Fei Li. Rosenblatt believes the acquisition could expand AMD’s AI […]",
+      "link": "https://finance.yahoo.com/technology/ai/articles/amd-8-2-billion-ai-190159237.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Reaches a $1 Trillion Market Cap. Can It Finally Dethrone Nvidia?",
+      "summary": "The market is pricing AMD as if it has become the best AI computing stock, but that's just not the case.",
+      "link": "https://www.fool.com/investing/2026/10/04/amd-reaches-a-1-trillion-market-cap-can-it-finally/?.tsrc=rss"
+    },
+    {
+      "title": "Is Advanced Micro Devices (AMD) Still a Buy After Its 180% Plus Rally?",
+      "summary": "The rapid expansion of artificial intelligence is creating a major opportunity in the central processing unit (CPU) market, positioning Advanced Micro Devices, Inc. (NASDAQ:AMD) for robust growth. Bank of America strategists expect the server market to expand from approximately $61 billion to $211 billion by 2030. The firm estimates that roughly $180 billion of the […]",
+      "link": "https://finance.yahoo.com/technology/ai/articles/advanced-micro-devices-amd-still-004250845.html?.tsrc=rss"
+    },
+    {
+      "title": "Can AMD’s CPU Business Fund Its AI Chip Ambitions?",
+      "summary": "Advanced Micro Devices, Inc. (NASDAQ:AMD) has an advantage that a new accelerator company would struggle to replicate: an established processor business that sells into both servers and personal computers. Those products provide revenue and cash while AMD builds its AI accelerator franchise. Investors still need to distinguish having that foundation from earning enough on it […]",
+      "link": "https://finance.yahoo.com/technology/ai/articles/amd-cpu-business-fund-ai-152236804.html?.tsrc=rss"
+    },
+    {
+      "title": "Prediction: This AI Chip Stock Will Be the Biggest Winner of 2027 (Hint: It’s Not Nvidia, AMD, or Broadcom)",
+      "summary": "TSMC is the world's largest semiconductor foundry, which gives it immense pricing power.",
+      "link": "https://www.fool.com/investing/2026/10/03/prediction-this-ai-chip-stock-will-be-the-biggest-winner-of-2027-hint-it-s-not-nvidia-amd-or-broadcom/?.tsrc=rss"
+    }
+  ],
+  "us_date": "10/02",
+  "generated_at": "2026-10-05T09:01:10.859690+09:00"
+}
