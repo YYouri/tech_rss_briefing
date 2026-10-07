@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 27599.89,
+      "prev": 27477.31,
+      "chg_pct": 0.45,
+      "volume": 7658736000,
+      "market_date_us": "10/06"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7818.93,
+      "prev": 7773.95,
+      "chg_pct": 0.58,
+      "volume": 2717394000,
+      "market_date_us": "10/06"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 51521.28,
+      "prev": 51267.9,
+      "chg_pct": 0.49,
+      "volume": 404919021,
+      "market_date_us": "10/06"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 15.01,
+      "prev": 15.52,
+      "chg_pct": -3.29,
+      "volume": 0,
+      "market_date_us": "10/06"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 13217.82,
+      "prev": 13172.74,
+      "chg_pct": 0.34,
+      "volume": 0,
+      "market_date_us": "10/06"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 101.94,
+      "prev": 102.17,
+      "chg_pct": -0.22,
+      "volume": 0,
+      "market_date_us": "10/06"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 90.06,
+      "prev": 89.43,
+      "chg_pct": 0.7,
+      "volume": 4497,
+      "market_date_us": "10/06"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4189.0,
+      "prev": 4156.8,
+      "chg_pct": 0.77,
+      "volume": 5579,
+      "market_date_us": "10/06"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1338.79,
+      "prev": 1343.75,
+      "chg_pct": -0.37,
+      "volume": 0,
+      "market_date_us": "10/06"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 759.66,
+      "prev": 756.2,
+      "chg_pct": 0.46,
+      "volume": 26482253,
+      "market_date_us": "10/06"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 589.45,
+      "prev": 589.51,
+      "chg_pct": -0.01,
+      "volume": 4425733,
+      "market_date_us": "10/06"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 54.01,
+      "prev": 53.88,
+      "chg_pct": 0.24,
+      "volume": 21721482,
+      "market_date_us": "10/06"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 186.4,
+      "prev": 191.46,
+      "chg_pct": -2.64,
+      "volume": 9914525,
+      "market_date_us": "10/06"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 239.24,
+      "prev": 238.9,
+      "chg_pct": 0.14,
+      "volume": 101482897,
+      "market_date_us": "10/06"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 649.42,
+      "prev": 631.75,
+      "chg_pct": 2.8,
+      "volume": 24224687,
+      "market_date_us": "10/06"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 112.5,
+      "prev": 116.19,
+      "chg_pct": -3.18,
+      "volume": 101730627,
+      "market_date_us": "10/06"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 482.3,
+      "prev": 485.8,
+      "chg_pct": -0.72,
+      "volume": 8328553,
+      "market_date_us": "10/06"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 333.63,
+      "prev": 332.89,
+      "chg_pct": 0.22,
+      "volume": 30438844,
+      "market_date_us": "10/06"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 529.3,
+      "prev": 525.18,
+      "chg_pct": 0.78,
+      "volume": 21098949,
+      "market_date_us": "10/06"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 380.68,
+      "prev": 378.73,
+      "chg_pct": 0.51,
+      "volume": 27702813,
+      "market_date_us": "10/06"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 256.29,
+      "prev": 251.4,
+      "chg_pct": 1.95,
+      "volume": 34067715,
+      "market_date_us": "10/06"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 347.68,
+      "prev": 346.47,
+      "chg_pct": 0.35,
+      "volume": 18702460,
+      "market_date_us": "10/06"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 738.88,
+      "prev": 741.9,
+      "chg_pct": -0.41,
+      "volume": 12557926,
+      "market_date_us": "10/06"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 278000.0,
+      "prev": 272000.0,
+      "chg_pct": 2.21,
+      "volume": 2975798,
+      "market_date_us": "10/06"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1767500.0,
+      "prev": 1773000.0,
+      "chg_pct": -0.31,
+      "volume": 557720,
+      "market_date_us": "10/06"
+    }
+  },
+  "news": [
+    {
+      "title": "Dow Jones Futures: S&P 500 Hits High As Astera, GE Vernova, Arista Lead Buys, But These Stocks Tumble",
+      "summary": "The S&P 500 hit a high as the stock market extended a win streak. Astera Labs, GE Vernova and Arista Networks led AI stock buys.",
+      "link": "https://finance.yahoo.com/m/0af6d9e8-1837-3d24-bf26-336d6cf15361/dow-jones-futures%3A-s%26p-500.html?.tsrc=rss"
+    },
+    {
+      "title": "3 Value ETFs Head to Head. One Charges 0.03% and Returned 19% Over the Past Year",
+      "summary": "Three large-cap value funds share the same general playbook but landed in very different places over the past year, and the gap comes down to decisions buried inside their indexes that most investors never think to check.",
+      "link": "https://247wallst.com/investing/etf/2026/10/06/3-value-etfs-head-to-head-one-charges-0-03-and-returned-19-over-the-past-year/?.tsrc=rss"
+    },
+    {
+      "title": "Curtiss-Wright, Tecnoglass, AAON, Primoris, and Albany Shares Are Soaring, What You Need To Know",
+      "summary": "A number of stocks jumped in the morning session after surging capital spending for artificial intelligence infrastructure and defense bolstered demand across power systems, data center construction, and electrical grid buildouts, with gains amplified as the S&P 500 and Nasdaq Composite reached fresh all-time highs.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/curtiss-wright-tecnoglass-aaon-primoris-224034093.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500 And Nasdaq 100 Soar To Record Highs Amid Rising Bets Of Strong Quarterly Earnings — CEG, LCID, SPCX, MRVL In Focus",
+      "summary": "Constellation Energy was the top Nasdaq 100 gainer on its multi-year nuclear power deal with Google.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-and-nasdaq-100-soar-to-record-highs-amid-rising-bets-of-strong-quarterly-earnings-ceg-lcid-spcx-mrvl-in-focus/cZDtSxvRBlj?.tsrc=rss"
+    },
+    {
+      "title": "FTAI Aviation, Custom Truck One Source, EMCOR, Caterpillar, and Alta Stocks Trade Up, What You Need To Know",
+      "summary": "A number of stocks jumped in the morning session after surging capital spending for artificial intelligence infrastructure and defense bolstered demand across power systems, data center construction, and electrical grid buildouts, with gains amplified as the S&P 500 and Nasdaq Composite reached fresh all-time highs.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/ftai-aviation-custom-truck-one-222434279.html?.tsrc=rss"
+    },
+    {
+      "title": "Applied Materials vs. Nvidia: What Revenue Trends Reveal About These Artificial Intelligence Companies",
+      "summary": "Applied Materials held steady for most of two years before accelerating, while Nvidia's revenue nearly tripled over the same span.",
+      "link": "https://www.fool.com/coverage/charts/2026/10/06/applied-materials-vs-nvidia-what-revenue-trends-reveal-about-these-artificial-intelligence-companies/?.tsrc=rss"
+    },
+    {
+      "title": "SpaceX seeks to raise $40 bln to buy Nvidia chips- FT",
+      "summary": "Investing.com-- SpaceX is seeking to raise $40 bln in an endeavor led by Apollo Global to buy Nvidia chips, the Financial Times reported on Tuesday, citing people familiar with the matter.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/spacex-seeks-raise-40-bln-235711720.html?.tsrc=rss"
+    },
+    {
+      "title": "SPCX Stock Slips After-Hours As SpaceX Reportedly Seeks $40B For Nvidia Chips",
+      "summary": "The company’s financing effort is expected to be led by Apollo Global Management, the Financial Times reported, citing people familiar with the matter.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/spcx-stock-slips-after-hours-as-space-x-reportedly-seeks-40-b-for-nvidia-chips/cZDtlvbRBlZ?.tsrc=rss"
+    },
+    {
+      "title": "Is Nvidia’s (NVDA) Free Cash Flow Keeping Pace With Its Reported Earnings?",
+      "summary": "NVIDIA Corporation (NASDAQ:NVDA) was trading at around $238 on October 5, up 1.66% on the day and within a few cents of its 52-week high. The company reported net income of $192.88 billion over the past twelve months and free cash flow of $127.01 billion. A gap of roughly $66 billion between profit and cash […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-nvda-free-cash-flow-233904046.html?.tsrc=rss"
+    },
+    {
+      "title": "XLK Does Not Own Alphabet, Amazon, Meta, Netflix or Tesla. Three Stocks Are 35.87% of It",
+      "summary": "Millions of investors bought XLK expecting broad exposure to the companies reshaping the economy, but a closer look at its SEC filing reveals several of the most recognizable names in tech are nowhere inside it, and the ones that are create a concentration few buyers anticipate.",
+      "link": "https://247wallst.com/investing/etf/2026/10/06/xlk-does-not-own-alphabet-amazon-meta-netflix-or-tesla-three-stocks-are-35-87-of-it/?.tsrc=rss"
+    },
+    {
+      "title": "UBS holds its ground on Tesla after mixed delivery results",
+      "summary": "UBS has seen this movie before. Its verdict hasn’t changed.",
+      "link": "https://www.thestreet.com/investing/stocks/ubs-holds-its-ground-on-tesla-stock-price-target-after-mixed-delivery-results?.tsrc=rss"
+    },
+    {
+      "title": "Stellantis N.V. vs. Tesla: Which Consumer Stock Is a Better Buy in 2026?",
+      "summary": "Stellantis trades at a fraction of Tesla's valuation but faces a $25 billion net loss and negative free cash flow. Tesla remains profitable despite slower growth, presenting a classic value-versus-quality dilemma.",
+      "link": "https://www.fool.com/coverage/better-buy/2026/10/06/stellantis-nv-vs-tesla-which-consumer-stock-is-a-better-buy-in-2026/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla vs. Waymo: A Face-Off Between the Two Robotaxi Giants",
+      "summary": "GOOGL's Waymo leads robotaxi deployments, but TSLA is betting its camera-only Cybercab and manufacturing scale can drive lower-cost expansion.",
+      "link": "https://finance.yahoo.com/technology/articles/tesla-vs-waymo-face-off-141900186.html?.tsrc=rss"
+    },
+    {
+      "title": "3 Growth Stocks To Watch With Revenue Growth Up To 43%",
+      "summary": "The Federal Reserve just raised interest rates again and signaled that borrowing costs could stay higher for longer. Expensive money often rewards companies that can grow from internal strength, especially when founders and executives hold a lot of their own stock. That combination of fast expansion and high insider ownership is exactly what this article focuses on. You will see three stocks that ",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/3-growth-stocks-watch-revenue-140937404.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla and SpaceX Are Surging Together. What It Says About a Future Merger.",
+      "summary": "Tesla’s post-delivery report rally continued early on Tuesday.",
+      "link": "https://finance.yahoo.com/m/068fb5cc-343c-3692-b684-6cbd05d47d51/tesla-and-spacex-are-surging.html?.tsrc=rss"
+    },
+    {
+      "title": "As AI bubble fears circulate, remember the railroad bust of 1873",
+      "summary": "While the pundits love comparing what we are witnessing with Big Tech stocks to the lead-up to the dot-com crash in the early 2000s, don't overlook how this moment is also creeping up on the railroad bust in the late 1800s.",
+      "link": "https://finance.yahoo.com/markets/article/as-ai-bubble-fears-circulate-remember-the-railroad-bust-of-1873-165422026.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD (AMD) Could Issue 320 Million Shares at a Penny. Here is What Has to Happen First",
+      "summary": "Advanced Micro Devices, Inc. (NASDAQ:AMD) has granted OpenAI and Meta warrants over as many as 160 million shares each, at an exercise price of one cent, with the terms disclosed in the company’s filings. The stock traded at around $656 on October 6, 198.69% higher over twelve months. Three hundred and twenty million shares for […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/amd-amd-could-issue-320-000812569.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD (AMD) Stock Is Up, What You Need To Know",
+      "summary": "Shares of computer processor maker AMD (NASDAQ:AMD) jumped 3.6% in the afternoon session after the company's CEO, Lisa Su, stated that the company plans to substantially increase manufacturing capacity as demand for artificial intelligence processors and CPUs continues to outstrip supply.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/amd-amd-stock-know-235234909.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Advanced Micro Devices (AMD) Outpaced the Stock Market Today",
+      "summary": "In the most recent trading session, Advanced Micro Devices (AMD) closed at $649.42, indicating a +2.8% shift from the previous trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/why-advanced-micro-devices-amd-204503020.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Rallies On Bullish Takes For AI Hardware Sales",
+      "summary": "AMD stock rallied Tuesday after receiving two fresh price-target hikes.",
+      "link": "https://finance.yahoo.com/m/a340a908-0786-341f-828b-177ef562f0da/amd-rallies-on-bullish-takes.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock market today: S&P 500, Nasdaq hit record highs as Nvidia, AMD lead tech higher - Yahoo Finance",
+      "summary": "Stock market today: S&P 500, Nasdaq hit record highs as Nvidia, AMD lead tech higher Yahoo FinanceStock Market News, Oct. 6, 2026: S&P 500 Hits New Record High WSJUS stocks hit record high, shrugging off bond market turmoil CNNStock futures are little changed after S&P 500 hits fresh record: Live updates CNBCStock Market Today: Nasdaq closes at record high, S&P 500 just misses and Dow also gains, ",
+      "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxQVVA4dXZfTlMzdGNsZDZOM19oNng1YzJqNl9wTDE2RmhKblJZOURISlRVbEVldE1MV0huXzZUUWROdlFRRl9OWllPN2VZbmNSem5YU251WlBESy05c3lpR25hdjl2NzJ5U1BVMHBSWnBfdjlxMEdRV3o4UFNDTXVXV01HU0FXSmtMOE9DWDBsVTdYNVJkUGlpS0NpR2JrSE1SZVRkMG9SMGFxZEQ4?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Dow Futures Gain, S&P 500, Nasdaq 100 Slip as Iran Keeps Conditions To Reopen Hormuz - Benzinga",
+      "summary": "Stock Market Today: Dow Futures Gain, S&P 500, Nasdaq 100 Slip as Iran Keeps Conditions To Reopen Hormuz Benzinga",
+      "link": "https://news.google.com/rss/articles/CBMiiAJBVV95cUxNWUt3eEFxQlFsMHZhNlRCaC1HRWlCNjRyWDV5VmV5M0R5T2czMGlKWTVWSzgzVGdJRmU4ZEpreGlQbWtGS0N1THB4WUd6WDhMSUhHVHdzSGw4anN1NThmQklMQV9tSjJEQnY0MkRGTk91a1pJdXBrWjgySjhGb3ptZE9OSGZ3R1N5aXY5LTE0ZFRYeFV2QzBzaGxrM2tXRlV6N2Q1YWNLVWNCb05rZVY2RC02X3VnWGVmN0pRNkVYSmZKMkRaLUMyTDRnbGRmbWphd0tXNGFxdHlrY1BfQl83R1JlSDIxMm03OFhWdXpTME1ZelppSGlNVndFdnVZUnpyTlhSYWN2cng?oc=5"
+    },
+    {
+      "title": "Record Run for US Stocks to Set Tone for Asia: Markets Wrap - Bloomberg.com",
+      "summary": "Record Run for US Stocks to Set Tone for Asia: Markets Wrap Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNTmZuWkVkUE4xM0J5aXpMZG4zQXRHRWs4cEFabXZmOVdrVXdUVzlrdlJ2d3RfM252Q2RSWnhWVFgza1dqNzlYNTlMSHFFZ3oyVG9wakR6S0lwWmphcWZRTjNhRGZoTlktclc1Qk5icmQwSjZCS3lhTEtILUZ4UXZJalVlNWFzNDRFYzVVUG80SkdLLWZS?oc=5"
+    },
+    {
+      "title": "U.S. stocks rise to a record on expectations companies will make even fatter profits - Pittsburgh Post-Gazette",
+      "summary": "U.S. stocks rise to a record on expectations companies will make even fatter profits Pittsburgh Post-Gazette",
+      "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxNaEFJM0g4V0pxSG14aVgxTUx3Q3RQdldXbzNha3QyV3F5bklZNThOcWs5RXhJTkE5S1VrcTRVNGJ3MUUxMldOT1RycHotb0tEZ1hWVWc1azVtc2kxRVptbWdBR3ZwcldrVFl3TjB2TTVqaTlJV0tzOXdaSmNmOUZNNUFEejRkWG5WQnVqbksta08tMWkwMDJNSER6SGhoMnh4UEVnQ0xPZ3BLcHVUUVE?oc=5"
+    },
+    {
+      "title": "US stocks rise to a record on expectations for companies to make even fatter profits - LancasterOnline",
+      "summary": "US stocks rise to a record on expectations for companies to make even fatter profits LancasterOnline",
+      "link": "https://news.google.com/rss/articles/CBMikgJBVV95cUxQVm5YV3d6TlYzY1daWDhjalJ3aHVrbG5BTVladFJZYmtEQjl1ZWw4YUtxWDVyUVhhWjBWSG85d0h2SUN1SVR4cjBIb2N4Mm9MdEtFcVQ4cDZ4MFRmZlVFQ1RRUnN0WHF5YUdVb2tIWXg4cEFGNVptdVRFYXE1dWwxbDM5NWdoTzJsTWVKWHdlZnRva1ZvdzFUY3A2b2JfMU0zMHBid3RkS3Y1eVd1Y21nY2VvTHVDS3NLUFRjdU1JWUN2M1pjdU1CbU50dF8zRDlOMFpVaVE3NkoyZHhFVVI1elBEdUQ0NENKWEhyX01Kb2tickN3Qzd0OFBhM2w3SjZ5MXJQdXFKQzVFUHZJU0NfTTJB?oc=5"
+    }
+  ],
+  "us_date": "10/06",
+  "generated_at": "2026-10-07T09:50:29.747448+09:00"
+}
