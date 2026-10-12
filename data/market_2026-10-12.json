@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 27366.17,
+      "prev": 27193.34,
+      "chg_pct": 0.64,
+      "volume": 6095485000,
+      "market_date_us": "10/09"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7811.54,
+      "prev": 7765.36,
+      "chg_pct": 0.59,
+      "volume": 2645750000,
+      "market_date_us": "10/09"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 51654.95,
+      "prev": 51231.64,
+      "chg_pct": 0.83,
+      "volume": 339477384,
+      "market_date_us": "10/09"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 14.84,
+      "prev": 15.41,
+      "chg_pct": -3.7,
+      "volume": 0,
+      "market_date_us": "10/09"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 12572.42,
+      "prev": 12623.71,
+      "chg_pct": -0.41,
+      "volume": 0,
+      "market_date_us": "10/09"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 102.15,
+      "prev": 102.21,
+      "chg_pct": -0.06,
+      "volume": 0,
+      "market_date_us": "10/11"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 90.6,
+      "prev": 91.85,
+      "chg_pct": -1.36,
+      "volume": 10457,
+      "market_date_us": "10/11"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4231.5,
+      "prev": 4216.3,
+      "chg_pct": 0.36,
+      "volume": 8193,
+      "market_date_us": "10/11"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1337.41,
+      "prev": 1342.99,
+      "chg_pct": -0.42,
+      "volume": 0,
+      "market_date_us": "10/11"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 751.27,
+      "prev": 747.58,
+      "chg_pct": 0.49,
+      "volume": 21161958,
+      "market_date_us": "10/09"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 559.4,
+      "prev": 563.28,
+      "chg_pct": -0.69,
+      "volume": 5033716,
+      "market_date_us": "10/09"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 54.73,
+      "prev": 54.23,
+      "chg_pct": 0.92,
+      "volume": 35412884,
+      "market_date_us": "10/09"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 177.24,
+      "prev": 176.29,
+      "chg_pct": 0.54,
+      "volume": 6514952,
+      "market_date_us": "10/09"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 229.28,
+      "prev": 230.48,
+      "chg_pct": -0.52,
+      "volume": 84645559,
+      "market_date_us": "10/09"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 608.1,
+      "prev": 620.68,
+      "chg_pct": -2.03,
+      "volume": 13733349,
+      "market_date_us": "10/09"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 104.7,
+      "prev": 107.08,
+      "chg_pct": -2.22,
+      "volume": 75017756,
+      "market_date_us": "10/09"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 453.31,
+      "prev": 457.99,
+      "chg_pct": -1.02,
+      "volume": 9207499,
+      "market_date_us": "10/09"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 336.64,
+      "prev": 340.42,
+      "chg_pct": -1.11,
+      "volume": 37881199,
+      "market_date_us": "10/09"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 535.07,
+      "prev": 522.61,
+      "chg_pct": 2.38,
+      "volume": 18500612,
+      "market_date_us": "10/09"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 382.7,
+      "prev": 375.0,
+      "chg_pct": 2.05,
+      "volume": 38952426,
+      "market_date_us": "10/09"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 262.43,
+      "prev": 254.06,
+      "chg_pct": 3.29,
+      "volume": 34769999,
+      "market_date_us": "10/09"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 351.66,
+      "prev": 348.29,
+      "chg_pct": 0.97,
+      "volume": 17281499,
+      "market_date_us": "10/09"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 718.67,
+      "prev": 720.89,
+      "chg_pct": -0.31,
+      "volume": 12619919,
+      "market_date_us": "10/09"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 259500.0,
+      "prev": 262000.0,
+      "chg_pct": -0.95,
+      "volume": 1681885,
+      "market_date_us": "10/11"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1634000.0,
+      "prev": 1681000.0,
+      "chg_pct": -2.8,
+      "volume": 427914,
+      "market_date_us": "10/11"
+    }
+  },
+  "news": [
+    {
+      "title": "Strip out AI stocks, and the US market lags Europe",
+      "summary": "If you've ever wondered what the US stock market might look like without AI, look no further than Europe.",
+      "link": "https://finance.yahoo.com/markets/article/strip-out-ai-stocks-and-the-us-market-lags-europe-190907424.html?.tsrc=rss"
+    },
+    {
+      "title": "Sector rotation reveals new buying opportunities (even with the S&P 500 near record highs)",
+      "summary": "Art Hogan, chief market strategist at B. Riley Wealth, argues that a broad S&P 500 position can ride a changing market leadership cycle.",
+      "link": "https://www.thestreet.com/investing/sector-rotation-reveals-new-buying-opportunities-even-with-the-sp-500-at-record-highs?.tsrc=rss"
+    },
+    {
+      "title": "Is Media Scrutiny of FCFS’s Pawn and Lending Mix Altering The Investment Case For FirstCash Holdings (FCFS)?",
+      "summary": "In recent days, FirstCash Holdings has drawn heightened attention after Jim Cramer spotlighted its pawn-focused model and the risks tied to its American First Finance consumer lending arm, while analysts reiterated positive views amid strong performance versus the S&P 500. This mix of upbeat analyst sentiment and public debate over its relatively high valuation multiple and regulatory exposure is ",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/media-scrutiny-fcfs-pawn-lending-231111776.html?.tsrc=rss"
+    },
+    {
+      "title": "Better Energy ETF: Global X's MLPX Targeting Oil and Gas Infrastructure vs. Invesco's Solar-Focused TAN",
+      "summary": "Global X's midstream fund delivered $2,531 on a $1,000 investment over five years, while Invesco's solar play returned just $565 despite higher fees.",
+      "link": "https://www.fool.com/coverage/etfs/2026/10/11/better-energy-etf-global-x-s-mlpx-targeting-oil-and-gas-infrastructure-vs-invesco-s-solar-focused-tan/?.tsrc=rss"
+    },
+    {
+      "title": "Warren Buffett Bought These 4 Dividend Stocks Years Ago. Here's What $1,000 in Each Would Be Worth Today.",
+      "summary": "American Express and Coca-Cola turned into big winners thanks to Buffett's buy-and-hold approach; Bank of America and Chevron could be next.",
+      "link": "https://www.fool.com/investing/2026/10/11/warren-buffett-bought-these-4-dividend-stocks-year/?.tsrc=rss"
+    },
+    {
+      "title": "Not Nvidia. Not Broadcom. This Little-Known Chip Supplier Could Be the AI Boom's Best-Kept Secret.",
+      "summary": "This under-the-radar AI chipmaker just landed a multi-year OpenAI deal, and investors are taking notice.",
+      "link": "https://www.fool.com/investing/2026/10/11/not-nvidia-not-broadcom-this-little-known-chip-sup/?.tsrc=rss"
+    },
+    {
+      "title": "Forget Chasing Volume. Here's the Most Active Stock I'd Actually Hold for 5 Years.",
+      "summary": "Microsoft stands out as a strong five-year hold because of its growing Azure and AI businesses, massive cash generation, and diversified business.",
+      "link": "https://www.fool.com/investing/2026/10/11/forget-chasing-volume-heres-the-most-active-stock/?.tsrc=rss"
+    },
+    {
+      "title": "Following OpenAI’s Revenue Report, Should You Really Buy AI Stocks Right Now?",
+      "summary": "OpenAI is a key player in the AI space.",
+      "link": "https://www.fool.com/investing/2026/10/11/following-openai-s-revenue-report-should-you-really-buy-ai-stocks-right-now/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia (NVDA) Stock May Be 27% Undervalued Despite Record Highs",
+      "summary": "NVIDIA has ridden the AI infrastructure boom to a market value in the trillions, and after such a powerful multi year run, many investors are asking whether the current share price is still grounded in the cash flows the business can generate. Over the past 5 years, NVIDIA has delivered a very large share price gain of around 953.4%, which puts a lot of weight on the question of how much cash its ",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-nvda-stock-may-27-190909543.html?.tsrc=rss"
+    },
+    {
+      "title": "Beyond S&P 500 Index Funds: Here's the 1 Sector I'd Buy First as a New Investor",
+      "summary": "Buying entire baskets of stocks still makes for smart, instant diversification. But don't look past an obvious opportunity by insisting that only marketwide diversification is beneficial.",
+      "link": "https://www.fool.com/investing/2026/10/11/beyond-sp-500-index-funds-heres-the-1-sector-id-bu/?.tsrc=rss"
+    },
+    {
+      "title": "Forget the Recent Delivery Beat: Here's the Key Number That Will Decide Investors' Reaction to Tesla's Earnings",
+      "summary": "Tesla's third-quarter deliveries were impressive, but investors will focus on gross margin when full results come out.",
+      "link": "https://www.fool.com/investing/2026/10/11/forget-the-recent-delivery-beat-heres-the-key-numb/?.tsrc=rss"
+    },
+    {
+      "title": "Does Tesla (TSLA) Gain More From Megachargers Or Tokenized Stock Trading?",
+      "summary": "Tesla (NasdaqGS:TSLA) has launched a Megacharger network for heavy-duty electric trucks, opening its first site with Pilot in the U.S. The new Megacharger location with Pilot is aimed at freight carriers moving along major U.S. trucking corridors. Tesla stock is among the first U.S. equities to be tokenized for blockchain trading through Securitize on the Solana network. The Megacharger rollout an",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/does-tesla-tsla-gain-more-200622751.html?.tsrc=rss"
+    },
+    {
+      "title": "Tokenized Stocks Show Real Demand But Remain Volatile and Illiquid, IMF Finds",
+      "summary": "An IMF analysis found that more than half of tokenized stock trading happens outside U.S. market hours, though the roughly $2.3 billion market remains more volatile and less liquid than traditional equities.",
+      "link": "https://decrypt.co/380653/tokenized-stocks-show-real-demand-but-remain-volatile-and-illiquid-imf-finds?.tsrc=rss"
+    },
+    {
+      "title": "It Now Takes $4.4B To Make the Forbes 400: See America's 10 Richest People",
+      "summary": "Technology dominates the Forbes 400 rankings, with executives tied to Tesla, Amazon, Google, Meta, Nvidia, Microsoft and Oracle claiming most of the top spots.",
+      "link": "https://moneylion.com/trending/money/it-now-takes-billions-make-forbes-list-see-america-richest-people?.tsrc=rss"
+    },
+    {
+      "title": "EXCLUSIVE: Ross Gerber Says Tesla May Make Just ‘a Few Hundred’ Roadsters: ‘Hovering Is a Gimmick’",
+      "summary": "The Tesla Inc. (NASDAQ:TSLA) Roadster high-performance vehicle has been somewhat of an elusive figure in the auto industry ever since Elon Musk showed off a prototype of the vehicle almost a decade ago. Since then, there have been numerous reports about the vehicle’s release, promising everything from hair-raising performance to even the ability to hover using Space Exploration Technologies Corp. ",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/exclusive-ross-gerber-says-tesla-153029008.html?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices (AMD) Stock Falls After AI Revenue Reset Shakes Demand Outlook",
+      "summary": "Advanced Micro Devices (NasdaqGS:AMD) came under pressure after OpenAI sharply cut its revenue outlook, triggering a broad AI sell-off. AI hardware suppliers with close ties to OpenAI, including AMD, were among the most heavily traded stocks following the revision. The reset in OpenAI's revenue expectations has prompted investors to reassess demand assumptions for AMD's AI accelerators and infrast",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/advanced-micro-devices-amd-stock-221047670.html?.tsrc=rss"
+    },
+    {
+      "title": "History Says This Will Happen to AMD Stock in 2027",
+      "summary": "The chipmaker has had a great year, but its stock has risen too far, too fast.",
+      "link": "https://www.fool.com/investing/2026/10/11/history-says-this-will-happen-to-amd-stock-in-2027/?.tsrc=rss"
+    },
+    {
+      "title": "AMD Stock Fell 6% in Three Sessions After Its Record Close. Here’s What OpenAI’s $20 Billion Revenue Gap Means for the Stock",
+      "summary": "Key Stats for Advanced Micro Devices StockCurrent Price: $608. 10Target Price (Mid): ~$2,320Street Target: ~$636Potential Total Return: ~281%Annualized IRR: ~37% / yearWhat Happened?Advanced Micro Devices (AMD) closed at $608.",
+      "link": "https://www.tikr.com/blog/amd-stock-fell-6-in-three-sessions-after-its-record-close-heres-what-openais-20-billion-revenue-gap-means-for-the-stock?ref=yahoofinance&.tsrc=rss"
+    },
+    {
+      "title": "Not Anthropic. Not AMD. Here's My Top AI Stock for 2027.",
+      "summary": "Nvidia will have a monster comeback in 2027.",
+      "link": "https://www.fool.com/investing/2026/10/11/not-anthropic-not-palantir-top-ai-stock-2027/?.tsrc=rss"
+    },
+    {
+      "title": "AMD’s Biggest Problem Is No Longer Demand. Lisa Su Is in Asia to Fix the Real One",
+      "summary": "Advanced Micro Devices Inc. (NASDAQ:AMD) CEO Lisa Su expects chip demand to stay “very high” for the next several years. On October 6, speaking to reporters in Taipei, she said demand is still running ahead of supply, even as AMD ramps up output. Su said AMD increased supply through 2026 and plans a much bigger […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/amd-biggest-problem-no-longer-123014754.html?.tsrc=rss"
+    },
+    {
+      "title": "Is the stock market open on Columbus Day, Indigenous Peoples' Day? - Yahoo Finance",
+      "summary": "Is the stock market open on Columbus Day, Indigenous Peoples' Day? Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxONy1ZdF81VzgxYXZwQThwT0xwbDlMZkhCX1ZBZ0ozTmNuNDZrcE9sQ0hoSHQwM3VoVDNlX1Ewb01JQkp4Z0x6YmtjaGZtTWZjSElaYWwwWUstdWd6QUJSWEVFRkxZMm1Ja19DenZVWWdkNHE5dlZLY3JCWUFnVVRlYUlzRHE3bFRYbjVpRDV4OFQtX1p4TUlOWmhYTQ?oc=5"
+    },
+    {
+      "title": "Dow rises 400 points on Friday as Wall Street scores winning week: Live updates - CNBC",
+      "summary": "Dow rises 400 points on Friday as Wall Street scores winning week: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5nSVM4THI4YlFUdXYtTTJyX3ZJamZOSWdDa3owRkpVU3FHWEVzZ3NJcTBoSkt6YVluWW1jaFlGeVB0Q1pMdGk5Z2Y3UVpwZjJ0WjlHdFppQnBMQVRjT2lLTGFBTklzelhYSFVQdEJJejAxOHRpMGVn0gF8QVVfeXFMTThPS25hbl9MZ0p2cGw3Nm5Pby1vTml4OE5aUHo0N204RTVnOWN6Z24tX2FQVUhjY3hHN0xxUURlQ1dkSnh3bVE2NEM5SWRrQXFNUzlVUVl3UzdDVm1rQVJCaVVDSVFsSER1ZFlXUDRkRlNpeUloQzFsbHpQWA?oc=5"
+    },
+    {
+      "title": "Wall Street posts weekly gains with earnings, inflation data on tap - Reuters",
+      "summary": "Wall Street posts weekly gains with earnings, inflation data on tap Reuters",
+      "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxNY0hWbFNBUlE5SFJjLVpMMnIwZzFpN2hVNEd2YkxlalYyVDRKTDZxcGJ0REJLUERXb0tlVVVreVZLMHFodlAtZlY0eDhuN2xiOHcybjM1c3gxMlBNTmZMWWdrdkhQOG9Pc2JRdTEwYXM5N181QmttRVEyRkdXTy1LT2J0ZVA4d2FXdjZZeGZwaGRaSUtDUXJUZXFjSU94cnprbTVUSXRpXzFtQzV2TWtpR1dNSjdaWVplUlE?oc=5"
+    },
+    {
+      "title": "Stock Market Today: S&P 500, Dow Jones, Nasdaq 100 Futures Gain as Scott Bessent Says US Is Starving Iran - Benzinga",
+      "summary": "Stock Market Today: S&P 500, Dow Jones, Nasdaq 100 Futures Gain as Scott Bessent Says US Is Starving Iran Benzinga",
+      "link": "https://news.google.com/rss/articles/CBMilwJBVV95cUxQVE1VSjdmVE9LTVBQUFJ5bjR6bkdvY2ZEQThDdmRmN2lzU0VDR0lRbFdvc1dwODBxbEZzMFpzcVNubFRJbE1ib29XbFl2ZE5QazNnSTZyOTlTdUlwVldrT2FiYzJPYnBRZmZnT3loWC1Gd2VnSVNHT01iNV9YMnpDZlNCNHY2ZzQ0N2UxNkJUaGFMc3J0a1o1dGMwTThienZGYVJ2S2Zya05pN3AxNVh3aHZFRURMV3EzWHctZnphRDBCbnBWMV9HbjM1aE8yM2xLeVNjSnVfYU5ReXZKdFNiam5jbThxTFViMTVFOWpRSGM0SS1oell0WUM4UHAzX2pHOXg3N3dTcDNnYjh2eThBeko4bjZvNms?oc=5"
+    },
+    {
+      "title": "Stock Market Today (Oct. 9, 2026): Dow, S&P 500 end week higher as market rallies into earnings season - TheStreet",
+      "summary": "Stock Market Today (Oct. 9, 2026): Dow, S&P 500 end week higher as market rallies into earnings season TheStreet",
+      "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNdjBMSlFaUDh2cFA0TEYwOHhpM0JLcXB0Q2t0amhfaF9UY2RaOUxpdnZCbFFwZVhjbkVLSDRreGc3b1h4ckhrd2JoZm15ZEE3RHdWeHpFcnc2RW5nek92QkJ5b005VnhzTGpMdWdWcDlqVjBJbWlIUnJ2dmZ6bWdQOEc5ek9FRGJZNUZWRnB6UzlnSUxTbDlxSHAwaFc2OHVUT2FRdEVWZTk3QVk?oc=5"
+    }
+  ],
+  "us_date": "10/09",
+  "generated_at": "2026-10-12T09:38:44.175736+09:00"
+}
