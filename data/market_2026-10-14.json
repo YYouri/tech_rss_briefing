@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 27204.38,
+      "prev": 27245.9,
+      "chg_pct": -0.15,
+      "volume": 6273913000,
+      "market_date_us": "10/13"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7805.45,
+      "prev": 7807.24,
+      "chg_pct": -0.02,
+      "volume": 2640232000,
+      "market_date_us": "10/13"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 51670.1,
+      "prev": 51850.55,
+      "chg_pct": -0.35,
+      "volume": 395694761,
+      "market_date_us": "10/13"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 15.27,
+      "prev": 15.21,
+      "chg_pct": 0.39,
+      "volume": 0,
+      "market_date_us": "10/13"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 12208.8,
+      "prev": 12236.79,
+      "chg_pct": -0.23,
+      "volume": 0,
+      "market_date_us": "10/13"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 102.17,
+      "prev": 102.58,
+      "chg_pct": -0.4,
+      "volume": 0,
+      "market_date_us": "10/13"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 94.79,
+      "prev": 93.74,
+      "chg_pct": 1.12,
+      "volume": 3052,
+      "market_date_us": "10/13"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4185.1,
+      "prev": 4190.6,
+      "chg_pct": -0.13,
+      "volume": 4171,
+      "market_date_us": "10/13"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1337.98,
+      "prev": 1334.13,
+      "chg_pct": 0.29,
+      "volume": 0,
+      "market_date_us": "10/13"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 743.57,
+      "prev": 746.04,
+      "chg_pct": -0.33,
+      "volume": 28524918,
+      "market_date_us": "10/13"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 543.9,
+      "prev": 544.85,
+      "chg_pct": -0.17,
+      "volume": 8354155,
+      "market_date_us": "10/13"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 54.82,
+      "prev": 55.05,
+      "chg_pct": -0.42,
+      "volume": 44490388,
+      "market_date_us": "10/13"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 166.56,
+      "prev": 170.11,
+      "chg_pct": -2.09,
+      "volume": 22329675,
+      "market_date_us": "10/13"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 228.52,
+      "prev": 226.32,
+      "chg_pct": 0.97,
+      "volume": 83671511,
+      "market_date_us": "10/13"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 605.53,
+      "prev": 594.24,
+      "chg_pct": 1.9,
+      "volume": 17775022,
+      "market_date_us": "10/13"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 102.81,
+      "prev": 101.35,
+      "chg_pct": 1.44,
+      "volume": 87420405,
+      "market_date_us": "10/13"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 445.12,
+      "prev": 444.35,
+      "chg_pct": 0.17,
+      "volume": 8566236,
+      "market_date_us": "10/13"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 341.27,
+      "prev": 340.97,
+      "chg_pct": 0.09,
+      "volume": 38897865,
+      "market_date_us": "10/13"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 543.45,
+      "prev": 541.15,
+      "chg_pct": 0.43,
+      "volume": 23799223,
+      "market_date_us": "10/13"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 375.23,
+      "prev": 378.03,
+      "chg_pct": -0.74,
+      "volume": 18314332,
+      "market_date_us": "10/13"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 258.58,
+      "prev": 259.53,
+      "chg_pct": -0.37,
+      "volume": 25175766,
+      "market_date_us": "10/13"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 353.78,
+      "prev": 352.72,
+      "chg_pct": 0.3,
+      "volume": 22270289,
+      "market_date_us": "10/13"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 762.5,
+      "prev": 742.96,
+      "chg_pct": 2.63,
+      "volume": 22627792,
+      "market_date_us": "10/13"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 235000.0,
+      "prev": 232000.0,
+      "chg_pct": 1.29,
+      "volume": 751206,
+      "market_date_us": "10/13"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1467000.0,
+      "prev": 1443000.0,
+      "chg_pct": 1.66,
+      "volume": 228036,
+      "market_date_us": "10/13"
+    }
+  },
+  "news": [
+    {
+      "title": "How Much Could You Lose In T-Mobile Stock?",
+      "summary": "T-Mobile US (TMUS) stock fell 16.7% over the past month, diverging from a 2.0% gain for the S&P 500. News reports tied a sharp drop on October 9 to a SpaceX spectrum deal, and AT&T, Verizon and Comcast each lost more than 12% over the same month. You may still think of a wireless carrier as a stock that holds up in a selloff. So how far has T-Mobile stock fallen in past market selloffs.",
+      "link": "https://www.trefis.com/articles/618472/how-much-could-you-lose-in-t-mobile-stock/2026-10-13?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500 Ends Flat, While Nasdaq Drops As Memory Chipmakers Sell Off — BAC, GME, SPCX, ARM, QCOM In Focus",
+      "summary": "JPMorgan, Goldman Sachs, Citi and Wells Fargo reported quarterly earnings on Tuesday, kicking off the earnings season.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-ends-flat-while-nasdaq-drops-as-memory-chipmakers-sell-off-bac-gme-spcx-arm-qcom-in-focus/cZxBUZgRBYr?.tsrc=rss"
+    },
+    {
+      "title": "These 3 International Dividend ETFs Outyield SCHD and Are Beating the S&P 500 Over the Past Year",
+      "summary": "Three international dividend ETFs quietly cleared a bar that most U.S. investors assumed only domestic funds could reach, outpacing the S&P 500 while handing investors a yield greater than SCHD. The catch involves foreign tax rules, uneven quarterly checks, and a currency risk that can quietly eat your returns.",
+      "link": "https://247wallst.com/investing/etf/2026/10/13/these-3-international-dividend-etfs-outyield-schd-and-are-beating-the-sp-500-over-the-past-year/?.tsrc=rss"
+    },
+    {
+      "title": "Should You Sell Your Fair Isaac Stock Now?",
+      "summary": "Fair Isaac (FICO) stock has lost 57% over the past twelve months, while the S&P 500 returned 17.3%. Shareholders are likely wondering if it is time to sell. The question is difficult because the underlying business has been growing rapidly, and the recent decline followed a government decision on mortgage pricing. So how much does Fair Isaac rely on mortgages.",
+      "link": "https://www.trefis.com/articles/618468/should-you-sell-your-fair-isaac-stock-now/2026-10-13?.tsrc=rss"
+    },
+    {
+      "title": "Why FB Financial Stock Tumbled on Tuesday",
+      "summary": "The regional bank posted its third-quarter results.",
+      "link": "https://www.fool.com/investing/2026/10/13/why-fb-financial-stock-tumbled-on-tuesday/?.tsrc=rss"
+    },
+    {
+      "title": "If You Own SPY, This Lower-Cost Fund Tracks Identical Holdings for Less Than Half the Fee",
+      "summary": "SPY built its reputation as the default S&P 500 fund, but a structural quirk in how it was originally designed quietly costs long-term holders money every single year compared to a fund holding the exact same stocks.",
+      "link": "https://247wallst.com/investing/etf/2026/10/13/if-you-own-spy-this-lower-cost-fund-tracks-identical-holdings-for-less-than-half-the-fee/?.tsrc=rss"
+    },
+    {
+      "title": "4 Factors That Drive Share Outperformance",
+      "summary": "Finding big-time winners is much easier said than done, but investors can still deploy a basic framework that puts them on the path to reaping outsized gains.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/4-factors-drive-share-outperformance-231000568.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia in 5 Years: Where the Stock Could Be Headed",
+      "summary": "The last five years saw shareholders grow their wealth by 1,000%.",
+      "link": "https://www.fool.com/investing/2026/10/13/nvidia-in-5-years-where-the-stock-could-be-headed/?.tsrc=rss"
+    },
+    {
+      "title": "You Bought a Semiconductor Fund. On $500,000, $87,743 of It Is NVIDIA",
+      "summary": "A single semiconductor ETF sounds like a spread bet across dozens of chip companies, but the math inside one popular fund tells a very different story about where your money actually lands.",
+      "link": "https://247wallst.com/investing/etf/2026/10/13/you-bought-a-semiconductor-fund-on-500000-87743-of-it-is-nvidia/?.tsrc=rss"
+    },
+    {
+      "title": "Citigroup Inc. Q3 2026 Earnings Call Summary",
+      "summary": "Moby summary of Citigroup Inc.'s Q3 2026 earnings call",
+      "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-citigroup-inc-q3-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss"
+    },
+    {
+      "title": "Tesla Robotaxi Fleet in Austin Soars 8x in a Month While Elon Musk Admits TSLA Is Still Working on Not Running Over Cats",
+      "summary": "Tesla Inc., on Saturday, announced it had reached a major Robotaxi milestone in Austin, marking a rapid expansion of the Elon Musk-led automaker’s Robotaxi service. An 8x Increase in Cybercab Fleet In a post on the social media platform X,...",
+      "link": "https://finance.yahoo.com/technology/ai/articles/tesla-robotaxi-fleet-austin-soars-213024117.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla target lowered by analysts worried about runaway $25 billion spending",
+      "summary": "BNP Paribas analysts have a price target that represents a 30% downside from Tesla’s current level.",
+      "link": "https://www.thestreet.com/investing/stocks/tesla-target-lowered-by-analysts-worried-about-runaway-25-billion-spending?.tsrc=rss"
+    },
+    {
+      "title": "EXCLUSIVE: Ross Gerber Says Tesla May Make Just ‘a Few Hundred’ Roadsters: ‘Hovering Is a Gimmick’",
+      "summary": "The Tesla Inc. Roadster high-performance vehicle has been somewhat of an elusive figure in the auto industry ever since Elon Musk showed off a prototype of the vehicle almost a decade ago. Since then, there have been numerous reports about...",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/exclusive-ross-gerber-says-tesla-203027674.html?.tsrc=rss"
+    },
+    {
+      "title": "Electric Trucks: The REALITY for Tesla Semi & Volvo Fleets",
+      "summary": "Electric trucks are here, but what’s the real-world experience like? Hight Logistics CEO Rudy Diaz, who operates 2,500 electric trucks including Tesla Semis and Volvo EVs, breaks down the challenges and successes of transitioning to an electric fleet. From charging infrastructure and battery range to financing and regulations, get a frank assessment of where electric […] The post Electric Trucks: ",
+      "link": "https://finance.yahoo.com/energy/articles/electric-trucks-reality-tesla-semi-143552440.html?.tsrc=rss"
+    },
+    {
+      "title": "The First Pure-Play Humanoid Robot Stock Is About to Go Public. Here's What Investors Need to Know About Agility Robotics.",
+      "summary": "Like many other up-and-coming companies that are going public specifically because their business and their industry are clearly at a turning point, there's plenty of price-inflating hope here.",
+      "link": "https://www.fool.com/investing/2026/10/13/the-first-pure-play-humanoid-robot-stock-is-about/?.tsrc=rss"
+    },
+    {
+      "title": "Bank stocks rise on JPMorgan, Goldman earnings as chip stocks fall: AlphaCheck",
+      "summary": "Stocks were mixed on Tuesday as big banks kicked off earnings season.",
+      "link": "https://finance.yahoo.com/markets/article/bank-stocks-rise-on-jpmorgan-goldman-earnings-as-chip-stocks-fall-alphacheck-135541160.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: Stock Market Holds Up As Meta, AMD Lead Buys; ASML, CPI Inflation Due",
+      "summary": "The stock market edged lower Tuesday but Meta and AMD led five buys. AI chip giant ASML and the CPI inflation report loom.",
+      "link": "https://finance.yahoo.com/m/02b2fe19-36e5-3f96-ac0e-2dc2cf84ceb1/dow-jones-futures%3A-stock.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, Oct. 13: Fermi Surges 14% on AMD Credit Support for Project Matador",
+      "summary": "AMD's backing of Fermi's 222 MW lease signals financing momentum for AI campus infrastructure, though full funding hurdles remain ahead, Oct. 13, 2026.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/10/13/stock-market-today-oct-13-fermi-surges-14-on-amd-credit-support-for-project-matador/?.tsrc=rss"
+    },
+    {
+      "title": "Fermi Stock Soars 20% on AMD Deal. Why Analysts See Hurdles Ahead.",
+      "summary": "Advanced Micro Devices will help advance Fermi’s data center plans.",
+      "link": "https://finance.yahoo.com/m/9e38ffcb-e246-39f8-aa01-81abdbf8c8d6/fermi-stock-soars-20%25-on-amd.html?.tsrc=rss"
+    },
+    {
+      "title": "How This Rare Options Strategy Might Work On AMD Stock",
+      "summary": "Let's look at AMD stock using one of the less common strategies, a put ratio backspread. But it's not for the novice trader.",
+      "link": "https://finance.yahoo.com/m/70b8f39a-0a68-3588-8aaa-1fc01a2473b2/how-this-rare-options.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500 closes near flat after big banks post earnings and memory chip stocks decline - CNBC",
+      "summary": "S&P 500 closes near flat after big banks post earnings and memory chip stocks decline CNBCMarkets News, Oct. 13, 2026: Major Indexes End Slightly Lower on Busy Earnings Day; Memory Stocks Retreat InvestopediaNasdaq falls ahead of earnings, economic data while oil rallies Reuters",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5vWkJFUkNSVTNpSXFUNGgxZWtlWUdXSmt3eC04ZllUYm9ma3UtYUNMS1ZQbDhDX0R1am5LZlZDcmx5Q2ZkR1pUTVBaOFR1WHgtY0FTakRvVkNpY1dnSDljcEp4SGpHYkw1cVF4LUhYZndrbmY5MlRR0gF8QVVfeXFMTmZhUmNzY2Z3a2tVNVlDdHVPZXUzeUQ2a3Vjc2Y4OGZuUTdmYlRvdDhSZXhVZmN0MWpoRjNkd19QYzQxZjN6RXlLcGZGYk5jLUQ1ZUdUZVpQSHp6eDh5X05pN1lWY2JpRWlpenZDNDFGQTJSdGtaOVFrczZUdQ?oc=5"
+    },
+    {
+      "title": "Stock Market Today: S&P 500, Dow Futures Gain, Nasdaq 100 Falls as Iran Flags ‘Inadequate’ US Response t - Benzinga",
+      "summary": "Stock Market Today: S&P 500, Dow Futures Gain, Nasdaq 100 Falls as Iran Flags ‘Inadequate’ US Response t Benzinga",
+      "link": "https://news.google.com/rss/articles/CBMikwJBVV95cUxOQm9nV0NwVENvWlRtY0RnV3ZsM0Myd2l4M3RRdmFzaHNReXJmajZ5MU1CQnJ5ZzItbk9WMl91bkZxcjhqc3VRcWNZcWNzSDd5dTNvNkJkdC1DOUtDWWhmZjdzc183U3FFSzJ0MmJNSDIyTEV5aVphZDdJbHZZY3ZUTnlXXzVVOWhMV1d6blJ3MFBuc2VPS3pyZWtESlFsR3pHYUp3STBqYVA2QmotTy1TMnd4Z1JETDEwZ0lqc1Zna0o0TE1JNmVHellkcVdKM21jZXZpNVBfSW1KTGF1YnJLLU9oOXJNV2FRZmtoWEl6Sk1rZ1dyNnBxbUQxamxJTnN5d0ZZaUduQVRSMXZiYXhmd2IzVQ?oc=5"
+    },
+    {
+      "title": "Paul Tudor Jones says 2027 could be a really challenging year for the stock market - CNBC",
+      "summary": "Paul Tudor Jones says 2027 could be a really challenging year for the stock market CNBC",
+      "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPOWJtYzA4SkFobVRHU0EzQ04tRmVrTkJ4NlVnSEx3djE3cVczaXdmcTFUUVNzbnJrWmRJeEF4NVlpT3lwNkFYOXNMRlVRY1ZFc0tLZmlkSXpnaXJ3TmdERUNwSGRmWlFtRlMwQkxvMmV1ck5aM2c1el9FMzFkUk5LcWhxM1JTQ3VCUmfSAY8BQVVfeXFMUHF6Q1lNTzFBMHB4dWcyZjlPYkYyR0hENE9jY2p1ZzNxNWQ5WUNEWGhFSTZCZWJuRDFoWjNXQl95Ukxxb0N1T1ZFZXNHUnVObll4RGxiN3ZjX09RMkJOdHpWaVhJS3cwZlZRSlY0aFBtVlJJZkYwb3F4cDdsckExZHRya1F6aVh0bXZfbWl6WGM?oc=5"
+    },
+    {
+      "title": "Why BlackRock is suddenly more bearish on stocks - Yahoo Finance",
+      "summary": "Why BlackRock is suddenly more bearish on stocks Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQV29NeENzS3VlV3NlekQ2Y29vMDYyWDZocjQ5YS1WZnlWcGRFRHUzeFBvZmNtMHRwQUt5RFZ0UF8wQ09ERjBlV3NmLW9UTm5GcjkySk8zeHFFX1RMb3VFbloyOWhPUmJMVVFrSGRKekFEamdocW9ub1JudGpJc0dpSzBrRWtiSEZSOUxYUW9yVzl5eEN1cVRITFp6UHptTjhKMmJ5MmRlcnY?oc=5"
+    },
+    {
+      "title": "3 charts sum up why many US households are struggling right now - Yahoo Finance",
+      "summary": "3 charts sum up why many US households are struggling right now Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxNTW5qOEU2cjJKZHZGbHNFaDd3RTlGMmZIN1BqZ1Nwa3dyY0Uwc2R3S2NuWE1nS1Q2M1FzX0J1RmNRSllkRDNaU0JDc1NvYWlLeWxocURtTEQzRVUxbTJfc1pHa25HMVdxMFZJQXFza3JSdV9nMFk1clNwQXNyWkx6ajVwbzZZQnZqRUdTV1NvNDJzY0t4UUdseGNoMVYwTjc5MjZaMG1NbHYyQzhpWlBna1hYMHFqd0szUV9Ebw?oc=5"
+    }
+  ],
+  "us_date": "10/13",
+  "generated_at": "2026-10-14T09:24:07.962829+09:00"
+}
