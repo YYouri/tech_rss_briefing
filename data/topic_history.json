@@ -1,61 +1,5 @@
 [
   {
-    "topic": "Private AI Cloud",
-    "title": "프라이빗 AI 클라우드, 기업 인프라의 새로운 기준",
-    "url": "",
-    "tags": "Private AI Cloud, Agentic AI, Enterprise Infrastructure, AI Governance, Zero Trust, KPC정보관리기술사",
-    "date": "2026-09-01T22:59:59.295712"
-  },
-  {
-    "topic": "AI Data Center",
-    "title": "AI 데이터센터 구조와 핵심 인프라 완벽 정리",
-    "url": "",
-    "tags": "AI Data Center, AI 인프라, 데이터센터, GPU 서버, AI 컴퓨팅, KPC정보관리기술사",
-    "date": "2026-09-02T22:59:34.346831"
-  },
-  {
-    "topic": "Edge AI",
-    "title": "엣지 AI 개념과 온디바이스 추론 원리",
-    "url": "",
-    "tags": "Edge AI, 엣지AI, 온디바이스AI, AI추론, 엣지컴퓨팅, KPC정보관리기술사",
-    "date": "2026-09-05T22:36:10.651970"
-  },
-  {
-    "topic": "AI Inference Chip",
-    "title": "AI 추론 칩, 데이터센터 혁신을 이끌다",
-    "url": "",
-    "tags": "AI Inference Chip, AI 반도체, 추론 가속기, 데이터센터, HBM, KPC정보관리기술사",
-    "date": "2026-09-06T22:40:11.883054"
-  },
-  {
-    "topic": "Edge AI",
-    "title": "Edge AI 최신 기술 동향 완벽 정리",
-    "url": "",
-    "tags": "Edge AI, IT기술, 반도체, AI, 산업동향, KPC정보관리기술사",
-    "date": "2026-09-07T23:20:46.514910"
-  },
-  {
-    "topic": "On-Device AI",
-    "title": "On-Device AI 동향과 전망",
-    "url": "",
-    "tags": "On-Device AI, IT기술, 반도체, AI, 산업동향, KPC정보관리기술사",
-    "date": "2026-09-09T01:50:42.352850"
-  },
-  {
-    "topic": "AI Data Center",
-    "title": "AI Data Center 동향과 전망",
-    "url": "",
-    "tags": "AI Data Center, IT기술, 반도체, AI, 산업동향, KPC정보관리기술사",
-    "date": "2026-09-09T04:52:23.858069"
-  },
-  {
-    "topic": "Agentic AI",
-    "title": "Agentic AI 동향과 전망",
-    "url": "",
-    "tags": "Agentic AI, IT기술, 반도체, AI, 산업동향, KPC정보관리기술사",
-    "date": "2026-09-15T23:32:51.291926"
-  },
-  {
     "topic": "Edge AI",
     "title": "Edge AI 최신 동향과 미래 전망 분석",
     "url": "",
@@ -110,5 +54,12 @@
     "url": "",
     "tags": "양자컴퓨팅, PQC, 내암호화, 양자미들웨어, 엔터프라이즈기술, KPC정보관리기술사",
     "date": "2026-10-01T00:22:22.341903"
+  },
+  {
+    "topic": "Agentic AI",
+    "title": "Agentic AI: 자율형 에이전트의 모든 것",
+    "url": "",
+    "tags": "Agentic AI, AI Agent, 자율형AI, 엔터프라이즈AI, LLM응용, KPC정보관리기술사",
+    "date": "2026-10-18T22:43:42.974116"
   }
 ]
