@@ -1,19 +1,5 @@
 [
   {
-    "topic": "Edge AI",
-    "title": "Edge AI 최신 동향과 미래 전망 분석",
-    "url": "",
-    "tags": "Edge AI, IT기술, 반도체, AI, 산업동향, KPC정보관리기술사",
-    "date": "2026-09-18T23:10:52.784706"
-  },
-  {
-    "topic": "Edge AI",
-    "title": "Edge AI 최신 기술 동향과 미래 전망",
-    "url": "",
-    "tags": "Edge AI, IT기술, 반도체, AI, 산업동향, KPC정보관리기술사",
-    "date": "2026-09-19T22:49:31.071168"
-  },
-  {
     "topic": "LLM Inference",
     "title": "LLM 추론 최적화: 비용과 지연 시간 단축 전략",
     "url": "",
@@ -61,5 +47,12 @@
     "url": "",
     "tags": "Agentic AI, AI Agent, 자율형AI, 엔터프라이즈AI, LLM응용, KPC정보관리기술사",
     "date": "2026-10-18T22:43:42.974116"
+  },
+  {
+    "topic": "Edge AI",
+    "title": "엣지 AI 온디바이스 추론 핵심 기술 완벽 가이드",
+    "url": "",
+    "tags": "Edge AI, On-Device AI, NPU, HW-SW 공동설계, 추론 칩, KPC정보관리기술사",
+    "date": "2026-10-20T00:06:39.357087"
   }
 ]
