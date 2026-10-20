@@ -54,5 +54,12 @@
     "url": "",
     "tags": "Edge AI, On-Device AI, NPU, HW-SW 공동설계, 추론 칩, KPC정보관리기술사",
     "date": "2026-10-20T00:06:39.357087"
+  },
+  {
+    "topic": "Memory Chip",
+    "title": "메모리 반도체 HBM CXL 기술 총정리",
+    "url": "",
+    "tags": "메모리반도체, HBM, CXL, AI반도체, 고대역폭메모리, KPC정보관리기술사",
+    "date": "2026-10-20T23:38:51.458943"
   }
 ]
