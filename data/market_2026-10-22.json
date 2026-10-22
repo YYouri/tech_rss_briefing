@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26702.86,
+      "prev": 26424.82,
+      "chg_pct": 1.05,
+      "volume": 6898345000,
+      "market_date_us": "10/21"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7757.17,
+      "prev": 7712.57,
+      "chg_pct": 0.58,
+      "volume": 2889474000,
+      "market_date_us": "10/21"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52856.09,
+      "prev": 52495.88,
+      "chg_pct": 0.69,
+      "volume": 359385262,
+      "market_date_us": "10/21"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 16.68,
+      "prev": 17.31,
+      "chg_pct": -3.64,
+      "volume": 0,
+      "market_date_us": "10/21"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 11505.56,
+      "prev": 11283.81,
+      "chg_pct": 1.97,
+      "volume": 0,
+      "market_date_us": "10/21"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 101.68,
+      "prev": 101.73,
+      "chg_pct": -0.05,
+      "volume": 0,
+      "market_date_us": "10/21"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 98.0,
+      "prev": 101.79,
+      "chg_pct": -3.72,
+      "volume": 3557,
+      "market_date_us": "10/21"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4143.5,
+      "prev": 4142.6,
+      "chg_pct": 0.02,
+      "volume": 4333,
+      "market_date_us": "10/21"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1327.68,
+      "prev": 1323.94,
+      "chg_pct": 0.28,
+      "volume": 0,
+      "market_date_us": "10/21"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 725.2,
+      "prev": 717.63,
+      "chg_pct": 1.05,
+      "volume": 31534625,
+      "market_date_us": "10/21"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 510.36,
+      "prev": 500.01,
+      "chg_pct": 2.07,
+      "volume": 8198989,
+      "market_date_us": "10/21"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 56.04,
+      "prev": 55.72,
+      "chg_pct": 0.57,
+      "volume": 27704785,
+      "market_date_us": "10/21"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 156.88,
+      "prev": 153.99,
+      "chg_pct": 1.88,
+      "volume": 15357933,
+      "market_date_us": "10/21"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 221.97,
+      "prev": 216.47,
+      "chg_pct": 2.54,
+      "volume": 86111324,
+      "market_date_us": "10/21"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 552.72,
+      "prev": 534.74,
+      "chg_pct": 3.36,
+      "volume": 17756841,
+      "market_date_us": "10/21"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 92.96,
+      "prev": 91.69,
+      "chg_pct": 1.39,
+      "volume": 74242457,
+      "market_date_us": "10/21"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 431.89,
+      "prev": 425.08,
+      "chg_pct": 1.6,
+      "volume": 10658488,
+      "market_date_us": "10/21"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 343.99,
+      "prev": 339.5,
+      "chg_pct": 1.32,
+      "volume": 35368592,
+      "market_date_us": "10/21"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 532.95,
+      "prev": 531.87,
+      "chg_pct": 0.2,
+      "volume": 13826924,
+      "market_date_us": "10/21"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 386.47,
+      "prev": 373.71,
+      "chg_pct": 3.41,
+      "volume": 44779790,
+      "market_date_us": "10/21"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 262.37,
+      "prev": 262.63,
+      "chg_pct": -0.1,
+      "volume": 30981629,
+      "market_date_us": "10/21"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 334.76,
+      "prev": 340.28,
+      "chg_pct": -1.62,
+      "volume": 28525256,
+      "market_date_us": "10/21"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 697.52,
+      "prev": 694.25,
+      "chg_pct": 0.47,
+      "volume": 26478796,
+      "market_date_us": "10/21"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 223500.0,
+      "prev": 223500.0,
+      "chg_pct": 0.0,
+      "volume": 0,
+      "market_date_us": "10/21"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1294000.0,
+      "prev": 1294000.0,
+      "chg_pct": 0.0,
+      "volume": 0,
+      "market_date_us": "10/21"
+    }
+  },
+  "news": [
+    {
+      "title": "Dow Jones Futures Fall; Meta, Tesla Are Earnings Movers After SpaceX Leads Bullish Nasdaq Move",
+      "summary": "The Nasdaq moved above its 50-day line, led by SpaceX and SuperMicro. Tesla and Meta headlined big earnings late.",
+      "link": "https://finance.yahoo.com/m/2bd9a8b9-7491-307a-8f54-b091a90905b0/dow-jones-futures-fall%3B-meta%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500, Nasdaq Gain, Powered By Meta, Tesla Stock — SPCX, META, TSLA, SKYD, IBM In Focus",
+      "summary": "Meta reported earnings that beat expectations, while narrowing its capex plans.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-nasdaq-gain-powered-by-meta-tesla-stock-spcx-meta-tsla-skyd-ibm-in-focus/cZxM14eRBwR?.tsrc=rss"
+    },
+    {
+      "title": "Think It's Too Risky to Invest in the Stock Market Right Now? History Says Waiting Is Even Riskier.",
+      "summary": "When is the right time to invest? As soon as possible.",
+      "link": "https://www.fool.com/investing/2026/10/21/think-its-too-risky-to-invest-in-the-stock-market/?.tsrc=rss"
+    },
+    {
+      "title": "NXP Semiconductors (NXPI) Laps the Stock Market: Here's Why",
+      "summary": "In the most recent trading session, NXP Semiconductors (NXPI) closed at $242.36, indicating a +2% shift from the previous trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/nxp-semiconductors-nxpi-laps-stock-211503179.html?.tsrc=rss"
+    },
+    {
+      "title": "Why T. Rowe Price (TROW) Outpaced the Stock Market Today",
+      "summary": "In the closing of the recent trading day, T. Rowe Price (TROW) stood at $103.29, denoting a +1.14% move from the preceding trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/why-t-rowe-price-trow-211503274.html?.tsrc=rss"
+    },
+    {
+      "title": "History Says This ETF Is a Millionaire Maker. Here's What You'd Need to Invest Each Month to Get There.",
+      "summary": "Consistency is the biggest gift you can give yourself.",
+      "link": "https://www.fool.com/investing/2026/10/21/history-says-this-etf-is-a-millionaire-maker-her/?.tsrc=rss"
+    },
+    {
+      "title": "Crypto Exchanges Want Your Next Stock Trade in 2027",
+      "summary": "LBank explains how crypto traders can gain Nvidia stock exposure without owning shares, its expansion into traditional markets, and its strategy for 2027.",
+      "link": "https://beincrypto.com/lbank-nvidia-stock-trading-crypto-exchange/?.tsrc=rss"
+    },
+    {
+      "title": "SpaceX shares soar on possible tie-up with Tesla",
+      "summary": "The value of Elon Musk’s holdings in the two companies soars past $1.3 trillion.",
+      "link": "https://www.thestreet.com/technology/spacex-shares-soar-possible-merger-with-tesla?.tsrc=rss"
+    },
+    {
+      "title": "Everpure (P) stock trades up, here is why",
+      "summary": "Shares of data storage solutions provider Everpure (NYSE:P) jumped 2.6% in the afternoon session after the company announced that it jointly developed the Cisco AI POD with FlashStack alongside Cisco to provide infrastructure for enterprise artificial intelligence factories. According to Everpure’s blog, the Cisco AI POD with FlashStack for Secure Enterprise AI Factories is a Cisco Validated Desig",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/everpure-p-stock-trades-why-230239370.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Netflix Stock Dropped Today",
+      "summary": "Ad sales aren't growing as fast as management predicted.",
+      "link": "https://www.fool.com/investing/2026/10/21/why-netflix-stock-dropped-today/?.tsrc=rss"
+    },
+    {
+      "title": "TSLA Stock Reverses After-Hours Gains As Tesla Cuts Full-Year Capex Guidance To $20B, Musk Tempers Optimus Timeline",
+      "summary": "The stock edged up 2% after hours immediately after the company’s earnings report before paring gains and was trading 4% lower at the time of writing.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tsla-stock-reverses-after-hours-gains-as-tesla-cuts-full-year-capex-guidance-to-20-b-musk-tempers-optimus-timeline/cZxMSJuRBwc?.tsrc=rss"
+    },
+    {
+      "title": "Tesla profits drop on tech spending spree as 'Elon Inc.' talk builds",
+      "summary": "Tesla reported lower third-quarter profits Wednesday as near-trillionaire Elon Musk's electric vehicle maker ramped up huge investments in artificial intelligence and other envelope-pushing technologies.In the third quarter, Tesla reported profits of $787 million, down 42.7 percent from the year-ago period.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-profits-drop-top-analyst-205828910.html?.tsrc=rss"
+    },
+    {
+      "title": "Supermicro stock jumps as server maker lifts revenue forecast",
+      "summary": "Super Micro Computer stock jumped as the company upped its gross margin guidance amid a record backlog of orders.",
+      "link": "https://finance.yahoo.com/markets/article/supermicro-stock-jumps-as-server-maker-lifts-revenue-forecast-122408188.html?.tsrc=rss"
+    },
+    {
+      "title": "Tech stocks lead market higher as SpaceX shares surge: AlphaCheck",
+      "summary": "Stocks opened higher on Wednesday as traders digested SpaceX earnings ahead of Meta and Tesla quarterly results.",
+      "link": "https://finance.yahoo.com/markets/article/tech-stocks-lead-market-higher-as-spacex-shares-surge-alphacheck-134723268.html?.tsrc=rss"
+    },
+    {
+      "title": "Western Digital, Nova, Amtech, Monolithic Power Systems, and Texas Instruments shares skyrocket, what you need to know",
+      "summary": "A number of stocks jumped in the afternoon session after strong demand for artificial intelligence hardware and robust corporate earnings reignited investor optimism across the broader AI technology landscape.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/western-digital-nova-amtech-monolithic-235039681.html?.tsrc=rss"
+    },
+    {
+      "title": "Teradyne, Vishay Intertechnology, Allegro MicroSystems, Entegris, and AMD shares are soaring, what you need to know",
+      "summary": "A number of stocks jumped in the afternoon session after strong demand for artificial intelligence hardware and robust corporate earnings reignited investor optimism across the broader AI technology landscape.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/teradyne-vishay-intertechnology-allegro-microsystems-231839928.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD vs. Nvidia. 1 Metric Proves Which Is the Best Stock.",
+      "summary": "AMD and Nvidia are two major competitors in the AI computing realm.",
+      "link": "https://www.fool.com/investing/2026/10/21/amd-vs-nvidia-1-metric-proves-which-is-the-best/?.tsrc=rss"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq rise as tech rallies, SpaceX stock surges nearly 8% - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq rise as tech rallies, SpaceX stock surges nearly 8% Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxNWmZkMENBd2xWRThEdm05TlljYUFQZ0h6VkZQUk82Z0xYc0FUWVdHSE5VVjNHRkhzc2VxdlhjNzZVWU5uU2c0aGN2ZTNSbWM3NFU1TEhIVkJ5RW91STlORm9zT3BFTWJ6LV9UZk1EZTZiclJKTUlKM3JtbW5QOFhqcUQ1cThnaEdiQWtyQlZhY2tNVGdjUHlVN0luc3YtbFAyeTlnckh0azhlZjc1MTQwbA?oc=5"
+    },
+    {
+      "title": "S&P 500 notches 3-day win streak, Nasdaq jumps 1% as SpaceX and Tesla rally - CNBC",
+      "summary": "S&P 500 notches 3-day win streak, Nasdaq jumps 1% as SpaceX and Tesla rally CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE44andoMWc1UnV1MnYtOVNwMFJxU3dmRFhYVEFlWEg5c0NTblp5VmJZNDR2TW5jRUdISW5pUmRsTVFmWjlXS0lMUTNOM0NEZV8zeldYOEVYelVaYzMtMGJxaW0tWnZZSUhEU2FxeEppUzVWTnpyY2Y00gF8QVVfeXFMTlFJSF8yb09HR2JyVExWTG9XUTFYeWVyaGpad2ktb2FXTGZ0WnpHcF9hNzlnd1RBVGs0MXpXLXplRVNaWXo3a1d6OUd3U0x0ZVR2ZWI4N1RvVktDY1hYaDR3ZTlVUnhsM1pfT2Q2eDNPQUFHT242QmVUZDdGMg?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Nasdaq logs 1.1% gain; S&P 500 and Dow end higher as AI plays and tech bounce; oil climbs in after-hours trade as investors monitor Middle East headlines; Meta and Tesla earnings on deck - MarketWatch",
+      "summary": "Stock Market Today: Nasdaq logs 1.1% gain; S&P 500 and Dow end higher as AI plays and tech bounce; oil climbs in after-hours trade as investors monitor Middle East headlines; Meta and Tesla earnings on deck MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOVkRpQXdOVzlDUERyeXdaOVdGZER5SmlMcVlvSHd5d3pHZjhLUGpRM0R4ZWtSTlp5bHRlTE1Ibl9haTJzdlBYRWNMWHJ1X2NyZU5oc2ZTWms1eWpGcUlwamNPb3ZXMk90SGIzYWtnUEd6blF6Mlo1WC1lMUVxdDNhMF9yRi1GZGpPV0ZMRDhYUGpBeXVscGxDRjF0MkxKNE9DcHJkdlV5dl9sRWRjcWFUWXRQMVpfY3RsbXlldEJJNlVMY1BBMkVB?oc=5"
+    },
+    {
+      "title": "Stocks Rise as US-Iran Hopes Trigger Oil Decline: Markets Wrap - Bloomberg.com",
+      "summary": "Stocks Rise as US-Iran Hopes Trigger Oil Decline: Markets Wrap Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQUUdmWVljdmxvdFIzRkRFeDJLQk0wTFVOaTlEMExhUEpUelZOTFJfdDFlZURyWXpjU05OcXBhX09QN0dlblc2aDFhZWFuQUNMOXVLbDN1eFN2Q0xBMU1WQW1KZDRrMEhuUmxlZmhPMmlnckVPcUJrSHpQa0tRWGRab2dXdXZkWTRpNC1kZmRCSndyblZJ?oc=5"
+    },
+    {
+      "title": "Dow outperforms as Wall Street rises, healthcare stocks lead gains - Reuters",
+      "summary": "Dow outperforms as Wall Street rises, healthcare stocks lead gains Reuters",
+      "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxOT2JsXzZ4YTVKcDJjNE9iTW42aU0wY0VOZXRtdDYxTzJTanBUOGZIT1FLSl9FVTNxQ1RpTVFSWHlsejgyR0Y1b3JQWXRlT0dEMjJPWWpXYlpfdFJQaHZKZG5KdUNMdW53NmlMd2RwUWJKWFB3dE9Xc2ZBbnRfalF3cWNzblhxTGJOTGlKYUh1a0FmWC1vaGQydWZXdTMzemJjSVg5NWZ0bw?oc=5"
+    },
+    {
+      "title": "Nasdaq leads Wall Street gains as SpaceX, Super Micro boost AI sentiment - Reuters",
+      "summary": "Nasdaq leads Wall Street gains as SpaceX, Super Micro boost AI sentiment Reuters",
+      "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQZUJTOXdaa0JmVzZubm12MGt4VnNSemsyOW1fQXpCMnhEc25HSVJRZk93d2NYUXQ3eHBuQklaNE1FT1QyQ1NqdTFkdExDbmoxY2JtOWhLQkVtYXczMHh3a3VsZmhub1JFc0FIZHN1eEcwc3FRZVZWQnBoSjFjekFYTUN6X2d5WHJUWGpDU2paekhhU24zenhNbWpXUmtfdmo5cTFIZVZwTXdiRzZoeUtiazhHWkJEWEVZLTVmQmRMcw?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Nasdaq Leads Wall Street Rally - STL.News",
+      "summary": "Stock Market Today: Nasdaq Leads Wall Street Rally STL.News",
+      "link": "https://news.google.com/rss/articles/CBMie0FVX3lxTE1MYTZQakx0UzdtWTZQQWQxMU1MLXpPcXdIWnpua0RFOGt2Z09XNk1WZzdFNUp6a1RaQ0M4dmthdEhqQnNmUFNUZzVEbGx1SkhmNGJmY0NaaG5pU3J1c2RTbWxwaEtLN21LWHg0TXV5TzFwTS1ucjJqcDRwVQ?oc=5"
+    },
+    {
+      "title": "US Stock Futures Edge Higher as SpaceX and Tesla Explore Merger and Meta Earnings Approach: Dow Jones, S&P, Nasdaq, Wall Street - Yahoo Finance",
+      "summary": "US Stock Futures Edge Higher as SpaceX and Tesla Explore Merger and Meta Earnings Approach: Dow Jones, S&P, Nasdaq, Wall Street Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxOazVLcDItRGFmTHc0VFY0M3FhV1B4Ymg2NUl0eGRDc0JHb25hUkZrblhjelAzM3JjYVU5Z1BMald1NFZRSVhFcFVLcFB5MmhLYlktcVVrREN1aHk1bGNKaEdHejB3cHVmUzFvaXIwaHc1WEFnQS1QczNHVHNNOFhtUTBkZWFhdGtacXpwQ1BjbW1kV1FGQU90VA?oc=5"
+    }
+  ],
+  "us_date": "10/21",
+  "generated_at": "2026-10-22T09:03:04.838069+09:00"
+}
