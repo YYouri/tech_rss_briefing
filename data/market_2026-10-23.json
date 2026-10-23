@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26008.86,
+      "prev": 26702.86,
+      "chg_pct": -2.6,
+      "volume": 7832683000,
+      "market_date_us": "10/22"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7663.43,
+      "prev": 7757.17,
+      "chg_pct": -1.21,
+      "volume": 3559453000,
+      "market_date_us": "10/22"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52867.98,
+      "prev": 52856.09,
+      "chg_pct": 0.02,
+      "volume": 506198387,
+      "market_date_us": "10/22"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 19.03,
+      "prev": 16.68,
+      "chg_pct": 14.09,
+      "volume": 0,
+      "market_date_us": "10/22"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 10731.98,
+      "prev": 11505.56,
+      "chg_pct": -6.72,
+      "volume": 0,
+      "market_date_us": "10/22"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 101.58,
+      "prev": 101.78,
+      "chg_pct": -0.2,
+      "volume": 0,
+      "market_date_us": "10/22"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 99.4,
+      "prev": 97.15,
+      "chg_pct": 2.32,
+      "volume": 3322,
+      "market_date_us": "10/22"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4036.8,
+      "prev": 4150.0,
+      "chg_pct": -2.73,
+      "volume": 6227,
+      "market_date_us": "10/22"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1325.68,
+      "prev": 1325.59,
+      "chg_pct": 0.01,
+      "volume": 0,
+      "market_date_us": "10/22"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 704.47,
+      "prev": 725.2,
+      "chg_pct": -2.86,
+      "volume": 64223209,
+      "market_date_us": "10/22"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 475.69,
+      "prev": 510.36,
+      "chg_pct": -6.79,
+      "volume": 14977322,
+      "market_date_us": "10/22"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 56.65,
+      "prev": 56.04,
+      "chg_pct": 1.09,
+      "volume": 32567843,
+      "market_date_us": "10/22"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 149.06,
+      "prev": 156.88,
+      "chg_pct": -4.98,
+      "volume": 17937450,
+      "market_date_us": "10/22"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 212.21,
+      "prev": 221.97,
+      "chg_pct": -4.4,
+      "volume": 124963035,
+      "market_date_us": "10/22"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 507.93,
+      "prev": 552.72,
+      "chg_pct": -8.1,
+      "volume": 27927104,
+      "market_date_us": "10/22"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 85.49,
+      "prev": 92.96,
+      "chg_pct": -8.04,
+      "volume": 133529950,
+      "market_date_us": "10/22"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 412.35,
+      "prev": 431.89,
+      "chg_pct": -4.52,
+      "volume": 16423961,
+      "market_date_us": "10/22"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 348.22,
+      "prev": 343.99,
+      "chg_pct": 1.23,
+      "volume": 46845411,
+      "market_date_us": "10/22"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 521.08,
+      "prev": 532.95,
+      "chg_pct": -2.23,
+      "volume": 21246740,
+      "market_date_us": "10/22"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 374.58,
+      "prev": 386.47,
+      "chg_pct": -3.08,
+      "volume": 51511993,
+      "market_date_us": "10/22"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 250.38,
+      "prev": 262.37,
+      "chg_pct": -4.57,
+      "volume": 48711738,
+      "market_date_us": "10/22"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 324.22,
+      "prev": 334.76,
+      "chg_pct": -3.15,
+      "volume": 27685187,
+      "market_date_us": "10/22"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 648.85,
+      "prev": 697.52,
+      "chg_pct": -6.98,
+      "volume": 40510072,
+      "market_date_us": "10/22"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 214500.0,
+      "prev": 214500.0,
+      "chg_pct": 0.0,
+      "volume": 0,
+      "market_date_us": "10/22"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1223000.0,
+      "prev": 1223000.0,
+      "chg_pct": 0.0,
+      "volume": 0,
+      "market_date_us": "10/22"
+    }
+  },
+  "news": [
+    {
+      "title": "Dow Jones Futures: Moderna Crashes, Meta Fuels AI Meltdown, But Warren Buffett Market Thriving",
+      "summary": "The S&P 500 and Nasdaq tumbled below 50-day lines as Meta led an AI stock rout. But the Warren Buffett market is thriving.",
+      "link": "https://finance.yahoo.com/m/47e878bb-824d-3243-a8e9-b86b1c3f85d3/dow-jones-futures%3A-moderna.html?.tsrc=rss"
+    },
+    {
+      "title": "Diamondback Energy (FANG) Declines More Than Market: Some Information for Investors",
+      "summary": "In the closing of the recent trading day, Diamondback Energy (FANG) stood at $197.14, denoting a -1.89% move from the preceding trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/diamondback-energy-fang-declines-more-211504141.html?.tsrc=rss"
+    },
+    {
+      "title": "BigBear.ai Holdings, Inc. (BBAI) Declines More Than Market: Some Information for Investors",
+      "summary": "In the latest trading session, BigBear.ai Holdings, Inc. (BBAI) closed at $2.13, marking a -2.74% move from the previous day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/bigbear-ai-holdings-inc-bbai-211504378.html?.tsrc=rss"
+    },
+    {
+      "title": "Hamilton Insurance (HG) Gains As Market Dips: What You Should Know",
+      "summary": "Hamilton Insurance (HG) closed the most recent trading day at $37.11, moving +1.62% from the previous trading session.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/hamilton-insurance-hg-gains-market-211504461.html?.tsrc=rss"
+    },
+    {
+      "title": "Fiverr International (FVRR) Gains As Market Dips: What You Should Know",
+      "summary": "Fiverr International (FVRR) closed the most recent trading day at $8.49, moving +1.19% from the previous trading session.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/fiverr-international-fvrr-gains-market-211504536.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia CEO's new plan could dramatically reshape the AI race",
+      "summary": "Jensen Huang’s deployment blueprint accelerates the data center buildout.",
+      "link": "https://www.thestreet.com/technology/nvidia-ceo-huang-plan-could-dramatically-accelerate-ai-buildout?.tsrc=rss"
+    },
+    {
+      "title": "FirstService Corporation Q3 2026 Earnings Call Summary",
+      "summary": "Moby summary of FirstService Corporation's Q3 2026 earnings call",
+      "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-firstservice-corporation-q3-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss"
+    },
+    {
+      "title": "Valero Energy Corporation Q3 2026 Earnings Call Summary",
+      "summary": "Moby summary of Valero Energy Corporation's Q3 2026 earnings call",
+      "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-valero-energy-corporation-q3-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss"
+    },
+    {
+      "title": "Visteon Corporation Q3 2026 Earnings Call Summary",
+      "summary": "Moby summary of Visteon Corporation's Q3 2026 earnings call",
+      "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-visteon-corporation-q3-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss"
+    },
+    {
+      "title": "Tractor Supply Company Q3 2026 Earnings Call Summary",
+      "summary": "Moby summary of Tractor Supply Company's Q3 2026 earnings call",
+      "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-tractor-supply-company-q3-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss"
+    },
+    {
+      "title": "TSLA, SPCX Boards Confirm Special Committees On Potential Combination As Megapack Deals And Terafab Plans Deepen Ties",
+      "summary": "On SpaceX’s October 20 earnings call, Musk described a combination as a good idea, citing potential benefits in areas such as software development, chip design, robotics, and connectivity.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tsla-spcx-boards-confirm-special-committees-on-potential-combination-as-megapack-deals-and-terafab-plans-deepen-ties/cZxwF7cRBDj?.tsrc=rss"
+    },
+    {
+      "title": "Musk wants to merge SpaceX and Tesla: Here's what to know",
+      "summary": "Elon Musk said this week that SpaceX and Tesla have formed special committees to study a merger of his two biggest companies.Musk cautioned that a merger is not certain.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/musks-wants-merge-spacex-tesla-205406983.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla, SpaceX, Meta, Lockheed Martin, Lam Research, Spotify, and More Stocks That Explain Today’s Market",
+      "summary": "Tesla and Meta fail to excite the stock market.",
+      "link": "https://finance.yahoo.com/m/add35572-856e-31cb-981d-91d3cc20d822/tesla%2C-spacex%2C-meta%2C-lockheed.html?.tsrc=rss"
+    },
+    {
+      "title": "US Equity Markets End Lower After Meta, Tesla Fail to Meet Expectations, Higher Crude Oil Prices",
+      "summary": "US equity indexes were lower Thursday after quarterly results from Meta Platforms (META) and Tesla (",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/us-equity-markets-end-lower-202732071.html?.tsrc=rss"
+    },
+    {
+      "title": "A SpaceX-Tesla Merger Feels Inevitable. Is It Actually a Good Deal?",
+      "summary": "Tesla shareholders might be the winners in a SpaceX merger.",
+      "link": "https://finance.yahoo.com/m/228e17ee-90e4-382d-ac0e-aa9c4255c0aa/a-spacex-tesla-merger-feels.html?.tsrc=rss"
+    },
+    {
+      "title": "Meta and chip stocks decline as AI trade comes under pressure: AlphaCheck",
+      "summary": "Stocks declined as Big Tech led the AI trade lower on Thursday.",
+      "link": "https://finance.yahoo.com/markets/article/meta-and-chip-stocks-decline-as-ai-trade-comes-under-pressure-alphacheck-140107733.html?.tsrc=rss"
+    },
+    {
+      "title": "Is nVent Electric (NVT) Undervalued On Its AMD AI Data Center Cooling Deal?",
+      "summary": "nVent Electric (NVT) just tightened its link to the AI data center buildout by partnering with AMD to supply rack-level cooling for the AMD Helios Rackscale solution and its AI hardware stack. The AMD collaboration lands after a sharp pullback in nVent Electric’s share price, which fell about 21.5% over the past month and 15.9% over 90 days, even though the year-to-date share price return is 19.5%",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/nvent-electric-nvt-undervalued-amd-221535600.html?.tsrc=rss"
+    },
+    {
+      "title": "What Does an AI Agent Need a CPU For? Why Nvidia Wants In on the Business Dominated by AMD and Intel",
+      "summary": "The GPU giant expects almost $20 billion in CPU sales this year.",
+      "link": "https://www.fool.com/investing/2026/10/22/what-does-an-ai-agent-need-a-cpu-for-why-nvidia-wa/?.tsrc=rss"
+    },
+    {
+      "title": "Where Will AMD Be in 2028?",
+      "summary": "AMD has a lot of growth priced into its stock already.",
+      "link": "https://www.fool.com/investing/2026/10/22/where-will-amd-be-in-2028/?.tsrc=rss"
+    },
+    {
+      "title": "Chip Stocks Fall as Supply Warning Deepens AI Selloff: Marvell and AMD Sink 8%, Intel Drops 7%",
+      "summary": "A single comment from a chipmaking equipment supplier sent shockwaves through the semiconductor sector, and the companies most dependent on AI data center spending are paying the steepest price. Find out which chip giants are taking the hardest hits and what it signals for the industry ahead.",
+      "link": "https://247wallst.com/investing/2026/10/22/chip-stocks-fall-as-supply-warning-deepens-ai-selloff-marvell-and-amd-sink-8-intel-drops-7/?.tsrc=rss"
+    },
+    {
+      "title": "Nasdaq falls more than 2% for worst day since June as AI spending woes, oil prices spark sell-off: Live updates - CNBC",
+      "summary": "Nasdaq falls more than 2% for worst day since June as AI spending woes, oil prices spark sell-off: Live updates CNBCStocks Set for Worst Day Since July as Bonds Rally: Markets Wrap Bloomberg.comStock futures are little changed after tech sector sell-off: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5ROG52YzhPZGZHbTVQQjVmSGxSeHJoRlA0UW90MkdwNFR0ZThOQzFhSDBhMUFmNWpxSGo1RG9nU2FOZ1VTUGN2VjNieDNOT0M4bDB0Qlg5NVkwMHV3cy00VGxhQTNqQzg3a3FwUFB4Vy1lR3BlM1dV0gF8QVVfeXFMTjlVakFKZGpLV0RGRVNiaGUxMWdVcHJtSGlWdXNtYkJqUmhXbHM5S3dLcFgzdTZMRGx0OG9LZE40eTVsaDZ5WWRKTGZSMVN5OWptaXk4Qk5EZGNJTmZYdzBVUVRER3NVOW4xWllXa2k0RXFGWmhTcEw5QTZ2Ug?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Tech Selloff Deepens as Flight Into Treasurys Drives Yields Lower — Live Updates - WSJ",
+      "summary": "Stock Market Today: Tech Selloff Deepens as Flight Into Treasurys Drives Yields Lower — Live Updates WSJ",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQZHdlcnRQQU9wNmQtZ1c0V3huVjJadkFKS0dwamZRRHltOURMYXRNcHQ3UkdOUVZGR08zRVc0ZHNqWUpWM01CNHdxXzJ1RUQ2ajkycTY0VFNCcUVrN0tKM0pMazJuWkVMclBYcU01MmNQbUw2dVIteWk4SWpVWFI2MWhmSklYREk?oc=5"
+    },
+    {
+      "title": "The U.S. stock market is fracturing into two camps, and it’s leaving investors with a brutal case of whiplash - MarketWatch",
+      "summary": "The U.S. stock market is fracturing into two camps, and it’s leaving investors with a brutal case of whiplash MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxNR2VKQkQxR3RUaVlmUkhsV1VzOE9Jc1Y1R0NOVE8wZGRtWUpZX3FHbkZFMWNfWjlqejNUQzFvd1F5TmZoaFZsN0JlbkRVUjVVdlFNMW16cXZPWVNsSjE5RDlsTU1NZm8xOWZVSm1zNEdHYV9tVWtMMlhodXdsVzhVb1dyT1d6dnRtb01KQUhidmZTcVN2RkpZMXJMS2lpbEdmMGU3ZUY4emdHWjRaUXo2M0E5ZU9WTHNvVjg2Wjg2QnJFcEtpZWVjYWRqVm1Gem1abHNDRVFMX3AzaF90bG40LWljcw?oc=5"
+    },
+    {
+      "title": "If a Stock Market Crash Is Coming, History Says Investors Who Do This 1 Thing Always Win Out - The Motley Fool",
+      "summary": "If a Stock Market Crash Is Coming, History Says Investors Who Do This 1 Thing Always Win Out The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQdnRab0Fral84bGI1dHkzTkpLUGZvX1c2N0hpMEpDeWdrald0bVFrdGdFSi1veFRHVVhjckFNalJqOTZTZXpoUGdTZk8wYzFBZTJmWkFVdkZvUl9scG9XOEhWVjlqZ05nVjJodnJyQXRKUUVpYUNpU1FvU0oybzVhRjNBS2M4enBzckp4Y0p2ZEx2UVl2cVNDWg?oc=5"
+    },
+    {
+      "title": "Stock Market Today: S&P 500, Dow Jones, Nasdaq 100 Futures Drop Following Asian Market Sell-off, Middle E - Benzinga",
+      "summary": "Stock Market Today: S&P 500, Dow Jones, Nasdaq 100 Futures Drop Following Asian Market Sell-off, Middle E Benzinga",
+      "link": "https://news.google.com/rss/articles/CBMihwJBVV95cUxPOVlPODIzdV8yUGJfZHZnMURCTU04czVhMnZuZkVmelRNR3BtQmVBZzdyZ2ptNXd2WFBpSFktLWhKUXdGS0VMaVNjcFRnY2FvQlRXS3JtdzN2STRPNGtST1FPU2dlMENuTDVuLTFDWHFtakNJSUJuSW1LdHV6bGU4eWs3blhBc0VIcTdReUxIX0lDMVpoNFJLdFd1N1pGXzhURkZxekRNWWQ5c2lONzcxTTZUc0R5U19PcWlqZjZDenVFOC1ESXZobzVjOTZLcFlSWDdqU3NaMVNwbVF1T2h2S052N1o5WHhSUy02T19IV21LYm1NVnRpc0JkWk5OUEUzb0Y0bWlTNA?oc=5"
+    }
+  ],
+  "us_date": "10/22",
+  "generated_at": "2026-10-23T09:01:50.280591+09:00"
+}
