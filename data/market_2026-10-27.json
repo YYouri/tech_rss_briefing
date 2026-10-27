@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26169.38,
+      "prev": 25955.34,
+      "chg_pct": 0.82,
+      "volume": 6508626000,
+      "market_date_us": "10/26"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7676.77,
+      "prev": 7623.68,
+      "chg_pct": 0.7,
+      "volume": 2759066000,
+      "market_date_us": "10/26"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52361.58,
+      "prev": 52215.16,
+      "chg_pct": 0.28,
+      "volume": 387915369,
+      "market_date_us": "10/26"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 18.39,
+      "prev": 19.45,
+      "chg_pct": -5.45,
+      "volume": 0,
+      "market_date_us": "10/26"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 11083.47,
+      "prev": 10779.46,
+      "chg_pct": 2.82,
+      "volume": 0,
+      "market_date_us": "10/26"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 102.02,
+      "prev": 101.81,
+      "chg_pct": 0.21,
+      "volume": 0,
+      "market_date_us": "10/26"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 101.09,
+      "prev": 103.27,
+      "chg_pct": -2.11,
+      "volume": 4207,
+      "market_date_us": "10/26"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4026.5,
+      "prev": 4007.9,
+      "chg_pct": 0.46,
+      "volume": 6587,
+      "market_date_us": "10/26"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1324.18,
+      "prev": 1321.76,
+      "chg_pct": 0.18,
+      "volume": 0,
+      "market_date_us": "10/26"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 712.2,
+      "prev": 704.4,
+      "chg_pct": 1.11,
+      "volume": 32734475,
+      "market_date_us": "10/26"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 491.83,
+      "prev": 478.2,
+      "chg_pct": 2.85,
+      "volume": 9067814,
+      "market_date_us": "10/26"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 56.02,
+      "prev": 55.9,
+      "chg_pct": 0.21,
+      "volume": 22939067,
+      "market_date_us": "10/26"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 152.72,
+      "prev": 151.26,
+      "chg_pct": 0.97,
+      "volume": 11269181,
+      "market_date_us": "10/26"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 216.0,
+      "prev": 210.96,
+      "chg_pct": 2.39,
+      "volume": 90043857,
+      "market_date_us": "10/26"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 531.28,
+      "prev": 516.79,
+      "chg_pct": 2.8,
+      "volume": 16655593,
+      "market_date_us": "10/26"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 90.47,
+      "prev": 86.96,
+      "chg_pct": 4.04,
+      "volume": 97995360,
+      "market_date_us": "10/26"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 424.37,
+      "prev": 418.51,
+      "chg_pct": 1.4,
+      "volume": 9505049,
+      "market_date_us": "10/26"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 343.91,
+      "prev": 347.73,
+      "chg_pct": -1.1,
+      "volume": 42263954,
+      "market_date_us": "10/26"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 532.6,
+      "prev": 524.51,
+      "chg_pct": 1.54,
+      "volume": 18204186,
+      "market_date_us": "10/26"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 391.62,
+      "prev": 372.22,
+      "chg_pct": 5.21,
+      "volume": 52860669,
+      "market_date_us": "10/26"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 249.09,
+      "prev": 248.0,
+      "chg_pct": 0.44,
+      "volume": 32080113,
+      "market_date_us": "10/26"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 316.8,
+      "prev": 320.21,
+      "chg_pct": -1.06,
+      "volume": 23863260,
+      "market_date_us": "10/26"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 630.56,
+      "prev": 642.62,
+      "chg_pct": -1.88,
+      "volume": 30797210,
+      "market_date_us": "10/26"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 223750.0,
+      "prev": 213000.0,
+      "chg_pct": 5.05,
+      "volume": 1717193,
+      "market_date_us": "10/26"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1368000.0,
+      "prev": 1275000.0,
+      "chg_pct": 7.29,
+      "volume": 473458,
+      "market_date_us": "10/26"
+    }
+  },
+  "news": [
+    {
+      "title": "80% of S&P 500 stocks are in correction territory. These 3 are still buys",
+      "summary": "With more than 80% of S&P 500 stocks down at least 10% from their highs, Ted Thatcher, founder and president of Bright Lake Wealth Management, reveals why he’s bullish on Nvidia, Microsoft and Alphabet.",
+      "link": "https://www.thestreet.com/video/80-of-sp-500-stocks-are-in-correction-territory-these-3-are-still-buy?.tsrc=rss"
+    },
+    {
+      "title": "2 Reasons investors love Paymentus (PAY)",
+      "summary": "Over the past six months, Paymentus has been a great trade, beating the S&P 500 by 13.5%. Its stock price has climbed to $33.36, representing a healthy 20.3% increase. This was partly thanks to its solid quarterly results, and the run-up might have investors contemplating their next move.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/2-reasons-investors-love-paymentus-224647823.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500, Nasdaq, Dow Begin Week Higher As Anthropic IPO Filing Rekindles AI Enthusiasm — MSFT, AAPL, CART, VZ In Focus",
+      "summary": "Investors now look forward to quarterly earnings from Microsoft, Amazon, and Alphabet due this week.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-nasdaq-dow-begin-week-higher-as-anthropic-ipo-filing-rekindles-ai-enthusiasm-msft-aapl-cart-vz-in-focus/cZU3LuaRBz7?.tsrc=rss"
+    },
+    {
+      "title": "Vanguard's Growth ETF Usually Beats the Market After a Lagging Year. I'd Own It, but Not for a 2027 Rebound.",
+      "summary": "The fund beat the index the year after four of its five lagging years since 2005. Is this a reason to buy today?",
+      "link": "https://www.fool.com/investing/2026/10/26/vanguard-s-growth-etf-usually-beats-the-market-after-a-lagging-year-i-d-own-it-but-not-for-a-2027-rebound/?.tsrc=rss"
+    },
+    {
+      "title": "Don't Miss This Week's 5 Most Important Earnings Charts",
+      "summary": "Microsoft, Alphabet, Vertiv, Sandisk, and Eli Lilly are must-see charts.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/dont-miss-weeks-5-most-214800268.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Range Resources Stock Surged Today",
+      "summary": "The global energy industry is consolidating.",
+      "link": "https://www.fool.com/investing/2026/10/26/why-range-resources-stock-surged-today/?.tsrc=rss"
+    },
+    {
+      "title": "Intel vs. Nvidia: Flat Trends vs. Rapid Expansion in Revenue",
+      "summary": "Nvidia's revenue has nearly sextupled since Q3 2024, while Intel remained flat until a recent uptick—but the gap between them keeps widening.",
+      "link": "https://www.fool.com/coverage/charts/2026/10/26/intel-vs-nvidia-flat-trends-vs-rapid-expansion-in-revenue/?.tsrc=rss"
+    },
+    {
+      "title": "Anthropic Just Filed to Go Public. Should You Buy the Stock?",
+      "summary": "Anthropic’s IPO filing reveals explosive growth and improving operating results. But can the company protect its profits as competing AI models catch up?",
+      "link": "https://www.fool.com/investing/2026/10/26/anthropic-just-filed-to-go-public-should-you-buy-the-stock/?.tsrc=rss"
+    },
+    {
+      "title": "Berkshire Hathaway: Is the Stock Still a Safe Buy Without Warren Buffett?",
+      "summary": "There are signs the company is going in a different direction under new CEO Greg Abel.",
+      "link": "https://www.fool.com/investing/2026/10/26/berkshire-hathaway-is-the-stock-still-a-safe-buy-without-warren-buffett/?.tsrc=rss"
+    },
+    {
+      "title": "Why Nu Holdings Stock Got Crushed on Monday",
+      "summary": "It wasn't because of any developments the fintech reported.",
+      "link": "https://www.fool.com/investing/2026/10/26/why-nu-holdings-stock-got-crushed-on-monday/?.tsrc=rss"
+    },
+    {
+      "title": "TSLA Analyst Ratings Hit Highest Since 2023; ARK Reiterates $4,400 Long-Term Price Target And 80% Robotaxi Thesis",
+      "summary": "ARK’s model assigns roughly 80% of Tesla’s 2031 enterprise value to robotaxis, supported by Full Self-Driving adoption among North American deliveries rising from about 55% in the second quarter to more than 75% in the third.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tsla-analyst-ratings-hit-highest-since-2023-ark-reiterates-4-400-tesla-2031-target-and-80-robotaxi-thesis/cZU3KLWRBzB?.tsrc=rss"
+    },
+    {
+      "title": "Kevin O’Leary Says Tesla-SpaceX Merger Is Inevitable After Flying Roadster Demo — ‘If You Own Tesla, You’re Gonna Own New Company’",
+      "summary": "Tesla just put on a flying-car show, but \"Shark Tank\" investor Kevin O’Leary is looking past the stunt. He thinks the bigger story is a merger with Space Exploration Technologies Corp., and he says shareholders of either company could end...",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/kevin-o-leary-says-tesla-233006194.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: Elon Musk-Led Tesla Leads Market Higher; Amazon, Alphabet, Microsoft Earnings On Deck",
+      "summary": "Dow Jones Futures: Elon Musk-led Tesla stock led the market higher Monday. Amazon, Alphabet and Microsoft earnings are due this week.",
+      "link": "https://finance.yahoo.com/m/4f45ec30-6388-381f-b8f7-2aed6d460b6f/dow-jones-futures%3A-elon.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Isn’t a Hyperscaler. Why the AI Bears Are Misreading Its $5 Billion Capex Cut.",
+      "summary": "Management says spending will rise in the coming years, which suggests this year’s cut is about timing rather than ambition.",
+      "link": "https://www.fool.com/investing/2026/10/26/tesla-isnt-a-hyperscaler-why-the-ai-bears-are-misreading-its-5-billion-capex-cut/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Stock, Upgraded On SpaceX Prospects, Moves Into A Buy Zone",
+      "summary": "Tesla stock rises flashes buy signals after an upgrade and price target hike cite core business strength and a possible SpaceX merger.",
+      "link": "https://finance.yahoo.com/m/01cd1ea9-015f-3e37-8ef6-7e8f380f0327/tesla-stock%2C-upgraded-on.html?.tsrc=rss"
+    },
+    {
+      "title": "Meta announces plans to raise up to $95 billion for AI build-out",
+      "summary": "Meta laid out a plan to raise up to $95 billion for its AI infrastructure build-out on Monday.",
+      "link": "https://finance.yahoo.com/markets/article/meta-announces-plans-to-raise-up-to-95-billion-for-ai-buildout-140141962.html?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices (AMD) Rises Higher Than Market: Key Facts",
+      "summary": "In the latest trading session, Advanced Micro Devices (AMD) closed at $532.05, marking a +2.95% move from the previous day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/advanced-micro-devices-amd-rises-204503858.html?.tsrc=rss"
+    },
+    {
+      "title": "Intel Rises 5% as New Street Upgrade Cites Server CPU Shortage; AMD and NVIDIA Gain 3%",
+      "summary": "A Wall Street analyst just slapped a Buy rating on Intel days before its earnings report, citing a server CPU shortage that could last for years. Whether the chip giant can actually deliver enough silicon to prove that thesis right is the question hanging over the whole trade.",
+      "link": "https://247wallst.com/investing/2026/10/26/intel-rises-5-as-new-street-upgrade-cites-server-cpu-shortage-amd-and-nvidia-gain-3/?.tsrc=rss"
+    },
+    {
+      "title": "Meta Seeks About $95 Billion for AI Buildout as Nvidia, AMD and Broadcom Consider Investing in Their Own Customer",
+      "summary": "Meta Platforms Inc. (NASDAQ:META) plans to raise about $95 billion for its artificial intelligence expansion, with three of its biggest chip suppliers considering buying shares in their own customer. Nvidia Corp. (NASDAQ:NVDA), Advanced Micro Devices Inc. (NASDAQ:AMD) and Broadcom Inc....",
+      "link": "https://www.benzinga.com/markets/prediction-markets/26/10/62594709/meta-95-billion-ai-expansion-chipmaker-investments?utm_source=yahooFinance&utm_campaign=partner_feed&utm_medium=referral&.tsrc=rss"
+    },
+    {
+      "title": "Not AMD. Not Marvell. Here's Which Company Nvidia Needs to Be Worried About.",
+      "summary": "Broadcom is expected to grow at a faster pace than Nvidia over the next few years.",
+      "link": "https://www.fool.com/investing/2026/10/26/heres-which-company-nvidia-needs-to-be-worried/?.tsrc=rss"
+    },
+    {
+      "title": "Stocks close higher as excitement over Anthropic IPO filing propels tech sector: Live updates - CNBC",
+      "summary": "Stocks close higher as excitement over Anthropic IPO filing propels tech sector: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1RYndxMUwyOEhHdkN2LUJFcFM5OXViRV9sLV9PNGdiZDJTdjVMTXBYeVh3LXBBdW5EYkRBd1hzWXhPT1hXVUxTYmR3YjU2Rnpuekk4V0hRd0tId3NERjBXb1IydTBKSDRNM25RRFptRHFIYXNrOGxn0gF8QVVfeXFMTzZtMm5Xc0pMVlEta0dPbmY1S0Y0RUZmaF84alY2X3Iwb04tajltY0JIMGNFZ2dtaWp3ZDFhZ09RV2tjVm1KbU9HRm9WeWYxT25mc0d5bjgyLVJfMFZ0OTNxM3g5Umc5XzBidXpQR21ld203cUpxNTA2RjhlWA?oc=5"
+    },
+    {
+      "title": "Anthropic IPO live updates: S-1 filing discloses $16.3B in first-half revenue, plans to list as 'ANT' - Yahoo Finance",
+      "summary": "Anthropic IPO live updates: S-1 filing discloses $16.3B in first-half revenue, plans to list as 'ANT' Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMi8gFBVV95cUxOZVVwTHk4NkFMRjBSRDl6cWxNbTluOU5tVnBab0t5Sm1VYjF1LS1hOUJUZTNLajViMTNrbDJZamZNOEx1MEpXVjhlaHRHb011MFVOX19CY0Y4a0xPSHFBcFd2QUpULTdTZEstc0R4czRFRVhEdDhKNmFUV0gzNHpNejVkSkVWYmpxanhOdEtoN0NkSTQ1U21CZEp1WE5Ccm1LRTdKbEdwUU4tLVZXYV9JOTJYT21kNWNpU0lqam9fcUI2cHd3ZzJEVEJpM0ZiaFRXdXpvcWZRaEZMN1B2MlBxV194RENONlV0Rms1b0hrOEJxZw?oc=5"
+    },
+    {
+      "title": "Markets News, Oct. 26, 2026: Stocks Finish Higher to Begin Busy Week of Tech Earnings, Fed Rate Decision; Tech Jumps on Enthusiasm for Anthropic IPO - Investopedia",
+      "summary": "Markets News, Oct. 26, 2026: Stocks Finish Higher to Begin Busy Week of Tech Earnings, Fed Rate Decision; Tech Jumps on Enthusiasm for Anthropic IPO Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNWmljNF84dWk1MUdZWVhRaHcyNWpGZmJBZWluYWQyUjNURUw5MG1ZcG5SVkJDWTRyZDdqajJ4QXJTcHdrdVBhVzE4WGFyaXczUzM4ZEJVSG9ibXZoNGVrTFdObUN1Zk4zYVM5WTJwN252Sm9pdllsR1NtZGZmTzdmWUZ3Y29RLXJxbnB3cXg0QS0?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Dow, S&P 500 and Nasdaq close higher as Anthropic IPO filing helps boost tech stocks - MarketWatch",
+      "summary": "Stock Market Today: Dow, S&P 500 and Nasdaq close higher as Anthropic IPO filing helps boost tech stocks MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxOODZ3Y2F6eXZQeE1pRjRFTUlJNlhqUlRIMmd2c1BlWGVwTDdYNlQwbURQVmdPTjFKUEduU2YtR0J6Z2o1Wi1UWXgxZWY1X1BmaTJJMmVlVXZoQmhZYnc0cHo4YWVYazVRWGlHQ1RaYTREVkZxTVFNdWhzUExZSHdheS1SQlVXRkZRa2VfSkU2X1dVMEV0RmZpOGwzdU1wbDBZU0JmY3YxNDFTOGFPWjhQdXpGdnlRVjFOV0wyclRjZkplemhqdGdXdEU4RTIyZw?oc=5"
+    },
+    {
+      "title": "Equities end higher as Anthropic's IPO filing buoys AI stocks - Reuters",
+      "summary": "Equities end higher as Anthropic's IPO filing buoys AI stocks Reuters",
+      "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPVVlfUU5UYnVIOHVRRHJCaWJNQ0NtM0V5aXdZUE5QSEhGVTAxWmdXcU1KeGVEaEtYTXlEal9YNjMwblR6bGZQcm5HODd6N2xnNUppZzdXMDVTSWwtZEc3a3p3Q0M4VzRtaHo3QTd1VDJpaGNPQmw0WjFNaEMyQ2JyOVpGcmZEbktIdk45OHp4blZxdzc5UllRT2V1cnllVTVVTjVYZm1IZ0VjWDlwTnc?oc=5"
+    }
+  ],
+  "us_date": "10/26",
+  "generated_at": "2026-10-27T09:37:14.207662+09:00"
+}
