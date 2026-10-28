@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26477.81,
+      "prev": 26169.38,
+      "chg_pct": 1.18,
+      "volume": 7116359000,
+      "market_date_us": "10/27"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7722.6,
+      "prev": 7676.77,
+      "chg_pct": 0.6,
+      "volume": 2810939000,
+      "market_date_us": "10/27"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52377.57,
+      "prev": 52361.58,
+      "chg_pct": 0.03,
+      "volume": 401210066,
+      "market_date_us": "10/27"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 17.52,
+      "prev": 18.39,
+      "chg_pct": -4.73,
+      "volume": 0,
+      "market_date_us": "10/27"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 11482.5,
+      "prev": 11083.47,
+      "chg_pct": 3.6,
+      "volume": 0,
+      "market_date_us": "10/27"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 102.33,
+      "prev": 101.96,
+      "chg_pct": 0.36,
+      "volume": 0,
+      "market_date_us": "10/27"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 100.48,
+      "prev": 101.76,
+      "chg_pct": -1.26,
+      "volume": 4501,
+      "market_date_us": "10/27"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4079.3,
+      "prev": 4038.4,
+      "chg_pct": 1.01,
+      "volume": 5412,
+      "market_date_us": "10/27"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1329.68,
+      "prev": 1324.77,
+      "chg_pct": 0.37,
+      "volume": 0,
+      "market_date_us": "10/27"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 721.25,
+      "prev": 712.2,
+      "chg_pct": 1.27,
+      "volume": 30099074,
+      "market_date_us": "10/27"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 511.06,
+      "prev": 491.83,
+      "chg_pct": 3.91,
+      "volume": 8447058,
+      "market_date_us": "10/27"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 55.88,
+      "prev": 56.02,
+      "chg_pct": -0.25,
+      "volume": 24724528,
+      "market_date_us": "10/27"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 157.46,
+      "prev": 152.72,
+      "chg_pct": 3.1,
+      "volume": 14184422,
+      "market_date_us": "10/27"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 217.94,
+      "prev": 216.0,
+      "chg_pct": 0.9,
+      "volume": 84307573,
+      "market_date_us": "10/27"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 560.26,
+      "prev": 531.28,
+      "chg_pct": 5.45,
+      "volume": 20488014,
+      "market_date_us": "10/27"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 93.74,
+      "prev": 90.47,
+      "chg_pct": 3.61,
+      "volume": 89550016,
+      "market_date_us": "10/27"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 436.87,
+      "prev": 424.37,
+      "chg_pct": 2.95,
+      "volume": 8992418,
+      "market_date_us": "10/27"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 347.1,
+      "prev": 343.91,
+      "chg_pct": 0.93,
+      "volume": 39051747,
+      "market_date_us": "10/27"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 531.33,
+      "prev": 532.6,
+      "chg_pct": -0.24,
+      "volume": 19419705,
+      "market_date_us": "10/27"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 407.46,
+      "prev": 391.62,
+      "chg_pct": 4.04,
+      "volume": 45019044,
+      "market_date_us": "10/27"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 253.1,
+      "prev": 249.09,
+      "chg_pct": 1.61,
+      "volume": 33975762,
+      "market_date_us": "10/27"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 320.58,
+      "prev": 316.8,
+      "chg_pct": 1.19,
+      "volume": 28434977,
+      "market_date_us": "10/27"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 620.19,
+      "prev": 630.56,
+      "chg_pct": -1.64,
+      "volume": 50659475,
+      "market_date_us": "10/27"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 232500.0,
+      "prev": 222000.0,
+      "chg_pct": 4.73,
+      "volume": 1599345,
+      "market_date_us": "10/27"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1377000.0,
+      "prev": 1341000.0,
+      "chg_pct": 2.68,
+      "volume": 514395,
+      "market_date_us": "10/27"
+    }
+  },
+  "news": [
+    {
+      "title": "Dow Jones Futures: Growth Stocks Rally, Tesla Clears Buy Point; Fed, Microsoft, Google On Tap",
+      "summary": "The S&P 500 reclaimed a key level as Tesla and growth stocks rallied. The Federal Reserve, Microsoft, Google on deck.",
+      "link": "https://finance.yahoo.com/m/7066a700-b33b-3fa1-858d-f75f49b920da/dow-jones-futures%3A-growth.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500, Nasdaq Jump On Chipmaker Strength As Investors Eye October Fed Decision — ORCL, HOOD, JBLU, RIVN, SMCI In Focus",
+      "summary": "The Federal Reserve’s October monetary policy meeting announcement is due on Wednesday.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-nasdaq-jump-on-chipmaker-strength-as-investors-eye-october-fed-decision/cZUe8u8RB6G?.tsrc=rss"
+    },
+    {
+      "title": "Dropbox (DBX) Stock Falls Amid Market Uptick: What Investors Need to Know",
+      "summary": "Dropbox (DBX) concluded the recent trading session at $36.93, signifying a -2.12% move from its prior day's close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/dropbox-dbx-stock-falls-amid-211502119.html?.tsrc=rss"
+    },
+    {
+      "title": "M-tron Industries, Inc. (MPTI) Surpasses Market Returns: Some Facts Worth Knowing",
+      "summary": "M-tron Industries, Inc. (MPTI) closed at $68.95 in the latest trading session, marking a +1.91% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/m-tron-industries-inc-mpti-211502120.html?.tsrc=rss"
+    },
+    {
+      "title": "Innovative Industrial Properties (IIPR) Stock Dips While Market Gains: Key Facts",
+      "summary": "In the most recent trading session, Innovative Industrial Properties (IIPR) closed at $52.96, indicating a -1.34% shift from the previous trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/innovative-industrial-properties-iipr-stock-211502383.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Stock Is 10% Below Its Record. Does Anthropic's IPO Filing Make It a Buy?",
+      "summary": "How much of the Claude maker's rent goes to the chip giant?",
+      "link": "https://www.fool.com/investing/2026/10/27/nvidia-stock-is-10-below-its-record-does-anthropic-s-ipo-filing-make-it-a-buy/?.tsrc=rss"
+    },
+    {
+      "title": "History Says the Stock Market's Best 6 Months Start Nov. 1. Here's How Often They've Paid Off Since 1950.",
+      "summary": "The index has climbed in most of these stretches since 1950. What did the misses cost?",
+      "link": "https://www.fool.com/investing/2026/10/27/history-says-the-stock-market-s-best-6-months-start-nov-1-here-s-how-often-they-ve-paid-off-since-1950/?.tsrc=rss"
+    },
+    {
+      "title": "Investing $1,000 in Each of These 3 Stocks 20 Years Ago Would Have Created a Portfolio Worth $674,000 Today",
+      "summary": "You don't need a ton of money to generate significant returns in the stock market.",
+      "link": "https://www.fool.com/investing/2026/10/27/investing-1-000-in-each-of-these-3-stocks-20-years-ago-would-have-created-a-portfolio-worth-usd674-000-today/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia’s New $3 Billion AI Bet Is on One of Its Own Customers",
+      "summary": "Nvidia’s $3 billion investment in Meta strengthens an important partnership. It also raises familiar questions about who is funding the AI boom.",
+      "link": "https://www.fool.com/investing/2026/10/27/nvidias-new-3-billion-ai-bet-is-on-one-of-its-own-customers/?.tsrc=rss"
+    },
+    {
+      "title": "Jensen Huang's Late-Night Calls With President Trump Come as Nvidia's China AI Chip Shipments Fall 44% in the First Half of 2026. Here's Why His Access Matters.",
+      "summary": "Chinese companies reportedly want billions in Nvidia chips, but shipments have still fallen 44% in the first half of 2026.",
+      "link": "https://www.fool.com/investing/2026/10/27/jensen-huangs-late-night-calls-with-trump/?.tsrc=rss"
+    },
+    {
+      "title": "TSLA Stock Rises As Cybercabs Overtake Model Ys In Authorized Texas Robotaxi Fleet",
+      "summary": "According to the data from the Texas DMV, Tesla has 1,051 vehicles authorized for use as robotaxis, of which 544 are Cybercabs.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tsla-stock-rises-as-cybercabs-overtake-model-ys-in-authorized-texas-robotaxi-fleet/cZUen2iRBCz?.tsrc=rss"
+    },
+    {
+      "title": "Scott Galloway Warns Tesla Is the ‘Patient’ and SpaceX Its ‘Organ Donor’ in Elon Musk’s $3.5 Trillion Merger Plan: 'Real Merger With a Fake Premise'",
+      "summary": "Scott Galloway warned that Elon Musk’s proposed merger between Tesla Inc. and Space Exploration Technologies Corp. could rescue the electric vehicle maker at SpaceX shareholders’ expense, arguing that Musk routinely combines struggling businesses with stronger companies. Galloway Questions Musk’s Corporate...",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/scott-galloway-warns-tesla-patient-213018121.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Stock Rises In A Buy Range; Musk Touts Cybercab Fleet Expansion",
+      "summary": "Tesla stock rose more than 4% on Monday. CEO Elon Musk touted the progress Tesla made expanding its Cybercab fleet.",
+      "link": "https://finance.yahoo.com/m/85f94354-9e71-320a-a15d-a3a35ca2bddb/tesla-stock-rises-in-a-buy.html?.tsrc=rss"
+    },
+    {
+      "title": "Want to Test Tesla’s Full Self-Driving? Rent It on Turo.",
+      "summary": "Tesla and Turo have partnered so drivers can take Tesla’s driver assistance product, FSD, for a test drive.",
+      "link": "https://finance.yahoo.com/m/090e3be6-8740-3fee-8c26-265560ecca31/want-to-test-tesla%E2%80%99s-full.html?.tsrc=rss"
+    },
+    {
+      "title": "Meta's deal with AMD, Nvidia, Broadcom: Is circular financing a risk?",
+      "summary": "Laffer Tengler Investments CEO and CIO Nancy Tengler and her panel of experts weigh in on Meta's (META) partnerships with AMD (AMD), Nvidia (NVDA), and Broadcom (AVGO).Today's panel includes Yahoo Finance Senior Autos Reporter Pras Subramanian, Axios senior AI reporter Madison Mills, Envorso founder Adrian Balfour, and Clocktower Group chief macro strategist Eric Wallerstein.",
+      "link": "https://finance.yahoo.com/video/metas-deal-with-amd-nvidia-broadcom-is-circular-financing-a-risk-170600468.html?.tsrc=rss"
+    },
+    {
+      "title": "Penguin Solutions, Broadcom, FormFactor, Lattice Semiconductor, and AMD stocks trade up, what you need to know",
+      "summary": "A number of stocks jumped in the afternoon session after major artificial intelligence deals and landmark financing agreements reinforced investor confidence in sustained technological demand as reported by AP News.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/penguin-solutions-broadcom-formfactor-lattice-222247675.html?.tsrc=rss"
+    },
+    {
+      "title": "I'd Own a Small Position in AMD Stock Through 2030, but I Wouldn't Expect It to Triple Again",
+      "summary": "Can the chipmaker's own earnings target lift its stock back past its October record?",
+      "link": "https://www.fool.com/investing/2026/10/27/i-d-own-a-small-position-in-amd-stock-through-2030-but-i-wouldn-t-expect-it-to-triple-again/?.tsrc=rss"
+    },
+    {
+      "title": "Cathie Wood Cashes Out AI Chip Stocks, Adds These Aviation Plays",
+      "summary": "Cathie Wood sold big chunks of the two AI chip stocks, which hit record-highs earlier this month.",
+      "link": "https://finance.yahoo.com/m/f8b522d9-6997-32f6-ad32-2f16f7a640f8/cathie-wood-cashes-out-ai.html?.tsrc=rss"
+    },
+    {
+      "title": "Rosenblatt names top semiconductor picks amid data-center strength",
+      "summary": "Investing.com -- Rosenblatt Securities has named AMD as its top semiconductor pick heading into earnings season, citing strengthening data-center fundamentals and broadening demand despite recent share price declines across the sector.",
+      "link": "https://finance.yahoo.com/technology/articles/rosenblatt-names-top-semiconductor-picks-184254049.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500 posts back-to-back winning days as chips rally and oil prices slide: Live updates - CNBC",
+      "summary": "S&P 500 posts back-to-back winning days as chips rally and oil prices slide: Live updates CNBCStock market today: Dow, S&P 500, Nasdaq rise as tech gains for second day, chip stocks rally Yahoo FinanceStock futures are little changed as traders await Fed decision, Big Tech earnings: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE01a2Ywbm5HbkhhaXZtYlM2S1pUVnJOZHphMFNEQUZTS2lQQURWbzdWTDRmYi1INFVtVExqNUV1S3JVblo2Q2hOalpnUW83Xzk4cGJrZnYyYzl0ZUxrT2s5eEoyX0VxVmwxZjVyalBzcXBKYXhaTGtB0gF8QVVfeXFMTTdtcmVVc3VlM04tY1dHN1c1SXRaRnFXM2c1SVpEaE14UW1ScTRRYWZsR1I1ZDNmM3RJNXhkcFV0eGU1dXItUDEwNWZHZlpZTE5pQWI1Rzd2UElyQ0J6N21CbHZ5WnRrZHFYWEl5aWZtUW9jZjhnY0pPbVpQZA?oc=5"
+    },
+    {
+      "title": "The rest of the market is leaving Big Tech behind after a historic comeback - MarketWatch",
+      "summary": "The rest of the market is leaving Big Tech behind after a historic comeback MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxNMWlHcUNTVmY2bEVZazUxMjlCdkdtUlMwTF84NUkwczZVdVFHa3UxLUNGOTUweTd6TFNnUVVPc3FnazJsR0w2a3Y4Y0xMWVZUTkRtYmh3RkpvQW5BYnYyWkM0R1RqekkydGozLXAtb3ZtQW5qYUhQcnh2cVJ2SU1KSUh5UE5rYXBRanYxWGlFNmdlYzZ1cExwRkNVTGhRZEJzV2k4UWFwbEQ4Sk1nbV9SNFdUNmpBWHc4aWc?oc=5"
+    },
+    {
+      "title": "US Stock Futures Gain, Oil Falls on Iran Comments: Markets Wrap - Bloomberg.com",
+      "summary": "US Stock Futures Gain, Oil Falls on Iran Comments: Markets Wrap Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPYTFLZTJNckNaRFN0TG9fLXJTY3h3VkVRSnZfMDJfLVkxOTNsU01IbWtXbDZQUTFIOXJXWENhY2NIX0ZuLUdLSHJMemcyUkNEZklQdUQxZlpHUWNwaVE3WFp1dk1meVZwejRrSUF1dEhFdDBjNUp3WVdqVnNBamJfQjFrN2g5b3QwZFBUMHZjYVU2aGhK?oc=5"
+    },
+    {
+      "title": "Prediction: Oct. 29 Will Be an Enormous Day for the Stock Market - The Motley Fool",
+      "summary": "Prediction: Oct. 29 Will Be an Enormous Day for the Stock Market The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxONV9wTWh2QS1TZndOSUZ2bEZTVi1IeGZURkh0ZVZrSTQybDhxM3B5SXpIc2JMZ3FRck5WeEFFWWVKS25NQzZ5bWsyVjlhUU1iMkE2WFZkMVUteFlUTldZQVNSdHF2ODZMaGlpRzVIUzJxamlQWHRQRDFHWTlLWEtiNFdTb3M4V2ZkUmVRTUp2SWExUTUtS0JjeUZ4TlZQbjA5b0dRU2xxZjM?oc=5"
+    },
+    {
+      "title": "Stocks close higher as excitement over Anthropic IPO filing propels tech sector: Live updates - CNBC",
+      "summary": "Stocks close higher as excitement over Anthropic IPO filing propels tech sector: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1RYndxMUwyOEhHdkN2LUJFcFM5OXViRV9sLV9PNGdiZDJTdjVMTXBYeVh3LXBBdW5EYkRBd1hzWXhPT1hXVUxTYmR3YjU2Rnpuekk4V0hRd0tId3NERjBXb1IydTBKSDRNM25RRFptRHFIYXNrOGxn0gF8QVVfeXFMTzZtMm5Xc0pMVlEta0dPbmY1S0Y0RUZmaF84alY2X3Iwb04tajltY0JIMGNFZ2dtaWp3ZDFhZ09RV2tjVm1KbU9HRm9WeWYxT25mc0d5bjgyLVJfMFZ0OTNxM3g5Umc5XzBidXpQR21ld203cUpxNTA2RjhlWA?oc=5"
+    },
+    {
+      "title": "Stock Market Today (Oct. 27, 2026): S&P 500 climbs as Wall Street gears up for earnings, Fed meeting - AOL.com",
+      "summary": "Stock Market Today (Oct. 27, 2026): S&P 500 climbs as Wall Street gears up for earnings, Fed meeting AOL.com",
+      "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE1fQ1lFb2VabzlKVGhYRUg2RjJXS2paeU1ucDRSdEdBLVVydVJtV0dxN29yN2pvU2FlOV9NdTQyMEhqZk9QcmpSanFSTE1KZXZlZ1FURk1FZ2FGTFBqZjRfcFFfX0hNNGhRdkZEQU1NNDFHaEl2R0Y2TQ?oc=5"
+    }
+  ],
+  "us_date": "10/27",
+  "generated_at": "2026-10-28T09:35:17.097960+09:00"
+}
