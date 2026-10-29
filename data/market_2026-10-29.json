@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26549.85,
+      "prev": 26477.81,
+      "chg_pct": 0.27,
+      "volume": 7142936000,
+      "market_date_us": "10/28"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7743.98,
+      "prev": 7722.6,
+      "chg_pct": 0.28,
+      "volume": 3085116000,
+      "market_date_us": "10/28"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52475.1,
+      "prev": 52377.57,
+      "chg_pct": 0.19,
+      "volume": 405081041,
+      "market_date_us": "10/28"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 16.91,
+      "prev": 17.52,
+      "chg_pct": -3.48,
+      "volume": 0,
+      "market_date_us": "10/28"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 11684.0,
+      "prev": 11482.5,
+      "chg_pct": 1.75,
+      "volume": 0,
+      "market_date_us": "10/28"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 102.24,
+      "prev": 102.32,
+      "chg_pct": -0.08,
+      "volume": 0,
+      "market_date_us": "10/28"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 101.93,
+      "prev": 99.9,
+      "chg_pct": 2.03,
+      "volume": 5706,
+      "market_date_us": "10/28"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4049.1,
+      "prev": 4074.6,
+      "chg_pct": -0.63,
+      "volume": 8846,
+      "market_date_us": "10/28"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1333.98,
+      "prev": 1326.81,
+      "chg_pct": 0.54,
+      "volume": 0,
+      "market_date_us": "10/28"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 725.61,
+      "prev": 721.25,
+      "chg_pct": 0.6,
+      "volume": 28955146,
+      "market_date_us": "10/28"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 521.94,
+      "prev": 511.06,
+      "chg_pct": 2.13,
+      "volume": 8061790,
+      "market_date_us": "10/28"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 56.13,
+      "prev": 55.88,
+      "chg_pct": 0.45,
+      "volume": 25154516,
+      "market_date_us": "10/28"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 165.91,
+      "prev": 157.46,
+      "chg_pct": 5.37,
+      "volume": 22028455,
+      "market_date_us": "10/28"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 215.38,
+      "prev": 217.94,
+      "chg_pct": -1.17,
+      "volume": 91664984,
+      "market_date_us": "10/28"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 578.44,
+      "prev": 560.26,
+      "chg_pct": 3.24,
+      "volume": 18557439,
+      "market_date_us": "10/28"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 95.53,
+      "prev": 93.74,
+      "chg_pct": 1.91,
+      "volume": 81290887,
+      "market_date_us": "10/28"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 439.51,
+      "prev": 436.87,
+      "chg_pct": 0.6,
+      "volume": 8005677,
+      "market_date_us": "10/28"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 343.83,
+      "prev": 347.1,
+      "chg_pct": -0.94,
+      "volume": 34405006,
+      "market_date_us": "10/28"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 531.01,
+      "prev": 531.33,
+      "chg_pct": -0.06,
+      "volume": 25128542,
+      "market_date_us": "10/28"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 404.22,
+      "prev": 407.46,
+      "chg_pct": -0.8,
+      "volume": 35080523,
+      "market_date_us": "10/28"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 254.6,
+      "prev": 253.1,
+      "chg_pct": 0.59,
+      "volume": 33783543,
+      "market_date_us": "10/28"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 324.89,
+      "prev": 320.58,
+      "chg_pct": 1.34,
+      "volume": 54011739,
+      "market_date_us": "10/28"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 612.49,
+      "prev": 620.19,
+      "chg_pct": -1.24,
+      "volume": 34485035,
+      "market_date_us": "10/28"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 245250.0,
+      "prev": 242000.0,
+      "chg_pct": 1.34,
+      "volume": 4608662,
+      "market_date_us": "10/28"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1567000.0,
+      "prev": 1487000.0,
+      "chg_pct": 5.38,
+      "volume": 1079910,
+      "market_date_us": "10/28"
+    }
+  },
+  "news": [
+    {
+      "title": "S&P 500, Nasdaq Futures Dip As Weaker-Than-Expected Alphabet Earnings Reignite AI Spending Worries — GOOGL, MSFT, ORCL, NVDA, MRVL In Focus",
+      "summary": "The Federal Reserve left interest rates unchanged in its October policy meeting.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-nasdaq-futures-dip-as-weaker-than-expected-alphabet-earnings-reignite-ai-spending-worries-googl-msft-orcl-nvda-mrvl-in-focus/cZUQ2gwR9Gq?.tsrc=rss"
+    },
+    {
+      "title": "3 Reasons PGR has explosive upside potential",
+      "summary": "Progressive trades at $225.20 and has moved in lockstep with the market. Its shares have returned 10.9% over the last six months while the S&P 500 has gained 7.5%.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/3-reasons-pgr-explosive-upside-234234706.html?.tsrc=rss"
+    },
+    {
+      "title": "Perma-Fix (PESI): buy, sell, or hold post Q2 earnings?",
+      "summary": "Since April 2026, Perma-Fix has been in a holding pattern, posting a small return of 1.9% while floating around $12.93. The stock also fell short of the S&P 500’s 7.5% gain during that period.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/perma-fix-pesi-buy-sell-232634777.html?.tsrc=rss"
+    },
+    {
+      "title": "30 Stocks That Could Rally 50% or More",
+      "summary": "Analysts say these S&P 500 stocks have at least 50% price upside over the next year or so.",
+      "link": "https://www.kiplinger.com/investing/stocks/stocks-that-could-rally?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: Microsoft Rises, But Google, ServiceNow, Fortinet Dive On Earnings",
+      "summary": "After the stock market rose for a third day, Microsoft rose late on strong earnings. But Google, ServiceNow and Fortinet dived.",
+      "link": "https://finance.yahoo.com/m/6c0b166b-19af-3d40-b6ff-7c6d65d3c4da/dow-jones-futures%3A-microsoft.html?.tsrc=rss"
+    },
+    {
+      "title": "NVDA Stock Edges Down On DOJ Interest In $12.9 Billion Hugging Face Acquisition",
+      "summary": "According to a report from Reuters, citing people familiar with the matter, department officials have asked whether the Hugging Face deal would allow Nvidia to control a key distribution point for AI models and tools.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/nvda-stock-edges-down-on-doj-interest-in-12-9-billion-hugging-face-acquisition/cZU9MDeR9Go?.tsrc=rss"
+    },
+    {
+      "title": "Microsoft and Alphabet Just Reported Earnings, Putting the AI Boom to the Test",
+      "summary": "Cloud growth is booming at Microsoft and Alphabet. But paying for that growth is becoming a very different story.",
+      "link": "https://www.fool.com/investing/2026/10/28/microsoft-and-alphabet-just-reported-earnings-putting-the-ai-boom-to-the-test/?.tsrc=rss"
+    },
+    {
+      "title": "CrowdStrike (CRWD) Stock Looks Overvalued On Its 5x Three Year Run",
+      "summary": "CrowdStrike Holdings has been one of the headline cyber security stocks in recent years. Its sharp share price gains now put a spotlight on a more old fashioned question for investors: how much book value actually supports that market valuation. Over the past 3 years the stock has delivered a very large total return of roughly 5x, which puts a lot of weight on whether the balance sheet and account",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/crowdstrike-crwd-stock-looks-overvalued-001653356.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Hayward Holdings Stock Jumped Today",
+      "summary": "Once a pool is installed, it requires ongoing maintenance.",
+      "link": "https://www.fool.com/investing/2026/10/28/why-hayward-holdings-stock-jumped-today/?.tsrc=rss"
+    },
+    {
+      "title": "Marvell Wants Lumentum. Here’s Why Coherent Could Win.",
+      "summary": "Marvell's reported bid for Lumentum is sending shockwaves through the optical networking sector, but the company with the most to gain from this deal may not be either party sitting at the negotiating table.",
+      "link": "https://247wallst.com/investing/2026/10/28/marvell-wants-lumentum-heres-why-coherent-could-win/?.tsrc=rss"
+    },
+    {
+      "title": "33 Wall Street Giants Block Tokenized Stocks, But Apple and Tesla Stay Silent",
+      "summary": "JPMorgan, Coca-Cola, and 31 other companies used a new SEC veto to block tokenized stocks on OKX and ICE’s venue.",
+      "link": "https://beincrypto.com/wall-street-giants-block-tokenized-stock/?.tsrc=rss"
+    },
+    {
+      "title": "Top Stock Reports for Tesla, Netflix & American Express",
+      "summary": "Tesla's software and energy growth, Netflix's advertising challenges and American Express' strong spending trends headline today's top stock research reports.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/top-stock-reports-tesla-netflix-190800305.html?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk once backed Buffett’s 5-minute fix for national debt: ‘This is the way’",
+      "summary": "Warren Buffett’s famous deficit plan involved keeping lawmakers accountable for maintaining a specific number.",
+      "link": "https://www.thestreet.com/economy/elon-musk-backs-warren-buffett-3-percent-gdp-limit-to-fix-national-debt-deficit?.tsrc=rss"
+    },
+    {
+      "title": "History Shows That Buying the Dip Can Yield Huge Profits. Consider Snapping Up These 3 $100+ Stocks Here.",
+      "summary": "Boeing, Booking Holdings and Carpenter Technology all set new 52-week lows this week. Despite earnings misses, an FTC probe and AI worries, all three stocks merit buying on the dip.",
+      "link": "https://www.barchart.com/story/news/8508656/history-shows-that-buying-the-dip-can-yield-huge-profits-consider-snapping-up-these-3-100-stocks-here?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Gains Another 4% as ARK Restates $4,400 Robotaxi Target and Musk Teases “A Storm of Cybercabs”",
+      "summary": "Key TakeawaysTesla shares rose 4% today, adding to Monday’s gain on a Barclays upgrade, after ARK Invest restated its $4,400 price target for 2031. Barclays’ $450 target rests on a SpaceX merger, while ARK puts about 80% of Tesla’s 2031 value on robotaxis.",
+      "link": "https://www.tikr.com/blog/tesla-gains-another-4-as-ark-restates-4400-robotaxi-target-and-musk-teases-a-storm-of-cybercabs?ref=yahoofinance&.tsrc=rss"
+    },
+    {
+      "title": "Meta’s Raising $97.5 Billion. Nvidia and AMD Are Buying In.",
+      "summary": "Meta is looking to raise up to $97.5 billion as its AI spending and future commitments balloon. Nvidia and AMD are buying in, raising fresh questions about Big Tech’s circular financing loop.",
+      "link": "https://app.moby.co/home/news/news-meta-readies-first-equity-sale-of-new-stock-since-2013?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss"
+    },
+    {
+      "title": "Is AMD Stock a Buy, Sell, or Hold Right Now? Here's What I'm Doing.",
+      "summary": "AMD's bear case seems to hold more water.",
+      "link": "https://www.fool.com/investing/2026/10/28/is-amd-stock-a-buy-sell-or-hold-right-now-heres/?.tsrc=rss"
+    },
+    {
+      "title": "Should You Buy AMD Stock Before Nov. 3?",
+      "summary": "AMD reports third-quarter earnings on Nov. 3.",
+      "link": "https://www.fool.com/investing/2026/10/28/should-you-buy-amd-stock-before-nov-3/?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices vs. Dell Technologies: Which Technology Stock Is a Better Buy in 2026?",
+      "summary": "AMD's 34% revenue growth and $5.5 billion in free cash flow come with a 70x forward P/E, while Dell pairs $8.6 billion in free cash flow with a 17.6x multiple and a $95 billion AI server backlog.",
+      "link": "https://www.fool.com/coverage/better-buy/2026/10/28/advanced-micro-devices-vs-dell-technologies-which-technology-stock-is-a-better-buy-in-2026/?.tsrc=rss"
+    },
+    {
+      "title": "Stock market today: Nasdaq wavers, S&P 500 and Dow climb as Fed votes to hold rates steady in 10-2 decision - Yahoo Finance",
+      "summary": "Stock market today: Nasdaq wavers, S&P 500 and Dow climb as Fed votes to hold rates steady in 10-2 decision Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxPdHZRVUxuLTdMcW5FVjFpLTJKY29qczJmSWtSOVhIVmFTSUR1WnR2X0NsSGxNcDBrcU5IcWVvRzNFMkZQOWpENENYNUZ2UU8yTXFKSW82SEVfY1ZMZHF3Q2dtSDU2SGRTNS1tRk1XQjVNdkVkMlZVTXdJZ3E0eHV2ZjZIeDdwWWxUeFU3VEVjaE85UnBxMzRWVlFuREt1MFliTHpmcFpKWXJrbzAwWEdnSDFHSHpXXzJubzVCYVM4TzNkdndFYV9EVTZmQ2s1SXRD?oc=5"
+    },
+    {
+      "title": "Nasdaq-100 futures dip as Alphabet shares sell off after earnings report: Live updates - CNBC",
+      "summary": "Nasdaq-100 futures dip as Alphabet shares sell off after earnings report: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5SalhOeEdhMFUtUWRnVl90YWlHLU90SGt2cmJ2b1Y4aDRmRVZJV3VGS3haNkpEa28wcDMzbGR4dTRtZnNvbUM1WDBDeGtsUkNIN1dOUDdtNXgzV0xaZ3R5ZTk4SEhmRzYyR0dtcGp4RFFEVHA3YzNZ0gF8QVVfeXFMT25jby1VNlpYNGp3ekVGUEVKd29Lanc1bndoVFluRGk0WmhrU08zNDVpVFhOazVlMVE5RkhadGM4VEFhaWREaXJpb09WR0U2LVNHVXBma2NpWHNKUURmVi1hZXNqRXlrZGNUMndNZlFzV2JIdEJfa1hNTkNjYQ?oc=5"
+    },
+    {
+      "title": "Wall Street ends higher as Fed holds key rate steady, focus turns to earnings - Reuters",
+      "summary": "Wall Street ends higher as Fed holds key rate steady, focus turns to earnings Reuters",
+      "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxPQVNrQUVwN1c3SjBCODU1TXUwRy1hQ2lIQUxFZkJ3dGhXa0NZalhVTFFoeTU4MlB3VDRwWE1QRktITG5FZnd1eUVDTjRUankwRGgzRkRKTGdwZDVDbWUyTWVKNlRKVld5RVdaTllzZkVhdXUzNkZUOU5RWWNOQVJTY2xuaDJZZXlybC05LXRmTmpPb2RvVlliLWxBUXZVRldXU3kyY2pWb1ZmZlFNUU1KMmN4aV9wMk9Lai01YXcza0JqdDQ?oc=5"
+    },
+    {
+      "title": "US Stock Futures Gain, Oil Falls on Iran Comments: Markets Wrap - Bloomberg",
+      "summary": "US Stock Futures Gain, Oil Falls on Iran Comments: Markets Wrap Bloomberg",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPYTFLZTJNckNaRFN0TG9fLXJTY3h3VkVRSnZfMDJfLVkxOTNsU01IbWtXbDZQUTFIOXJXWENhY2NIX0ZuLUdLSHJMemcyUkNEZklQdUQxZlpHUWNwaVE3WFp1dk1meVZwejRrSUF1dEhFdDBjNUp3WVdqVnNBamJfQjFrN2g5b3QwZFBUMHZjYVU2aGhK?oc=5"
+    },
+    {
+      "title": "Stock Market News, Oct. 28, 2026: Dow, S&P 500 and Nasdaq end higher after Fed holds rates steady; Microsoft and Alphabet results loom; SK Hynix stock soars - MarketWatch",
+      "summary": "Stock Market News, Oct. 28, 2026: Dow, S&P 500 and Nasdaq end higher after Fed holds rates steady; Microsoft and Alphabet results loom; SK Hynix stock soars MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxOaEVsNXZzNWlCWGt1YnVOVldEcVJBMTNWTnRvbVdud2llM2RzR2ZVSHlSdjlYTFRieVBwNUh2Njg4RTUwZjNUcklYUE9nTnJsVDBacFlFLTNrUlk2YnA2Z0JUU2txNDR3dU1FMTFVTmN1bmR3dTYyX0FJZm9vZm52eS1VYllLaFVBVFBkeExWLThUbnpIaE16eFk1dnd1bzlaNldMOUZlLV96YTRxanNteFZLVFJtSUh2WlhRa0Z1VmxJSFdDc0piT2FB?oc=5"
+    },
+    {
+      "title": "Stock Market Today (Oct. 27, 2026): S&P 500 climbs as Wall Street gears up for earnings, Fed meeting - AOL.com",
+      "summary": "Stock Market Today (Oct. 27, 2026): S&P 500 climbs as Wall Street gears up for earnings, Fed meeting AOL.com",
+      "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE1fQ1lFb2VabzlKVGhYRUg2RjJXS2paeU1ucDRSdEdBLVVydVJtV0dxN29yN2pvU2FlOV9NdTQyMEhqZk9QcmpSanFSTE1KZXZlZ1FURk1FZ2FGTFBqZjRfcFFfX0hNNGhRdkZEQU1NNDFHaEl2R0Y2TQ?oc=5"
+    }
+  ],
+  "us_date": "10/28",
+  "generated_at": "2026-10-29T10:04:43.167086+09:00"
+}
