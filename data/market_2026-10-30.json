@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 26184.72,
+      "prev": 26549.85,
+      "chg_pct": -1.38,
+      "volume": 6506000000,
+      "market_date_us": "10/29"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7720.39,
+      "prev": 7743.98,
+      "chg_pct": -0.3,
+      "volume": 3300311000,
+      "market_date_us": "10/29"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52342.56,
+      "prev": 52475.1,
+      "chg_pct": -0.25,
+      "volume": 549807356,
+      "market_date_us": "10/29"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 17.2,
+      "prev": 16.91,
+      "chg_pct": 1.71,
+      "volume": 0,
+      "market_date_us": "10/29"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 11518.2,
+      "prev": 11684.0,
+      "chg_pct": -1.42,
+      "volume": 0,
+      "market_date_us": "10/29"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 101.72,
+      "prev": 102.19,
+      "chg_pct": -0.46,
+      "volume": 0,
+      "market_date_us": "10/29"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 102.6,
+      "prev": 102.78,
+      "chg_pct": -0.18,
+      "volume": 6402,
+      "market_date_us": "10/29"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4015.3,
+      "prev": 4051.6,
+      "chg_pct": -0.9,
+      "volume": 9077,
+      "market_date_us": "10/29"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1338.48,
+      "prev": 1340.34,
+      "chg_pct": -0.14,
+      "volume": 0,
+      "market_date_us": "10/29"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 715.34,
+      "prev": 725.61,
+      "chg_pct": -1.42,
+      "volume": 36940569,
+      "market_date_us": "10/29"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 513.86,
+      "prev": 521.94,
+      "chg_pct": -1.55,
+      "volume": 6189944,
+      "market_date_us": "10/29"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 56.94,
+      "prev": 56.13,
+      "chg_pct": 1.44,
+      "volume": 32819585,
+      "market_date_us": "10/29"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 161.83,
+      "prev": 165.91,
+      "chg_pct": -2.46,
+      "volume": 14109370,
+      "market_date_us": "10/29"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 213.66,
+      "prev": 215.38,
+      "chg_pct": -0.8,
+      "volume": 75456091,
+      "market_date_us": "10/29"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 566.42,
+      "prev": 578.44,
+      "chg_pct": -2.08,
+      "volume": 16285243,
+      "market_date_us": "10/29"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 92.07,
+      "prev": 95.53,
+      "chg_pct": -3.62,
+      "volume": 112052896,
+      "market_date_us": "10/29"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 431.81,
+      "prev": 439.51,
+      "chg_pct": -1.75,
+      "volume": 8315268,
+      "market_date_us": "10/29"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 348.91,
+      "prev": 343.83,
+      "chg_pct": 1.48,
+      "volume": 41340227,
+      "market_date_us": "10/29"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 530.14,
+      "prev": 531.01,
+      "chg_pct": -0.16,
+      "volume": 39119013,
+      "market_date_us": "10/29"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 403.3,
+      "prev": 404.22,
+      "chg_pct": -0.23,
+      "volume": 22375524,
+      "market_date_us": "10/29"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 243.79,
+      "prev": 254.6,
+      "chg_pct": -4.25,
+      "volume": 79750364,
+      "market_date_us": "10/29"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 283.82,
+      "prev": 324.89,
+      "chg_pct": -12.64,
+      "volume": 138462344,
+      "market_date_us": "10/29"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 624.52,
+      "prev": 612.49,
+      "chg_pct": 1.96,
+      "volume": 31073830,
+      "market_date_us": "10/29"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 222000.0,
+      "prev": 232000.0,
+      "chg_pct": -4.31,
+      "volume": 4738899,
+      "market_date_us": "10/29"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1412000.0,
+      "prev": 1526000.0,
+      "chg_pct": -7.47,
+      "volume": 899968,
+      "market_date_us": "10/29"
+    }
+  },
+  "news": [
+    {
+      "title": "Dow Jones Futures: Amazon, Intel Slam Nasdaq After Google, ServiceNow, Fortinet Dive",
+      "summary": "Amazon, Intel and Illumina were earnings losers overnight after Google, ServiceNow and Fortinet slammed techs. Much of the market is doing fine.",
+      "link": "https://finance.yahoo.com/m/0a5ce393-a6df-312b-af64-1893a264d0df/dow-jones-futures%3A-amazon%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "20 Years of S&P 500 History Show: This Simple Strategy Is Only 8.3% Less Than \"Perfect\"",
+      "summary": "Instead of waiting for stocks to go down, just buying the S&P 500 as soon as possible can give you nearly perfect returns.",
+      "link": "https://www.fool.com/investing/2026/10/29/20-years-of-sp-500-history-show-this-simple-strate/?.tsrc=rss"
+    },
+    {
+      "title": "Why MongoDB (MDB) Dipped More Than Broader Market Today",
+      "summary": "In the closing of the recent trading day, MongoDB (MDB) stood at $384.95, denoting a -2.16% move from the preceding trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/why-mongodb-mdb-dipped-more-211503469.html?.tsrc=rss"
+    },
+    {
+      "title": "Pacific Biosciences of California (PACB) Rises As Market Takes a Dip: Key Facts",
+      "summary": "In the latest trading session, Pacific Biosciences of California (PACB) closed at $2.9, marking a +2.47% move from the previous day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/pacific-biosciences-california-pacb-rises-211503713.html?.tsrc=rss"
+    },
+    {
+      "title": "Ginkgo Bioworks Holdings, Inc. (DNA) Suffers a Larger Drop Than the General Market: Key Insights",
+      "summary": "Ginkgo Bioworks Holdings, Inc. (DNA) closed at $12.74 in the latest trading session, marking a -4.35% move from the prior day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/ginkgo-bioworks-holdings-inc-dna-211503428.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia's $12.9 billion deal could shape the AI apps you use",
+      "summary": "Nvidia may have too much control over an AI gateway, according to the Justice Department.",
+      "link": "https://www.thestreet.com/investing/nvidias-12-9-billion-deal-could-shape-the-ai-apps-you-use?.tsrc=rss"
+    },
+    {
+      "title": "Kymera Therapeutics, Inc. Q3 2026 Earnings Call Summary",
+      "summary": "Moby summary of Kymera Therapeutics, Inc.'s Q3 2026 earnings call",
+      "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-kymera-therapeutics-inc-q3-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss"
+    },
+    {
+      "title": "Kimco Realty Corporation Q3 2026 Earnings Call Summary",
+      "summary": "Moby summary of Kimco Realty Corporation's Q3 2026 earnings call",
+      "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-kimco-realty-corporation-q3-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss"
+    },
+    {
+      "title": "Laureate Education, Inc. Q3 2026 Earnings Call Summary",
+      "summary": "Moby summary of Laureate Education, Inc.'s Q3 2026 earnings call",
+      "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-laureate-education-inc-q3-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss"
+    },
+    {
+      "title": "Quanta Services, Inc. Q3 2026 Earnings Call Summary",
+      "summary": "Moby summary of Quanta Services, Inc.'s Q3 2026 earnings call",
+      "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-quanta-services-inc-q3-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss"
+    },
+    {
+      "title": "Barclays sees major Tesla upside for retirement investors",
+      "summary": "A massive Musk deal could unexpectedly affect millions of 401(k) accounts.",
+      "link": "https://www.thestreet.com/retirement/barclays-tesla-spacex-merger-401k-index-fund-exposure?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Just Gained 13% in a Month: Take Profits, or Buy More?",
+      "summary": "Key TakeawaysTesla stock is up 13% in the past month on a delivery beat, SpaceX merger talk, a Barclays upgrade and robotaxi news. Much of the gain rests on a SpaceX deal that has no terms yet, while Tesla’s third-quarter profit fell from a year ago.",
+      "link": "https://www.tikr.com/blog/tesla-just-gained-13-in-a-month-take-profits-or-buy-more?ref=yahoofinance&.tsrc=rss"
+    },
+    {
+      "title": "Tesla Stock Gets Dragged Down by Alphabet’s Misery",
+      "summary": "Many tech stock were weak after Google’s parent company reported disappointing third-quarter numbers. .",
+      "link": "https://finance.yahoo.com/m/538805bb-efe9-3dce-af1e-783f67bd3993/tesla-stock-gets-dragged-down.html?.tsrc=rss"
+    },
+    {
+      "title": "Musk Says A Tesla-SpaceX Merger Is “A Good Idea,” But Admits It Would Require 1.98 Billion “Yes” Votes. He Calls It “Quite A High Hurdle”",
+      "summary": "Elon Musk called a Tesla and SpaceX merger a good idea, then immediately explained why pulling it off could be nearly impossible. The math behind the shareholder vote reveals just how steep the climb really is.",
+      "link": "https://247wallst.com/investing/2026/10/29/musk-says-a-tesla-spacex-merger-is-a-good-idea-but-admits-it-would-require-1-98-billion-yes-votes-he-calls-it-quite-a-high-hurdle/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla vs. Ford: Which Stock Has an Edge After Q3 Earnings?",
+      "summary": "TSLA looks better positioned after Q3 earnings, backed by improving vehicle demand, margins and robotaxi progress, while F faces rising costs and EV losses.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-vs-ford-stock-edge-143900506.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD faces high expectations as Jefferies sees limited near-term upside",
+      "summary": "Advanced Micro Devices Inc (NASDAQ:AMD, XETRA:AMD) is expected to beat quarterly estimates and raise its outlook next week, but Jefferies said supply constraints and a demanding valuation could limit further upside as investors focus on the chipmaker’s 2027 data center revenue potential. The...",
+      "link": "https://www.proactiveinvestors.com/companies/news/1100954/amd-faces-high-expectations-as-jefferies-sees-limited-near-term-upside-1100954.html?.tsrc=rss"
+    },
+    {
+      "title": "Is Advanced Micro Devices (AMD) Cheap As Meta Expands Its AI Partnership?",
+      "summary": "Advanced Micro Devices (AMD) spotlighted its partnership with Meta Platforms after confirming that AMD Helios rackscale systems, EPYC processors and Instinct GPUs are deployed across Meta’s AI infrastructure, including the Muse personal agent and related models. Advanced Micro Devices has ridden a sharp AI wave this year, with the share price delivering a 158.84% year to date share price return an",
+      "link": "https://finance.yahoo.com/technology/ai/articles/advanced-micro-devices-amd-cheap-191227580.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Has Ripped 170% This Year: Is It Too Late to Buy?",
+      "summary": "Key TakeawaysAMD stock is up 170% in 2026, carried by two record data center quarters and Meta’s deal for up to 6 gigawatts of its AI chips. Intel ran nearly as far on demand for server chips, while Nvidia lagged and trades at less than half AMD’s forward multiple.",
+      "link": "https://www.tikr.com/blog/amd-has-ripped-170-this-year-is-it-too-late-to-buy?ref=yahoofinance&.tsrc=rss"
+    },
+    {
+      "title": "AMD Stock Outlook: AMD's Meta Deal Boosts AI Growth Prospects",
+      "summary": "AMD plans a $1 billion investment in Meta's equity offering as both companies expand collaboration across AI chips, data centers, networking and software.",
+      "link": "https://www.barchart.com/story/news/8533265/amd-stock-outlook-amd-s-meta-deal-boosts-ai-growth-prospects?.tsrc=rss"
+    },
+    {
+      "title": "The Same $10,000 in AMD and Nvidia Could Produce Very Different Results by 2030",
+      "summary": "Two AI chip giants, one $10,000 stake each, and a five-year model that puts them on surprisingly different trajectories. The gap has nothing to do with which company is bigger.",
+      "link": "https://247wallst.com/investing/2026/10/29/the-same-10000-in-amd-and-nvidia-could-produce-very-different-results-by-2030/?.tsrc=rss"
+    },
+    {
+      "title": "Dow loses 100 points, S&P 500 snaps 3-day advance as Alphabet and Caterpillar tank: Live updates - CNBC",
+      "summary": "Dow loses 100 points, S&P 500 snaps 3-day advance as Alphabet and Caterpillar tank: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5SalhOeEdhMFUtUWRnVl90YWlHLU90SGt2cmJ2b1Y4aDRmRVZJV3VGS3haNkpEa28wcDMzbGR4dTRtZnNvbUM1WDBDeGtsUkNIN1dOUDdtNXgzV0xaZ3R5ZTk4SEhmRzYyR0dtcGp4RFFEVHA3YzNZ0gF8QVVfeXFMT25jby1VNlpYNGp3ekVGUEVKd29Lanc1bndoVFluRGk0WmhrU08zNDVpVFhOazVlMVE5RkhadGM4VEFhaWREaXJpb09WR0U2LVNHVXBma2NpWHNKUURmVi1hZXNqRXlrZGNUMndNZlFzV2JIdEJfa1hNTkNjYQ?oc=5"
+    },
+    {
+      "title": "Alphabet loses $482 billion in market value, the biggest drop in its history - Yahoo Finance",
+      "summary": "Alphabet loses $482 billion in market value, the biggest drop in its history Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxOb0pfRGxYakdFTWU5eXlYYTd5cGVuVmpzMDFiMDBuX2ZOQVB5aFV1Qmk1dEhXQWwtSVNtU2ZOSTNfVDMxS2NoMUpTbmJ3a0hYOGtvOGJldXlkU3k2N3djaVhDMUNGN0g5Q1J2SzRXMkhXbzI3MUxqd2t5SEszX0JEZWZPUmRSd3VZQmYyZzZZeDNvY0hKaExMcnNTbHhzeTItckpZaEJmbWxodHVla2FKTTN4cmdFY2VjWk96cjdwLUtjX3FMRmZwLVp3SHJiX2xNajBR?oc=5"
+    },
+    {
+      "title": "Wall Street ends lower as Alphabet revenue miss revives AI capex jitters - Reuters",
+      "summary": "Wall Street ends lower as Alphabet revenue miss revives AI capex jitters Reuters",
+      "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxObTRZdktaNHNaUkc2SG45TFV3V3hKRlMwdWdFTEhyUVFSRnBodWFIM0gxSHh5NWZDVkp3WnJOX3RTZGFtUDVIN3ZPQnB6NlNOQ01OOXhTRnNhNjkyajZ2ejhEZkRBS1IxMkxjVWJmY3FYa3lqcHUxajVqRXpWdS1UWjdxZFZYTW8tUjBtN2NZTGlLSWFiRlpjTDNKaVlVbHRiLVRCcA?oc=5"
+    },
+    {
+      "title": "Stock Market News, Oct. 29, 2026: AI Jitters Spread as Intel, Amazon Results Disappoint - WSJ",
+      "summary": "Stock Market News, Oct. 29, 2026: AI Jitters Spread as Intel, Amazon Results Disappoint WSJ",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQM3ZEU2VfQkFyaEZwcGF4RkM4N3VrTXRYWlFFY1hFbFJDNk9OcWdFNnluMlVCelI4akpOWnlNZmVCNDhKdWhkQ1p1aE5Vell1NkpZM1JOakxUQUlNVko4RmRhOWhubzNkY2ttUmh0b3VlZGtvWkkwYzk1N082RERRV0FOOGljcDg?oc=5"
+    },
+    {
+      "title": "Nasdaq 100 Falls 1.5% as AI Trade Shows New Cracks: Markets Wrap - Bloomberg.com",
+      "summary": "Nasdaq 100 Falls 1.5% as AI Trade Shows New Cracks: Markets Wrap Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQd1B6V3JFX19tOWhyZHVKZzFGZ1k0aXcyNERXb0JrMFNjQVpEaFZMeVMxU1FUVnJpWmFrM3JQbjJ5cXRsU0NBekRsOUM2WEQ2Zlh3MWluWUU2c0poWTk1ZDBGMC13SUtxX1lVdjEtQW1PbWdXRE95ZFJqZ2JmZEwxeW5VbVVORWlzMlJTVHdnZ2NkaWR3?oc=5"
+    }
+  ],
+  "us_date": "10/29",
+  "generated_at": "2026-10-30T10:10:47.213564+09:00"
+}
