@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 25164.36,
+      "prev": 25437.0,
+      "chg_pct": -1.07,
+      "volume": 8002403000,
+      "market_date_us": "11/02"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7541.4,
+      "prev": 7580.07,
+      "chg_pct": -0.51,
+      "volume": 3558585000,
+      "market_date_us": "11/02"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 51983.98,
+      "prev": 51770.31,
+      "chg_pct": 0.41,
+      "volume": 522048265,
+      "market_date_us": "11/02"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 21.15,
+      "prev": 19.42,
+      "chg_pct": 8.91,
+      "volume": 0,
+      "market_date_us": "11/02"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 10328.33,
+      "prev": 10688.8,
+      "chg_pct": -3.37,
+      "volume": 0,
+      "market_date_us": "11/02"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 101.84,
+      "prev": 101.88,
+      "chg_pct": -0.03,
+      "volume": 0,
+      "market_date_us": "11/02"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 96.93,
+      "prev": 104.12,
+      "chg_pct": -6.91,
+      "volume": 19295,
+      "market_date_us": "11/02"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 3956.8,
+      "prev": 3898.9,
+      "chg_pct": 1.49,
+      "volume": 16109,
+      "market_date_us": "11/02"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1338.38,
+      "prev": 1325.52,
+      "chg_pct": 0.97,
+      "volume": 0,
+      "market_date_us": "11/02"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 681.09,
+      "prev": 690.49,
+      "chg_pct": -1.36,
+      "volume": 54716423,
+      "market_date_us": "11/02"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 453.65,
+      "prev": 471.51,
+      "chg_pct": -3.79,
+      "volume": 10802222,
+      "market_date_us": "11/02"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 57.56,
+      "prev": 56.51,
+      "chg_pct": 1.86,
+      "volume": 41200451,
+      "market_date_us": "11/02"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 151.62,
+      "prev": 152.89,
+      "chg_pct": -0.83,
+      "volume": 15065157,
+      "market_date_us": "11/02"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 202.06,
+      "prev": 204.64,
+      "chg_pct": -1.26,
+      "volume": 119222246,
+      "market_date_us": "11/02"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 466.84,
+      "prev": 504.8,
+      "chg_pct": -7.52,
+      "volume": 32129533,
+      "market_date_us": "11/02"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 59.97,
+      "prev": 65.76,
+      "chg_pct": -8.8,
+      "volume": 230485372,
+      "market_date_us": "11/02"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 398.63,
+      "prev": 406.13,
+      "chg_pct": -1.85,
+      "volume": 13187182,
+      "market_date_us": "11/02"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 338.32,
+      "prev": 344.63,
+      "chg_pct": -1.83,
+      "volume": 64689155,
+      "market_date_us": "11/02"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 507.12,
+      "prev": 521.91,
+      "chg_pct": -2.83,
+      "volume": 34738903,
+      "market_date_us": "11/02"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 403.82,
+      "prev": 399.81,
+      "chg_pct": 1.0,
+      "volume": 43129424,
+      "market_date_us": "11/02"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 245.63,
+      "prev": 240.35,
+      "chg_pct": 2.2,
+      "volume": 58327853,
+      "market_date_us": "11/02"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 278.99,
+      "prev": 279.84,
+      "chg_pct": -0.3,
+      "volume": 48504345,
+      "market_date_us": "11/02"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 606.73,
+      "prev": 614.99,
+      "chg_pct": -1.34,
+      "volume": 19494137,
+      "market_date_us": "11/02"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 221750.0,
+      "prev": 229000.0,
+      "chg_pct": -3.17,
+      "volume": 6197521,
+      "market_date_us": "11/02"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1413000.0,
+      "prev": 1472000.0,
+      "chg_pct": -4.01,
+      "volume": 1099561,
+      "market_date_us": "11/02"
+    }
+  },
+  "news": [
+    {
+      "title": "Review & Preview: Whiplash",
+      "summary": "High hopes of an AI rally were dashed on Monday.",
+      "link": "https://finance.yahoo.com/m/e381f6ca-67d7-350c-915c-c9e1b1779ca6/review-%26-preview%3A-whiplash.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500, Nasdaq Drop As Capex Concerns Grip Tech Investors, Outweighing US-Iran Diplomacy Hope — ORCL, META, PLTR, AAPL In Focus",
+      "summary": "The U.S. midterm elections will be held on Tuesday.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-nasdaq-drop-as-capex-concerns-grip-tech-investors-outweighing-us-iran-diplomacy-hope/cNGQZKqR9PD?.tsrc=rss"
+    },
+    {
+      "title": "US Stock Market Fails To Recover as $700 Billion Comeback Collapses",
+      "summary": "Jim Cramer called the biggest tech takeout. Stocks added $700 billion, then lost it as AI and chip shares slid.",
+      "link": "https://beincrypto.com/jim-cramer-tech-takeout-stocks-rally/?.tsrc=rss"
+    },
+    {
+      "title": "AeroVironment (AVAV) Sees a More Significant Dip Than Broader Market: Some Facts to Know",
+      "summary": "AeroVironment (AVAV) reached $123.08 at the closing of the latest trading day, reflecting a -2.4% change compared to its last close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/aerovironment-avav-sees-more-significant-221502591.html?.tsrc=rss"
+    },
+    {
+      "title": "M-tron Industries, Inc. (MPTI) Declines More Than Market: Some Information for Investors",
+      "summary": "In the closing of the recent trading day, M-tron Industries, Inc. (MPTI) stood at $63.15, denoting a -4.59% move from the preceding trading day.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/m-tron-industries-inc-mpti-221502355.html?.tsrc=rss"
+    },
+    {
+      "title": "5 Key Earnings Charts to Watch This Week",
+      "summary": "Will AMD and Ralph Lauren, who have perfect 5-year earnings surprise streaks, beat again?",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/5-key-earnings-charts-watch-002000682.html?.tsrc=rss"
+    },
+    {
+      "title": "Intel (INTC) Joined A $700 Million AI Startup Funding Round",
+      "summary": "Intel (NasdaqGS: INTC) has joined a US$700 million funding round for AI startup Hark, alongside Nvidia and AMD Ventures. Hark is building AI native hardware and digital assistant foundation models that require substantial computing resources. Intel Capital's role in this round ties directly to Intel's wider push into AI infrastructure and related data center demand. Intel Capital backing Hark besi",
+      "link": "https://finance.yahoo.com/technology/ai/articles/intel-intc-joined-700-million-001701528.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Reports Nov. 17. History Says What Its Stock Usually Does Next.",
+      "summary": "The chipmaker has topped its own revenue forecast every quarter for over two years. So why have its shares dropped the next day more often than not?",
+      "link": "https://www.fool.com/investing/2026/11/02/nvidia-reports-nov-17-history-says-what-its-stock-usually-does-next/?.tsrc=rss"
+    },
+    {
+      "title": "AMD Reports Tuesday. Here's the Number That Will Show Whether It's Gaining on Nvidia",
+      "summary": "Third-quarter revenue will probably come in close to expectations. The fourth-quarter guidance is what matters more.",
+      "link": "https://www.fool.com/investing/2026/11/02/amd-reports-tuesday-here-s-the-number-that-will-show-whether-it-s-gaining-on-nvidia/?.tsrc=rss"
+    },
+    {
+      "title": "Why Keel Infrastructure Stock Got Mashed on Monday",
+      "summary": "An analyst reduced his price target on the stock by 33%.",
+      "link": "https://www.fool.com/investing/2026/11/02/why-keel-infrastructure-stock-got-mashed-on-monday/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Has a Flying Car. What Does This Mean for Archer's Flying \"Taxi\" Business?",
+      "summary": "If the era of flying cars is approaching, what will happen to Archer's business model?",
+      "link": "https://www.fool.com/investing/2026/11/02/tesla-has-a-flying-car-what-mean-for-archer/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Robotaxi Adds This New City, Stock Continues Rally",
+      "summary": "Tesla stock rose about 1% on Monday.",
+      "link": "https://finance.yahoo.com/m/f429a84c-f8d5-39d2-a429-b625c4379cb8/tesla-robotaxi-adds-this-new.html?.tsrc=rss"
+    },
+    {
+      "title": "North Korea's Bitcoin heist is worth 3x its exports and more than Tesla holds",
+      "summary": "The Bitcoin stolen from Binance now outweighs Tesla’s entire treasury and dwarfs North Korea’s annual trade.",
+      "link": "https://www.thestreet.com/crypto/markets/north-koreas-bitcoin-heist-is-worth-3x-its-exports-and-more-than-tesla-holds?.tsrc=rss"
+    },
+    {
+      "title": "Electric Trucking: Why 2,500 Tesla Semis Will Transform Freight",
+      "summary": "ZET Scale, a shipper alliance, just placed the largest electric truck order in US history: 2,500 Tesla Class 8 trucks. Cristiano Façanha from Smart Freight Centre explains how this demand aggregation program is breaking the market’s “chicken and egg” problem by making electric trucks cost-competitive with diesel, driving the industry towards a more sustainable future. […] The post Electric Truckin",
+      "link": "https://finance.yahoo.com/energy/articles/electric-trucking-why-2-500-185221909.html?.tsrc=rss"
+    },
+    {
+      "title": "Gary Black Cautions Tesla Shareholders On SpaceX Merger Risks: Says Marvell-Lumentum Deal Reaction Offers Early Warning",
+      "summary": "Gary Black said in a post on X that in large, complex all-stock transactions with extended timelines, traders typically sell the acquirer’s shares, reducing the effective value delivered to the target’s shareholders.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/black-cautions-tesla-shareholders-on-space-x-merger-risks-says-marvell-lumentum-deal-reaction-offers-early-warning/cNGa3WER9Po?.tsrc=rss"
+    },
+    {
+      "title": "AMD to report Q3 results following disappointing showing from Intel",
+      "summary": "AMD will report its third quarter earnings after the bell Tuesday.",
+      "link": "https://finance.yahoo.com/technology/article/amd-to-report-q3-results-following-disappointing-showing-from-intel-190327545.html?.tsrc=rss"
+    },
+    {
+      "title": "Why AMD Stock Is In Focus Before Q3 Earnings And AI Partnership Updates",
+      "summary": "Advanced Micro Devices is in focus after partners including Meta, Vultr and LeadDesk highlighted new deployments of AMD EPYC processors, Instinct GPUs, Helios rackscale systems and ROCm software in large AI training, inference and conversational workloads across data centers and cloud platforms. These collaborations point to AMD technology being embedded deep in customer infrastructure, which can ",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/why-amd-stock-focus-q3-021510488.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Heads Into Earnings With AI Guidance in the Spotlight",
+      "summary": "Investors are looking beyond third-quarter estimates to see whether AMD can sustain rapid data-center growth into 2027.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/amd-heads-earnings-ai-guidance-184427144.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Reports Tuesday as Ex-Stability AI CEO Warns “There Are Not Enough CPUs in the World”",
+      "summary": "Key TakeawaysFormer Stability AI CEO Emad Mostaque says that at 10 AI agents per American, there wouldn’t be enough CPUs in the world, and that the CPU build-out is only just starting. Intel’s server CPU demand is strong, but it can’t get enough supply to ship more, which leaves an opening for AMD.",
+      "link": "https://www.tikr.com/blog/amd-reports-tuesday-as-ex-stability-ai-ceo-warns-there-are-not-enough-cpus-in-the-world?ref=yahoofinance&tlnk=yf-261102-39gp4c4j&.tsrc=rss"
+    },
+    {
+      "title": "Stocks, Bonds Rise as Oil Tumbles on US-Iran Hopes: Markets Wrap - Bloomberg.com",
+      "summary": "Stocks, Bonds Rise as Oil Tumbles on US-Iran Hopes: Markets Wrap Bloomberg.comNasdaq starts November with 1% loss as tech melts down again CNBCStock market today: S&P 500 and Nasdaq extend tech sell-off, Dow gains as oil prices plunge Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNUXhSWUZpNlU1UFZVSEtvY3QwQVB4T3FuYlpCT3lpaE05MThfMFFTZVZWWllFZDZDYkJFdTBIWEx1X1ZMVXlESFdaX3Noc2VSSW1QRHFzYzhPZkowLVNZeWR1N2dBN2hlLXY1VlJ3SHJNR3Ayc29JOXN4cXN3bklZQzN5bEctRER1aGp1eFdUVjhITWM0?oc=5"
+    },
+    {
+      "title": "US market correction nearing end, Morgan Stanley strategists say - Yahoo Finance",
+      "summary": "US market correction nearing end, Morgan Stanley strategists say Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxNVGdDTDl6czRYTEFMOWg2VFFkVnBkNzBPOS1TVkZkS19EMmpQbWxpZ3VKSW4tOWdfU05pWEJpVTdFbWdIdHg0OWlraEpaaW1QdjBwbElkOE42R2hqeUVjR2ZaWWV0U3BzR0hBQ25KbGdlM0hDNzF4dWFoMnFLMVJkTnNjQzRIMmdpN3hFbkhNbnExZnZKWEFHRDlYdGVyZw?oc=5"
+    },
+    {
+      "title": "Stock Market News, November 2, 2026: Apple Stock Slips After Earnings; Nasdaq Falls - WSJ",
+      "summary": "Stock Market News, November 2, 2026: Apple Stock Slips After Earnings; Nasdaq Falls WSJ",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQeE1wX0VMX3RqMkpRUmkyWE9SeV9rYlFqNzBTb2QyalVqQjl1Z1FjaWFVd3J3RDJRUnFMTHd3dzJjQlI1R0dPRWtiNjM0ZlIzTUtWV3BUWHhEU3gtN29FbVNfSENrREdRX2dZejFlbE1xRHF2U1ZMS3o5TnMxb0NwMUV2WHpwZ00?oc=5"
+    },
+    {
+      "title": "S&P 500 futures are flat as investors weigh Apple earnings; U.S. midterm elections loom: Live updates - CNBC",
+      "summary": "S&P 500 futures are flat as investors weigh Apple earnings; U.S. midterm elections loom: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5PbWNuUmM3YXpROGVjV016d1ZUZzlCQmc4a3dJaWpoLTcxeXVzTEFMbTY2bjNGWXljaUtXLWo2bE1QNzZ5NGlTMnA3M0VVQjlhaWN6eUVzOW4xS05EQnd0bEJYMEw0aXJJT3NXWklaNmcxcjVnOWVz0gF8QVVfeXFMTVAyTUQ0UV9iNzQyaThOY04yU1FlSEtRRHpLQXBXZnpvLUV5TklWSzhRaGw2ckowNEtJcXRtWldwelIxYnhDMDFSTzVJVFZwbXZ1Q2QxZWlTUHdUdzdqaW0xMGZIUHlpWlBYWHJ6UGE3cVhRWkpDdTExU29VRQ?oc=5"
+    },
+    {
+      "title": "Stock futures jump ahead of a monster week after a $5 trillion AI rout - Yahoo Finance",
+      "summary": "Stock futures jump ahead of a monster week after a $5 trillion AI rout Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxPX0VSeTBxMC1QQm5sZWJBTHdMLXVqcHNCNUZ4Y0NEZEdFTHNhTHBqcGF0RWNySFZ3M3NMWjI2bnh1OUdOdGg5RXEtX2k5eWlNc1ljVnpNSHBQN0V6TlFBcUFjZEdHc1VHZWRWNkpvWEZ0V1NiMU9xUGJnb3RxRE4xR21vZ1IxNGwzT1Rid1BkZUwxUTJya1hwV2pTaW9tZF82WXBOUU1EckJlUm5CajdES0ZfbjREclJpUlFSSFFfV2Z4YmND?oc=5"
+    },
+    {
+      "title": "S&P 500, Nasdaq Futures Rise Premarket After Wall Street’s Worst Week In Months: AAPL, PLTR, GOOGL, INTC, TGTX In Focus - Yahoo Finance",
+      "summary": "S&P 500, Nasdaq Futures Rise Premarket After Wall Street’s Worst Week In Months: AAPL, PLTR, GOOGL, INTC, TGTX In Focus Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQM2dGUDRxakhxZlROS0didEV3ZkJmMGpSMXM5N2h4ZjF4MWlVNGNTYndOUDlDTlZBaXUydE5hNXBLZjQya2FtLVhJT1FmUEtUcWpNblJEUkJYMW1SdWYtdGNZX0kzUWN1b3BmT0w5Ym82Vm54NGtyT3hxX0U4Y09ha1A1WFVwb2VDSHhTVDBCemhQTnFY?oc=5"
+    }
+  ],
+  "us_date": "11/02",
+  "generated_at": "2026-11-03T11:57:40.517622+09:00"
+}
