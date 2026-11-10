@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 25253.14,
+      "prev": 24579.43,
+      "chg_pct": 2.74,
+      "volume": 8069510000,
+      "market_date_us": "11/09"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7549.94,
+      "prev": 7376.86,
+      "chg_pct": 2.35,
+      "volume": 3554608000,
+      "market_date_us": "11/09"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52389.75,
+      "prev": 51285.73,
+      "chg_pct": 2.15,
+      "volume": 811284523,
+      "market_date_us": "11/09"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 19.92,
+      "prev": 25.64,
+      "chg_pct": -22.31,
+      "volume": 0,
+      "market_date_us": "11/09"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 10033.93,
+      "prev": 9390.25,
+      "chg_pct": 6.85,
+      "volume": 0,
+      "market_date_us": "11/09"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 101.68,
+      "prev": 102.3,
+      "chg_pct": -0.61,
+      "volume": 0,
+      "market_date_us": "11/09"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 85.9,
+      "prev": 90.83,
+      "chg_pct": -5.43,
+      "volume": 11295,
+      "market_date_us": "11/09"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 4125.9,
+      "prev": 4074.9,
+      "chg_pct": 1.25,
+      "volume": 18293,
+      "market_date_us": "11/09"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1345.31,
+      "prev": 1362.7,
+      "chg_pct": -1.28,
+      "volume": 0,
+      "market_date_us": "11/09"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 679.35,
+      "prev": 656.1,
+      "chg_pct": 3.54,
+      "volume": 54176627,
+      "market_date_us": "11/09"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 146.76,
+      "prev": 136.53,
+      "chg_pct": 7.49,
+      "volume": 39477498,
+      "market_date_us": "11/09"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 57.99,
+      "prev": 57.16,
+      "chg_pct": 1.45,
+      "volume": 36303487,
+      "market_date_us": "11/09"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 142.1,
+      "prev": 137.01,
+      "chg_pct": 3.72,
+      "volume": 16841356,
+      "market_date_us": "11/09"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 178.67,
+      "prev": 186.64,
+      "chg_pct": -4.27,
+      "volume": 456756830,
+      "market_date_us": "11/09"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 508.58,
+      "prev": 449.04,
+      "chg_pct": 13.26,
+      "volume": 50860939,
+      "market_date_us": "11/09"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 59.37,
+      "prev": 56.28,
+      "chg_pct": 5.49,
+      "volume": 143998212,
+      "market_date_us": "11/09"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 388.62,
+      "prev": 375.44,
+      "chg_pct": 3.51,
+      "volume": 15571695,
+      "market_date_us": "11/09"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 350.69,
+      "prev": 342.37,
+      "chg_pct": 2.43,
+      "volume": 47499490,
+      "market_date_us": "11/09"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 545.18,
+      "prev": 530.61,
+      "chg_pct": 2.75,
+      "volume": 25282835,
+      "market_date_us": "11/09"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 378.05,
+      "prev": 358.22,
+      "chg_pct": 5.54,
+      "volume": 36201597,
+      "market_date_us": "11/09"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 266.93,
+      "prev": 259.3,
+      "chg_pct": 2.94,
+      "volume": 50588278,
+      "market_date_us": "11/09"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 288.15,
+      "prev": 284.78,
+      "chg_pct": 1.18,
+      "volume": 36238549,
+      "market_date_us": "11/09"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 641.37,
+      "prev": 610.15,
+      "chg_pct": 5.12,
+      "volume": 19066305,
+      "market_date_us": "11/09"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 199500.0,
+      "prev": 189900.0,
+      "chg_pct": 5.06,
+      "volume": 8414970,
+      "market_date_us": "11/09"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1217000.0,
+      "prev": 1136000.0,
+      "chg_pct": 7.13,
+      "volume": 1853852,
+      "market_date_us": "11/09"
+    }
+  },
+  "news": [
+    {
+      "title": "Morgan Stanley issues strong opinion on S&P 500",
+      "summary": "Here’s what Mike Wilson thinks happens to the S&P 500 next.",
+      "link": "https://www.thestreet.com/investing/morgan-stanley-issues-strong-opinion-on-sp-500?.tsrc=rss"
+    },
+    {
+      "title": "The Dow Just Jumped 1,100 Points. Here’s What Warren Buffett’s 2008 Rule Says to a 66-Year-Old Retiree Who Almost Moved $600,000 to Cash on Friday",
+      "summary": "The Dow jumped about 1,100 points on Monday after stocks' worst week since April, while the worries behind the selling were still there. Warren Buffett's 2008 rule for that moment is one sentence long, it cost its followers 26.9% before it paid them 85.8%, and for a retired couple with $1.8 million it turns a $600,000 sell order into one number.",
+      "link": "https://247wallst.com/investing/2026/11/09/the-dow-just-jumped-1100-points-heres-what-warren-buffetts-2008-rule-says-to-a-66-year-old-retiree-who-almost-moved-600000-to-cash-on-friday/?.tsrc=rss"
+    },
+    {
+      "title": "Review & Preview: Dip Buyers Unite",
+      "summary": "Indexes popped as investors bought the dip, fueling a rebound rally on Wall Street.",
+      "link": "https://finance.yahoo.com/m/7e3b2b5c-9d1b-3605-b9e3-670584095571/review-%26-preview%3A-dip-buyers.html?.tsrc=rss"
+    },
+    {
+      "title": "U.S. stock futures steady after tech-led rebound; CPI in focus",
+      "summary": "Investing.com-- U.S. stock futures were little changed on Monday evening after Wall Street closed sharply higher, with technology shares rebounding from last week's steep selloff, as investors awaited a key consumer inflation report due on Tuesday.",
+      "link": "https://finance.yahoo.com/news/u-stock-futures-steady-tech-004342905.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia is about 6% of the S&P 500. If Jensen Huang is ousted, there’s no clear successor — could chaos hit portfolios?",
+      "summary": "An Nvidia leadership shake-up could send shockwaves through the market — and analysts are looking ahead to glean how much investor portfolios could be at risk.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-6-p-500-jensen-230000817.html?.tsrc=rss"
+    },
+    {
+      "title": "Micron, FormFactor, Amkor, Teradyne, and Nvidia shares skyrocket, what you need to know",
+      "summary": "A number of stocks jumped in the morning session after dip-buyers moved into beaten-down semiconductor and hardware names following the sector's steepest one-day rout in 19 months.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/micron-formfactor-amkor-teradyne-nvidia-024536276.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Faces Class Action Suit Over Huang Allegations; Senator Seeks Probe, Analyst Puts CEO Exit Odds At 15%",
+      "summary": "Fund managers like Cathie Wood and Dan Niles, however, bought the dip in Nvidia shares, and retail traders maintained a bullish view.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/nvidia-faces-class-action-suit-over-huang-allegations-senator-seeks-probe-analyst-puts-ceo-exit-odds-at-15/cNGuT97R97g?.tsrc=rss"
+    },
+    {
+      "title": "Tech leads Asian stock rally as traders track Wall St rebound",
+      "summary": "Asian stocks rallied Tuesday to extend a Wall Street surge led by technology firms as investors took advantage of lower prices following last week's rout, while another plunge in oil prices added to the upbeat mood.The Nasdaq's 2.7 percent spike led a strong day on Wall Street, and Asian investors took up the baton.",
+      "link": "https://finance.yahoo.com/markets/world-indices/articles/tech-leads-asian-stock-rally-023930562.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Soars 1,132 Points As Amazon, Tesla Rally, But Nvidia Dives; CPI Inflation Report Next",
+      "summary": "Dow Jones futures were in focus after soaring 1,132 points ahead of the CPI inflation report. Amazon and Tesla rallied, but Nvidia dived.",
+      "link": "https://finance.yahoo.com/m/db2f6d95-b7a5-3274-8193-c767d2b681c1/dow-jones-soars-1%2C132-points.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia CEO admits affair as company launches probe into spy claims",
+      "summary": "Nvidia’s Jensen Huang runs the world’s biggest AI chipmaker company but the woman he’s just admitted to having an extramarital affair with is suspected to have spied for China. CNN’s Hadas Gold digs into the remarkably wide-ranging implications of those two facts.",
+      "link": "https://www.cnn.com/2026/11/09/business/video/ac360-nvidia-ceo-admits-affair-as-company-launches-probe-into-spy-claims?cid=external-feeds_iluminar_yahoo&.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk's Cybertruck pivot highlights the founder-CEO advantage",
+      "summary": "With Elon Musk reportedly preparing to pull the plug on Tesla's (TSLA) Cybertruck production line within eight months and warning that the company may have to refund customer deposits, questions are emerging about the advantages of founder-led leadership. Kelly Intelligence Founder, CEO, and CCO Kevin Kelly and his panel of experts examine why founders may have greater freedom to make bold decisio",
+      "link": "https://finance.yahoo.com/video/elon-musks-cybertruck-pivot-highlights-the-founder-ceo-advantage-194117350.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia $5T CEO scandal, AI legislation headaches, and Tesla returns deposits for Cybertrucks",
+      "summary": "Host Kevin Kelly, Kelly Intelligence Founder, CEO, and CCO, and his panel of experts weigh in on Nvidia's (NVDA) Jensen Huang alleged affair with a Chinese spy, plus Tesla (TSLA) CEO Elon Musk, confirming the company will refund deposits to many Cybertruck reservation holders because outstanding orders exceed remaining production capacity Today's panel includes Julie Biel, Kayne Anderson Rudnick, ",
+      "link": "https://finance.yahoo.com/video/nvidia-5t-ceo-scandal-ai-legislation-headaches-and-tesla-returns-deposits-for-cybertrucks-184342686.html?.tsrc=rss"
+    },
+    {
+      "title": "How much of Elon Musk’s wealth is in Tesla & SpaceX stock?",
+      "summary": "Elon Musk’s stakes in Tesla and SpaceX make him one of the world’s richest people. Here’s how much he owns in each company and what both stakes are worth together.",
+      "link": "https://www.thestreet.com/personalities/how-much-of-elon-musks-wealth-is-in-tesla-and-spacex-stock?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk says Tesla must refund Cybertruck deposits to ‘a lot of people’; he touted 250K reservations back in 2019",
+      "summary": "Order backlog is reportedly “far more” than the company can make before it halts production.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/elon-musk-says-tesla-must-231500059.html?.tsrc=rss"
+    },
+    {
+      "title": "Amtech, Intel, Applied Materials, AMD, and KLA Corporation shares are soaring, what you need to know",
+      "summary": "A number of stocks jumped in the morning session after dip-buyers moved into beaten-down semiconductor and hardware names following the sector's steepest one-day rout in 19 months.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/amtech-intel-applied-materials-amd-023736161.html?.tsrc=rss"
+    },
+    {
+      "title": "The AI Trade Looks Like It's Falling Apart. AMD's Earnings Delivered a Reality Check.",
+      "summary": "AMD is still growing and is optimistic about the fourth quarter, despite recent market noise about the AI trade.",
+      "link": "https://www.fool.com/investing/2026/11/09/the-ai-trade-looks-like-its-falling-apart-amds-ear/?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, Nov. 9: AMD Jumps on Oppenheimer Upgrade and Google Cloud Chip Selection",
+      "summary": "Today, Nov. 9, 2026, shares of AI-focused chip designers faced a crucial week as investors weigh data-center demand ahead of next week's sector earnings.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/11/09/stock-market-today-nov-9-amd-jumps-on-oppenheimer-upgrade-and-google-cloud-chip-selection/?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices (AMD) Lands EPYC Role In New AI Security System",
+      "summary": "Advanced Micro Devices (NasdaqGS:AMD) has been selected by Google Cloud to supply EPYC CPUs for the new TPU 8tx system. Google is shifting the host layer of its flagship TPU 8tx platform back to x86 CPUs, after previously relying on in house chips. The TPU 8tx infrastructure is designed with hardware enforced confidential computing to protect sensitive AI workloads running on Google Cloud. The cho",
+      "link": "https://finance.yahoo.com/technology/ai/articles/advanced-micro-devices-amd-lands-220845589.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Stock Rises On Google Cloud Deal, Wall Street Upgrade",
+      "summary": "AMD announced that its fifth-generation Epyc server processors will power Alphabet's Google Cloud TPU 8tx systems. AMD stock rose.",
+      "link": "https://finance.yahoo.com/m/544d9f43-0b7f-3c42-b942-64d1474d8198/amd-stock-rises-on-google.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow surges 1,100 points, Nasdaq climbs more than 2% as tech rebounds from last week’s tumult: Live updates - CNBC",
+      "summary": "Dow surges 1,100 points, Nasdaq climbs more than 2% as tech rebounds from last week’s tumult: Live updates CNBCS&P 500 futures are little changed as traders brace for crucial consumer inflation report: Live updates CNBCStock market today: Nasdaq surges despite Nvidia stock slide, Dow and S&P 500 rally as AI tech trade rises Yahoo FinanceStocks Climb as Buyers Step In Despite Nvidia Woes: Markets W",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5FVDc3UlZHcHBOWVJmWWs2YWxla3J5NkpsVmNlTERMM2lQNm1MdlRteDEyeUFGcGFKVHEzV0JGalFMZXlvV3o2R3dmb2dGWUh5WlpMOWxiYkdlb1c1RzB4WlNhQzRoTF9qM3lfaUlKeUhqQUFtWkdj?oc=5"
+    },
+    {
+      "title": "Is the stock market open on Veterans Day? - Yahoo Finance",
+      "summary": "Is the stock market open on Veterans Day? Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxNWmw1Y1BTZHdPT1BpakVXMnhWN005Mlo3NHhsblZ4a2FlUUdId2I0NTQtN05RZkZwMjlnUHp1S2F3UTFPZ2NaUV9jUktNZEdwNU5tS3BTOFo4amhhSExiTU5aNHl4alZzTF95Vm94eWJTSktyLUc5SXFSUmQwcl9LbC1CSlJ6cVdSNnFWeFZ6OC0xVF9VWEZKVFJYYkFfZk9IcTA0cXlFUUZSXzJlelkyeW5lRXJHU0E?oc=5"
+    },
+    {
+      "title": "Tech set to still sway US stock market's course despite AI-driven swoon - Reuters",
+      "summary": "Tech set to still sway US stock market's course despite AI-driven swoon Reuters",
+      "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxNOXdISHo5SVE3RnA1bXZ4V05tYlAzSk5ZcUgwRUpycnVmOHlPeHQwbURpeHF2am5xQjU3ZVhMY0tweVVndXNjMUVpQUdCcXEyZlg5a1ZFVW9TNkkxdGJLaGllT3ZiM3pqLUxYVnRaNDVWZG1USmItMlJkU0pnc3Z0U2Zwd0l3UnowbDQ0UVN5cEJDQU9nS3FxbDFEc2RJRjV3NkpSeEdUNDEwWXJIUkVwR2ZB?oc=5"
+    },
+    {
+      "title": "Nvidia Lost Its Top Spot to Apple. What Does History Tell Us About No. 1 Stocks? - Morningstar",
+      "summary": "Nvidia Lost Its Top Spot to Apple. What Does History Tell Us About No. 1 Stocks? Morningstar",
+      "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxOa0RhSko5emVETURINnZjQW90Z01aVGl6bURJSEFmaGQ5OWtZbkpnbkUzMG1sWW5aSWZWME1WVmNIMU9NalFVVzR1TGhhcnBtZ3Vlc1BUNlFMOWd4dTNuMW9WU3ZRb2lKbUU3bWJEX2o3M01aalNwdjdrNTY3TW9RUFBqMy1kX2JCenRvZ2hnOWJQRWVxbVRtWUVLdUFVaE1STF9kaXQ5VURlUnJlZThGRDJNSEVUQXpQblE?oc=5"
+    },
+    {
+      "title": "Asian Stocks to Rally on US Tech Surge, Oil Slump: Markets Wrap - Bloomberg.com",
+      "summary": "Asian Stocks to Rally on US Tech Surge, Oil Slump: Markets Wrap Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPNXVKNll2bkFUUU5EVDg4eTF6a3YwZ0pIS0d4bGFTdkItMkl3SkFCbGRiZFdzSmlidHZZN3I1YzF1VkVXYlM0dDJrRlRPeDRGYXp6cVBuRGVjbl9vNWxrdlRYLTl4NTRxMnRFcGtuOUROekFvUUsxdTE1R3IwWmRKRVlUVFpFTlY0WXNlWTZTa1hIdmV1?oc=5"
+    },
+    {
+      "title": "Nasdaq posts biggest daily drop in 19 months on fears of AI regulations - Reuters",
+      "summary": "Nasdaq posts biggest daily drop in 19 months on fears of AI regulations Reuters",
+      "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxObTdYYmZaZmRqRUt0TDhBbERraDF2VlpSTDJ4M1NyZ2dRRkNUUVJ0OVFHdzJyc01uNDZOV2YzZFprbU90aUNzTEtYTEdNWU5Jc19VVVlHc24tNkZ2VFhqOWg3b0swVDFnY2hHaGxuNVZXVkE5S09xZXV2eGRQb1kwdWFEZWxpeGMybDZRcGtyWW52Q1JfaHY4MVo1YmJfRW9KZmNsdVJqS24zeGRZVUpaV3VB?oc=5"
+    }
+  ],
+  "us_date": "11/09",
+  "generated_at": "2026-11-10T12:39:26.826154+09:00"
+}
