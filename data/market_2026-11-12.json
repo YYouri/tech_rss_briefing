@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 25466.19,
+      "prev": 25065.87,
+      "chg_pct": 1.6,
+      "volume": 10472994000,
+      "market_date_us": "11/11"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7619.38,
+      "prev": 7520.93,
+      "chg_pct": 1.31,
+      "volume": 2739027000,
+      "market_date_us": "11/11"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52486.49,
+      "prev": 52231.89,
+      "chg_pct": 0.49,
+      "volume": 549037265,
+      "market_date_us": "11/11"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 17.49,
+      "prev": 19.46,
+      "chg_pct": -10.12,
+      "volume": 0,
+      "market_date_us": "11/11"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 10564.11,
+      "prev": 9998.33,
+      "chg_pct": 5.66,
+      "volume": 0,
+      "market_date_us": "11/11"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 102.86,
+      "prev": 102.23,
+      "chg_pct": 0.61,
+      "volume": 0,
+      "market_date_us": "11/11"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 85.93,
+      "prev": 86.04,
+      "chg_pct": -0.13,
+      "volume": 7425,
+      "market_date_us": "11/11"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 3992.5,
+      "prev": 4030.2,
+      "chg_pct": -0.94,
+      "volume": 18739,
+      "market_date_us": "11/11"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1334.08,
+      "prev": 1341.91,
+      "chg_pct": -0.58,
+      "volume": 0,
+      "market_date_us": "11/11"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 690.38,
+      "prev": 674.76,
+      "chg_pct": 2.31,
+      "volume": 42821615,
+      "market_date_us": "11/11"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 155.4,
+      "prev": 146.59,
+      "chg_pct": 6.01,
+      "volume": 48930559,
+      "market_date_us": "11/11"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 58.63,
+      "prev": 58.29,
+      "chg_pct": 0.58,
+      "volume": 25181563,
+      "market_date_us": "11/11"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 147.81,
+      "prev": 139.18,
+      "chg_pct": 6.2,
+      "volume": 18993588,
+      "market_date_us": "11/11"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 173.73,
+      "prev": 168.89,
+      "chg_pct": 2.87,
+      "volume": 281514030,
+      "market_date_us": "11/11"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 552.9,
+      "prev": 515.21,
+      "chg_pct": 7.32,
+      "volume": 43171056,
+      "market_date_us": "11/11"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 62.5,
+      "prev": 58.13,
+      "chg_pct": 7.52,
+      "volume": 129112498,
+      "market_date_us": "11/11"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 413.35,
+      "prev": 396.48,
+      "chg_pct": 4.25,
+      "volume": 14230560,
+      "market_date_us": "11/11"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 355.63,
+      "prev": 348.51,
+      "chg_pct": 2.04,
+      "volume": 34023762,
+      "market_date_us": "11/11"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 521.12,
+      "prev": 533.16,
+      "chg_pct": -2.26,
+      "volume": 28565538,
+      "market_date_us": "11/11"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 390.84,
+      "prev": 379.78,
+      "chg_pct": 2.91,
+      "volume": 27590811,
+      "market_date_us": "11/11"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 266.17,
+      "prev": 270.87,
+      "chg_pct": -1.74,
+      "volume": 37223624,
+      "market_date_us": "11/11"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 293.45,
+      "prev": 287.38,
+      "chg_pct": 2.11,
+      "volume": 24971153,
+      "market_date_us": "11/11"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 628.77,
+      "prev": 641.39,
+      "chg_pct": -1.97,
+      "volume": 15429277,
+      "market_date_us": "11/11"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 212000.0,
+      "prev": 206000.0,
+      "chg_pct": 2.91,
+      "volume": 6400637,
+      "market_date_us": "11/11"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1289000.0,
+      "prev": 1277000.0,
+      "chg_pct": 0.94,
+      "volume": 1226557,
+      "market_date_us": "11/11"
+    }
+  },
+  "news": [
+    {
+      "title": "Nasdaq 100 Futures Drop As Reports Relating To Jensen Huang’s Ousting Outweigh CoreWeave’s Strong Outlook — NVDA, TSLA, SNDK, CAPR, CRWV In Focus",
+      "summary": "Nvidia’s board is preparing to meet as soon as today to determine Jensen Huang’s future as the chipmaker’s chief executive, WSJ reported.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/nasdaq-100-futures-drop-as-reports-relating-to-jensen-huang-s-ousting/cNGzQslR997?.tsrc=rss"
+    },
+    {
+      "title": "Why Azenta Stock Crushed it on Wednesday",
+      "summary": "Its final earnings report for fiscal 2026 was impressive.",
+      "link": "https://www.fool.com/investing/2026/11/11/why-azenta-stock-crushed-it-on-wednesday/?.tsrc=rss"
+    },
+    {
+      "title": "These 5 Dividend Aristocrats® Have Raised Payouts for Decades",
+      "summary": "Investors worried about market turmoil may want to look at reliable dividend stocks, and these five stand out.",
+      "link": "https://www.fool.com/investing/2026/11/11/these-5-dividend-aristocrats-have-raised-payouts-f/?.tsrc=rss"
+    },
+    {
+      "title": "What Happened To NuScale Power Stock Over The Past Year?",
+      "summary": "For questions about this article or underlying research, email help@trefis.com.",
+      "link": "https://www.trefis.com/stock/smr/articles/624304/what-happened-to-nuscale-power-stock-over-the-past-year/2026-11-11?.tsrc=rss"
+    },
+    {
+      "title": "Wall St futures fall as Nvidia slides on report of possible CEO ouster",
+      "summary": "Investing.com-- U.S. stock futures fell on Wednesday evening as Nvidia shares tumbled in extended trading following a report that the chipmaker's board was preparing to remove Chief Executive Jensen Huang, raising concerns about stability at the company at the centre of the AI boom.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/wall-st-futures-fall-nvidia-011540333.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures Rise, Techs Fall As Nvidia May Oust CEO Huang After CoreWave Leads Rally",
+      "summary": "Techs fell as Nvidia dived on news that it may oust CEO Jensen Huang. AMD extended gains. Will that spoil Wednesday's rally?",
+      "link": "https://finance.yahoo.com/m/672e6ef4-2ba3-319b-b948-a356a7f1fcbe/dow-jones-futures-rise%2C-techs.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Board May Vote to Remove Jensen Huang as CEO Tonight. Here’s What Investors Need to Know.",
+      "summary": "The move would put Nvidia in a precarious place.",
+      "link": "https://www.fool.com/investing/2026/11/11/nvidia-board-may-vote-to-remove-jensen-huang-as-ceo-tonight-here-s-what-investors-need-to-know/?.tsrc=rss"
+    },
+    {
+      "title": "Meet Ian Buck: The NVIDIA Executive Insiders Believe Is the One Man Who Can Replace Jensen Huang",
+      "summary": "Nvidia's board is reportedly preparing to oust Jensen Huang, and the company has never named a successor. Ian Buck, a key architect of CUDA who runs Nvidia's hyperscale business, is the name that keeps coming up: an essay in Time called him a 'hugely strong replacement' with endorsements including Jim Cramer's.",
+      "link": "https://247wallst.com/investing/2026/11/11/meet-ian-buck-the-nvidia-executive-insiders-believe-is-the-one-man-who-can-replace-jensen-huang/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia stock drops as board weighs Jensen Huang’s future",
+      "summary": "Nvidia’s board is meeting Wednesday evening to discuss CEO Jensen Huang’s future as its leader, two sources familiar with the matter told CNN. The latest wrinkles in the chip company’s stunning corporate scandal sent shares falling in after-hours trading.",
+      "link": "https://www.cnn.com/2026/11/11/investing/nvidia-stock-jensen-huang?.tsrc=rss"
+    },
+    {
+      "title": "3 Growth Stocks With At Least 18% Revenue Growth",
+      "summary": "Anthropic’s planned IPO, with a potential valuation in the trillions and tens of billions of dollars on the table, shows how much capital is chasing high growth stories backed by confident insiders and major partners. Investors do not need to wait for that listing to find similar traits. This article highlights three fast growing, insider backed stocks from the U.S. market that fit this opportunit",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/3-growth-stocks-least-18-200905110.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla extends Cybertruck production to clear backlog, Musk says",
+      "summary": "Tesla CEO Elon Musk originally said Tesla would wind down production​ at its Texas factory in mid-2027.",
+      "link": "https://www.cbsnews.com/news/tesla-extend-cybertruck-production-backlog/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Extends Cybertruck’s Run. Its Driving Software Matters More.",
+      "summary": "Cybertruck production will continue through summer 2027. Finland’s approval of Tesla’s driver-assistance software carries bigger implications.",
+      "link": "https://finance.yahoo.com/m/2c17d887-bd87-396e-a44f-ad396f16f758/tesla-extends-cybertruck%E2%80%99s.html?.tsrc=rss"
+    },
+    {
+      "title": "TSLA Stock Climbs After Elon Musk Extends Cybertruck Run Through Summer 2027, Citing ‘Sentimentality’",
+      "summary": "Musk said last week that the EV giant will halt production of the Cybertruck at its Gigafactory in Texas to make way for the company’s dedicated robotaxi offering called the Cybercab.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tsla-stock-climbs-after-elon-musk-extends-cybertruck-run-through-summer-2027-citing-sentimentality/cNGDx6dR992?.tsrc=rss"
+    },
+    {
+      "title": "Anthropic's Mythos claim may put Nvidia’s CUDA moat in a vulnerable spot",
+      "summary": "Yahoo Finance's Deirdre Bosa discusses an Anthropic (ANTH.PVT) claim that its Mythos model got Claude running on AMD (AMD) chips in about three days, raising questions about whether AI can erode the value of Nvidia's (NVDA) CUDA moat.",
+      "link": "https://finance.yahoo.com/video/anthropics-mythos-claim-may-put-nvidias-cuda-moat-in-a-vulnerable-spot-214346380.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Stock Sinks as Jensen Huang Ouster Report Sends Investors Toward AMD, Broadcom",
+      "summary": "Broadcom Inc. (NASDAQ:AVGO) and Advanced Micro Devices Inc. (NASDAQ:AMD) shares each rose more than 3% in extended trading Wednesday as fresh turmoil surrounding Nvidia Corp. (NASDAQ:NVDA) CEO Jensen Huang sent investors toward rival chipmakers. Nvidia moved sharply in the other direction. Its shares fell 8.08% after hours to $159.68, according to Benzinga Pro. • Broadcom stock is moving in positi",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-stock-sinks-jensen-huang-002504447.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, Nov. 11: Advanced Micro Devices Jumps -- and Not Only Because of CoreWeave's Results",
+      "summary": "On Nov. 11, 2026, shares climbed as investors weighed fresh signs of AI chip demand and what comes next for server growth.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/11/11/stock-market-today-nov-11-advanced-micro-devices-jumps-and-not-only-because-of-coreweave-s-results/?.tsrc=rss"
+    },
+    {
+      "title": "Lisa Su Just Delivered Fantastic News for AMD Investors",
+      "summary": "AMD has been delivering monster stock price gains in 2026, but 2027 could be a different story.",
+      "link": "https://www.fool.com/investing/2026/11/11/lisa-su-just-delivered-fantastic-news-for-amd-inve/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia, AMD and Broadcom Lead AI Stock Rally as CoreWeave Results Ease Spending Fears",
+      "summary": "CoreWeave delivers a blockbuster quarter. why memory and chip stocks are moving higher.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-amd-broadcom-lead-ai-183708900.html?.tsrc=rss"
+    },
+    {
+      "title": "Nasdaq gains more than 1% as CoreWeave spike revitalizes AI trade - CNBC",
+      "summary": "Nasdaq gains more than 1% as CoreWeave spike revitalizes AI trade CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5tNUpWaERRaEpZWXFmM0tBRnFQQlBPVzlJUm9ldF9teW53ZjY0WHZ5X1FBdXZRWk1UR0dWRlZXX19VTDAyT2N5QVA4RzlST1FFcFpBUEVMek5OTVN1Vzk3eUNra1puWVlyVk9SMVVXX01YWm1BbUVZ?oc=5"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500, Nasdaq rise as chip stock rally rekindles AI trade - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500, Nasdaq rise as chip stock rally rekindles AI trade Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxNSjNNaXdrQndXWjJ4bGtQS0xsNGRLeTdndTF4UHJsMzl3RjhSam5tOWtGUmp1bXpKcGxIYkRxWXY1SGJINDA5dDZmZHFaT1VRS1k5WlNPakR2RHJxbk45VVpqeGo2R1lwMld4SmFjalV0QzE4cEF0Vl8zSWg4NVhPQmdyQWx0ZXM0RzNWclhnOUJxb3BHejlzaXljaF9raWkyRExvQ05pbnR5SFVtbUlFU0loWmUyOWlYMHFRNXdJT3V5eExpaEw3YkFfTllIMnpxQ2RMY25pU3lkdw?oc=5"
+    },
+    {
+      "title": "Stocks end higher as CoreWeave results ease AI spending worries - Reuters",
+      "summary": "Stocks end higher as CoreWeave results ease AI spending worries Reuters",
+      "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNUVZoWU1fQUd2Y1M2Qnl1T2JaMTkwaXBkaDIwWjVHejZoQmdDUnVzUVlSWDVsWW1pVDRVcXQ2ZTdrRTRiMDdMNWJDS3Atem91bUpDMnFLUkZ6NjhjaTliYWV1ODRLMnk0Slh3Wk5wNGtHTDhvaEZpTFIyUlVpQ2tNdTUyb2ZLbEZGOHlTZWRJNzVScUpIS3V5a1FacGwzby00RURBa2htZFFqZmw3Z2pRS2NDWQ?oc=5"
+    },
+    {
+      "title": "Nvidia board discusses CEO Jensen Huang’s future as scandal roils one of America’s most valuable companies - CNN",
+      "summary": "Nvidia board discusses CEO Jensen Huang’s future as scandal roils one of America’s most valuable companies CNN",
+      "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOLXBTU3VDVzhyWkZsZWt4X3dGZkY5Q0tiMV83VkJzeHBPWTRvSGIyVTQ0TEdfRDJPVHVnRXVUZnhERnBKTjZtcUJrTVFQRW5idEk0UElvNjB5bENMTDdETkNDLU5nLU8wbUpPWUhKQlp0d01iTm01b3dJeEFLVzRuSGVrQUEwM0pUdF9VT05MM2FNSzBMS0E?oc=5"
+    },
+    {
+      "title": "After US market shake-out, signs suggest too soon to say worst is over - Reuters",
+      "summary": "After US market shake-out, signs suggest too soon to say worst is over Reuters",
+      "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPdDNPMm44clZfWEJ5a0o3NTNEYVl5Y0ZuOHJTbnUyc2dDRjVITnk0akVVQnJiWWFIZnVGek5WTTBWN0JLTEV6YmhNS2tmV0NrWkc3aFNKWDZCdjVyNjRxd3JKSjVZcGtXM29kWEJlMGVvS3JYeTV6aU5tLXk2RUNEUEhpOHkzRlBURUpvbWd2NXllQXllZzVDOHkydnpZU0E2UWNZRDhUYXVIbGFVNzR2cWo3eE5PaTZscnNB?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Dow Jones, Nasdaq, S&P 500 Rally on November 11, 2026; Oil Rises, Gold Slips - Eurasia Business News",
+      "summary": "Stock Market Today: Dow Jones, Nasdaq, S&P 500 Rally on November 11, 2026; Oil Rises, Gold Slips Eurasia Business News",
+      "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxNeFBDd1BMekwxVkZzbWVvMGpCRE5oZUFmTnRVZU1hOTRVdDVyT3p4VnZuc1BEUHhnVHpOMUNBWEN3RUEwN2xPRjUtZ1J4SzBzYkIzdUI4MEpJTlRUMmczS2x6bzNZOUhYZnlDU0RtMXJCU3c1RnBrU1V1eEU3VnhEM3Q2Mk9uZzhNUk05RFpZT1pyNXMyb3hxbVFfYWpGaUhuY2g3Q2FxbU10Sm9jdFY4dEtTbzlvajczb05aVm40N0hwZ3ZoYkM3a2xSS21FZw?oc=5"
+    },
+    {
+      "title": "Wall St ends lower as hot inflation data, Fed comments heighten rate worries - Reuters",
+      "summary": "Wall St ends lower as hot inflation data, Fed comments heighten rate worries Reuters",
+      "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQSEE5eGJXT1lYRVFJMUpWb2VCTENjZ2hBNWk0QWl5QVZBNmJ4TFBodVUtRVRzV0JubVE0NFJYRFlmYkpuc0tlbTBValFhV0ppcGdYNEZERXV4ZnhLZUJKTF9fUzZEeHM3cDRwdmlMdUVIUWlERHprb3lKakQ1S1gzSmI5LVZYWWx2cTBjVC1sVEc1OG8tOS0ta0k5VQ?oc=5"
+    }
+  ],
+  "us_date": "11/11",
+  "generated_at": "2026-11-12T11:19:34.435036+09:00"
+}
