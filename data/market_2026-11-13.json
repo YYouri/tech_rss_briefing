@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 25366.09,
+      "prev": 25466.19,
+      "chg_pct": -0.39,
+      "volume": 8857475000,
+      "market_date_us": "11/12"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7592.4,
+      "prev": 7619.38,
+      "chg_pct": -0.35,
+      "volume": 3182097000,
+      "market_date_us": "11/12"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52297.09,
+      "prev": 52486.49,
+      "chg_pct": -0.36,
+      "volume": 1015162862,
+      "market_date_us": "11/12"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 18.7,
+      "prev": 17.49,
+      "chg_pct": 6.92,
+      "volume": 0,
+      "market_date_us": "11/12"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 10506.67,
+      "prev": 10564.11,
+      "chg_pct": -0.54,
+      "volume": 0,
+      "market_date_us": "11/12"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 103.13,
+      "prev": 102.91,
+      "chg_pct": 0.22,
+      "volume": 0,
+      "market_date_us": "11/12"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 88.2,
+      "prev": 86.53,
+      "chg_pct": 1.93,
+      "volume": 7499,
+      "market_date_us": "11/12"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 3911.8,
+      "prev": 4000.5,
+      "chg_pct": -2.22,
+      "volume": 18089,
+      "market_date_us": "11/12"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1330.98,
+      "prev": 1336.26,
+      "chg_pct": -0.4,
+      "volume": 0,
+      "market_date_us": "11/12"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 688.17,
+      "prev": 690.38,
+      "chg_pct": -0.32,
+      "volume": 36073858,
+      "market_date_us": "11/12"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 154.99,
+      "prev": 155.4,
+      "chg_pct": -0.26,
+      "volume": 51159364,
+      "market_date_us": "11/12"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 58.21,
+      "prev": 58.63,
+      "chg_pct": -0.72,
+      "volume": 21981255,
+      "market_date_us": "11/12"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 145.38,
+      "prev": 147.81,
+      "chg_pct": -1.64,
+      "volume": 14050855,
+      "market_date_us": "11/12"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 166.19,
+      "prev": 173.73,
+      "chg_pct": -4.34,
+      "volume": 740019481,
+      "market_date_us": "11/12"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 585.3,
+      "prev": 552.9,
+      "chg_pct": 5.86,
+      "volume": 55014886,
+      "market_date_us": "11/12"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 61.2,
+      "prev": 62.5,
+      "chg_pct": -2.08,
+      "volume": 79464205,
+      "market_date_us": "11/12"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 405.49,
+      "prev": 413.35,
+      "chg_pct": -1.9,
+      "volume": 11308972,
+      "market_date_us": "11/12"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 354.88,
+      "prev": 355.63,
+      "chg_pct": -0.21,
+      "volume": 30897281,
+      "market_date_us": "11/12"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 523.0,
+      "prev": 521.13,
+      "chg_pct": 0.36,
+      "volume": 17899545,
+      "market_date_us": "11/12"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 397.45,
+      "prev": 390.84,
+      "chg_pct": 1.69,
+      "volume": 28830920,
+      "market_date_us": "11/12"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 267.44,
+      "prev": 266.17,
+      "chg_pct": 0.48,
+      "volume": 33764492,
+      "market_date_us": "11/12"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 298.7,
+      "prev": 293.45,
+      "chg_pct": 1.79,
+      "volume": 35166591,
+      "market_date_us": "11/12"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 623.61,
+      "prev": 628.77,
+      "chg_pct": -0.82,
+      "volume": 10253879,
+      "market_date_us": "11/12"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 213000.0,
+      "prev": 208000.0,
+      "chg_pct": 2.4,
+      "volume": 3696712,
+      "market_date_us": "11/12"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1281000.0,
+      "prev": 1254000.0,
+      "chg_pct": 2.15,
+      "volume": 920651,
+      "market_date_us": "11/12"
+    }
+  },
+  "news": [
+    {
+      "title": "S&P 500, Dow, Nasdaq Futures Recover After Markets End Lower On Jensen Huang’s Exit, Oil Price Pressure — CRWV, CBRS, NVDA, TSLA In Focus",
+      "summary": "Nvidia’s CEO Jensen Huang ousted; CFO Colette Kress named interim chief executive officer.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-dow-nasdaq-futures-recover-after-markets-end-lower-on-jensen-huang-s-exit-oil-price-pressure-crwv-cbrs-nvda-tsla-in-focus/cNbbkHFR9OI?.tsrc=rss"
+    },
+    {
+      "title": "Bank of America’s Matthew O’Neill Is Positive on Block (XYZ) for Early 2027. One Question Remains",
+      "summary": "We just published a list of the 10 Best Growth Stocks for the Next 5 Years and Block (NYSE:XYZ) ranked 10th on this list. Technology stocks went from celebration to rout within two sessions this month. On Wednesday, November 4, equities rallied after Democrats swept Congress in the midterm elections. By Thursday, the S&P 500 […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/bank-america-matthew-o-neill-231307777.html?.tsrc=rss"
+    },
+    {
+      "title": "RBC’s Paul Treiber Held Firm on Shopify (SHOP) After a Slight Miss. Here’s the AI Pitch",
+      "summary": "We just published a list of the 10 Best Growth Stocks for the Next 5 Years and Shopify (NASDAQ:SHOP) ranked 9th on this list. Technology stocks went from celebration to rout within two sessions this month. On Wednesday, November 4, equities rallied after Democrats swept Congress in the midterm elections. By Thursday, the S&P 500 […]",
+      "link": "https://finance.yahoo.com/technology/ai/articles/rbc-paul-treiber-held-firm-231241818.html?.tsrc=rss"
+    },
+    {
+      "title": "Rosenblatt’s Kevin Cassidy Upgraded Monolithic Power Systems (MPWR). Here’s the Quarter That Won Him Over",
+      "summary": "We just published a list of the 10 Best Growth Stocks for the Next 5 Years and Monolithic Power Systems (NASDAQ:MPWR) ranked 8th on this list. Technology stocks went from celebration to rout within two sessions this month. On Wednesday, November 4, equities rallied after Democrats swept Congress in the midterm elections. By Thursday, the […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/rosenblatt-kevin-cassidy-upgraded-monolithic-231218374.html?.tsrc=rss"
+    },
+    {
+      "title": "Piper Sandler’s James Fish Calls Arista Networks (ANET) a Top Pick. Here’s What He Sees Ahead",
+      "summary": "We just published a list of the 10 Best Growth Stocks for the Next 5 Years and Arista Networks (NYSE:ANET) ranked 7th on this list. Technology stocks went from celebration to rout within two sessions this month. On Wednesday, November 4, equities rallied after Democrats swept Congress in the midterm elections. By Thursday, the S&P […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/piper-sandler-james-fish-calls-231155445.html?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures Rise After Market Weathers Nvidia CEO Huang's Exit, Surging Yields; SpaceX-Tesla Merger Deal Close",
+      "summary": "The stock market held up well given Nvidia CEO Jensen Huang's exit, surging yields and more. Cisco led key earnings reports late.",
+      "link": "https://finance.yahoo.com/m/4a3dff17-3e8e-33ca-823f-8ac12eff6a4a/dow-jones-futures-rise-after.html?.tsrc=rss"
+    },
+    {
+      "title": "CoreWeave stock sinks nearly 7% after Nvidia CEO Jensen Huang resigns",
+      "summary": "The AI cloud provider gave back part of its 25% earnings rally as Nvidia’s leadership shakeup raised concerns about its biggest chip supplier.",
+      "link": "https://www.thestreet.com/investing/stocks/coreweave-stock-sinks-nearly-7-after-nvidia-ceo-jensen-huang-resigns?.tsrc=rss"
+    },
+    {
+      "title": "Sansan And 2 High Growth Insider Stocks To Watch",
+      "summary": "Jensen Huang’s resignation from Nvidia has shaken confidence in one of the key pillars of the AI chip world, and it has reminded investors how quickly market darlings can be hit by leadership risk and regulatory pressure. That kind of shock pushes attention toward fast growing businesses where insiders still own a lot of stock. This article highlights three such companies and explains why that ali",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/sansan-2-high-growth-insider-011633947.html?.tsrc=rss"
+    },
+    {
+      "title": "Is Nvidia a buy after its CEO-resignation pullback?",
+      "summary": "The Blanke Schein Wealth Management CIO says a price decline alone is not a reason to buy, and he looks for earnings, management guidance, a favorable business cycle, and improving price behavior before acting.",
+      "link": "https://www.thestreet.com/investing/is-nvidia-a-buy-after-its-ceo-resignation-pullback?.tsrc=rss"
+    },
+    {
+      "title": "Chipotle Mexican Grill vs. Coca-Cola: Which Stock Is a Buy After the Nvidia Sell-Off?",
+      "summary": "The better pick depends on whether you want growth or steady income.",
+      "link": "https://www.fool.com/coverage/better-buy/2026/11/12/chipotle-mexican-grill-vs-coca-cola-which-stock-is-a-buy-after-the-nvidia-sell-off/?.tsrc=rss"
+    },
+    {
+      "title": "SpaceX, Telsa merger talks begin to take shape",
+      "summary": "Yahoo Finance Executive Editor Brian Sozzi shares the latest Bloomberg report that SpaceX (SPCX) and Tesla (TSLA) are in talks about a potential merger at Yahoo Finance's 2026 Invest conference.",
+      "link": "https://finance.yahoo.com/video/spacex-telsa-merger-talks-begin-to-take-shape-212004858.html?.tsrc=rss"
+    },
+    {
+      "title": "Musk gives Cybertruck a reprieve, but many will still get refunds",
+      "summary": "Tesla is extending Cybertruck production through the end of summer 2027, but CEO Elon Musk says the company still can’t fulfill every order.",
+      "link": "https://www.thestreet.com/retail/tesla-cybertruck-refunds-musk-production-extension?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk Makes Bold $10 Trillion Net Worth Remark as He Predicts Tesla Cybercab Will Dominate Ride-Hailing: ‘Obvious to Anyone With Eyes and a Brain’",
+      "summary": "Tesla Inc. CEO Elon Musk sees the Cybercab dominating the ride-hailing sector in markets where Robotaxis can operate commercially as the EV giant’s Robotaxi efforts gather steam. Elon Musk Predicts Cybercab’s Dominance On Tuesday, the billionaire responded to a thread...",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/elon-musk-makes-bold-10-230014083.html?.tsrc=rss"
+    },
+    {
+      "title": "Musk: It Takes “20 to 30 Million Robots” to Match America’s Output. That’s Optimus’ Market",
+      "summary": "Key TakeawaysElon Musk says about 20 to 30 million humanoid robots would match US output of goods and services, and Tesla’s Optimus is chasing that market. Tesla still has to win a share of that market and earn a margin on it, and analysts don’t expect its normalized EPS to get far past fiscal 2023’s level until fiscal 2028.",
+      "link": "https://www.tikr.com/blog/musk-it-takes-20-to-30-million-robots-to-match-americas-output-thats-optimus-market?ref=yahoofinance&tlnk=yf-261112-w585gqg3&.tsrc=rss"
+    },
+    {
+      "title": "Why Are Advanced Micro Devices (AMD) Shares Drawing Fresh AI Attention?",
+      "summary": "Advanced Micro Devices (NasdaqGS:AMD) moved into the spotlight after Nvidia CEO Jensen Huang resigned abruptly amid scandal and board turmoil. The leadership vacuum at Nvidia has raised questions over its AI accelerator roadmap, prompting investors and analysts to reassess competitive positioning across the sector. Market attention has rotated toward AMD's AI and data center offerings as investors",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/why-advanced-micro-devices-amd-232725137.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, Nov. 12: AMD Jumps 5.9% on Bank of America Price Target Hike to $700",
+      "summary": "Shares climbed as investors rotated into chip peers and analysts pushed expectations higher, today, Nov. 12, 2026.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/11/12/stock-market-today-nov-12-amd-jumps-59-on-bank-of-america-price-target-hike-to-700/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia, AMD, CoreWeave, Nebius, Tesla, and More Stocks That Explain Today’s Market",
+      "summary": "Nvidia stock drops after CEO Jensen Huang resigns.",
+      "link": "https://finance.yahoo.com/m/923c0fbe-6605-3913-952c-4b295e62fcac/nvidia%2C-amd%2C-coreweave%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, Nov. 12: Nvidia Shares Slide on Reports of CEO Jensen Huang's Resignation",
+      "summary": "Today, Nov. 12, 2026, Nvidia's sharp drop and fresh analyst downgrades put its leadership's future squarely in focus for investors.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/11/12/stock-market-today-nov-12-nvidia-shares-slide-on-reports-of-ceo-jensen-huang-s-resignation/?.tsrc=rss"
+    },
+    {
+      "title": "Stocks Couldn't Overcome Nvidia and Bond Yields",
+      "summary": "A stock market grappling with Nvidia after Jensen Huang was also forced to contend with a spike in bond yields.",
+      "link": "https://finance.yahoo.com/m/e84cbc3d-38ab-306c-8727-cdac34cc9fef/stocks-couldn%27t-overcome.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock futures rise after market dips amid Nvidia woes: Live updates - CNBC",
+      "summary": "Stock futures rise after market dips amid Nvidia woes: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1DUGhtX3RkQk1tTVc3WFZQOGhSalVKd2RzNks0R1dHRlFMSUd1bUhOeVVmNTQxS09JQjhaaTBQVWVnY3RBblNRRlc3a21TVEJJUnZmVm9pYmJMSVNWazl5bU9lZkdyOVpSSXhoSUlfeEx1ZUdvakVR0gF8QVVfeXFMUEZVRDFwUjNBQ01QTjdQX0h5WXU5R3BqdDZwVFJiNU9obl9qYk1lWC1XTWUxbDhFaGR4V2x0cERQdDAyNFlJQk1fNXBqdFItb3FaTDdyV2R6WklkbExBZHNnQ3k1WFR4X0FaeGpRM09SZHprem0zajZXbEx6Vg?oc=5"
+    },
+    {
+      "title": "Stock Market Today on Nov. 12, 2026: Dow, S&P 500 and Nasdaq end lower after Jensen Huang resigns from Nvidia and bond yields jump - MarketWatch",
+      "summary": "Stock Market Today on Nov. 12, 2026: Dow, S&P 500 and Nasdaq end lower after Jensen Huang resigns from Nvidia and bond yields jump MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxNNGNYLThrNnhscF9EMGJ3RmNPb0JGaEhHZkRvZnMyTWJ6NzdyalFOZGJZclFENVktUDNCZ3hLRmNUdmNfank3cm1BeGtYVVlZMXlBZE94aE9pdVk1dmMwd0VwQWNGR20xaG5VWU9CU2JXUlVZQ2lPWGJoQ1NFbmRFZFJzQnpDdi1ZSjlvSnJGblRyU3M2ZWVqODVXbXRYY0RnRi1meXhOX21SSWk3ZDk1SktKU3VLS21tNmc?oc=5"
+    },
+    {
+      "title": "Nvidia live updates: Following Jensen Huang's resignation as CEO, allegations of a third affair emerge - Yahoo Finance",
+      "summary": "Nvidia live updates: Following Jensen Huang's resignation as CEO, allegations of a third affair emerge Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxNUjN6ZHpwVTN4R3loaDYzLThpNnhsUmY5NGoxLWJIaG5WSWlSNE5iVi1OS0RxNnpZNUFDLWhXWUY0TDZ3UUlpYThqWFc3SlhRV185N2RGNmFpYjlGWUg5TUVWNzhEUkF6TVdxbGVLN3VGc19xZHM4QjQ4eWkwZUxGaXB6LXBydzloUHpySXpWZ0NVSHh4VWtuSWtidnBJNEZYem96el9VOXVVZmVvWGVQNEJlb1RKdkVqWUNhY2hyT2VuZjZIdWd4TVNhT1VhY0NRWWV0VHVsZjlwS3pGdkxLLUJJS0JtNDJxaFVzNQ?oc=5"
+    },
+    {
+      "title": "Equities close lower as Nvidia drop outweighs energy gains - Reuters",
+      "summary": "Equities close lower as Nvidia drop outweighs energy gains Reuters",
+      "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxQY01YWkJBY3Roa2hlWkVsbHhpcHplMm5NX09pWEJlMC1rWTY1ZDJoTUh0elc0WTZvdmpDOXJhS04tN2J5Y0N4NmZPdGk0aUhKdVZLT2RMSTk4S2EyZEJMYzY3WnpMMklfRjF3ZEJXZzU3d1VBTmlWS3Y1cllaYURseVQ4Nl93RFVLOXB4M1J6bnM1YVQ5QXBaSDZCOXEwUQ?oc=5"
+    },
+    {
+      "title": "Tech Gains Boost Stocks as Bonds Slide on Fed Bets: Markets Wrap - Bloomberg.com",
+      "summary": "Tech Gains Boost Stocks as Bonds Slide on Fed Bets: Markets Wrap Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQNFpBLVFiSmhuZGxNdjZ4WUE1eEZZVzlpcElqQ3FpX2hfRVVkaVdncm5Ic3J4TFdMVTVPODFqV1dYWTJORmx5c3lTMHg1ZUtiZml2ZUVOZm1WQnlCa2lKcUt3M0tjQUsyVVNxQlVySk5TbHRqZHczYVFDTnU0OGZjMjBBWUFqZ2JpNFNhb05nX01EU3dX?oc=5"
+    },
+    {
+      "title": "Equities close lower as Nvidia drop outweighs energy gains - Yahoo Finance",
+      "summary": "Equities close lower as Nvidia drop outweighs energy gains Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNVWJOVUNfczJuRFhCMUJkNHMtMWplYV8zdDN3ZXdNaVotam9MOTZHY3lFWVpLbzc5Qm9uOFpaaXF2bmVBNjVseEdYQmV2aUJCaEJVT3JNaTJneTB4TVpRUFVlcGZReTFST0YtYXZHOGdFNXFYZEVDR3dwTXNPUmdZX0d4X2ppTE9DTGpDNWFNU3hHVGdwbjFQYlB0OHUweF9s?oc=5"
+    }
+  ],
+  "us_date": "11/12",
+  "generated_at": "2026-11-13T10:58:33.267412+09:00"
+}
