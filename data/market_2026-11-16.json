@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 25136.27,
+      "prev": 25366.09,
+      "chg_pct": -0.91,
+      "volume": 7740442000,
+      "market_date_us": "11/13"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7561.67,
+      "prev": 7592.4,
+      "chg_pct": -0.4,
+      "volume": 2727332000,
+      "market_date_us": "11/13"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 52347.55,
+      "prev": 52297.09,
+      "chg_pct": 0.1,
+      "volume": 645244111,
+      "market_date_us": "11/13"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 19.3,
+      "prev": 18.7,
+      "chg_pct": 3.21,
+      "volume": 0,
+      "market_date_us": "11/13"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 10146.32,
+      "prev": 10506.67,
+      "chg_pct": -3.43,
+      "volume": 0,
+      "market_date_us": "11/13"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 103.42,
+      "prev": 103.41,
+      "chg_pct": 0.01,
+      "volume": 0,
+      "market_date_us": "11/15"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 88.24,
+      "prev": 88.56,
+      "chg_pct": -0.36,
+      "volume": 5363,
+      "market_date_us": "11/15"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 3879.7,
+      "prev": 3886.3,
+      "chg_pct": -0.17,
+      "volume": 9777,
+      "market_date_us": "11/15"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1334.78,
+      "prev": 1333.78,
+      "chg_pct": 0.07,
+      "volume": 0,
+      "market_date_us": "11/15"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 679.89,
+      "prev": 688.17,
+      "chg_pct": -1.2,
+      "volume": 42098628,
+      "market_date_us": "11/13"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 149.3,
+      "prev": 154.99,
+      "chg_pct": -3.67,
+      "volume": 47874029,
+      "market_date_us": "11/13"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 58.68,
+      "prev": 58.21,
+      "chg_pct": 0.81,
+      "volume": 30011153,
+      "market_date_us": "11/13"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 142.78,
+      "prev": 145.38,
+      "chg_pct": -1.79,
+      "volume": 12738112,
+      "market_date_us": "11/13"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 162.85,
+      "prev": 166.19,
+      "chg_pct": -2.01,
+      "volume": 365796552,
+      "market_date_us": "11/13"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 534.06,
+      "prev": 585.3,
+      "chg_pct": -8.75,
+      "volume": 49387598,
+      "market_date_us": "11/13"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 59.66,
+      "prev": 61.2,
+      "chg_pct": -2.52,
+      "volume": 102574299,
+      "market_date_us": "11/13"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 398.73,
+      "prev": 405.49,
+      "chg_pct": -1.67,
+      "volume": 10745441,
+      "market_date_us": "11/13"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 356.27,
+      "prev": 354.88,
+      "chg_pct": 0.39,
+      "volume": 40027467,
+      "market_date_us": "11/13"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 523.88,
+      "prev": 523.0,
+      "chg_pct": 0.17,
+      "volume": 26189242,
+      "market_date_us": "11/13"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 390.22,
+      "prev": 397.45,
+      "chg_pct": -1.82,
+      "volume": 32392965,
+      "market_date_us": "11/13"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 266.66,
+      "prev": 267.44,
+      "chg_pct": -0.29,
+      "volume": 31148510,
+      "market_date_us": "11/13"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 295.77,
+      "prev": 298.7,
+      "chg_pct": -0.98,
+      "volume": 30798617,
+      "market_date_us": "11/13"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 641.69,
+      "prev": 623.61,
+      "chg_pct": 2.9,
+      "volume": 15150951,
+      "market_date_us": "11/13"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 207500.0,
+      "prev": 206000.0,
+      "chg_pct": 0.73,
+      "volume": 2633598,
+      "market_date_us": "11/15"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1199000.0,
+      "prev": 1216000.0,
+      "chg_pct": -1.4,
+      "volume": 646367,
+      "market_date_us": "11/15"
+    }
+  },
+  "news": [
+    {
+      "title": "The 1 Mistake Investors Make When the Market Stalls, and How to Avoid It",
+      "summary": "Investors often focus on what’s happening at the moment.",
+      "link": "https://www.fool.com/investing/2026/11/15/the-1-mistake-investors-make-when-the-market-stalls-and-how-to-avoid-it/?.tsrc=rss"
+    },
+    {
+      "title": "3 Magnificent Stocks to Buy Before 2027 and Hold for a Decade",
+      "summary": "These stocks are all down, but they have incredible long-term potential.",
+      "link": "https://www.fool.com/investing/2026/11/15/3-magnificent-stocks-to-buy-before-2027-and-hold-for-a-decade/?.tsrc=rss"
+    },
+    {
+      "title": "Investors: If a Market Correction Is Coming, This 1 Move Will Make or Break Your Portfolio",
+      "summary": "When investing in individual stocks, one thing matters above all else if you want to minimize the pain of drawdowns.",
+      "link": "https://www.fool.com/investing/2026/11/15/investors-if-a-market-correction-is-coming-this-1-move-will-make-or-break-your-portfolio/?.tsrc=rss"
+    },
+    {
+      "title": "Which Healthcare ETF Is the Better Buy: State Street’s Pharma Fund XPH or iShares’ Biotech Fund IBB?",
+      "summary": "XPH charges less and pays a higher yield, but IBB manages over 20 times the assets across a far broader set of research-driven biotech names.",
+      "link": "https://www.fool.com/coverage/etfs/2026/11/15/which-healthcare-etf-is-the-better-buy-state-street-s-pharma-fund-xph-or-ishares-biotech-fund-ibb/?.tsrc=rss"
+    },
+    {
+      "title": "Why Cashing Out Your 401(k) at 55 Costs You $170K in Lost Growth",
+      "summary": "See why you're losing more than you think if you cash out early.",
+      "link": "https://moneylion.com/trending/money/cashing-out-401k-55-costs-170k-dollars-lost-growth?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures Rise As Jensen Huang Mulls Nvidia Return",
+      "summary": "Nvidia earnings are due as Jensen Huang reportedly mulls a return. The Anthropic IPO is ahead.",
+      "link": "https://finance.yahoo.com/m/53e50dc8-f137-3f6c-bfd6-912334fef9f1/dow-jones-futures-rise-as.html?.tsrc=rss"
+    },
+    {
+      "title": "Musk, Uber co-founder join call for Jensen Huang's return to Nvidia",
+      "summary": "Tech tycoon Elon Musk and an Uber co-founder are, as of Sunday, among more than 158,000 signatories of an open letter calling for Jensen Huang's reinstatement as Nvidia chief.In Washington, however, US Treasury Secretary Scott Bessent argued Sunday that Nvidia should look \"outside\" the company for its next chief.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/musk-uber-co-founder-join-231643816.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock Futures Are Rising Ahead of Nvidia’s Earnings, Anthropic’s IPO",
+      "summary": "The embattled chip maker will report after Tuesday’s closing bell, just days after the ouster of CEO and co-founder Jensen Huang.",
+      "link": "https://finance.yahoo.com/m/8cef83a6-f4cb-350b-abaf-a876bb42c992/stock-futures-are-rising.html?.tsrc=rss"
+    },
+    {
+      "title": "Jensen Huang weighs Nvidia CEO comeback as ally plans ‘war room’: report",
+      "summary": "Former Nvidia CEO Jensen Huang faces a reinstatement push backed by Elon Musk, Tim Sweeney and other tech leaders following his abrupt ouster.",
+      "link": "https://www.foxbusiness.com/technology/jensen-huang-weighs-nvidia-ceo-comeback-ally-plans-war-room-report?.tsrc=rss"
+    },
+    {
+      "title": "Jensen Huang Considers Returning To Nvidia: FT",
+      "summary": "Jensen Huang reportedly is mulling a return to the chip giant he founded, days after resigning as Nvidia CEO in scandal. How will Nvidia stock react?",
+      "link": "https://finance.yahoo.com/m/694d3941-721c-31d4-aff5-d306f1116454/jensen-huang-considers.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Is Down 13% in 2026 While the S&P 500 Is Up. Here’s the 1 Catalyst Left This Year That Could Flip That.",
+      "summary": "Tesla's 2026 stock performance is tied to its robotaxi and Cybercab rollout, and management could release some good news on it before year-end.",
+      "link": "https://www.fool.com/investing/2026/11/15/tesla-is-down-13-in-2026-while-the-sp-500-is-up-heres-the-1-catalyst-left-this-year-that-could-flip-that/?.tsrc=rss"
+    },
+    {
+      "title": "A Tesla-SpaceX Merger Could Create the World’s Biggest Company, Fulfilling Musk’s Old Fascination",
+      "summary": "Tesla and SpaceX are reportedly advancing their merger talks. The merged entity might become the world's biggest company if AI trade starts roaring again.",
+      "link": "https://www.barchart.com/story/news/8843976/a-tesla-spacex-merger-could-create-the-worlds-biggest-company-fulfilling-musks-old-fascination?.tsrc=rss"
+    },
+    {
+      "title": "Son of ex-Alamo Rent a Car owner went from hip hop label founder to lithium leader. He’s even eyeing the White House",
+      "summary": "The brash EnergyX aims to expand into the world's largest lithium producer with major hubs in the U.S. and South America.",
+      "link": "https://finance.yahoo.com/energy/articles/son-ex-alamo-rent-car-080500498.html?.tsrc=rss"
+    },
+    {
+      "title": "‘Tesla of China’ could make cars in Britain as Burnham considers tariffs",
+      "summary": "A company nicknamed the “Tesla of China” is considering manufacturing its vehicles in Britain as Andy Burnham mulls tariffs on Beijing’s electric car companies.",
+      "link": "https://uk.finance.yahoo.com/news/tesla-china-could-cars-britain-070000350.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla makes major Cybercab announcement as driverless vehicle goes on sale",
+      "summary": "Tesla's Cybercab is now available to select customers for $29,990 with a $299 monthly autonomy subscription, but Elon Musk says the fee is too high.",
+      "link": "https://www.foxbusiness.com/technology/tesla-makes-major-cybercab-announcement-driverless-vehicle-goes-sale?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices (AMD) Deepens Quantum Push With New Research And Commercial Ties",
+      "summary": "Advanced Micro Devices (NasdaqGS:AMD) expanded its quantum computing work through new and extended partnerships with PsiQuantum, IBM and Oak Ridge National Laboratory. The collaboration with PsiQuantum focuses on applying hybrid quantum and classical computing to commercial use cases that include drug discovery. AMD is working with IBM and Oak Ridge National Laboratory on a co-design approach aime",
+      "link": "https://finance.yahoo.com/technology/ai/articles/advanced-micro-devices-amd-deepens-001906359.html?.tsrc=rss"
+    },
+    {
+      "title": "Forget Jensen Huang’s Resignation. AMD May Be Nvidia’s Biggest Threat in 2027",
+      "summary": "AI labs that once treated NVIDIA as the only option are quietly rewriting their chip orders. One frontier lab says a switch that took a year now takes days, and that shift could reshape AMD's 2027.",
+      "link": "https://247wallst.com/investing/2026/11/15/forget-jensen-huangs-resignation-amd-may-be-nvidias-biggest-threat-in-2027/?.tsrc=rss"
+    },
+    {
+      "title": "The Evidence Is Piling Up: AMD Could Be the Best Artificial Intelligence (AI) Stock to Buy Amid the Sell-Off",
+      "summary": "AMD seems poised to become a long-term winner due to its accelerating growth and a huge addressable market.",
+      "link": "https://www.fool.com/investing/2026/11/15/the-evidence-is-piling-up-amd-could-be-the-best-artificial-intelligence-ai-stock-to-buy-amid-the-sell-off/?.tsrc=rss"
+    },
+    {
+      "title": "Anthropic Just Delivered Great News for AMD Investors and Bad News for Nvidia",
+      "summary": "Anthropic just undermined one of Nvidia's chief competitive advantages.",
+      "link": "https://www.fool.com/investing/2026/11/15/anthropic-just-delivered-great-news-for-amd-investors-and-bad-news-for-nvidia/?.tsrc=rss"
+    },
+    {
+      "title": "Street Calls of the Week",
+      "summary": "Investing.com -- The rating changes with the biggest same-day moves for the week of Nov 9–13, 2026.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/street-calls-week-103003191.html?.tsrc=rss"
+    },
+    {
+      "title": "Nasdaq falls on Friday as Nvidia sells off, but index notches best week since August: Live updates - CNBC",
+      "summary": "Nasdaq falls on Friday as Nvidia sells off, but index notches best week since August: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1DUGhtX3RkQk1tTVc3WFZQOGhSalVKd2RzNks0R1dHRlFMSUd1bUhOeVVmNTQxS09JQjhaaTBQVWVnY3RBblNRRlc3a21TVEJJUnZmVm9pYmJMSVNWazl5bU9lZkdyOVpSSXhoSUlfeEx1ZUdvakVR0gF8QVVfeXFMUEZVRDFwUjNBQ01QTjdQX0h5WXU5R3BqdDZwVFJiNU9obl9qYk1lWC1XTWUxbDhFaGR4V2x0cERQdDAyNFlJQk1fNXBqdFItb3FaTDdyV2R6WklkbExBZHNnQ3k1WFR4X0FaeGpRM09SZHprem0zajZXbEx6Vg?oc=5"
+    },
+    {
+      "title": "Stock market today: Dow rises, S&P 500 and Nasdaq slip to cap volatile week, Nvidia stock plunge deepens - Yahoo Finance",
+      "summary": "Stock market today: Dow rises, S&P 500 and Nasdaq slip to cap volatile week, Nvidia stock plunge deepens Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxORHNBdWVhWllRY0IzSV9JUGtmWVdfQk5EaGVSVVNNXzVtUWtITW1xRUhYRDA3SVdSbWFaWjExbkI0VXA1ZjVuWXNWWkI2M3hUTVpxeUxvekxyZmhLOGdBMFZXdktzTWdvT0tOdnVIenp6UFQtdWt5bkJtNWlMSGpGdDZ2WEZmbTlidlQ2QVhSREdGdXNDb0F0ZzNJUGNSejZwSXE4Y2NCdHRHQWxKNkZrTWNQbUtVYXFGU3k4Tw?oc=5"
+    },
+    {
+      "title": "Stock futures tick higher as traders brace for Nvidia earnings, Anthropic IPO this week: Live updates - CNBC",
+      "summary": "Stock futures tick higher as traders brace for Nvidia earnings, Anthropic IPO this week: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1mcjluX1NZUEVzZ0dXVXFRX3c3SkZubmJJclpoSlNQVDV2TTloVERqNU54dnBhNG9oVTVObVJzMExPSkQyVEZzNkpmQ09sTWRTaWZwSjc1cEJiZ0k1U1NNZ1pJSVlKQlNidFcwT2NRLVJCbGVLMzln0gF8QVVfeXFMUG1YMkpQVmR5RkUzM0x4dkxzdjZsbV9MUTZWbl92M3BvT1lfWWYwX3RxZjBIMHd1cGdBYndYbkdXVmk4Y2hObFVKVUVlT0xmdTBNR21qd3M1YV80ZFI1eFQtbUpqbG1kQUpqSlVDc3hWbVJRUV8yU2lhcmRpeA?oc=5"
+    },
+    {
+      "title": "The Stock Market Is Doing Something for Only the 6th Time in 156 Years, and History Says It's Clear What Comes Next for Stocks - The Motley Fool",
+      "summary": "The Stock Market Is Doing Something for Only the 6th Time in 156 Years, and History Says It's Clear What Comes Next for Stocks The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxORDk0M3pBZFVxN2dFRjVfakVoM3FOeXI2YXY0ODFqbmtkbXZGdVEyaEs5dV8xWnhNd1V0WWZpOG5rc054aFZOR2RNUXpIVV9aUGprbzBjSUNuQXNpdzBtQlFJd2RGZDFUcDNrc3llMkVpcFl4Q1lTbFQ3YzJBbUN2dmFaWTJheVpha0pDcXRQaTJIb0oyZHQ0Z0pzZEdZemg1ME01dVd0TzY3SGlxTER6MnRNVFpSZ1R2M3NKT2h6TGJIM3BGYk5kTzBCYU5kWEtSUk1DeQ?oc=5"
+    },
+    {
+      "title": "Trump’s tariffs face a new threat: Republicans - CNN",
+      "summary": "Trump’s tariffs face a new threat: Republicans CNN",
+      "link": "https://news.google.com/rss/articles/CBMickFVX3lxTFBNbmJUVFdDTUN5ZXd6cm9BYnAwV0dyMzVVSTJucUQ2dW0wd3RBR1ExY3ZTSlVFaFlpaHdkeTlzaXp4ajFZNlBqMURSdWczZENmcFhva2ZoR0dxazRtbllOMFluOEtyRjlTeTViRG5jYlRmdw?oc=5"
+    }
+  ],
+  "us_date": "11/13",
+  "generated_at": "2026-11-16T10:10:35.651889+09:00"
+}
