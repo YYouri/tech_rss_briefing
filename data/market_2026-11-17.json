@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 24509.76,
+      "prev": 25136.27,
+      "chg_pct": -2.49,
+      "volume": 8223551000,
+      "market_date_us": "11/16"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7416.59,
+      "prev": 7561.67,
+      "chg_pct": -1.92,
+      "volume": 3068678000,
+      "market_date_us": "11/16"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 51608.17,
+      "prev": 52347.55,
+      "chg_pct": -1.41,
+      "volume": 678502103,
+      "market_date_us": "11/16"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 22.91,
+      "prev": 19.3,
+      "chg_pct": 18.7,
+      "volume": 0,
+      "market_date_us": "11/16"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 9610.65,
+      "prev": 10146.32,
+      "chg_pct": -5.28,
+      "volume": 0,
+      "market_date_us": "11/16"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 103.5,
+      "prev": 103.41,
+      "chg_pct": 0.09,
+      "volume": 0,
+      "market_date_us": "11/16"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 84.97,
+      "prev": 88.56,
+      "chg_pct": -4.05,
+      "volume": 9645,
+      "market_date_us": "11/16"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 3875.2,
+      "prev": 3886.3,
+      "chg_pct": -0.29,
+      "volume": 20524,
+      "market_date_us": "11/16"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1337.9,
+      "prev": 1333.25,
+      "chg_pct": 0.35,
+      "volume": 0,
+      "market_date_us": "11/16"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 661.75,
+      "prev": 679.89,
+      "chg_pct": -2.67,
+      "volume": 41810606,
+      "market_date_us": "11/16"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 141.22,
+      "prev": 149.3,
+      "chg_pct": -5.41,
+      "volume": 36078175,
+      "market_date_us": "11/16"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 58.18,
+      "prev": 58.68,
+      "chg_pct": -0.85,
+      "volume": 37953682,
+      "market_date_us": "11/16"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 136.55,
+      "prev": 142.78,
+      "chg_pct": -4.36,
+      "volume": 14560195,
+      "market_date_us": "11/16"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 156.14,
+      "prev": 162.85,
+      "chg_pct": -4.12,
+      "volume": 329959344,
+      "market_date_us": "11/16"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 504.28,
+      "prev": 534.06,
+      "chg_pct": -5.58,
+      "volume": 35785537,
+      "market_date_us": "11/16"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 55.47,
+      "prev": 59.66,
+      "chg_pct": -7.02,
+      "volume": 100803088,
+      "market_date_us": "11/16"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 373.45,
+      "prev": 398.73,
+      "chg_pct": -6.34,
+      "volume": 19424679,
+      "market_date_us": "11/16"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 352.78,
+      "prev": 356.27,
+      "chg_pct": -0.98,
+      "volume": 45013034,
+      "market_date_us": "11/16"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 517.99,
+      "prev": 523.88,
+      "chg_pct": -1.12,
+      "volume": 29564193,
+      "market_date_us": "11/16"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 379.74,
+      "prev": 390.22,
+      "chg_pct": -2.69,
+      "volume": 30080721,
+      "market_date_us": "11/16"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 257.75,
+      "prev": 266.66,
+      "chg_pct": -3.34,
+      "volume": 47704999,
+      "market_date_us": "11/16"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 283.72,
+      "prev": 295.77,
+      "chg_pct": -4.07,
+      "volume": 34077805,
+      "market_date_us": "11/16"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 626.41,
+      "prev": 641.69,
+      "chg_pct": -2.38,
+      "volume": 11508404,
+      "market_date_us": "11/16"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 193000.0,
+      "prev": 196800.0,
+      "chg_pct": -1.93,
+      "volume": 10048718,
+      "market_date_us": "11/16"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1131000.0,
+      "prev": 1120000.0,
+      "chg_pct": 0.98,
+      "volume": 1991420,
+      "market_date_us": "11/16"
+    }
+  },
+  "news": [
+    {
+      "title": "Warren Buffett’s 10-Year Rule for a 68-Year-Old With $650,000 in an IRA and $3,000 a Month in Social Security. Here’s the Monthly Income and the Tax Bill.",
+      "summary": "Warren Buffett's 1996 test for owning a stock, applied to a 68-year-old with $650,000 in an IRA and $3,000 a month in Social Security: $300,000 goes into a Treasury ladder paying about 4.9%, $350,000 into an S&P 500 index fund, the income is $5,500 a month and the federal tax bill is about $2,400 a year.",
+      "link": "https://247wallst.com/investing/2026/11/16/warren-buffetts-10-year-rule-for-a-68-year-old-with-650000-in-an-ira-and-3000-a-month-in-social-security-heres-the-monthly-income-and-the-tax-bill/?.tsrc=rss"
+    },
+    {
+      "title": "Wall Street futures muted as Nvidia earnings loom amid AI jitters",
+      "summary": "Investing.com-- U.S. stock futures were little changed on Monday evening after Wall Street fell sharply, with Nvidia dragging the technology sector lower ahead of its quarterly results, while investors also eyed details surrounding Anthropic's potential initial public offering.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/wall-street-futures-muted-nvidia-010312790.html?.tsrc=rss"
+    },
+    {
+      "title": "What's Going To Happen With Constellation Energy Stock Soon?",
+      "summary": "For questions about this article or underlying research, email help@trefis.com.",
+      "link": "https://www.trefis.com/stock/ceg/articles/625176/whats-going-to-happen-with-constellation-energy-stock-soon/2026-11-16?.tsrc=rss"
+    },
+    {
+      "title": "Review & Preview: Now What?",
+      "summary": "Investors are getting nervous ahead of big moves from Nvidia and Anthropic this week.",
+      "link": "https://finance.yahoo.com/m/af12ddb3-da89-3246-b0ef-05069ae618d3/review-%26-preview%3A-now-what%3F.html?.tsrc=rss"
+    },
+    {
+      "title": "Fuel Cell Market Seen at $18 Billion by 2030 as Quarterly Results Diverge",
+      "summary": "Equity Insider News Commentary - Fuel cell and hydrogen companies have been reporting very different quarters, and Ballard Power Systems added its results on Monday. The S&P 500 fell 1.92% to 7,416.59 and the Nasdaq Composite dropped 2.49% to 24,509.76 on Monday, according to CNBC's closing report. MarketsandMarkets projects the global fuel cell market will reach USD 18.16 billion by 2030 from USD",
+      "link": "https://finance.yahoo.com/news/fuel-cell-market-seen-18-000800746.html?.tsrc=rss"
+    },
+    {
+      "title": "SPCX Stock Dethrones Intel As Nvidia’s Biggest Holding — Druckenmiller Buys In And Tepper Ups His Stake Over 1,600%",
+      "summary": "David Tepper’s Appaloosa increased its SpaceX share count by 1,626%, making the $556.5 million stake its fourth-largest holding.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/spcx-stock-dethrones-intel-nvidia-biggest-holding-druckenmiller-buys-in-tepper-ups-stake/cNba0UWR9gq?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia's Biggest Jensen Huang Problem Was Hiding in Plain Sight",
+      "summary": "Charismatic CEOs are not immortal, infallible, or irreplaceable.",
+      "link": "https://www.fool.com/investing/2026/11/16/nvidia-s-biggest-jensen-huang-problem-was-hiding-in-plain-sight/?.tsrc=rss"
+    },
+    {
+      "title": "Bessent Says Nvidia Needs A “Dramatic Shakeup,” As A Singapore Firm Reportedly Moved At Least $7.5 Billion Of Nvidia Chips To China.",
+      "summary": "Treasury's top official compared the world's most valuable chipmaker to a bank regulators would storm, and he wants its board to look outside for new leadership. With earnings days away, one question could define what Nvidia owes investors.",
+      "link": "https://247wallst.com/investing/2026/11/16/bessent-says-nvidia-needs-a-dramatic-shakeup-as-a-singapore-firm-reportedly-moved-at-least-7-5-billion-of-nvidia-chips-to-china/?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: AMD, Nvidia, Micron Lead AI Trade Lower With Nvidia Earnings On Deck",
+      "summary": "Dow Jones Futures: AMD, Nvidia stock and Micron led the AI trade lower Monday. Nvidia earnings are due after the close Tuesday.",
+      "link": "https://finance.yahoo.com/m/d0a3411e-5f2b-302d-801a-a42b1d7ca5ea/dow-jones-futures%3A-amd%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "Is NVIDIA’s Turmoil Advanced Micro Devices’ (AMD) Biggest Opening Yet?",
+      "summary": "Our list of the 10 Stocks to Buy Following Jensen Huang’s Departure is out, and Advanced Micro Devices, Inc. (NASDAQ:AMD) ranked 9th. For three years, the AI trade had one face. Now it has an interim CEO. On November 12, Jensen Huang resigned as NVIDIA’s chief executive and board member, hours after nerves gripped investors awaiting […]",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-turmoil-advanced-micro-devices-031446562.html?.tsrc=rss"
+    },
+    {
+      "title": "Cathie Wood’s $2.2 Billion Bet on Elon Musk Could Soon Become One Giant Stock",
+      "summary": "Cathie Wood's ARK held $2.2 billion of Tesla and SpaceX on Sept. 30, its two largest holdings, and Bloomberg reports a merger could be announced as soon as next month. A combined company would rank fifth in the S&P 500, and TD Securities estimates index funds would buy about $100 billion of it.",
+      "link": "https://247wallst.com/investing/2026/11/16/cathie-woods-2-2-billion-bet-on-elon-musk-could-soon-become-one-giant-stock/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla board member Joe Gebbia: Nvidia should “reinstate” Jensen Huang to let investigation play out",
+      "summary": "Joe Gebbia, the U.S. chief design officer, Airbnb cofounder, and Tesla board member, told Alyson Shontell that Nvidia should reinstate Jensen Huang as CEO and then run a due diligence process. “Nvidia is one of the greatest companies ever of all time, and it got there because of founder mode,” Gebbia said at the F500 Innovation Forum.",
+      "link": "https://finance.yahoo.com/video/tesla-board-member-joe-gebbia-010013441.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500, Dow, Nasdaq End Lower As Investors Hold Back Ahead Of Nvidia Earnings, Anthropic IPO This Week — NVDA, TSLA, ANT In Focus",
+      "summary": "Nvidia earnings are due on Tuesday, and Anthropic is set to list on Thursday under the ticker ANT.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-dow-nasdaq-end-lower-as-investors-hold-back-ahead-of-nvidia-earnings-anthropic-ipo/cNbaf4PR9gk?.tsrc=rss"
+    },
+    {
+      "title": "Your $300,000 in XLY Holds $125,585 in Amazon and Tesla Alone",
+      "summary": "A fund named for everyday American spending looks diversified until you open its holdings filing. Two familiar companies quietly steer the whole ride, and you may already own them twice without realizing it.",
+      "link": "https://247wallst.com/investing/etf/2026/11/16/your-300000-in-xly-holds-125585-in-amazon-and-tesla-alone/?.tsrc=rss"
+    },
+    {
+      "title": "Tesla's Cybertruck exit reveals an expensive gamble",
+      "summary": "Elon Musk is sacrificing his futuristic pickup to make room for a vehicle with a much bigger financial question.",
+      "link": "https://www.thestreet.com/automotive/teslas-cybertruck-exit-reveals-an-expensive-gamble?.tsrc=rss"
+    },
+    {
+      "title": "1 Number Reveals Which Is the Better Buy Between Nvidia and AMD",
+      "summary": "Is AMD really worth three times as much as Nvidia?",
+      "link": "https://www.fool.com/investing/2026/11/16/1-number-reveals-which-is-the-better-buy-between-nvidia-and-amd/?.tsrc=rss"
+    },
+    {
+      "title": "AMD’s Nvidia Rally Fades: Michael Burry Calls AMD ‘Too Expensive As Eternal Alternative’",
+      "summary": "Burry sounded caution about the potential upside in AMD despite it being billed as a key beneficiary of the fallout at Nvidia.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/amd-s-nvidia-rally-fades-michael-burry-calls-amd-too-expensive-as-eternal-alternative/cNbah8GR9gn?.tsrc=rss"
+    },
+    {
+      "title": "4 Chip Stocks Down as Much as 36% From Their Highs to Buy and Hold for the Next Decade",
+      "summary": "Four AI chip stocks trade as much as a third under their records. Which would I want to own for 10 years?",
+      "link": "https://www.fool.com/investing/2026/11/16/4-chip-stocks-down-as-much-as-36-from-their-highs-to-buy-and-hold-for-the-next-decade/?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market News, November 16, 2026: Nasdaq Slides 2.5% as Nvidia Drama Continues - WSJ",
+      "summary": "Stock Market News, November 16, 2026: Nasdaq Slides 2.5% as Nvidia Drama Continues WSJStock market today: Dow and S&P 500 drop, Nasdaq sinks over 2% as Nvidia leads AI trade lower, Anthropic IPO looms Yahoo FinanceNasdaq falls more than 2%, extending slide to third day as Nvidia drags down AI trade CNBC",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOdy10SlNMRlFPdjFwZnBNZEwybjZLOGwxdENoX2wxZWpLTlB0bXNvbFctREtRcThZUXcxRUV6ZXlYSVZjR0d1MVNEaHNvVDJfVXVvZEN6MFJMMUF0VnNTMHFTWmtIZzVKMWxCM1BMU3l6UEJUWWVnbzNvTG13TmhQUjNPZlJYQlU?oc=5"
+    },
+    {
+      "title": "AI bubble will likely burst and cause a recession by 2028 election, Wall Street’s former top cop says - CNN",
+      "summary": "AI bubble will likely burst and cause a recession by 2028 election, Wall Street’s former top cop says CNN",
+      "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1ISTFFbzctbFN5S3RraVZnbzBORlh6VHFWYS1rOTQxU2tiVDhkNDlGVS15R1UzMnVXUXQ1T1FKeWNYNmktNXozd3RnUXNGUjdNcDdqUUFxaTR0QU1PMGVCVHZkZWYyYlIwWjZUeXNUekNwVEE0cV9wcjVqWTE?oc=5"
+    },
+    {
+      "title": "The Stock Market Is Doing Something Witnessed Only 2 Times in 155 Years -- and History Is Crystal Clear About What Happens Next. - The Motley Fool",
+      "summary": "The Stock Market Is Doing Something Witnessed Only 2 Times in 155 Years -- and History Is Crystal Clear About What Happens Next. The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMi-wFBVV95cUxOT1hlQ2pmdWNMQmtJWjVFVzVzYU40R0ZYQ1NqbktGMC1WajdSaDJxYXFnSER2WWRXVE8xbklacUNabW93eVNiRmdiRVkwQ1J4OUUyZEhUamlwc09qYVhyU20zQXl4Yy1xMEFsSk9sVHY5QzQzYkNFdEwwSTZ5SUVUT1JlM3dnb3I2SnhDUXZDUjBCUC1JcnNiWEJYU0Jad2VYbHhRYlA2VW1rSl9odUV6NlEtNGxXTHM2NjZUMjR5YVQydjF4em5mRV9tRU5xbllhM2ZGa3JvZXZCYng1cHBUWEQ2UjJadXN2RjVJWGQ5TTVhUDVHc2d2d0Yxbw?oc=5"
+    },
+    {
+      "title": "Stock Market Today, Nov. 16: U.S. Stocks Mixed Ahead of Nvidia Results and Anthropic IPO - TipRanks",
+      "summary": "Stock Market Today, Nov. 16: U.S. Stocks Mixed Ahead of Nvidia Results and Anthropic IPO TipRanks",
+      "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxQU3IwYS1TWmtZTzRqXzJEVmhzbldmNnZISlRvbFBhZHhqSkpkdlBHSV91SzMxcXZrN1V0VFQ0MXZDNlJYLWx0bTRDdHVmc0FITm9IN2hCVGJZZTdIZnlxVjZWUlhzV2ZsNF9JLXNkc1hFYWNUYlBXUHZzUjdFV1hiSGdualFvTncySEV2NElaSEJ4SzZlQ2tpWXZhLWpCM3pTV0J5dldOY0hjdEZJNjRNSW13OEc?oc=5"
+    },
+    {
+      "title": "Bank outage reports spike: JPMorgan blames software bug for transaction delays - Yahoo Finance",
+      "summary": "Bank outage reports spike: JPMorgan blames software bug for transaction delays Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxQNU1QbEJGZHVYRmotQVhadjM1bWtqMnVpZk9jSFZDc0lMMjZuQVhMWEFSenVMelpyVlhEWVc2c1RHMzNfTDVSY0Z3UVgtRjI4OE1zcVVXVTZXZmNDcFhhdFVxUk9teFBGRUk2UmlFNXQ5SVdiNGRadVFLQ3J4ZHM0bVhhR0JTMFcyeElLbXVEOTljbl9maGRSbXdUVUg5LTZhRlpQV092MElLNGVzUGZhYzRSRF9GNlBoNTVqaEpwb3M1TF9pYjRCTUFPNE9lWTQ?oc=5"
+    },
+    {
+      "title": "Wall Street ends sharply lower on AI jitters ahead of Nvidia results, Anthropic IPO - Reuters",
+      "summary": "Wall Street ends sharply lower on AI jitters ahead of Nvidia results, Anthropic IPO Reuters",
+      "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxOZEJobHpHMl90WUdVbnpzSGxLb1l3bi1BczhrN29iVW9rUzBtQWE4aFNuM2ZGS1RIQThLdEZPWmZjeExVaHhRaXBubkdqR3R3TXJYTlRqUmRYcXZxYS1pV1lyRlExUDdEUWJ3cTg4aktJVWcxbkg5UW9oeVRXLXhCZjdRQmFNeFJlLXhpWTRMM1lEUVlodGwxVHNCSE9ONTlnem0yekw1dDNraElYZGc?oc=5"
+    },
+    {
+      "title": "Wall Street Highlights: S&P 500, Nasdaq Fall Before Nvidia Earnings, Anthropic IPO - NDTV Profit",
+      "summary": "Wall Street Highlights: S&P 500, Nasdaq Fall Before Nvidia Earnings, Anthropic IPO NDTV Profit",
+      "link": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxPMWlIdjN4QmJGUktkam1mRDlyRDRxa1R0LXluelNWcGlUczFkdERqbjB6MV9tMl85Zjk0Z1hHMzJ6TU9RTk5PZDdCdHVtZWhaZUhYSjc3MFFjSlF3VkNZSGhXYWFpUkpDcF82clh0XzNzSHhyNlpOVERySVVwOWtlWlVfMDdOQjB2QjVlRmhQN2h5eDlsLXJoNm1EekRzZE02dXNrcy1yeFFiZ0c2TEppVjZqT2tsQkp4WnRWWnhkN2nSAcgBQVVfeXFMTWpIVHdsV1ZJbUhqRjNXZ25PMEJfTG5KQnJyN1VkanVpUkJZQWhTLWlUa3lncXpOSEdpWUlTTHlha1IzTmdkN1kzMlR2TkZTYUxlbzBVRVBsNkd5SnVfXzdiRThrRWpvOXhEeC1LU2lobmhHclpKMG15TFoyRWl5ai1QUkJUNU4zMTVENUstRkFVbDR0YW44UVNJSUd2S2gyZEJTcEZiQ0JYMGxicjBxMHZhZ1p6SjhrLUdreU10NnRpNElhUHptM0c?oc=5"
+    }
+  ],
+  "us_date": "11/16",
+  "generated_at": "2026-11-17T13:01:12.018606+09:00"
+}
