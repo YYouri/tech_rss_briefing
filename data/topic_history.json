@@ -1,12 +1,5 @@
 [
   {
-    "topic": "Agentic AI",
-    "title": "Agentic AI: 자율형 에이전트의 모든 것",
-    "url": "",
-    "tags": "Agentic AI, AI Agent, 자율형AI, 엔터프라이즈AI, LLM응용, KPC정보관리기술사",
-    "date": "2026-10-18T22:43:42.974116"
-  },
-  {
     "topic": "Edge AI",
     "title": "엣지 AI 온디바이스 추론 핵심 기술 완벽 가이드",
     "url": "",
@@ -89,5 +82,12 @@
     "url": "",
     "tags": "첨단패키징, 칩렛, CoWoS, 하이브리드본딩, 이종집적, KPC정보관리기술사",
     "date": "2026-11-09T00:26:20.194271"
+  },
+  {
+    "topic": "Agentic AI",
+    "title": "Agentic AI, 자율 실행의 핵심",
+    "url": "",
+    "tags": "Agentic AI, AI Agent, LLM, 멀티 에이전트, Tool Use, KPC정보관리기술사",
+    "date": "2026-11-18T02:49:32.801326"
   }
 ]
