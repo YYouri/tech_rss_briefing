@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 24328.38,
+      "prev": 24509.76,
+      "chg_pct": -0.74,
+      "volume": 8586062000,
+      "market_date_us": "11/17"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7340.53,
+      "prev": 7416.59,
+      "chg_pct": -1.03,
+      "volume": 3185916000,
+      "market_date_us": "11/17"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 50759.42,
+      "prev": 51608.17,
+      "chg_pct": -1.64,
+      "volume": 749159829,
+      "market_date_us": "11/17"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 25.46,
+      "prev": 22.91,
+      "chg_pct": 11.13,
+      "volume": 0,
+      "market_date_us": "11/17"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 9642.88,
+      "prev": 9610.65,
+      "chg_pct": 0.34,
+      "volume": 0,
+      "market_date_us": "11/17"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 103.6,
+      "prev": 103.55,
+      "chg_pct": 0.05,
+      "volume": 0,
+      "market_date_us": "11/17"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 85.12,
+      "prev": 85.72,
+      "chg_pct": -0.7,
+      "volume": 2571,
+      "market_date_us": "11/17"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 3797.2,
+      "prev": 3853.0,
+      "chg_pct": -1.45,
+      "volume": 41375,
+      "market_date_us": "11/17"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1328.59,
+      "prev": 1335.67,
+      "chg_pct": -0.53,
+      "volume": 0,
+      "market_date_us": "11/17"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 656.95,
+      "prev": 661.75,
+      "chg_pct": -0.73,
+      "volume": 52703539,
+      "market_date_us": "11/17"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 141.46,
+      "prev": 141.22,
+      "chg_pct": 0.17,
+      "volume": 37612248,
+      "market_date_us": "11/17"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 57.07,
+      "prev": 58.18,
+      "chg_pct": -1.91,
+      "volume": 53236989,
+      "market_date_us": "11/17"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 135.32,
+      "prev": 136.55,
+      "chg_pct": -0.9,
+      "volume": 13376873,
+      "market_date_us": "11/17"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 155.46,
+      "prev": 156.14,
+      "chg_pct": -0.44,
+      "volume": 370067900,
+      "market_date_us": "11/17"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 503.41,
+      "prev": 504.28,
+      "chg_pct": -0.17,
+      "volume": 34975206,
+      "market_date_us": "11/17"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 55.17,
+      "prev": 55.47,
+      "chg_pct": -0.54,
+      "volume": 101775438,
+      "market_date_us": "11/17"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 359.69,
+      "prev": 373.45,
+      "chg_pct": -3.68,
+      "volume": 24446605,
+      "market_date_us": "11/17"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 351.91,
+      "prev": 352.78,
+      "chg_pct": -0.25,
+      "volume": 36248936,
+      "market_date_us": "11/17"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 506.24,
+      "prev": 517.99,
+      "chg_pct": -2.27,
+      "volume": 27250041,
+      "market_date_us": "11/17"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 380.11,
+      "prev": 379.74,
+      "chg_pct": 0.1,
+      "volume": 21953771,
+      "market_date_us": "11/17"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 257.89,
+      "prev": 257.75,
+      "chg_pct": 0.05,
+      "volume": 37098176,
+      "market_date_us": "11/17"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 280.2,
+      "prev": 283.72,
+      "chg_pct": -1.24,
+      "volume": 31276136,
+      "market_date_us": "11/17"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 618.87,
+      "prev": 626.41,
+      "chg_pct": -1.2,
+      "volume": 12795966,
+      "market_date_us": "11/17"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 190900.0,
+      "prev": 190300.0,
+      "chg_pct": 0.32,
+      "volume": 8954844,
+      "market_date_us": "11/17"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1124000.0,
+      "prev": 1098000.0,
+      "chg_pct": 2.37,
+      "volume": 1653436,
+      "market_date_us": "11/17"
+    }
+  },
+  "news": [
+    {
+      "title": "5 Oil and Gas Stocks That Crushed Third-Quarter Earnings Estimates",
+      "summary": "Energy earnings jumped 151% in Q3 as ONEOK, Occidental, APA, Phillips 66 and Valero beat Wall Street estimates, with refiners posting the biggest gains.",
+      "link": "https://finance.yahoo.com/energy/articles/5-oil-gas-stocks-crushed-010000263.html?.tsrc=rss"
+    },
+    {
+      "title": "Bull market ‘has room to run’: 10 stocks to buy now",
+      "summary": "Victoria Fernandez of Crossmark Global Investments, says the bull market is “not dead yet” and shares 10 stocks to buy now, including Nvidia, Broadcom, ASML and others. She also explains how much tech to own and what to expect from stocks heading into 2027.",
+      "link": "https://www.thestreet.com/video/bull-market-has-room-to-run-10-stock-to-buy-now?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500, Dow, Nasdaq Futures Power Ahead On Nvidia Outlook Beat — NVDA, TSLA, ANT In Focus",
+      "summary": "Nvidia beat Q3 expectations and raised its FY28 outlook as its board of directors confirmed no return for Jensen Huang.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-dow-nasdaq-futures-power-ahead-on-nvidia-outlook-beat-nvda-tsla-ant-in-focus/cNbXjOsR9hh?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, Nov. 17: Stocks Slide on AI Chip and Tech Pressures, Salesforce Plummets 9%",
+      "summary": "Major indexes fell again as AI fears and technology outages weigh on confidence, and Nvidia's after-the-bell earnings beat expectations, today, Nov. 17, 2026.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/11/17/stock-market-today-nov-17-stocks-slide-on-ai-chip-and-tech-pressures-salesforce-plummets-9/?.tsrc=rss"
+    },
+    {
+      "title": "Bill Ackman’s $14 billion bet beyond the Magnificent 7",
+      "summary": "Pershing Square cut back on Microsoft and Meta. Its fresh money went to exchanges, eye care and streaming instead.",
+      "link": "https://www.thestreet.com/investing/bill-ackman-sells-microsoft-buys-netflix-13f?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Signals AI Financing Flywheel Will Continue, But ‘Disciplined’: Analyst Calls Neoclouds Its ‘Biggest Sustained Bet’ As NBIS, IREN, MRVL Rally",
+      "summary": "“We have supported the development of this ecosystem, and we will continue to be disciplined and selective in our support,\" Nvidia CFO and interim CEO Colette Kress said.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/nvidia-signals-ai-financing-flywheel-will-continue-but-disciplined-analyst-calls-neoclouds-its-biggest-sustained-bet-as-nbis-iren-mrvl-rally/cNbXVSvR9hZ?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures: Techs Rise After Nvidia Beats, Says This On Jensen Huang; Target, Anthropic IPO Ahead",
+      "summary": "Nvidia earnings beat after the stock market broke below recent lows. Target earnings are on tap, with the Anthropic IPO set to price Wednesday night.",
+      "link": "https://finance.yahoo.com/m/3b22ed8c-00c3-32f8-89f5-91bc21ccb366/dow-jones-futures%3A-techs-rise.html?.tsrc=rss"
+    },
+    {
+      "title": "Stocks drop as booming Nvidia results drowned by spy scandal",
+      "summary": "Asian equities failed on Wednesday to capitalise on blockbuster earnings from Nvidia that soothed concerns about the AI boom but were overshadowed by concerns about a spy scandal engulfing the chip titan that has shaken global markets.The scandal forced Huang to step down on Thursday and has fanned worries about the chip titan, which is at the centre of a buildout that has helped propel world mark",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/stocks-drop-booming-nvidia-results-024500677.html?.tsrc=rss"
+    },
+    {
+      "title": "Will GPU Edge Launch Change Rockwell Automation's (ROK) Narrative",
+      "summary": "Rockwell Automation recently introduced GPU-enabled industrial PCs powered by NVIDIA RTX GPUs and integrated NVIDIA Omniverse, RTX and OpenUSD into its Emulate3D simulation software to support factory-scale visualization and AI workloads closer to production. The combination of GPU edge hardware and richer digital simulation tools gives Rockwell Automation more ways to connect control, visualizati",
+      "link": "https://finance.yahoo.com/technology/ai/articles/gpu-edge-launch-change-rockwell-021124213.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia’s startup stakes ballooned to $65B, but Huang’s exit puts future deals in doubt",
+      "summary": "The value of Nvidia’s private investments has nearly tripled over the past nine months, fueled by Jensen Huang’s aggressive dealmaking and rising valuations of its existing portfolio companies.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-startup-stakes-ballooned-65b-014421727.html?.tsrc=rss"
+    },
+    {
+      "title": "What far cheaper AI compute in space could mean for Elon Musk",
+      "summary": "In the Loop host Ejaaz Ahamadeen explains how SpaceX (SPCX) CEO Elon Musk's ability to scale AI compute on Earth, and potentially in space at a much lower cost, could make his space business a highly lucrative AI compute provider on par with the big cloud businesses like Amazon Web Services (AMZN), Google Cloud (GOOG) (GOOGL), and Microsoft's (MSFT) Azure.",
+      "link": "https://finance.yahoo.com/video/what-far-cheaper-ai-compute-in-space-could-mean-for-elon-musk-162707073.html?.tsrc=rss"
+    },
+    {
+      "title": "SpaceX (SPCX) Merger Talks Advance As $74 Billion AI Campus Plan Takes Shape",
+      "summary": "Space Exploration Technologies (NasdaqGS:SPCX) and Tesla are reported to be in advanced talks over a potential merger that would combine their operations. People familiar with the discussions describe the potential deal as record breaking in size, with governance and regulatory structures seen as central negotiation points. SpaceX outlined plans to invest more than US$74b in two new AI supercomput",
+      "link": "https://finance.yahoo.com/technology/ai/articles/spacex-spcx-merger-talks-advance-011143094.html?.tsrc=rss"
+    },
+    {
+      "title": "3 Founder Led Stocks With Revenue Growth Up To 20%",
+      "summary": "The US push to curb China’s access to advanced AI chips shines a spotlight on one simple reality. When rules change, leaders who built their businesses from scratch often react faster than hired managers. That creates an opening for you. In this article, you will see three founder-led stocks from our screener that show how deep personal ownership can shape resilience, risk taking and long term dec",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/3-founder-led-stocks-revenue-232311677.html?.tsrc=rss"
+    },
+    {
+      "title": "NIO vs. Tesla: Which EV Stock Is a Better Buy for 2027?",
+      "summary": "NIO's battery-swapping model and fast revenue growth face off against Tesla's scale and cash flow, but only one balance sheet carries the lower-risk profile.",
+      "link": "https://www.fool.com/coverage/better-buy/2026/11/17/nio-vs-tesla-which-ev-stock-is-a-better-buy-for-2027/?.tsrc=rss"
+    },
+    {
+      "title": "AMD, Broadcom, CoreWeave stocks rise on Nvidia earnings beat",
+      "summary": "Semiconductor and AI infrastructure stocks moved higher in after-hours trading on Tuesday after AI chip heavyweight Nvidia posted better-than-expected quarterly results.",
+      "link": "https://finance.yahoo.com/markets/stocks/article/amd-broadcom-tsmc-stocks-rise-on-nvidia-earnings-coreweave-nebius-shares-also-rally-220159436.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia earnings spark after-hours rally in chipmakers, neocloud stocks",
+      "summary": "Investing.com-- Shares of chipmakers and cloud computing firms rose sharply in aftermarket trade on Tuesday after blowout quarterly earnings from sector giant Nvidia helped restore faith in the artificial intelligence trade.",
+      "link": "https://finance.yahoo.com/technology/articles/nvidia-earnings-spark-hours-rally-010526744.html?.tsrc=rss"
+    },
+    {
+      "title": "Billionaire David Tepper Grew His SpaceX Stake 17-Fold While Dumping AMD and Broadcom",
+      "summary": "David Tepper's latest 13F shows a rocket-fueled bet on one hot stock and two quiet exits from AI chip winners that were still posting blowout numbers. The filing leaves out the one thing investors most want to know.",
+      "link": "https://247wallst.com/investing/2026/11/17/billionaire-david-tepper-grew-his-spacex-stake-17-fold-while-dumping-amd-and-broadcom/?.tsrc=rss"
+    },
+    {
+      "title": "ASUS Showcases Full-Stack AI Infrastructure at SC26, Featuring Intel and AMD Platforms",
+      "summary": "CHICAGO, November 17, 2026--At SC26, ASUS unveils a unified AI Factory blueprint that gives enterprises the flexibility to build AI infrastructure around their workloads, performance targets, and deployment needs. Spanning AMD, Intel and NVIDIA platforms — from rack-scale AI systems and enterprise servers to edge computing — ASUS brings architectural choice together with integrated engineering, au",
+      "link": "https://finance.yahoo.com/technology/ai/articles/asus-showcases-full-stack-ai-204300656.html?.tsrc=rss"
+    },
+    {
+      "title": "Prediction: These Will Be Nvidia’s and AMD’s Stock Prices by the End of 2027 (Hint: Only 1 Is a Buy).",
+      "summary": "AMD's stock has a ton of growth priced into it already.",
+      "link": "https://www.fool.com/investing/2026/11/17/prediction-these-will-be-nvidia-s-and-amd-s-stock-prices-by-the-end-of-2027-hint-only-1-is-a-buy/?.tsrc=rss"
+    },
+    {
+      "title": "Dow drops more than 800 points, S&P 500 posts lowest close since July - CNBC",
+      "summary": "Dow drops more than 800 points, S&P 500 posts lowest close since July CNBCStock market today: Dow sinks 850 points, S&P 500 and Nasdaq drop with focus on Nvidia earnings Yahoo FinanceStock Market News, Nov. 17, 2026: Dow ends down 850 points, S&P 500 and Nasdaq also plunge as tech names come under further pressure ahead of Nvidia’s earnings MarketWatch",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5ZX1A1ZUpLQzUwdUhDWHJmSktxM0JhR1RsZU43OTR1TndFamZ4LXBqcjJKakZyWWFHeHVzdHhLM0JRYnJnemNXVHpsT0dXYm9WWWRUdXUxXzc0VV9yUkF5QlBGLTA4WkVOTFpvb0NDQ0p4d0lpbzVj0gF8QVVfeXFMUGFfWnJDSW5odWJYOGZPaks3ZUtHZUxHSkVrdDVmeVY3UnhPX0ExTVFXVmQ2Qjd6eVNXbHowQnBzNmJobUNvOTRSRW5IZVFWVk5xOVNwV3ViT3haX1R1S0J1YW8wMU1pdmVZMFNacFg2YnlvdlFnanVBM0RJTA?oc=5"
+    },
+    {
+      "title": "The Stock Market Is Doing Something for Just the 3rd Time in Nearly 30 Years, and History Is Clear Where the S&P 500 Is Headed - The Motley Fool",
+      "summary": "The Stock Market Is Doing Something for Just the 3rd Time in Nearly 30 Years, and History Is Clear Where the S&P 500 Is Headed The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMiggJBVV95cUxOWTdSTHRSd1M3eFk1OEE2bTN0WkFBajFOVDR4elREbGd4QUFHeUhHcWl5UmRFTzZBWTNub0ZReDR1dk9KaWk2ZkZnM2otUk5qcVo2c2tyOXRZV2JGaXpfcWhESkdSS3hYMmQ5ZnlqS1ZYMW40c3FCMF9SM3F2dG9pZGhHQ0dBTkRuUFcyTDAzTHZ5V3pDWThlQjUwVmNoa3Mtc0hZMm93QlJSNm0wMWQxbTRkMm0tUThVb1NjSnVQZHhQdk5qVExZMUtjb3o2TXk1QV9DWEhPaDIyUUpLU2ZYbVFDRkVJUGZGNXpQWXNKTnlnQ2dEUVZDZkFQb3IzdUhaWlE?oc=5"
+    },
+    {
+      "title": "Stock futures rise as Nvidia gains on earnings beat and solid outlook: Live updates - CNBC",
+      "summary": "Stock futures rise as Nvidia gains on earnings beat and solid outlook: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTFAwTDVScDA1ZzNHQi1GT1RaRFVzYTJPa2lHVVJyVzR6RlhfaGZNbG5Va1BFblNtYm54eG82YWl4dlA3SkltcC1WSmdCVEUtMlVKNXlCVDNVcG8wRnBaNkc0UVctakctUDdZUDJsNEp4dWN0Z0Vsczlv0gF8QVVfeXFMT014TXpKZ2hKbVhJT0dVekl1Z2tCbjE3MnMtLWhMUG1DaUc3UUd0emE1R2xPd2pDZXMzVXhGbHFVRmdWRm1iRWJnejN6YjJJYlpDWkxJOVhDS3RuRGUyQkhHZ2wzSzJJdnVrNDVqcHQxb2ZXVkUwSVRJcjE4RA?oc=5"
+    },
+    {
+      "title": "Stock Market Today, Nov. 17: U.S. Stocks Jittery Ahead of Nvidia Results - TipRanks",
+      "summary": "Stock Market Today, Nov. 17: U.S. Stocks Jittery Ahead of Nvidia Results TipRanks",
+      "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxOSkkzeW5HdXBDVmFCQmFaVWhYNUtYZGNZNTNtZkJyTDNST0FWTEZhLVpzSThGVW40a1ZXejFpblh6QVo2RF9FMW83UVNWMkY2T3l3TUJQNThMbDVFNEFSMnZ1dzNmZS1CU0hkajhLSHNUdnozOWlYN056c2RYSlBHMUNNenAzamgzV0ZQQV8wVXFacVlDM3lVUENLTkFnblE?oc=5"
+    },
+    {
+      "title": "Nvidia’s Kress tells CNBC's Jim Cramer that 'customers continue to be with us’ - CNBC",
+      "summary": "Nvidia’s Kress tells CNBC's Jim Cramer that 'customers continue to be with us’ CNBC",
+      "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE9iM3pFNTMyc0NDSXdVbjV1RFhtMjMybWRUcWtGOGRsVllWSS1Yd2Y0emU4MXNVbUpoUUUxTVZ5ck8xem1nNjVuNUl2VVFzLXNMZU1nZlRPNDJTRG9uaFhkbXpSdzNhQW9lWDZQbUtHUnRZeDBlaUl2Y3pDcErSAYIBQVVfeXFMTXV5dkdmRTlzLVlhbUdHREtUSWs2M09MRm8yYldyTkhnZllMWUdFZHh4cVo1Z0FlUmRld3ZnUmVuMV9OanU0em9oTmF2MjNoNGZ0T282eDZialBxU3g1Nkt5aFVrSzdHbmh0Y1I5aFZhRDZjQWdWX0Q3aXNVaV9DeFA2UQ?oc=5"
+    },
+    {
+      "title": "Wall Street ends sharply lower on AI jitters ahead of Nvidia results, Anthropic IPO - Reuters",
+      "summary": "Wall Street ends sharply lower on AI jitters ahead of Nvidia results, Anthropic IPO Reuters",
+      "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxOZEJobHpHMl90WUdVbnpzSGxLb1l3bi1BczhrN29iVW9rUzBtQWE4aFNuM2ZGS1RIQThLdEZPWmZjeExVaHhRaXBubkdqR3R3TXJYTlRqUmRYcXZxYS1pV1lyRlExUDdEUWJ3cTg4aktJVWcxbkg5UW9oeVRXLXhCZjdRQmFNeFJlLXhpWTRMM1lEUVlodGwxVHNCSE9ONTlnem0yekw1dDNraElYZGc?oc=5"
+    }
+  ],
+  "us_date": "11/17",
+  "generated_at": "2026-11-18T11:58:07.539972+09:00"
+}
