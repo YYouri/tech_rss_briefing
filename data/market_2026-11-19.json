@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 24429.88,
+      "prev": 24328.38,
+      "chg_pct": 0.42,
+      "volume": 7155171000,
+      "market_date_us": "11/18"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7323.63,
+      "prev": 7340.53,
+      "chg_pct": -0.23,
+      "volume": 3056907000,
+      "market_date_us": "11/18"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 50198.17,
+      "prev": 50759.42,
+      "chg_pct": -1.11,
+      "volume": 691469369,
+      "market_date_us": "11/18"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 24.56,
+      "prev": 25.46,
+      "chg_pct": -3.53,
+      "volume": 0,
+      "market_date_us": "11/18"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 9652.8,
+      "prev": 9642.88,
+      "chg_pct": 0.1,
+      "volume": 0,
+      "market_date_us": "11/18"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 103.87,
+      "prev": 103.49,
+      "chg_pct": 0.37,
+      "volume": 0,
+      "market_date_us": "11/18"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 82.4,
+      "prev": 86.01,
+      "chg_pct": -4.2,
+      "volume": 13402,
+      "market_date_us": "11/18"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 3742.5,
+      "prev": 3864.2,
+      "chg_pct": -3.15,
+      "volume": 20976,
+      "market_date_us": "11/18"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1329.75,
+      "prev": 1333.01,
+      "chg_pct": -0.24,
+      "volume": 0,
+      "market_date_us": "11/18"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 659.51,
+      "prev": 656.95,
+      "chg_pct": 0.39,
+      "volume": 43357952,
+      "market_date_us": "11/18"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 141.85,
+      "prev": 141.46,
+      "chg_pct": 0.28,
+      "volume": 32974002,
+      "market_date_us": "11/18"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 56.42,
+      "prev": 57.07,
+      "chg_pct": -1.14,
+      "volume": 37995367,
+      "market_date_us": "11/18"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 136.73,
+      "prev": 135.32,
+      "chg_pct": 1.04,
+      "volume": 11656306,
+      "market_date_us": "11/18"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 150.96,
+      "prev": 155.46,
+      "chg_pct": -2.89,
+      "volume": 343007056,
+      "market_date_us": "11/18"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 530.14,
+      "prev": 503.41,
+      "chg_pct": 5.31,
+      "volume": 33451755,
+      "market_date_us": "11/18"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 54.67,
+      "prev": 55.17,
+      "chg_pct": -0.91,
+      "volume": 80113842,
+      "market_date_us": "11/18"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 362.62,
+      "prev": 359.69,
+      "chg_pct": 0.81,
+      "volume": 11982497,
+      "market_date_us": "11/18"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 352.45,
+      "prev": 351.91,
+      "chg_pct": 0.15,
+      "volume": 33393854,
+      "market_date_us": "11/18"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 508.29,
+      "prev": 506.24,
+      "chg_pct": 0.4,
+      "volume": 21349348,
+      "market_date_us": "11/18"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 383.72,
+      "prev": 380.11,
+      "chg_pct": 0.95,
+      "volume": 26666127,
+      "market_date_us": "11/18"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 267.74,
+      "prev": 257.89,
+      "chg_pct": 3.82,
+      "volume": 40845576,
+      "market_date_us": "11/18"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 282.44,
+      "prev": 280.2,
+      "chg_pct": 0.8,
+      "volume": 27103684,
+      "market_date_us": "11/18"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 616.38,
+      "prev": 618.87,
+      "chg_pct": -0.4,
+      "volume": 10338589,
+      "market_date_us": "11/18"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 191400.0,
+      "prev": 194700.0,
+      "chg_pct": -1.69,
+      "volume": 4366066,
+      "market_date_us": "11/18"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1135000.0,
+      "prev": 1144000.0,
+      "chg_pct": -0.79,
+      "volume": 904872,
+      "market_date_us": "11/18"
+    }
+  },
+  "news": [
+    {
+      "title": "Dow Jones Futures Rise; Anthropic IPO Prices High, Palo Alto And Everpure Rally On Earnings",
+      "summary": "The stock market was mixed as UnitedHealth dived and Nvidia fell. The Anthropic IPO priced high. Palo Alto, Everpure leaped.",
+      "link": "https://finance.yahoo.com/m/107e5a2c-4fba-3df3-b2fd-5d1160e65516/dow-jones-futures-rise%3B.html?.tsrc=rss"
+    },
+    {
+      "title": "Generac Jolted After Nvidia Earnings. Why It’s a Top S&P 500 Stock Today.",
+      "summary": "The company’s fastest-growing business is sales of equipment to AI data center operators.",
+      "link": "https://finance.yahoo.com/m/2a874b3f-665f-3bd7-a6b1-4124608554ec/generac-jolted-after-nvidia.html?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, Nov. 18: S&P 500 Breaks Key Support as Fed Minutes Signal More Rate Hikes Ahead",
+      "summary": "Wall Street's troubles are mounting as expectations for further interest rate hikes overshadow strong corporate earnings and threaten to undermine the market's long-term upward trend.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/11/18/stock-market-today-nov-18-s-and-p-500-breaks-key-support-as-fed-minutes-signal-more-rate-hikes-ahead/?.tsrc=rss"
+    },
+    {
+      "title": "RH (RH) Advances While Market Declines: Some Information for Investors",
+      "summary": "The latest trading day saw RH (RH) settling at $117.32, representing a +1.49% change from its previous close.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/rh-rh-advances-while-market-221502146.html?.tsrc=rss"
+    },
+    {
+      "title": "‘Nothing Wrong With NVDA Or AI Trade’: Kenny Polcari Says Fed’s Inflation Concerns Are The Bigger Market Risk",
+      "summary": "Kenny Polcari, Partner and Chief Market Strategist at SlateStone Wealth, said that the weakness in the indexes could not be blamed on Nvidia’s falling prices or the AI trade.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/nothing-wrong-with-nvda-or-ai-trade-kenny-polcari-says-fed-s-inflation-concerns-are-the-bigger-market-risk/cNbLtYVR9ia?.tsrc=rss"
+    },
+    {
+      "title": "CEO Scandals Typically Cost About 1%. Here’s Why It’s Different for Nvidia",
+      "summary": "Key TakeawaysNvidia (NVDA) fell nearly 13% during the week ending November 13, extending its losing streak to six weeks as Jensen Huang’s resignation added to concerns about the AI spending cycle. Stanford researchers found that 38 CEO misconduct incidents produced a median market-adjusted stock decline of just 1.",
+      "link": "https://www.tikr.com/blog/ceo-scandals-typically-cost-about-1-heres-why-its-different-for-nvidia?ref=yahoofinance&tlnk=yf-261118-hwcfj8vh&.tsrc=rss"
+    },
+    {
+      "title": "Trump Hails ‘Great’ Ties With Xi, Downplays Nvidia Spy Scandal",
+      "summary": "US President Donald Trump hailed his great “friendship” with Chinese counterpart Xi Jinping and downplayed a spying scandal involving Nvidia Corp., just hours before leaders of the world’s top two economies meet for talks in China.",
+      "link": "https://finance.yahoo.com/economy/policy/articles/trump-hails-great-ties-xi-014442789.html?.tsrc=rss"
+    },
+    {
+      "title": "Trump Suggests US Can Sell Blackwell Chips to China in Future",
+      "summary": "President Donald Trump said that the US could potentially allow the sale of Nvidia Corp.’s highly sought Blackwell chips to China in the future, when they were no longer among the most advanced on the market.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/trump-suggests-us-sell-blackwell-013901504.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Moves Up Raises and Stock Grants After Jensen Huang Exit",
+      "summary": "Nvidia moves staff raises and stock grants to December after Jensen Huang's exit as employees press the board on its CEO search.",
+      "link": "https://beincrypto.com/nvidia-pay-raises-jensen-huang-exit/?.tsrc=rss"
+    },
+    {
+      "title": "Skydance's David Ellison calls Elon Musk 'the greatest entrepreneur of our time'",
+      "summary": "David Ellison, CEO of Skydance, expressed gratitude for Elon Musk's investment in the company.",
+      "link": "https://finance.yahoo.com/media-advertising/article/skydances-david-ellison-calls-elon-musk-the-greatest-entrepreneur-of-our-time-205405607.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla And SpaceX ‘Better Together’? Musk Leans Yes — But Says Performance Must Drive His TSLA Pay",
+      "summary": "If a merger triggered a change in control, Tesla’s valuation alone would determine whether Musk earned additional shares.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tesla-spacex-better-together-musk-performance-tsla-pay/cNbLsa5R9iJ?.tsrc=rss"
+    },
+    {
+      "title": "Tesla Wins Manitoba Court Order On EV Rebate Ban As Canadian PM Carney Notes Brand’s Fading Cachet",
+      "summary": "Tesla once dominated Canada’s EV market before U.S.-Canada trade tensions and other factors led to a dip in registrations.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/tesla-wins-manitoba-court-order-on-ev-rebate-ban-as-canadian-pm-carney-notes-brand-s-fading-cachet/cNbLpgeR9i4?.tsrc=rss"
+    },
+    {
+      "title": "Skydance’s Ellison Welcomes Musk Investment While Committing To Airing Documentary Critical Of Tesla CEO",
+      "summary": "Ellison acknowledged Musk’s stake for the first time at DealBook Summit 2026, amid reports that the investment totaled roughly $1 billion after the deal closed.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/skydance-s-ellison-welcomes-musk-investment-while-committing-to-airing-documentary-critical-of-tesla-ceo/cNbghalR9iP?.tsrc=rss"
+    },
+    {
+      "title": "Egan-Jones Examines What the Tesla Roadster Demo Signals for Automakers",
+      "summary": "Egan-Jones released a commentary examining the Tesla Roadster demonstration and what it signals for traditional automakers, auto insurers and the wider vehicle industry. The commentary finds that the spectacle serves primarily as a way for Mr. Musk to elevate the Tesla brand, particularly among younger consumers.",
+      "link": "https://finance.yahoo.com/technology/articles/egan-jones-examines-tesla-roadster-180000836.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Is AMD Stock Rising Overnight?",
+      "summary": "OpenAI said its models boosted AMD GPU efficiency, while ‘GTA VI’ maker Rockstar Games said it used AMD’s tech for image scaling in the game.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/why-is-amd-stock-rising-overnight/cNbLtmJR9iB?.tsrc=rss"
+    },
+    {
+      "title": "Super Micro Computer (SMCI) Ships PCIe Gen 6 Servers, Is It 57% Below Fair Value?",
+      "summary": "Super Micro Computer (SMCI) has begun shipping new AMD EPYC based all flash storage servers that support the PCIe Gen 6 standard. These products target AI scale data, analytics and high throughput storage workloads. For investors watching Super Micro Computer, the recent launch of PCIe Gen 6 storage arrives during a tough stretch in the share price. The stock is down about 34% on the 90 day share ",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/super-micro-computer-smci-ships-201020693.html?.tsrc=rss"
+    },
+    {
+      "title": "What Explains Natera Stock's Nearly 10% Drop?",
+      "summary": "Today's big story: Could Nvidia Stock Fall 50%? Follow The Cash.",
+      "link": "https://www.trefis.com/stock/ntra/articles/625786/what-explains-natera-stocks-nearly-10-drop/2026-11-18?.tsrc=rss"
+    },
+    {
+      "title": "How AI Data Center Expansion Will Impact nVent Electric Stock",
+      "summary": "nVent Electric used SC26 in Chicago to showcase more than four gigawatts of deployed liquid cooling, a new 2.3 megawatt CX121 CDU, and the MAVERICK 800 volt DC Power Rack for AI focused data centers. The Maverick Power acquisition and collaborations with AMD and NVIDIA signal nVent Electric’s push toward full system level roles in high density AI infrastructure projects. Next comes a look at how n",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/ai-data-center-expansion-impact-232434949.html?.tsrc=rss"
+    },
+    {
+      "title": "The data center bottlenecks that Mavria aims to solve",
+      "summary": "Data center manufacturer Mavria has raised $130 million toward the company's goal of building out modular AI infrastructure. Mavria CEO Adam Blake joins Deirdre Bosa for a discussion on how the startup is bringing an assembly-line approach to data centers.",
+      "link": "https://finance.yahoo.com/video/the-data-center-bottlenecks-that-mavria-aims-to-solve-221600157.html?.tsrc=rss"
+    },
+    {
+      "title": "Nasdaq-100 futures surge as traders gear up for Anthropic’s highly anticipated debut: Live updates - CNBC",
+      "summary": "Nasdaq-100 futures surge as traders gear up for Anthropic’s highly anticipated debut: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9haDBGN05NTm5JVm5PcFdVQ3hJV3Q3N1BQeUJfaGhhbkluOGpOWW1sU2dWb2ZtY3dEX2VTWHN5S2RaSkhWQTgxZFJ0UEZFTkVnaTRoZFQtZV9DelB0SkdBdUhSckR2VWFmWmw4R2tWejJNMEhSaVpn0gF8QVVfeXFMTkFhZVJoMnczYWE3UFBMLTAzcmhienFUYjlqUmNXWURGd3dsamhpbkVhSmpheXBmdDVvYk11ellHMEtGcG1ZOXBUYmxBandtMTVWOVl5M1hGZUZMSERKb1lDR1IzZVN4eC1qWklncjZTc2tzVUJod1F3Uk83dw?oc=5"
+    },
+    {
+      "title": "Stock market today: Dow, S&P 500 slip ahead of Anthropic IPO, Nvidia stock extends decline - Yahoo Finance",
+      "summary": "Stock market today: Dow, S&P 500 slip ahead of Anthropic IPO, Nvidia stock extends decline Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxQUXF4elZiRmtpU0hWaElPNjVGbHBuMkxPaDJCSzlMREtmUWs5dThVN3RCRUJWR2R6dEhGaGtibWY5bnRrMFpnRVRlb2hEazc0ekVOQjBVMkY4RVQ1U1pMYWNYdFdKQTN5a2tRM0hfeGVTNXJVeW1talprVGRjRllJZ0xxQzVtV09ZZmpDcGZIU3U3X2VZMXZCcWZDYXBGY2FrUkY1NXlwblRTamJpeHA4Rl9yOUJ6RlU2QkZXSm1PV2dBRF9vSjd5eTBjRTZmLUFBdlpCclVya2Zfdw?oc=5"
+    },
+    {
+      "title": "Stocks Fall as Nvidia’s Earnings Rally Sputters: Markets Wrap - Bloomberg.com",
+      "summary": "Stocks Fall as Nvidia’s Earnings Rally Sputters: Markets Wrap Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxOUHhZZG5FcFhON3BCMkRyY201M2FVdVRTaUF2a29ScWc3ZTd4TkI1Zm44SXNOcmZoOE9tN29nalFxMllaQV9ZQVp5SFNKbFlmVWtxVmtjdGl4WVVRRnpFeVZaVjVCVGozeFVWYzF6NnM1dERENnQ5SWpLTlNsejBDS21mS2k2aUhQeHZHNU80V2dvbG9h?oc=5"
+    },
+    {
+      "title": "Dow drops more than 500 points; S&P 500 falls for fifth day as Nvidia sells off - CNBC",
+      "summary": "Dow drops more than 500 points; S&P 500 falls for fifth day as Nvidia sells off CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTFAwTDVScDA1ZzNHQi1GT1RaRFVzYTJPa2lHVVJyVzR6RlhfaGZNbG5Va1BFblNtYm54eG82YWl4dlA3SkltcC1WSmdCVEUtMlVKNXlCVDNVcG8wRnBaNkc0UVctakctUDdZUDJsNEp4dWN0Z0Vsczlv0gF8QVVfeXFMT014TXpKZ2hKbVhJT0dVekl1Z2tCbjE3MnMtLWhMUG1DaUc3UUd0emE1R2xPd2pDZXMzVXhGbHFVRmdWRm1iRWJnejN6YjJJYlpDWkxJOVhDS3RuRGUyQkhHZ2wzSzJJdnVrNDVqcHQxb2ZXVkUwSVRJcjE4RA?oc=5"
+    },
+    {
+      "title": "Stock market today: Dow sinks 850 points, S&P 500 and Nasdaq drop with focus on Nvidia earnings - Yahoo Finance",
+      "summary": "Stock market today: Dow sinks 850 points, S&P 500 and Nasdaq drop with focus on Nvidia earnings Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxPNlo3VXhMalBfa2JwdDF2VnBsa1E5RnVPSG5lekhEOXRQa0tqS0RIRW5qYmxQRzFZOGdyTlU5VUM1RGgwWENlYlR5RDUtMFRQdlhxRkRhNU1CdWRiR0dQUm1MMldMbUlOM295UVZ2eFRFOTlRUUVEX0swd1YzVTkyRkRYeEI2VW00LTRZUG5JX3RiVHh1UVBKN3VoUUlidWgwaWJvR2lSZHdmaVUzTmJWYUFMX21LaUVjeTJMWU94NUZtRm1DTmhlQUZTY0RSNXhTM1hGTnRR?oc=5"
+    },
+    {
+      "title": "US Stock Market Today: Dow Sheds 330 Points; Nasdaq, S&P 500 In Red As Wall Street Stays Under Pressure - NDTV Profit",
+      "summary": "US Stock Market Today: Dow Sheds 330 Points; Nasdaq, S&P 500 In Red As Wall Street Stays Under Pressure NDTV Profit",
+      "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxNdnl5VGtEQi1Md3ZYcGhfalpxVU1ibENmQlJvdzV2YkZ3V3V2X0xqcEw3VGlHeVhOOGZOTkJfRVdLQUp1dnItWF8wLUdrMDRyV1VDa1VSTjZzUjZQSmEtXzlYeUY3NjJqeXdnLVBsN2FxV25uWHE2OHhISmdwVDNDV18tRm13eHBxSzhjWVN0bXYtbFpLRXpQM29JZVRmelRZVHpfUjQ3MTJkaDFxZVo5SFg1bjRSVnlsR2VtcTVlVEZLaVVHT3dKWjJZeEROTmV2UHd1V0R6bHNBWDFM0gHkAUFVX3lxTE82enNZTEliVXZNTEJlMnNHYjdpR3AwOWlSZWVuTmpmd0VPejQ4NVlTMkhFZGxiT3BRZzIxUWxXMGRaSjBUY2dyMWE2RXdIWDdoSFRwZ0hxbUJ6TmJCbkZfUHFZYXNLMFF1UGt2NzBJR1dkZm43bEZYTkZWajlpNG1xWklQLUh5Ylkxb1hhZWxDaVJOWUlWbEtGR3FTR0l5Z211RmpBUURZdjZIVGliUUIzZDZLd2VIbmNUemlzV0lDZzVucS1KUkZZa09fdWdjcnF3bWZuLWMyUlVKMEVWRnJzZk9NWg?oc=5"
+    }
+  ],
+  "us_date": "11/18",
+  "generated_at": "2026-11-19T11:40:51.751754+09:00"
+}
