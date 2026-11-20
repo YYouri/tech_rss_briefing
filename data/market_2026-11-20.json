@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 23879.2,
+      "prev": 24429.88,
+      "chg_pct": -2.25,
+      "volume": 8331556000,
+      "market_date_us": "11/19"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7175.83,
+      "prev": 7323.63,
+      "chg_pct": -2.02,
+      "volume": 3341008000,
+      "market_date_us": "11/19"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 49097.06,
+      "prev": 50198.17,
+      "chg_pct": -2.19,
+      "volume": 729407417,
+      "market_date_us": "11/19"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 28.44,
+      "prev": 24.56,
+      "chg_pct": 15.8,
+      "volume": 0,
+      "market_date_us": "11/19"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 9419.72,
+      "prev": 9652.8,
+      "chg_pct": -2.41,
+      "volume": 0,
+      "market_date_us": "11/19"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 103.94,
+      "prev": 103.86,
+      "chg_pct": 0.08,
+      "volume": 0,
+      "market_date_us": "11/19"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 82.87,
+      "prev": 83.26,
+      "chg_pct": -0.47,
+      "volume": 8512,
+      "market_date_us": "11/19"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 3540.9,
+      "prev": 3741.9,
+      "chg_pct": -5.37,
+      "volume": 54061,
+      "market_date_us": "11/19"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1337.68,
+      "prev": 1330.4,
+      "chg_pct": 0.55,
+      "volume": 0,
+      "market_date_us": "11/19"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 645.04,
+      "prev": 659.51,
+      "chg_pct": -2.19,
+      "volume": 70328281,
+      "market_date_us": "11/19"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 137.95,
+      "prev": 141.85,
+      "chg_pct": -2.75,
+      "volume": 40752666,
+      "market_date_us": "11/19"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 55.58,
+      "prev": 56.42,
+      "chg_pct": -1.49,
+      "volume": 57576001,
+      "market_date_us": "11/19"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 134.59,
+      "prev": 136.73,
+      "chg_pct": -1.57,
+      "volume": 14573495,
+      "market_date_us": "11/19"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 145.98,
+      "prev": 150.96,
+      "chg_pct": -3.3,
+      "volume": 315864587,
+      "market_date_us": "11/19"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 489.19,
+      "prev": 530.14,
+      "chg_pct": -7.72,
+      "volume": 70838807,
+      "market_date_us": "11/19"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 55.72,
+      "prev": 54.67,
+      "chg_pct": 1.92,
+      "volume": 132524988,
+      "market_date_us": "11/19"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 352.09,
+      "prev": 362.62,
+      "chg_pct": -2.9,
+      "volume": 17838101,
+      "market_date_us": "11/19"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 349.21,
+      "prev": 352.45,
+      "chg_pct": -0.92,
+      "volume": 40469518,
+      "market_date_us": "11/19"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 498.3,
+      "prev": 508.29,
+      "chg_pct": -1.97,
+      "volume": 28435392,
+      "market_date_us": "11/19"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 374.41,
+      "prev": 383.72,
+      "chg_pct": -2.43,
+      "volume": 25476067,
+      "market_date_us": "11/19"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 257.37,
+      "prev": 267.74,
+      "chg_pct": -3.87,
+      "volume": 52082830,
+      "market_date_us": "11/19"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 272.66,
+      "prev": 282.44,
+      "chg_pct": -3.46,
+      "volume": 48554440,
+      "market_date_us": "11/19"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 596.22,
+      "prev": 616.38,
+      "chg_pct": -3.27,
+      "volume": 15233936,
+      "market_date_us": "11/19"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 185050.0,
+      "prev": 196900.0,
+      "chg_pct": -6.02,
+      "volume": 6243730,
+      "market_date_us": "11/19"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1106000.0,
+      "prev": 1183000.0,
+      "chg_pct": -6.51,
+      "volume": 1061841,
+      "market_date_us": "11/19"
+    }
+  },
+  "news": [
+    {
+      "title": "The S&P 500 Just Fell 4 Straight Weeks From a Record High. Here’s Why I’m Buying the Dip.",
+      "summary": "There's a big difference between a healthy pullback and the start of a bear market.",
+      "link": "https://www.fool.com/investing/2026/11/19/the-s-and-p-500-just-fell-4-straight-weeks-from-a-record-high-here-s-why-i-m-buying-the-dip/?.tsrc=rss"
+    },
+    {
+      "title": "Why Is BILL Stock Going Up?",
+      "summary": "Today's big story: Anthropic IPO: Priced For 2031, Or 2036.",
+      "link": "https://www.trefis.com/stock/bill/articles/626273/why-is-bill-stock-going-up/2026-11-19?.tsrc=rss"
+    },
+    {
+      "title": "Is Your VOO Fund Secretly An AI Bet?",
+      "summary": "Most people treat an S&P 500 index fund as the safe default. The AI sell-off reads like a tech-stock story that index owners can watch from the side. The fund's own holdings say otherwise. About one dollar in four in the Vanguard S&P 500 ETF (VOO) sits in six AI giants.",
+      "link": "https://www.trefis.com/stock/voo/articles/626646/is-your-voo-fund-secretly-an-ai-bet/2026-11-19?.tsrc=rss"
+    },
+    {
+      "title": "Stock Market Today, Nov. 19: Stock Market Today, Nov. 19: Alphabet Shares Fall as Anthropic Nasdaq Debut Puts Fresh Value on Google's Stake",
+      "summary": "Strong corporate earnings and a landmark IPO are providing pockets of optimism, but mounting interest rate and valuation concerns continue to undermine investor confidence.",
+      "link": "https://www.fool.com/coverage/stock-market-today/2026/11/19/stock-market-today-nov-19-stock-market-today-nov-19-alphabet-shares-fall-as-anthropic-nasdaq-debut-puts-fresh-value-on-google-s-stake/?.tsrc=rss"
+    },
+    {
+      "title": "Is Tech in a Bear Market? 20 Tech Stocks Fall Up to 76% From Highs",
+      "summary": "Kobeissi Letter data shows 20 tech stocks down 25% to 76% from record highs as the S&P 500 sheds over $6 trillion.",
+      "link": "https://beincrypto.com/tech-stocks-bear-market-record-highs/?.tsrc=rss"
+    },
+    {
+      "title": "History Says This Brilliant ETF Could Help You Turn $500 Per Month Into $784,100 While Barely Lifting a Finger.",
+      "summary": "Compound earnings can do a lot of heavy lifting.",
+      "link": "https://www.fool.com/investing/2026/11/19/history-says-this-brilliant-etf-could-help-you-turn-usd500-per-month-into-usd784-100-while-barely-lifting-a-finger/?.tsrc=rss"
+    },
+    {
+      "title": "California attorney general subpoenas Nvidia over chips, former CEO's affair",
+      "summary": "California Attorney General Rob Bonta has issued an investigative subpoena to Nvidia related to former CEO Jensen Huang's affair with a suspected Chinese spy. The California Department of Justice said Thursday it is asking Nvidia whether its advanced chips or confidential information may have gone to China and whether Nvidia misled investors and the public.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/california-attorney-general-subpoenas-nvidia-013306809.html?.tsrc=rss"
+    },
+    {
+      "title": "Why Nvidia's sell-off could be a buying opportunity (with a catch)",
+      "summary": "Worth Charting CEO and founder Carter Worth explains why Nvidia’s sharp decline could present a buying opportunity, but cautions that a rebound doesn’t necessarily mean a recovery.",
+      "link": "https://www.thestreet.com/investing/stocks/why-nvidias-sell-off-could-be-a-buying-opportunity-with-a-catch?.tsrc=rss"
+    },
+    {
+      "title": "Alibaba Group Holding Accused of Hiding Ties to Suspected Spy in Nvidia Scandal, Lawsuit Says",
+      "summary": "Alibaba Group Holding (BABA) was sued in a proposed securities class action by shareholders who accu",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/alibaba-group-holding-accused-hiding-010413571.html?.tsrc=rss"
+    },
+    {
+      "title": "Michael Burry Says He Tried to Warn You About Nvidia, CoreWeave and Nebius. Here's What the 'Big Short' Investor Saw",
+      "summary": "The famed investor took a victory lap as AI stocks slid again on Thursday.",
+      "link": "https://www.fool.com/investing/2026/11/19/michael-burry-says-he-tried-to-warn-you-about-nvidia-coreweave-and-nebius-stocks-here-s-what-the-big-short-investor-saw/?.tsrc=rss"
+    },
+    {
+      "title": "Musk Says Optimus Will Do the Dishes “Within 12-18 Months.” Here’s Where Tesla’s Robot Stands",
+      "summary": "Key TakeawaysElon Musk said on Nov. 18 that Optimus will be able to take out the trash and put away dishes in about 12 to 18 months.",
+      "link": "https://www.tikr.com/blog/musk-says-optimus-will-do-the-dishes-within-12-18-months-heres-where-teslas-robot-stands?ref=yahoofinance&tlnk=yf-261119-6gjh8j3r&.tsrc=rss"
+    },
+    {
+      "title": "Tesla Robo-Taxi Expands to Dallas. It Isn’t Enough.",
+      "summary": "Pony AI’s results give Tesla investors a look at robo-taxi economics.",
+      "link": "https://finance.yahoo.com/m/bb73f711-c5b1-3f23-8b24-3dd6a248b942/tesla-robo-taxi-expands-to.html?.tsrc=rss"
+    },
+    {
+      "title": "Michael Burry Adds To Tesla Rival BYD At Five-Year Lows",
+      "summary": "Burry noted that BYD shares are at five-year lows and could fall further, but argued that most of the damage has already occurred.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/michael-burry-adds-to-tesla-rival-byd-at-five-year-lows/cNbiNbKR90M?.tsrc=rss"
+    },
+    {
+      "title": "Trump Just Disclosed Tesla and SpaceX Stock Purchases. Here's What His Portfolio Moves Reveal",
+      "summary": "The president's latest financial disclosure includes purchases of Tesla and SpaceX, but the stocks he sold tell a more interesting story.",
+      "link": "https://www.fool.com/investing/2026/11/19/trump-just-disclosed-tesla-and-spacex-stock-purchases-here-s-what-his-portfolio-moves-reveal/?.tsrc=rss"
+    },
+    {
+      "title": "Inside Brad Gerstner’s Portfolio: Every Move He Made in the Third Quarter",
+      "summary": "Key TakeawaysBrad Gerstner’s Altimeter Capital opened a $680 million Tesla position in the third quarter, added to Meta Platforms and Micron, and sold out of Qualcomm and Applied Materials. Tesla trades at about 180x forward earnings, and analysts’ average target is just 7% above the price, so the new stake is a bet on Robotaxi profits that the estimates don’t show yet.",
+      "link": "https://www.tikr.com/blog/inside-brad-gerstners-portfolio-every-move-he-made-in-the-third-quarter?ref=yahoofinance&tlnk=yf-261119-8874cxx4&.tsrc=rss"
+    },
+    {
+      "title": "1 Unstoppable Stock to Buy Before It Joins NVDA and AAPL in the $1 Trillion Club",
+      "summary": "AMD looks poised to reclaim a $1 trillion market cap as Nvidia turmoil creates an opportunity.",
+      "link": "https://www.fool.com/investing/2026/11/19/1-unstoppable-stock-to-buy-before-it-joins-hot-tickers-in-the-1-3-trillion-club/?.tsrc=rss"
+    },
+    {
+      "title": "Shots Fired: Hunterbrook Shorts AMD Over China. Its China and Hong Kong Billing Share Is Nearly 2.5x Nvidia’s",
+      "summary": "Key TakeawaysAMD fell 8% today after Hunterbrook Media tied AMD firmware to a blacklisted Chinese server maker, and Hunterbrook’s fund disclosed a short position. Hunterbrook says China and Hong Kong billing made up 22.",
+      "link": "https://www.tikr.com/blog/shots-fired-hunterbrook-shorts-amd-over-china-its-china-and-hong-kong-billing-share-is-nearly-2-5x-nvidias?ref=yahoofinance&tlnk=yf-261119-fh8ffhc8&.tsrc=rss"
+    },
+    {
+      "title": "Anthropic, AMD, Alphabet, Palo Alto, Take-Two, Walmart, and More Stocks That Explain Today’s Market",
+      "summary": "Anthropic makes its hotly anticipated trading debut.",
+      "link": "https://finance.yahoo.com/m/65710a12-1ba7-3685-a3c3-30d9e0878af7/anthropic%2C-amd%2C-alphabet%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "AMD Shares Tumble 7% After Short Seller Questions China Ties. Chipmaker Denies Allegations.",
+      "summary": "Hunterbrook Media disclosed a short position in AMD while alleging regulatory and financial risks tied to the chipmaker's Chinese business relationships.",
+      "link": "https://www.ibtimes.com/amd-shares-fall-hunterbrook-china-export-risks-3809979?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia, AMD, Micron Sink as Anthropic Closes 17% Above IPO Price",
+      "summary": "Anthropic shares opened 34% above their $83 IPO price before giving up much of the gain, while Nvidia, AMD and other AI stocks slid across Wall Street.",
+      "link": "https://decrypt.co/383669/nvidia-amd-micron-ai-stocks-sink-anthropic-ipo-price?.tsrc=rss"
+    },
+    {
+      "title": "Dow closes below 50,000; Nasdaq falls 2% as Anthropic IPO fails to resuscitate AI trade - CNBC",
+      "summary": "Dow closes below 50,000; Nasdaq falls 2% as Anthropic IPO fails to resuscitate AI trade CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9haDBGN05NTm5JVm5PcFdVQ3hJV3Q3N1BQeUJfaGhhbkluOGpOWW1sU2dWb2ZtY3dEX2VTWHN5S2RaSkhWQTgxZFJ0UEZFTkVnaTRoZFQtZV9DelB0SkdBdUhSckR2VWFmWmw4R2tWejJNMEhSaVpn0gF8QVVfeXFMTkFhZVJoMnczYWE3UFBMLTAzcmhienFUYjlqUmNXWURGd3dsamhpbkVhSmpheXBmdDVvYk11ellHMEtGcG1ZOXBUYmxBandtMTVWOVl5M1hGZUZMSERKb1lDR1IzZVN4eC1qWklncjZTc2tzVUJod1F3Uk83dw?oc=5"
+    },
+    {
+      "title": "Anthropic IPO live: Anthropic stock begins trading in record $81B raise with $1.5T valuation - Yahoo Finance",
+      "summary": "Anthropic IPO live: Anthropic stock begins trading in record $81B raise with $1.5T valuation Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxQV3BLQkZqa19uTmlTOGE1UXJoQzFvaVhHOXUzRzRLTUVWN1VWMzFyZTBzX05CUk8xUzlzNThUbkdxZXZlYk9hUFlSS0QxdENEOWxSaE5LSTNiVVU0OVdGOGY5Tmw0Rk5rTnIxeVA5anBwYjJwYXoyV01tTFplNjFtZFRmZTE3REZrWndQTzJES2t4Q3lUYm05SUNmRGdpU0xHeWU0WnZYa3ZDMzhjNGFnelFyR2pTS3d3a3pmM0lhTEZqTnBpaWs4d1lmeHFYSjJWR3A4U2ZVVjhpSE9iZHc?oc=5"
+    },
+    {
+      "title": "Anthropic's blockbuster debut tests Wall Street's faith in AI boom - Reuters",
+      "summary": "Anthropic's blockbuster debut tests Wall Street's faith in AI boom Reuters",
+      "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxPVmU0cXVPRUhwcDZpRkRudEI3bjNfMllQVEN3M09VWFNmQUJTck1UUE9mVERRbmFicElZMWxKVnd3UWpTNGY3R1JiZ0NnRnNBRHhLMkxkVC1vUWVOVzQ3NzcwMkoycTR0MC1LUnBfdUIyWl9OZE5xYnlVVmQ5bzdVZmdnVHFjUjh6dHZrbVVQdEFPaDNCUC1KSkZEMUlhcU9OeWFiWi10SGwxNTBpNE16aTd1MA?oc=5"
+    },
+    {
+      "title": "Anthropic’s Wall Street debut marks a new chapter for AI - CNN",
+      "summary": "Anthropic’s Wall Street debut marks a new chapter for AI CNN",
+      "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTFBwN3RZUUlsZ2xnX2REUk5uSEh0RTdScHBHQVd5X1J2dk1Eams5c1pDaHlWM3pJNkl3MXR0ZzR3QzRIOWY3a24zbTZpb21qVlRZMHlVYjMtTTNyOWs1cmozWHNEYXpLS1Z6RWtYOElVRmI1NFA0MGpVYw?oc=5"
+    },
+    {
+      "title": "Why Is the US Stock Market Crashing Today? Dow Drops 1,000 Points Despite Anthropic IPO - Stocks Down Under",
+      "summary": "Why Is the US Stock Market Crashing Today? Dow Drops 1,000 Points Despite Anthropic IPO Stocks Down Under",
+      "link": "https://news.google.com/rss/articles/CBMifkFVX3lxTE5iQy1ONS05blpQMVlFOXg4VFdqQzVQbm1MNWgxUTM5WHpkWWlienZhUGRPLTJvRDFiWmQ2QmNHQ3lCVG1CYjNILXQ1V3BGbHNKTmNFaXcyVWN5c1o1cHBrNWF6YlJQSE9KT0FpU1F3NDVacnBMZ0pNQzkyYzM3QQ?oc=5"
+    }
+  ],
+  "us_date": "11/19",
+  "generated_at": "2026-11-20T11:26:04.802166+09:00"
+}
