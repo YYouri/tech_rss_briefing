@@ -1,26 +1,5 @@
 [
   {
-    "topic": "Edge AI",
-    "title": "엣지 AI 온디바이스 추론 핵심 기술 완벽 가이드",
-    "url": "",
-    "tags": "Edge AI, On-Device AI, NPU, HW-SW 공동설계, 추론 칩, KPC정보관리기술사",
-    "date": "2026-10-20T00:06:39.357087"
-  },
-  {
-    "topic": "Memory Chip",
-    "title": "메모리 반도체 HBM CXL 기술 총정리",
-    "url": "",
-    "tags": "메모리반도체, HBM, CXL, AI반도체, 고대역폭메모리, KPC정보관리기술사",
-    "date": "2026-10-20T23:38:51.458943"
-  },
-  {
-    "topic": "AI Inference Chip",
-    "title": "AI Inference Chip 시장 판도 변화",
-    "url": "",
-    "tags": "AI반도체, 추론가속기, NPU, AI하드웨어, 칩설계, KPC정보관리기술사",
-    "date": "2026-10-21T23:52:06.445956"
-  },
-  {
     "topic": "LLM Inference",
     "title": "LLM 추론 최적화 핵심 기술과 배포 전략",
     "url": "",
@@ -89,5 +68,12 @@
     "url": "",
     "tags": "Agentic AI, AI Agent, LLM, 멀티 에이전트, Tool Use, KPC정보관리기술사",
     "date": "2026-11-18T02:49:32.801326"
+  },
+  {
+    "topic": "AI Inference Chip",
+    "title": "AI Inference Chip 엣지 저전력 경쟁",
+    "url": "",
+    "tags": "AI Inference Chip, AI 추론 반도체, 엣지 AI, 저전력 칩, 반도체 시장, KPC정보관리기술사",
+    "date": "2026-11-21T01:55:51.006119"
   }
 ]
