@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 22617.73,
+      "prev": 23879.2,
+      "chg_pct": -5.28,
+      "volume": 10597030000,
+      "market_date_us": "11/20"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 6910.39,
+      "prev": 7175.83,
+      "chg_pct": -3.7,
+      "volume": 4727416000,
+      "market_date_us": "11/20"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 48147.33,
+      "prev": 49097.06,
+      "chg_pct": -1.93,
+      "volume": 1167163269,
+      "market_date_us": "11/20"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 35.89,
+      "prev": 28.44,
+      "chg_pct": 26.2,
+      "volume": 0,
+      "market_date_us": "11/20"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 8408.59,
+      "prev": 9419.72,
+      "chg_pct": -10.73,
+      "volume": 0,
+      "market_date_us": "11/20"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 103.76,
+      "prev": 103.81,
+      "chg_pct": -0.05,
+      "volume": 0,
+      "market_date_us": "11/22"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 83.21,
+      "prev": 83.98,
+      "chg_pct": -0.92,
+      "volume": 11011,
+      "market_date_us": "11/22"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 3607.0,
+      "prev": 3515.4,
+      "chg_pct": 2.61,
+      "volume": 28252,
+      "market_date_us": "11/22"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1345.71,
+      "prev": 1334.79,
+      "chg_pct": 0.82,
+      "volume": 0,
+      "market_date_us": "11/22"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 608.45,
+      "prev": 645.04,
+      "chg_pct": -5.67,
+      "volume": 134753507,
+      "market_date_us": "11/20"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 123.4,
+      "prev": 137.95,
+      "chg_pct": -10.55,
+      "volume": 88477695,
+      "market_date_us": "11/20"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 54.57,
+      "prev": 55.58,
+      "chg_pct": -1.82,
+      "volume": 81805348,
+      "market_date_us": "11/20"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 123.26,
+      "prev": 134.59,
+      "chg_pct": -8.42,
+      "volume": 32285398,
+      "market_date_us": "11/20"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 125.53,
+      "prev": 145.98,
+      "chg_pct": -14.01,
+      "volume": 633418432,
+      "market_date_us": "11/20"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 424.39,
+      "prev": 489.19,
+      "chg_pct": -13.25,
+      "volume": 70280864,
+      "market_date_us": "11/20"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 51.28,
+      "prev": 55.72,
+      "chg_pct": -7.97,
+      "volume": 208735616,
+      "market_date_us": "11/20"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 318.71,
+      "prev": 352.09,
+      "chg_pct": -9.48,
+      "volume": 37156375,
+      "market_date_us": "11/20"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 342.56,
+      "prev": 349.21,
+      "chg_pct": -1.9,
+      "volume": 80692545,
+      "market_date_us": "11/20"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 484.52,
+      "prev": 498.3,
+      "chg_pct": -2.77,
+      "volume": 47200018,
+      "market_date_us": "11/20"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 345.82,
+      "prev": 374.41,
+      "chg_pct": -7.64,
+      "volume": 46244292,
+      "market_date_us": "11/20"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 246.82,
+      "prev": 257.37,
+      "chg_pct": -4.1,
+      "volume": 74362636,
+      "market_date_us": "11/20"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 265.29,
+      "prev": 272.66,
+      "chg_pct": -2.7,
+      "volume": 58330646,
+      "market_date_us": "11/20"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 560.84,
+      "prev": 596.22,
+      "chg_pct": -5.93,
+      "volume": 25687222,
+      "market_date_us": "11/20"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 176800.0,
+      "prev": 183100.0,
+      "chg_pct": -3.44,
+      "volume": 7884890,
+      "market_date_us": "11/22"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1080000.0,
+      "prev": 1113000.0,
+      "chg_pct": -2.96,
+      "volume": 1316010,
+      "market_date_us": "11/22"
+    }
+  },
+  "news": [
+    {
+      "title": "Dow Jones Futures Rise As Oracle, Korea Try To Ease Market Fears; Look For These Absolute Losers",
+      "summary": "Futures loom as Oracle and South Korea try to calm market fears after the stock market worst week since Covid.",
+      "link": "https://finance.yahoo.com/m/9ef9da98-bccf-3565-9a30-9bc3e57ad4b9/dow-jones-futures-rise-as.html?.tsrc=rss"
+    },
+    {
+      "title": "Jim Cramer Warns the Market Is “Destroying Savings for the Many”",
+      "summary": "Americans over 70 own a bigger slice of the stock market than any other age group, and a few giant names now drive both the gains and the losses. Here is how retirees can check their own exposure before the next drop.",
+      "link": "https://247wallst.com/investing/2026/11/22/jim-cramer-warns-the-market-is-destroying-savings-for-the-many/?.tsrc=rss"
+    },
+    {
+      "title": "How exposed is the S&P 500 to an AI trade bust?",
+      "summary": "Investing.com -- Around half of the S&P 500’s market capitalization has exposure to artificial intelligence in some form, a Capital Economics analysis suggested, using an approach in which the AI industry and ecosystem was divided into five kinds of companies ranging from AI infrastructure providers to data center builders.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/exposed-p-500-ai-trade-211253614.html?.tsrc=rss"
+    },
+    {
+      "title": "China, Korea and Taiwan Rush Stock Rescues Before Monday: Can They Help the S&P 500?",
+      "summary": "China, Korea and Taiwan lead Asia to rush out stock rescues as the S&P 500 enters Monday on a seven-day losing streak.",
+      "link": "https://beincrypto.com/china-korea-taiwan-stock-rescues-monday/?.tsrc=rss"
+    },
+    {
+      "title": "Inflation, Best Buy, Zoom, Dell, Deere, and More to Watch This Week",
+      "summary": "Thanksgiving week will bring the personal consumption expenditures index, and earnings from Agilent, Hewlett, Dick’s, and more.",
+      "link": "https://finance.yahoo.com/m/b0484e57-7de1-3e23-9bf6-f4cc21f76c51/inflation%2C-best-buy%2C-zoom%2C.html?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk Could Use His Nvidia Chip Orders to Push for Jensen Huang’s Return, Analyst Says",
+      "summary": "Elon Musk wants Jensen Huang back at Nvidia Corp., and Musk’s chip orders could give him a way to pressure the board, Seaport Research Partners analyst Jay Goldberg told Benzinga. \"Elon could almost single-handedly force a change,\" Goldberg said. He...",
+      "link": "https://finance.yahoo.com/technology/ai/articles/elon-musk-could-nvidia-chip-003007166.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia Just Lost Nearly Half Its Value. A 62-Year-Old With $1 Million in an S&P 500 Index Fund Owns About $50,000 of It Without Buying a Share",
+      "summary": "Nvidia has lost nearly half its value since Oct. 6. Here is how much of it sits in a $1 million 401(k): about $50,000 in an S&P 500 index fund and roughly $14,000 in a 2030 target-date fund.",
+      "link": "https://247wallst.com/investing/2026/11/22/nvidia-just-lost-nearly-half-its-value-a-62-year-old-with-1-million-in-an-sp-500-index-fund-owns-about-50000-of-it-without-buying-a-share/?.tsrc=rss"
+    },
+    {
+      "title": "Bessent Softens on Jensen Huang. Can Nvidia Stock Finally Catch a Break?",
+      "summary": "Bessent no longer rules out Jensen Huang's return. Can Nvidia stock rebound as the board and a Nov. 25 deadline loom?",
+      "link": "https://beincrypto.com/bessent-jensen-huang-nvidia-stock-outlook/?.tsrc=rss"
+    },
+    {
+      "title": "3 AI Hardware Stocks Down More Than 30% From Their Records to Buy Now and Hold Through 2030",
+      "summary": "Each of these AI suppliers sits well below its record close. Has data center demand actually cooled that much?",
+      "link": "https://www.fool.com/investing/2026/11/22/3-ai-hardware-stocks-down-more-than-30-from-their-records-to-buy-now-and-hold-through-2030/?.tsrc=rss"
+    },
+    {
+      "title": "U.S. Treasury Secretary Scott Bessent Just Delivered Great News to Former Nvidia CEO Jensen Huang. Should You Buy Nvidia Stock Before Nov. 25?",
+      "summary": "On CBS's Face the Nation, U.S. Treasury Secretary Scott Bessent seemed to change his tone regarding a potential return of Jensen Huang to Nvidia.",
+      "link": "https://www.fool.com/investing/2026/11/22/u-s-treasury-secretary-scott-bessent-just-delivered-great-news-to-former-nvidia-ceo-jensen-huang-should-you-buy-nvidia-stock-before-nov-25/?.tsrc=rss"
+    },
+    {
+      "title": "XPENG Launches Public Advanced ADAS Test Rides at Its Paris Store, Becoming the First Chinese Automaker to Offer the Experience Overseas",
+      "summary": "As the first Chinese automaker to introduce public advanced ADAS test rides at a European retail store, XPENG brings intelligent driving beyond industry showcases and closer to everyday consumers, joining Tesla as only one of two global automakers bringing advanced ADAS experiences to European consumers.The initiative marks XPENG's first overseas retail-based intelligent driving test ride experien",
+      "link": "https://finance.yahoo.com/technology/ai/articles/xpeng-launches-public-advanced-adas-010200031.html?.tsrc=rss"
+    },
+    {
+      "title": "Should You Buy Tesla or SpaceX Stock Before Their Potential Merger?",
+      "summary": "The potential combination has a clear winner.",
+      "link": "https://www.fool.com/investing/2026/11/22/should-you-buy-tesla-or-spacex-stock-before-merger/?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk Doubles Down On Autonomy: Tesla Plans Wheel-Less, Pedal-Less Model Y To Sit Alongside Two-Seat Cybercab",
+      "summary": "Tesla Inc. CEO Elon Musk doubled down on his vision for autonomous vehicles on Wednesday, saying the automaker will release the Model Y without a steering wheel and pedals in the future. Model Y Without Traditional Vehicle Controls? During his...",
+      "link": "https://finance.yahoo.com/technology/articles/elon-musk-doubles-down-autonomy-213007363.html?.tsrc=rss"
+    },
+    {
+      "title": "Top bank resets Tesla stock target, yet standalone value is alarming",
+      "summary": "One big upgrade comes with a catch.",
+      "link": "https://www.thestreet.com/investing/stocks/top-bank-resets-tesla-stock-target-yet-standalone-value-is-alarming?.tsrc=rss"
+    },
+    {
+      "title": "J.P. Morgan Says Tesla’s Robotaxi Fleet Could Match Waymo’s Miles by Late 2027 With 18,000 Cars. The Number That Matters Is How Much Each Car Earns.",
+      "summary": "The robotaxi battle will be won and lost over the total cost of ownership per mile.",
+      "link": "https://www.fool.com/investing/2026/11/22/j-p-morgan-says-tesla-s-robotaxi-fleet-could-match-waymo-s-miles-by-late-2027-with-18-000-cars-the-number-that-matters-is-how-much-each-car-earns/?.tsrc=rss"
+    },
+    {
+      "title": "AMD Gained From Nvidia’s China Scandal. Now a Short Seller Says AMD Has a China Problem Too.",
+      "summary": "Hunterbrook claims AMD has ties to blacklisted Chinese companies, sending AMD stock down just a week after it benefited from Nvidia's China scandal.",
+      "link": "https://www.barchart.com/story/news/8957111/amd-gained-from-nvidias-china-scandal-now-a-short-seller-says-amd-has-a-china-problem-too?.tsrc=rss"
+    },
+    {
+      "title": "Prediction: These Will Be AMD’s and Nvidia’s Stock Prices by 2028",
+      "summary": "Shares of both semiconductor companies can soar impressively, but one of them seems primed for bigger gains.",
+      "link": "https://www.fool.com/investing/2026/11/22/prediction-these-will-be-amds-and-nvidias-stock-prices-by-2028/?.tsrc=rss"
+    },
+    {
+      "title": "Advanced Micro Devices (AMD) Faces Firmware Allegations And Class Action Scrutiny",
+      "summary": "Advanced Micro Devices (NasdaqGS:AMD) faces allegations it supplied updated firmware to US-blacklisted Chinese server maker IEIT Systems. A short seller's investigative report accused AMD of providing post-blacklist support to IEIT, prompting legal and regulatory scrutiny. Law firms have launched a class-action investigation into AMD for potential securities law violations following the short sell",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/advanced-micro-devices-amd-faces-130605212.html?.tsrc=rss"
+    },
+    {
+      "title": "OpenAI’s Greg Brockman: AI Delivered “Roughly an Additional Year of Progress” on AMD’s Chip in Under 5 Months",
+      "summary": "Key TakeawaysOpenAI’s Greg Brockman says OpenAI’s models delivered roughly an extra year of progress on an AMD chip in under five months. AMD’s edge over Nvidia comes from who did the work: OpenAI, which plans to deploy up to 6 gigawatts of AMD GPUs and holds a warrant that pays off as those chips ship.",
+      "link": "https://www.tikr.com/blog/openais-greg-brockman-ai-delivered-roughly-an-additional-year-of-progress-on-amds-chip-in-under-5-months?ref=yahoofinance&tlnk=yf-261122-2vm39c6q&.tsrc=rss"
+    },
+    {
+      "title": "Jim Cramer Will “Thank the Shortseller for a Discount” on AMD. Is the China Risk Overblown?",
+      "summary": "Key TakeawaysAMD fell 20% in two days, starting with an 8% drop after short seller Hunterbrook reported that a blacklisted Chinese server maker kept using newer AMD firmware. The firmware is for EPYC server CPUs, and Hunterbrook says its findings don’t prove an export violation.",
+      "link": "https://www.tikr.com/blog/jim-cramer-will-thank-the-shortseller-for-a-discount-on-amd-is-the-china-risk-overblown?ref=yahoofinance&tlnk=yf-261122-98h9mg2g&.tsrc=rss"
+    },
+    {
+      "title": "S&P 500 futures rebound sharply to rise 2%, kick-starting shortened week after tech rout: Live updates - CNBC",
+      "summary": "S&P 500 futures rebound sharply to rise 2%, kick-starting shortened week after tech rout: Live updates CNBC",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE55Qzd6R1BVMkNsU2hwVWc4OElya24tNzEwcjFjd1NyVkczM2dDTHk2WnNzdkxlR2huZW1IcTgtMDBTUVU3WWxZNW1PeFQyaHgwdGl3LTlaVjV1cEtWa0JSQmNuQ3hnQmViVG5XYndIVEFaRFVEUzJ30gF8QVVfeXFMTWJnbFVGZ0NXUU1Xb04xRi1tMnlKazVMVWxSOUpYSWtBV2dHVHZycUpyUk1XX24zQ2o4bHFEVDEyaklmcktGaTFvMHlualhDckJrZ25tMDB5VnEzbTRYQmhEOThhNDZSWWtMSDYya2ZHckRQLUtEZGl0Tmp2TQ?oc=5"
+    },
+    {
+      "title": "US Stock Futures Open Higher After Tech Selloff: Markets Wrap - Bloomberg.com",
+      "summary": "US Stock Futures Open Higher After Tech Selloff: Markets Wrap Bloomberg.com",
+      "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxNMFVRM2J2cTZ6eU02Qzk1TF83UmhsSEN3SlpHYjJuc2lDeXBVM0h6WkN2bEJCUlk5RnZNOFMta05FOXFqeTZQQWZnbFl2RG1WTWVNSXYwVWhZRFZxRkx6SDlhTWtUWk92UVBJa2FGWVk3ak9rOUVJYjZ6RDBqcUZCOEpiWmFVWGxvVmM1Y2prdDk2N19EZG0xWjU3aFV5QkJ6MjF4eExGSkd3TWxaWGRBVzhB?oc=5"
+    },
+    {
+      "title": "A battered stock market looks for the bottom: What to watch this week - Yahoo Finance",
+      "summary": "A battered stock market looks for the bottom: What to watch this week Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxOcU03UEttMkt2VHk0czNiZGxHNnB0MTR6Z2lvN01WUEF4VXZaejRWdV9IZ1d1b2YxUTc5bG9NUXVscVV4RjZ1TmdEdGtzWDdlb0JsQzhIWUozSHhGVFNSYW55aWpaalN4V1NlU21GWUpjYURFVU9YajkwZ3ltNXhvM2kwRW51T2RtYzVtajM4M3RvRmYwLUNQU1RHN0hjYmlsR3JGdTQ2WVNoMThMNTNwZmI0VlB5NXhaYzZoLWxralZSSGM?oc=5"
+    },
+    {
+      "title": "S&P 500 correction: Five forces behind the market sell-off - CNBC",
+      "summary": "S&P 500 correction: Five forces behind the market sell-off CNBCNasdaq wipes out gains for the year as Anthropic IPO fails to quell AI nerves CNNStock market today: Dow and S&P 500 enter correction, Nasdaq sinks 5% to erase 2026 gains as AI trade melts down Yahoo Finance",
+      "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTFBVdEZSRFJHbTVUcnFhajRic19hWTN3bFdWTTNHcG4xZ1FOUkIwbTlxM25RRnNubWg4eFdMN091NVdrNFRrLXNxYkVRdE5RMmxUdjEtLVB1d0ZvS0V0S05mVGRpdWliYXE0YV9sSHZndlNfenJBUl90YlZR0gF_QVVfeXFMTjdUUUM2aGNWRGk0VGM5TGpacVBtZjNLNnRiWmE1clBxSnBZenR2anotRF9lU1pEQXJKVjhoaEh6VHZ5b2hWMktPZEI0N1FmWW80S2N0anRHS3djeHVuOTRibk1wanNiNEZoY0FyVlFxbXA4N1hWWlZIZzlWdHVqdw?oc=5"
+    },
+    {
+      "title": "We May Be Witnessing Wall Street's Biggest Bubble Burst in Real Time (and I'm Not Talking About Artificial Intelligence) - The Motley Fool",
+      "summary": "We May Be Witnessing Wall Street's Biggest Bubble Burst in Real Time (and I'm Not Talking About Artificial Intelligence) The Motley Fool",
+      "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxOcjJWdXRwbEtCeEM0WTdLYVVfaTBTSnM0Q0N6Z3Yzd1RPRVE5STNTcEp5STJ0bGFuRThnbm1ydnVyUTV6ZWZLRWxpY2k1OThuOFNlVnphM196YjIycEZ0cVdVQUs5YWtocWxDY1ZCMldYa0tEbXNpQjFsNTBOQ3BKN29tR3lLRDhyT3I5NldmX0o2c1psQ04ta1Q4NG1NbjZfbE53ZG5qSTBHTUFLMTJzTE9LVnZmNkp2RjVfQW9OV3g3SWNHSUlfVGF0TGFjcmZZX01z?oc=5"
+    }
+  ],
+  "us_date": "11/20",
+  "generated_at": "2026-11-23T10:51:05.067982+09:00"
+}
