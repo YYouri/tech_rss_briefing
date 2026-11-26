@@ -1,0 +1,383 @@
+{
+  "quotes": {
+    "^IXIC": {
+      "symbol": "^IXIC",
+      "name": "나스닥",
+      "kind": "index",
+      "price": 23585.8,
+      "prev": 23733.54,
+      "chg_pct": -0.62,
+      "volume": 9985157000,
+      "market_date_us": "11/25"
+    },
+    "^GSPC": {
+      "symbol": "^GSPC",
+      "name": "S&P500",
+      "kind": "index",
+      "price": 7182.78,
+      "prev": 7201.09,
+      "chg_pct": -0.25,
+      "volume": 3465619000,
+      "market_date_us": "11/25"
+    },
+    "^DJI": {
+      "symbol": "^DJI",
+      "name": "다우존스",
+      "kind": "index",
+      "price": 50182.95,
+      "prev": 50018.7,
+      "chg_pct": 0.33,
+      "volume": 754711074,
+      "market_date_us": "11/25"
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "kind": "index",
+      "price": 28.29,
+      "prev": 26.36,
+      "chg_pct": 7.32,
+      "volume": 0,
+      "market_date_us": "11/25"
+    },
+    "^SOX": {
+      "symbol": "^SOX",
+      "name": "필라델피아반도체지수",
+      "kind": "index",
+      "price": 8774.86,
+      "prev": 8832.5,
+      "chg_pct": -0.65,
+      "volume": 0,
+      "market_date_us": "11/25"
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "달러인덱스",
+      "kind": "macro",
+      "price": 103.81,
+      "prev": 103.81,
+      "chg_pct": -0.0,
+      "volume": 0,
+      "market_date_us": "11/25"
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI유가",
+      "kind": "macro",
+      "price": 84.38,
+      "prev": 82.05,
+      "chg_pct": 2.84,
+      "volume": 9275,
+      "market_date_us": "11/25"
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "금선물",
+      "kind": "macro",
+      "price": 3605.2,
+      "prev": 3561.9,
+      "chg_pct": 1.22,
+      "volume": 28455,
+      "market_date_us": "11/25"
+    },
+    "USDKRW=X": {
+      "symbol": "USDKRW=X",
+      "name": "원달러환율",
+      "kind": "macro",
+      "price": 1344.08,
+      "prev": 1342.65,
+      "chg_pct": 0.11,
+      "volume": 0,
+      "market_date_us": "11/25"
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "name": "나스닥100 ETF",
+      "kind": "etf",
+      "price": 633.93,
+      "prev": 638.1,
+      "chg_pct": -0.65,
+      "volume": 80638679,
+      "market_date_us": "11/25"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "name": "반도체 ETF",
+      "kind": "etf",
+      "price": 127.98,
+      "prev": 128.62,
+      "chg_pct": -0.5,
+      "volume": 48375443,
+      "market_date_us": "11/25"
+    },
+    "XLF": {
+      "symbol": "XLF",
+      "name": "금융 ETF",
+      "kind": "etf",
+      "price": 56.51,
+      "prev": 56.11,
+      "chg_pct": 0.71,
+      "volume": 38510377,
+      "market_date_us": "11/25"
+    },
+    "EWY": {
+      "symbol": "EWY",
+      "name": "한국 ETF(EWY)",
+      "kind": "kr_proxy",
+      "price": 129.19,
+      "prev": 130.7,
+      "chg_pct": -1.16,
+      "volume": 16418595,
+      "market_date_us": "11/25"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "price": 149.3,
+      "prev": 155.38,
+      "chg_pct": -3.91,
+      "volume": 359527027,
+      "market_date_us": "11/25"
+    },
+    "AMD": {
+      "symbol": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "price": 406.03,
+      "prev": 413.27,
+      "chg_pct": -1.75,
+      "volume": 51224876,
+      "market_date_us": "11/25"
+    },
+    "INTC": {
+      "symbol": "INTC",
+      "name": "인텔",
+      "kind": "stock",
+      "price": 54.47,
+      "prev": 54.8,
+      "chg_pct": -0.6,
+      "volume": 128251607,
+      "market_date_us": "11/25"
+    },
+    "TSM": {
+      "symbol": "TSM",
+      "name": "TSMC",
+      "kind": "stock",
+      "price": 342.34,
+      "prev": 349.2,
+      "chg_pct": -1.96,
+      "volume": 22685134,
+      "market_date_us": "11/25"
+    },
+    "AAPL": {
+      "symbol": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "price": 355.58,
+      "prev": 354.07,
+      "chg_pct": 0.43,
+      "volume": 53060252,
+      "market_date_us": "11/25"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "price": 489.93,
+      "prev": 496.13,
+      "chg_pct": -1.25,
+      "volume": 26095270,
+      "market_date_us": "11/25"
+    },
+    "TSLA": {
+      "symbol": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "price": 380.14,
+      "prev": 384.68,
+      "chg_pct": -1.18,
+      "volume": 33883019,
+      "market_date_us": "11/25"
+    },
+    "AMZN": {
+      "symbol": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "price": 244.43,
+      "prev": 252.29,
+      "chg_pct": -3.12,
+      "volume": 61713896,
+      "market_date_us": "11/25"
+    },
+    "GOOGL": {
+      "symbol": "GOOGL",
+      "name": "알파벳",
+      "kind": "stock",
+      "price": 273.1,
+      "prev": 279.05,
+      "chg_pct": -2.13,
+      "volume": 40804718,
+      "market_date_us": "11/25"
+    },
+    "META": {
+      "symbol": "META",
+      "name": "메타",
+      "kind": "stock",
+      "price": 609.89,
+      "prev": 589.82,
+      "chg_pct": 3.4,
+      "volume": 18558019,
+      "market_date_us": "11/25"
+    },
+    "005930.KS": {
+      "symbol": "005930.KS",
+      "name": "삼성전자(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 172600.0,
+      "prev": 170700.0,
+      "chg_pct": 1.11,
+      "volume": 8156042,
+      "market_date_us": "11/25"
+    },
+    "000660.KS": {
+      "symbol": "000660.KS",
+      "name": "SK하이닉스(KRX, 전일 종가)",
+      "kind": "kr_actual",
+      "price": 1060000.0,
+      "prev": 1030000.0,
+      "chg_pct": 2.91,
+      "volume": 2077921,
+      "market_date_us": "11/25"
+    }
+  },
+  "news": [
+    {
+      "title": "U.S. stock futures turn higher as tech rebound holds after wild swings on Wall St",
+      "summary": "Investing.com-- U.S. stock index futures turned higher in aftermarket trade on Wednesday, with technology stocks pushing higher after a slowing artificial intelligence trade and strong inflation drove wild swings on Wall Street.",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/u-stock-futures-steady-whipsaw-001343016.html?.tsrc=rss"
+    },
+    {
+      "title": "S&P 500, Nasdaq End Lower But Dow Rebounds As Traders Rotate Out Of AI — NVDA, SPCX, PANW In Focus",
+      "summary": "The Nasdaq 100 briefly touched bear market territory on Wednesday before paring some losses.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-nasdaq-end-lower-but-dow-rebounds-as-traders-rotate-out-of-ai-nvda-spcx-panw-in-focus/cNbx21AR9mC?.tsrc=rss"
+    },
+    {
+      "title": "5 Best Healthcare Stocks To Buy for 2027",
+      "summary": "The healthcare sector is emerging as an attractive investment opportunity heading into 2027, supported by rising demand for medical services, pharmaceutical innovation, and advances in biotechnology. Growing investment in treatments for chronic diseases, oncology, obesity, and other complex medical conditions is also creating opportunities. Healthcare stocks have delivered solid gains in 2026. The",
+      "link": "https://finance.yahoo.com/healthcare/articles/5-best-healthcare-stocks-buy-224526274.html?.tsrc=rss"
+    },
+    {
+      "title": "The Average Stock Shrugged Off the Tech Slide. History Is Split",
+      "summary": "Today's big story: Anthropic Below Its IPO Price: Do Giants Come Back.",
+      "link": "https://www.trefis.com/stock/spx/articles/628711/the-average-stock-shrugged-off-the-tech-slide-history-is-split/2026-11-25?.tsrc=rss"
+    },
+    {
+      "title": "Dow Jones Futures Rise; Market Goes On Wild Ride As Nasdaq Slashes Losses",
+      "summary": "The market went on a wild ride before Thanksgiving, but the Dow and Anthropic reversed higher while the Nasdaq and Nvidia came well off lows.",
+      "link": "https://finance.yahoo.com/m/158e82fc-b889-34b6-8704-99a49e9a83ae/dow-jones-futures-rise%3B.html?.tsrc=rss"
+    },
+    {
+      "title": "Trump admin weighed using Cold War law to reinstate Nvidia CEO Huang, WaPo reports",
+      "summary": "Investing.com -- Senior Trump administration officials discussed using a Cold War-era law to pressure Nvidia to bring back Jensen Huang as chief executive, the Washington Post reported on Wednesday, citing three people familiar with the matter.",
+      "link": "https://finance.yahoo.com/technology/articles/trump-admin-weighed-using-cold-032247551.html?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia chips reach Chinese-owned U.S. firms despite export curbs, CBS reports",
+      "summary": "Investing.com -- Nvidia’s most advanced artificial intelligence chips are reaching Chinese-owned companies through U.S.-based businesses, raising fresh concerns over the enforcement of American export restrictions on sensitive semiconductor technology, a CBS News investigation revealed.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-chips-reach-chinese-owned-031146505.html?.tsrc=rss"
+    },
+    {
+      "title": "Kioxia and NVIDIA Collaborate to Expand Effective High-Bandwidth Memory Capacity with SSDs",
+      "summary": "SAN JOSE, Calif., November 26, 2026--A Kioxia and NVIDIA collaboration has demonstrated the potential to extend effective GPU memory capacity to petabyte scale.",
+      "link": "https://finance.yahoo.com/technology/ai/articles/kioxia-nvidia-collaborate-expand-effective-031000587.html?.tsrc=rss"
+    },
+    {
+      "title": "Is Nvidia Stock a Buy After Dell's Record AI Backlog?",
+      "summary": "Most of the server maker's newest AI orders run on the chip giant's latest system.",
+      "link": "https://www.fool.com/investing/2026/11/25/is-nvidia-stock-a-buy-after-dell-s-record-ai-backlog/?.tsrc=rss"
+    },
+    {
+      "title": "Nvidia’s Market Cap Falls Below Microsoft’s: Analyst Flags Five Overhangs For NVDA Stock",
+      "summary": "Nvidia shares fell nearly 4% on Wednesday, knocking the chipmaker down to third place in the U.S. market-cap rankings.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/nvidia-s-market-cap-falls-below-microsoft-s-analyst-flags-five-overhangs-for-nvda-stock/cNbx4KZR9Z3?.tsrc=rss"
+    },
+    {
+      "title": "Ten reasons the market is selling off again before Thanksgiving",
+      "summary": "Sozzi Unleashed host Brian Sozzi runs through his list of 10 reasons stocks are selling off again two days after the Jensen Huang relief rally, from a hot PCE report and a possible December Fed hike to new tariffs of up to 20% on China and the EU, and five reasons Nvidia is back under pressure. He questions why Wall Street is shrugging off blowout quarters from Dell and HPE, with HPE CEO Antonio N",
+      "link": "https://finance.yahoo.com/video/ten-reasons-the-market-is-selling-off-again-before-thanksgiving-160424234.html?.tsrc=rss"
+    },
+    {
+      "title": "Tesla and SpaceX stocks sink as merger concerns mount",
+      "summary": "Tesla and SpaceX shares were particularly hard-hit in Wednesday's broader market sell-off, amid growing investor pushback over a potential merger and another delay in European regulatory approval for Tesla's Full Self-Driving software.",
+      "link": "https://finance.yahoo.com/markets/stocks/article/tesla-and-spacex-stocks-sink-as-merger-concerns-mount-154159372.html?.tsrc=rss"
+    },
+    {
+      "title": "Cathie Wood Buys More SpaceX Amid Tesla Merger Talks — Ron Baron Says SpaceX Could Make $50B A Year From One Data Center",
+      "summary": "Influencer Alexandra Merz says Goldman Sachs and Morgan Stanley give SpaceX a merger edge because they helped take it public and lent it money.",
+      "link": "https://stocktwits.com/news-articles/markets/equity/cathie-wood-buys-spacex-tesla-merger-talks-ron-baron-spacex-50b-one-data-center/cNbxeDKR9Z4?.tsrc=rss"
+    },
+    {
+      "title": "Elon Musk tells Tesla investors there is 'only one way' to eliminate poverty",
+      "summary": "Musk says poverty won’t end with government checks, and that Tesla is building the real answer.",
+      "link": "https://www.thestreet.com/investing/elon-musk-tells-tesla-investors-optimus-robots-will-eliminate-poverty?.tsrc=rss"
+    },
+    {
+      "title": "If SpaceX and Tesla Merge Next Year, Here's What a $5,000 Investment in the Combined Company Could Be Worth by the End of 2028",
+      "summary": "An investment in Tesla could double in the event of a Space Exploration Technologies merger.",
+      "link": "https://www.fool.com/investing/2026/11/25/if-spacex-and-tesla-merge-next-year-here-s-what-a-usd5-000-investment-in-the-combined-company-could-be-worth-by-the-end-of-2027/?.tsrc=rss"
+    },
+    {
+      "title": "Big AI Buyers Want a Second Source. Is AMD (AMD) It?",
+      "summary": "Advanced Micro Devices, Inc. (NASDAQ:AMD) ranks 6th on our list of the 10 Best Strong Buy Growth Stocks to Buy for 2027. By November 19, the wider market had slipped about 8.5% from its 52-week high, and chip stocks took the hardest hit, with the semiconductor sector down roughly 36% from its own peak. Concerns […]",
+      "link": "https://finance.yahoo.com/technology/ai/articles/big-ai-buyers-want-second-005602621.html?.tsrc=rss"
+    },
+    {
+      "title": "2 Billionaire Funds Dumped AMD Last Quarter. Is It a Sell?",
+      "summary": "AMD's stock is pricey compared to its peers.",
+      "link": "https://www.fool.com/investing/2026/11/25/2-billionaire-funds-dumped-amd-last-quarter-is-it-a-sell/?.tsrc=rss"
+    },
+    {
+      "title": "Prediction: AMD Stock Could Rally 58% as Analysts Maintain Strong Buy Rating",
+      "summary": "Advanced Micro Devices (AMD) shares have pulled back in recent weeks, but Wall Street remains bullish on the chipmaker. According to TipRanks data, AMD has a Strong Buy consensus rating, with analysts seeing nearly 58% upside from its November 24 closing price of $413.27 over the next 12 months. Recent analyst calls from StoneX and Bank of America (BAC) point to strong demand for AMD’s server chip",
+      "link": "https://finance.yahoo.com/markets/stocks/articles/prediction-amd-stock-could-rally-213100517.html?.tsrc=rss"
+    },
+    {
+      "title": "David Tepper Sold All of His AMD Stock. His Biggest Position Is Micron.",
+      "summary": "AMD is pricey, while Micron is dirt cheap.",
+      "link": "https://www.fool.com/investing/2026/11/25/david-tepper-sold-all-of-his-amd-stock-his-biggest-position-is-micron/?.tsrc=rss"
+    },
+    {
+      "title": "AMD stock could reward patient investors enormously",
+      "summary": "Wall Street sees more room for this data center stock to climb in 2027.",
+      "link": "https://www.thestreet.com/investing/stocks/amd-stock-2027-data-center-growth?.tsrc=rss"
+    },
+    {
+      "title": "Dow closes higher Wednesday, wiping out 1,100-point loss in stunning rebound: Live updates - CNBC",
+      "summary": "Dow closes higher Wednesday, wiping out 1,100-point loss in stunning rebound: Live updates CNBCStock market today: Dow erases losses to end positive, S&P 500 and Nasdaq recover ground amid AI sell-off Yahoo FinanceNasdaq, S&P 500 end down, but well off lows as investors buy bargains Reuters",
+      "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE5Jd2QwOVppNGtIY3I5ZXgyVmZKQzJ3SzZvVnVydTJHQnliRXBCR2RiQTBMeXExQU16TnpPQzkwWVl2Q0FKV055NzJBNE4tMGQ0UmlFMFdnQ3o1OG9tR2JNd1Z6Ymk5cGtDVFBxZjJPT19jblIxZ2lwRdIBfkFVX3lxTE5qZGNISDFwMjNGQUoxc3ZlT1JFR1A5Zk1oTmJSX1kxWVFOWUZscTZGTWh2cHdfMW92SzVCbXdBR2o3YWJUVzN2TXhfOUdhSUZpdFNyNXBaUjdseWpuQklwaVgzaUlGdkJqNm54TWEyVTluWVFYVTZVMVptNV9xQQ?oc=5"
+    },
+    {
+      "title": "Nvidia is crucial to the economy. An AI wipeout could unleash unexpected consequences - CNN",
+      "summary": "Nvidia is crucial to the economy. An AI wipeout could unleash unexpected consequences CNN",
+      "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTE52c3JDajhQZ1R2d0RKejhxZDhrZ0QyXzBvWDVNSHFaMzFiV2dGZGZKbjdvZHNUZ3N2U3RGOVV3NHg2bm1CZUpkaEgwUkI4cHlhNmMwa3VDV0liSVluaVZZMnNpbnFRQTNaenc?oc=5"
+    },
+    {
+      "title": "Markets News, Nov. 25, 2026: Nasdaq, S&P 500 Close Lower as AI Trade Remains Under Pressure; Nvidia Falls 4% - Investopedia",
+      "summary": "Markets News, Nov. 25, 2026: Nasdaq, S&P 500 Close Lower as AI Trade Remains Under Pressure; Nvidia Falls 4% Investopedia",
+      "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPSjhSdzBFWmRZeGtpYnpQT1cteVNuVG5BUzhGd282NWNydGgtZmIxZkhJbmhJVWZJVk5rd1JGTHBXN2xQY21RWkJobDVPeXdjQ20tQzRxaE5wUmQxOU9Cc0pUOUV0QzdTMFdTSmZ2SG5oaVJGZ3RFMWZSSE9ZSzdfUVNkdTZyZHg4S3JRNXRnZm1mVHM0dGVmN2NR?oc=5"
+    },
+    {
+      "title": "Stocks Soar as Huang’s Nvidia Return Fuels AI Bets: Markets Wrap - Bloomberg",
+      "summary": "Stocks Soar as Huang’s Nvidia Return Fuels AI Bets: Markets Wrap Bloomberg",
+      "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxNMFVRM2J2cTZ6eU02Qzk1TF83UmhsSEN3SlpHYjJuc2lDeXBVM0h6WkN2bEJCUlk5RnZNOFMta05FOXFqeTZQQWZnbFl2RG1WTWVNSXYwVWhZRFZxRkx6SDlhTWtUWk92UVBJa2FGWVk3ak9rOUVJYjZ6RDBqcUZCOEpiWmFVWGxvVmM1Y2prdDk2N19EZG0xWjU3aFV5QkJ6MjF4eExGSkd3TWxaWGRBVzhB?oc=5"
+    },
+    {
+      "title": "Stock Market Today: Dow, S&P 500, Nasdaq Futures Fall as Traders Bet on December Fed Hike; Trump Tells Hu - Benzinga",
+      "summary": "Stock Market Today: Dow, S&P 500, Nasdaq Futures Fall as Traders Bet on December Fed Hike; Trump Tells Hu Benzinga",
+      "link": "https://news.google.com/rss/articles/CBMirwJBVV95cUxNMzFGWHF5OVhuNTdCU2FNeHdKNXdGWklxaXpGMVlDNUp0TVJLbHM4RGZ0aElBbnF6dVJRTVZ5cnFDZ3FRZWg1b3Y4cGNRcWM5MnBROFFkWjBfRThmSmtad0JjcW5HNFRLLXhRLUdCWlRNQ2Q2bU16QjB0Rmg5ejBFSjd5MW04S3M2a00zQzhYbGI0Tkd4Vk9wTXJTUGc5bUZnOHdxNjU3TUJmTnR6NURUbElnZF9pbVduYmNWdFZac0wyTnRVWmVWX2t2ZUVUYVQwWUpuTkdPMEprZ2dEWkxXQ0VCbUdVOEhHNm05bTJaQzRUYzBwWElDbDJocVRrU0czUTVSd1FhQk5sWDZhdkJIZWdtQV90Y0VUU29EZzJsOU9rZGdaQTVnVUFxZ05vdkk?oc=5"
+    }
+  ],
+  "us_date": "11/25",
+  "generated_at": "2026-11-26T12:39:36.407132+09:00"
+}
