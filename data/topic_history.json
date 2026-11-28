@@ -68,5 +68,12 @@
     "url": "",
     "tags": "Digital Twin, 디지털 트윈, 제조 디지털 트윈, 산업 디지털 트윈, 의료 디지털 트윈, KPC정보관리기술사",
     "date": "2026-11-27T03:25:59.723975"
+  },
+  {
+    "topic": "LLM Inference",
+    "title": "LLM Inference 비용 줄이는 최적화 전략",
+    "url": "",
+    "tags": "LLM 추론, AI 추론 최적화, KV 캐시, 배치 추론, vLLM, KPC정보관리기술사",
+    "date": "2026-11-28T03:01:50.096978"
   }
 ]
